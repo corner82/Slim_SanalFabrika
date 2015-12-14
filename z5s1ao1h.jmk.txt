@@ -1,0 +1,41 @@
+﻿Merge branch 'master' of https://github.com/corner82/slim_test
+
+# Conflicts:
+#	vendor/dal/pdo/CmpnyEqpmnt.php
+#
+# It looks like you may be committing a merge.
+# If this is not correct, please remove the file
+#	.git/MERGE_HEAD
+# and try again.
+
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Your branch and 'origin/master' have diverged,
+# and have 2 and 7 different commits each, respectively.
+#   (use "git pull" to merge the remote branch into yours)
+#
+# All conflicts fixed but you are still merging.
+#
+# Changes to be committed:
+#	modified:   vendor/bll/bll/CmpnyEqpmnt.php
+#	modified:   vendor/dal/dalFactory/pdo/CmpnyEqpmntFactory.php
+#	modified:   vendor/dal/pdo/CmpnyEqpmnt.php
+#	new file:   vendor/services/database/postgresql/PostgreSQLConnectPDO_Ostim.php
+#
+# Changes not staged for commit:
+#	modified:   index.php
+#	modified:   vendor/bll/bll/CmpnyEqpmnt.php
+#	modified:   vendor/dal/dalFactory/pdo/CmpnyEqpmntFactory.php
+#	modified:   vendor/services/database/postgresql/PostgreSQLConnectPDO_Ostim.php
+#	modified:   vendor/slim/slim/Slim/Middleware/PrettyExceptions.php
+#	modified:   vendor/slim/slim/Slim/SlimExtended.php
+#	modified:   vendor/utill/mq/abstractMQ.php
+#	modified:   vendor/utill/mq/messageMQ/MQMessage.php
+#	modified:   vendor/videlalvaro/php-amqplib/PhpAmqpLib/Connection/AMQPStreamConnection.php
+#
+# Untracked files:
+#	vendor/slim/slim/Slim/Middleware/MiddlewareMQManager.php
+#
+
