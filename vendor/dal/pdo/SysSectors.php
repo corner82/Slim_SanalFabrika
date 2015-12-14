@@ -153,11 +153,11 @@ class SysSectors extends \DAL\DalSlim {
 			when a.deleted = 0 then 'Aktif' 
 			when a.deleted = 1 then 'Silinmiş' 
 			end as state,                    
-                    a.country_id, 
+                    a.language_id, 
                     a.ordr as siralama,
                     a.language_parent_id
                 FROM sys_sectors  a
-                where country_id = 91 
+                where language_id = 91 
                  
                                  ");
             $statement->execute();
@@ -214,16 +214,16 @@ class SysSectors extends \DAL\DalSlim {
              */
             $statement = $pdo->prepare("
                 INSERT INTO sys_sectors(
-                        name, name_eng, country_id, ordr)
+                        name, name_eng, language_id, ordr)
                 VALUES (
                         :name,
                         :name_eng, 
-                        :country_id,
+                        :language_id,
                         :ordr )
                                                 ");
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
             $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
             $statement->bindValue(':ordr', $params['ordr'], \PDO::PARAM_INT);
 
             $result = $statement->execute();
@@ -287,7 +287,7 @@ class SysSectors extends \DAL\DalSlim {
                 SET              
                     name = :name, 
                     name_eng = :name_eng, 
-                    country_id = :country_id, 
+                    language_id = :language_id, 
                     ordr = :ordr
                 WHERE id = :id");
             //Bind our value to the parameter :id.
@@ -295,7 +295,7 @@ class SysSectors extends \DAL\DalSlim {
             //Bind our :model parameter.
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
             $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
             $statement->bindValue(':ordr', $params['ordr'], \PDO::PARAM_INT);
             //Execute our UPDATE statement.
             $update = $statement->execute();
@@ -368,11 +368,11 @@ class SysSectors extends \DAL\DalSlim {
 			when a.deleted = 0 then 'Aktif' 
 			when a.deleted = 1 then 'Silinmiş' 
 			end as state,                    
-                    a.country_id, 
+                    a.language_id, 
                     a.ordr as siralama,
                     a.language_parent_id
                 FROM sys_sectors  a
-                where country_id = 91 
+                where language_id = 91 
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -421,6 +421,7 @@ class SysSectors extends \DAL\DalSlim {
                        (SELECT count(id) as toplam FROM sys_sectors where deleted =0 ) as aktif_toplam   ,
                        (SELECT count(id) as toplam FROM sys_sectors where deleted =1 ) as silinmis_toplam    
                     FROM sys_sectors
+                    where language_id = 91 
                     ";
             $statement = $pdo->prepare($sql);
 
