@@ -49,7 +49,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function delete_SysNavigationLeft($id = null) {
+    public function delete_sysNavigationLeft($id = null) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -137,7 +137,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function getAll() {
+    public function getAll_sysNavigationLeft() {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             /**
@@ -215,7 +215,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function insert($params = array()) {
+    public function insert_sysNavigationLeft($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -319,7 +319,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function update($id = null, $params = array()) {
+    public function update_sysNavigationLeft($id = null, $params = array()) {
         try {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -366,7 +366,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
             $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
             $statement->bindValue(':hint_eng', $params['hint_eng'], \PDO::PARAM_STR);
             $statement->bindValue(':warning_class', $params['warning_class'], \PDO::PARAM_STR);
-            
+
             //Execute our UPDATE statement.
             $update = $statement->execute();
             $affectedRows = $statement->rowCount();
@@ -391,7 +391,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function fillGrid($args = array()) {
+    public function fillGrid_sysNavigationLeft($args = array()) {
 
 
         if (isset($args['page']) && $args['page'] != "" && isset($args['rows']) && $args['rows'] != "") {
@@ -467,7 +467,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
                 'limit' => $pdo->quote($limit),
                 'offset' => $pdo->quote($offset),
             );
-            echo debugPDO($sql, $parameters);
+            //   echo debugPDO($sql, $parameters);
 
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -491,7 +491,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function fillGridRowTotalCount($params = array()) {
+    public function fillGridRowTotalCount_sysNavigationLeft($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -516,8 +516,8 @@ class sysNavigationLeft extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-    
-        /**
+
+    /**
      * basic select from database  example for PDO prepared
      * statements, table names are irrevelant and should be changed on specific 
      * returned result set example;
@@ -576,7 +576,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function getAll_SysNavigationLeft() {
+    public function getLeftMenu_sysNavigationLeft($id = null) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             /**
@@ -605,27 +605,24 @@ class sysNavigationLeft extends \DAL\DalSlim {
                     a.hint_eng, 
                     a.warning_class
               FROM sys_navigation_left a 
-              where a.language_id = 91  
-
-                 
+              where a.language_id = 91                 
                                  ");
+
+            $where = "";
+            if ($id != NULL) {
+                $where = " and a.parent =  " . $id;
+            }
+            $statement = $statement . $where;        
             $statement->execute();
-            $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
+
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
-            return array("found" => false, "errorInfo" => $e->getMessage());
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-
-    
-    
-    
-
 }
