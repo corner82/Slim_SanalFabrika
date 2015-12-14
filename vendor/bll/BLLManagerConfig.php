@@ -34,7 +34,7 @@ class BLLManagerConfig{
                  //'test' => 'Utill\BLL\Test\Test'
                  'reportConfigurationBLL' => 'BLL\BLL\ReportConfiguration',
                  'cmpnyEqpmntBLL' => 'BLL\BLL\CmpnyEqpmnt',
-                 'sysNavigationLeftBLL' => 'BLL\BLL\SysNavigationLeft',
+                 'sysNavigationLeftBLL' => 'BLL\BLL\sysNavigationLeft',
                  
              ),
              'factories' => [
