@@ -144,14 +144,20 @@ class SysSectors extends \DAL\DalSlim {
              * table names and column names will be changed for specific use
              */
             $statement = $pdo->prepare("
-                SELECT 
-                    id, 
-                    name, 
-                    name_eng, 
-                    deleted, 
-                    country_id, 
-                    ordr
-                FROM sys_sectors 
+              SELECT 
+                    a.id, 
+                    a.name, 
+                    a.name_eng, 
+                    a.deleted, 
+		    case 
+			when a.deleted = 0 then 'Aktif' 
+			when a.deleted = 1 then 'Silinmiş' 
+			end as state,                    
+                    a.country_id, 
+                    a.ordr as siralama,
+                    a.language_parent_id
+                FROM sys_sectors  a
+                where country_id = 91 
                  
                                  ");
             $statement->execute();
@@ -353,14 +359,20 @@ class SysSectors extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-                SELECT 
-                    id, 
-                    name, 
-                    name_eng, 
-                    deleted, 
-                    country_id, 
-                    ordr
-                FROM sys_sectors
+              SELECT 
+                    a.id, 
+                    a.name, 
+                    a.name_eng, 
+                    a.deleted, 
+		    case 
+			when a.deleted = 0 then 'Aktif' 
+			when a.deleted = 1 then 'Silinmiş' 
+			end as state,                    
+                    a.country_id, 
+                    a.ordr as siralama,
+                    a.language_parent_id
+                FROM sys_sectors  a
+                where country_id = 91 
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
