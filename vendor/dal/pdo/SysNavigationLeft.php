@@ -16,7 +16,7 @@ namespace DAL\PDO;
  * @
  * @author Okan CIRAN
  */
-class SysNavigationLeft extends \DAL\DalSlim {
+class sysNavigationLeft extends \DAL\DalSlim {
 
     /**
      * basic delete from database  example for PDO prepared
@@ -49,7 +49,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function delete($id = null) {
+    public function delete_sysNavigationLeft($id = null) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -137,7 +137,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function getAll() {
+    public function getAll_sysNavigationLeft() {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             /**
@@ -215,7 +215,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function insert($params = array()) {
+    public function insert_sysNavigationLeft($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -319,7 +319,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function update($id = null, $params = array()) {
+    public function update_sysNavigationLeft($id = null, $params = array()) {
         try {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -366,7 +366,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
             $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
             $statement->bindValue(':hint_eng', $params['hint_eng'], \PDO::PARAM_STR);
             $statement->bindValue(':warning_class', $params['warning_class'], \PDO::PARAM_STR);
-            
+
             //Execute our UPDATE statement.
             $update = $statement->execute();
             $affectedRows = $statement->rowCount();
@@ -391,7 +391,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function fillGrid($args = array()) {
+    public function fillGrid_sysNavigationLeft($args = array()) {
 
 
         if (isset($args['page']) && $args['page'] != "" && isset($args['rows']) && $args['rows'] != "") {
@@ -467,7 +467,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 'limit' => $pdo->quote($limit),
                 'offset' => $pdo->quote($offset),
             );
-            echo debugPDO($sql, $parameters);
+            //   echo debugPDO($sql, $parameters);
 
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -491,7 +491,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function fillGridRowTotalCount($params = array()) {
+    public function fillGridRowTotalCount_sysNavigationLeft($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -517,4 +517,112 @@ class SysNavigationLeft extends \DAL\DalSlim {
         }
     }
 
+    /**
+     * basic select from database  example for PDO prepared
+     * statements, table names are irrevelant and should be changed on specific 
+     * returned result set example;
+     * for success result
+     * Array
+      (
+      [found] => 1
+      [errorInfo] => Array
+      (
+      [0] => 00000
+      [1] =>
+      [2] =>
+      )
+
+      [resultSet] => Array
+      (
+      [0] => Array
+      (
+      [id] => 1
+      [name] => zeyn dag
+      [international_code] => 12
+      [active] => 1
+      )
+
+      [1] => Array
+      (
+      [id] => 4
+      [name] => zeyn dag
+      [international_code] => 12
+      [active] => 1
+      )
+
+      [2] => Array
+      (
+      [id] => 5
+      [name] => zeyn dag new
+      [international_code] => 25
+      [active] => 1
+      )
+
+      [3] => Array
+      (
+      [id] => 3
+      [name] => zeyn zeyn oldu şimdik
+      [international_code] => 12
+      [active] => 1
+      )
+
+      )
+
+      )
+     * usage 
+     * @author Okan CIRAN
+     * @ sys_navigation_left tablosundaki tüm kayıtları getirir.  !!
+     * @version v 1.0  14.12.2015    
+     * @return array
+     * @throws \PDOException
+     */
+    public function getLeftMenu_sysNavigationLeft($id = null) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            /**
+             * table names and column names will be changed for specific use
+             */
+            $statement = $pdo->prepare("
+              SELECT a.id, 
+                    a.menu_name, 
+                    a.language_id, 
+                    a.menu_name_eng, 
+                    a.url, 
+                    a.parent, 
+                    a.icon_class, 
+                    a.page_state, 
+                    a.collapse, 
+                    a.active, 
+                    a.deleted, 
+                    case 
+                            when a.deleted = 0 then 'Aktif' 
+                            when a.deleted = 1 then 'Silinmiş' 
+                    end as state,    
+                    a.warning, 
+                    a.warning_type, 
+                    a.hint, z_index, 
+                    a.language_parent_id, 
+                    a.hint_eng, 
+                    a.warning_class
+              FROM sys_navigation_left a 
+              where a.language_id = 91                 
+                                 ");
+
+            $where = "";
+            if ($id != NULL) {
+                $where = " and a.parent =  " . $id;
+            }
+            $statement = $statement . $where;        
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
 }

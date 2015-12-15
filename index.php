@@ -105,7 +105,7 @@ $app->get("/getReports_test/", function () use ($app, $pdo) {
     //$filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_BASE);
     //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
     
-    
+    echo ("deneme   ");
     
     $BLL = $app->getBLLManager()->get('reportConfigurationBLL'); 
 
