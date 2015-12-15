@@ -9,9 +9,11 @@
  */
 
 namespace BLL\BLL;
+
 /**
  * Business Layer class for report Configuration entity
  */
+
 class SysNavigationLeft extends \BLL\BLLSlim{
     
      /**
