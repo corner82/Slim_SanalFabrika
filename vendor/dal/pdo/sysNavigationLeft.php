@@ -49,7 +49,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function delete_sysNavigationLeft($id = null) {
+    public function delete($id = null) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -137,7 +137,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function getAll_sysNavigationLeft() {
+    public function getAll() {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             /**
@@ -215,7 +215,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function insert_sysNavigationLeft($params = array()) {
+    public function insert($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -319,7 +319,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function update_sysNavigationLeft($id = null, $params = array()) {
+    public function update($id = null, $params = array()) {
         try {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -391,7 +391,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function fillGrid_sysNavigationLeft($args = array()) {
+    public function fillGrid($args = array()) {
 
 
         if (isset($args['page']) && $args['page'] != "" && isset($args['rows']) && $args['rows'] != "") {
@@ -491,7 +491,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function fillGridRowTotalCount_sysNavigationLeft($params = array()) {
+    public function fillGridRowTotalCount($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -576,7 +576,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function getLeftMenu_sysNavigationLeft($id = null) {
+    public function getLeftMenu($id = null) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             /**
