@@ -14,9 +14,9 @@ namespace DAL;
  * @author Mustafa Zeynel Dağlı
  */
 interface DalInterface {
-    public function getAll_sysNavigationLeft();
-    public function update_sysNavigationLeft($id = null, $params = array());
-    public function delete_sysNavigationLeft ($id = null);
-    public function insert_sysNavigationLeft($params = array());
+    public function getAll();
+    public function update($id = null, $params = array());
+    public function delete ($id = null);
+    public function insert($params = array());
 }
 
