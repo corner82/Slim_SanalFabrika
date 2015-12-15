@@ -14,6 +14,7 @@ namespace BLL\BLL;
  */
 class SysNavigationLeft extends \BLL\BLLSlim{
     
+    
      /**
      * constructor
      */
