@@ -16,7 +16,7 @@ namespace DAL\PDO;
  * @
  * @author Okan CIRAN
  */
-class sysNavigationLeft extends \DAL\DalSlim {
+class SysNavigationLeft extends \DAL\DalSlim {
 
     /**
      * basic delete from database  example for PDO prepared
@@ -576,15 +576,23 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function getLeftMenu($id = null) {
+    public function getLeftMenu($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+
+    
+        if (isset($args['parent']) && $args['parent'] != "" && isset($args['rows']) && $args['rows'] != "") {
+             
+           
+            $parent =   intval($args['parent']);
+      } 
+ $parent =   intval(isset($args['parent']));
             /**
              * table names and column names will be changed for specific use
              */
             $statement = $pdo->prepare("
               SELECT a.id, 
-                    a.menu_name, 
+                    COALESCE(NULLIF(a.menu_name, ''), a.menu_name_eng) as menu_name ,                  
                     a.language_id, 
                     a.menu_name_eng, 
                     a.url, 
@@ -599,20 +607,23 @@ class sysNavigationLeft extends \DAL\DalSlim {
                             when a.deleted = 1 then 'Silinmiş' 
                     end as state,    
                     a.warning, 
-                    a.warning_type, 
-                    a.hint, z_index, 
+                    a.warning_type,              
+                    COALESCE(NULLIF(a.hint, ''), a.hint_eng) as hint,
+                    a.z_index, 
                     a.language_parent_id, 
                     a.hint_eng, 
                     a.warning_class
               FROM sys_navigation_left a 
-              where a.language_id = 91                 
+              where a.language_id = 91  
+               and a.parent =  :parent  
                                  ");
 
-            $where = "";
-            if ($id != NULL) {
-                $where = " and a.parent =  " . $id;
-            }
-            $statement = $statement . $where;        
+             
+            //Bind our value to the parameter :id.
+            $statement->bindValue(':parent', $parent, \PDO::PARAM_INT);
+            
+       
+           
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -625,4 +636,5 @@ class sysNavigationLeft extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
+
 }

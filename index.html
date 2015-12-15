@@ -27,7 +27,7 @@ and open the template in the editor.
     jQuery(document).ready(function() {
         
         $.ajax({
-            url : '../slim_proxy_V0.2/SlimProxyBoot.php',   
+            url : '../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',   
             data : {
 
                     url : 'getDynamicForm_test',
@@ -53,7 +53,7 @@ and open the template in the editor.
              onSelect : function () {
  
              },
-             url :'../slim_proxy_V0.2/SlimProxyBoot.php',
+             url :'../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',
             //url :'index.php/getReports_rpt',
             queryParams : { 
                             url : 'getReports_test',
@@ -79,6 +79,29 @@ and open the template in the editor.
                 {field:'surname',title:'Surname',width:100},
             ]],
     });
+    
+    
+     $.ajax({
+          //  url : '../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',   
+            url : 'http://sanalfabrika.proxy.com:9990/SlimProxyBoot.php',   
+            data : {
+                    parent : 0 ,
+                    url : 'getLeftMenu_leftnavigation',
+                   pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
+            },
+            method : 'GET',
+        
+            success: function(data, textStatus, jqXHR) {
+
+                
+            },
+            error: function(jqXHR , textStatus, errorThrown) {
+              console.warn('error text status-->'+textStatus);
+            }
+        });  
+
+    
+    
 
 });
     

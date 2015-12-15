@@ -12,7 +12,7 @@ namespace BLL\BLL;
 /**
  * Business Layer class for report Configuration entity
  */
-class sysNavigationLeft extends \BLL\BLLSlim{
+class SysNavigationLeft extends \BLL\BLLSlim{
     
      /**
      * constructor
@@ -27,7 +27,7 @@ class sysNavigationLeft extends \BLL\BLLSlim{
      */ 
   public function insert($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysNavigationLeftPDO');
-        return $DAL->insert($params);
+        return $DAL->insert($params); 
     }
     
     /**
@@ -83,7 +83,12 @@ class sysNavigationLeft extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
 
-    
+        public function getLeftMenu($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysNavigationLeftPDO');
+        $resultSet = $DAL->getLeftMenu($params);  
+        return $resultSet['resultSet'];
+    }
+
     
     
 }
