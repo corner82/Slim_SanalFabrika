@@ -581,17 +581,17 @@ class SysNavigationLeft extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
 
     
-        if (isset($args['parent']) && $args['parent'] != "" && isset($args['rows']) && $args['rows'] != "") {
-             
-           
+     /*   if (isset($args['parent']) && $args['parent'] != "" && isset($args['rows']) && $args['rows'] != "") {
             $parent =   intval($args['parent']);
-      } 
- $parent =   intval(isset($args['parent']));
+      }
+      * 
+      */ 
+        $parent =   intval($params['parent']);
+      //  print_r($parent);   
             /**
              * table names and column names will be changed for specific use
              */
-            $statement = $pdo->prepare("
-              SELECT a.id, 
+          $sql =   " SELECT a.id, 
                     COALESCE(NULLIF(a.menu_name, ''), a.menu_name_eng) as menu_name ,                  
                     a.language_id, 
                     a.menu_name_eng, 
@@ -616,13 +616,27 @@ class SysNavigationLeft extends \DAL\DalSlim {
               FROM sys_navigation_left a 
               where a.language_id = 91  
                and a.parent =  :parent  
-                                 ");
-
+               order by a.id
+                                 ";  
+        
+            $statement = $pdo->prepare($sql);
              
             //Bind our value to the parameter :id.
-            $statement->bindValue(':parent', $parent, \PDO::PARAM_INT);
+          //  $statement->bindValue(':parent', $parent, \PDO::PARAM_INT);
+          $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);
             
-       
+         /**
+             * For debug purposes PDO statement sql
+             * uses 'Panique' library located in vendor directory
+             */
+            $parameters = array(
+                'parent' => $parent                
+            );
+            
+            
+            
+            
+         //  echo debugPDO($sql, $parameters); 
            
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);

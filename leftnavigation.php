@@ -38,49 +38,11 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
 $app->add(new \Slim\Middleware\MiddlewareHMAC());
 
 
-// $pdo = new PDO('pgsql:dbname=ecoman_01_10;host=88.249.18.205;user=postgres;password=1q2w3e4r');
-
-\Slim\Route::setDefaultConditions(array(
-    'firstName' => '[a-zA-Z]{3,}',
-    'page' => '[0-9]{1,}'
-));    
-
-$app->get('/hello/:name/:firstName', function ($name) {
-    echo "Hello, $name";
-});
-
-$app->post('/hello/:name/:firstName', function ($name) {
-    echo "Hello, $name";
-});
-
-$app->get("/getDynamicForm_test/", function () use ($app) {
-    $app->response()->header("Content-Type", "text/html");
     
-    /*use PFBC\Form;
-    use PFBC\Element;*/
-    
-    $options = array("Option #1", "Option #2", "Option #3");
-    $form = new \PFBC\Form("form-elements");
-    $form->clearValues();
-    $form->configure(array(
-            "prevent" => array("bootstrap", "jQuery")
-    ));
-    $form->addElement(new \PFBC\Element\Hidden("form", "form-elements"));
-    $form->addElement(new \PFBC\Element\HTML('<legend>Standard</legend>'));
-    $form->addElement(new \PFBC\Element\Textbox("Textbox:", "Textbox", array("onclick" => "alert('test alert');",
-                                                                        'id' => 'test',
-                                                                        'class' => 'zeynel')));
-    $form->addElement(new \PFBC\Element\Password("Password:", "Password"));
-    $form->addElement(new \PFBC\Element\File("File:", "File"));
-    $form->addElement(new \PFBC\Element\Textarea("Textarea:", "Textarea"));
-    $form->addElement(new \PFBC\Element\Select("Select:", "Select", $options));
-    $form->addElement(new \PFBC\Element\Radio("Radio Buttons:", "RadioButtons", $options));
-    $form->addElement(new \PFBC\Element\Checkbox("Checkboxes:", "Checkboxes", $options));
-    echo $form->render(true);
-    //echo htmlentities($form->render(true), ENT_QUOTES);
 
-    }
-);
+
+
+
 
 
 
@@ -101,9 +63,9 @@ $app->get("/getLeftMenu_leftnavigation/", function () use ($app ) {
     
     
   
-    
-    $resDataMenu = $BLL->getLeftMenu(array('parent'=>$_GET['parent']  ));
-   
+    //print_r('--****************get parent--'.$_GET['parent']);  
+    $resDataMenu = $BLL->getLeftMenu(array('parent'=>$_GET['parent']));
+    //print_r($resDataMenu);
    
      
         
