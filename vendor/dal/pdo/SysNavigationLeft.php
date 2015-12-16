@@ -607,6 +607,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
               FROM sys_navigation_left a 
               where a.language_id = 91 
               and a.parent = :parent
+              ORDER BY id
                                  ";           
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':parent',  $params['parent'], \PDO::PARAM_INT);
