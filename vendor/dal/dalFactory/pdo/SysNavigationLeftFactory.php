@@ -15,10 +15,10 @@ namespace DAL\Factory\PDO;
  * @author Okan CIRAN
  * created date : 08.12.2015
  */
-class sysNavigationLeftFactory  implements \Zend\ServiceManager\FactoryInterface{
+class SysNavigationLeftFactory  implements \Zend\ServiceManager\FactoryInterface{
     
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
-        $sysNavigationLeft = new \DAL\PDO\sysNavigationLeft()   ;   
+        $sysNavigationLeft = new \DAL\PDO\SysNavigationLeft()   ;   
              //print_r('asqweqweqwewqweeee ') ; 
         $slimapp = $serviceLocator->get('slimapp') ;            
         $sysNavigationLeft -> setSlimApp($slimapp);
