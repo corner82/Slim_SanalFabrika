@@ -16,7 +16,7 @@ namespace DAL\PDO;
  * @
  * @author Okan CIRAN
  */
-class sysNavigationLeft extends \DAL\DalSlim {
+class SysNavigationLeft extends \DAL\DalSlim {
 
     /**
      * basic delete from database  example for PDO prepared
@@ -49,7 +49,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function delete_sysNavigationLeft($id = null) {
+    public function delete($id = null) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -137,7 +137,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function getAll_sysNavigationLeft() {
+    public function getAll() {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             /**
@@ -215,7 +215,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function insert_sysNavigationLeft($params = array()) {
+    public function insert($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -319,7 +319,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function update_sysNavigationLeft($id = null, $params = array()) {
+    public function update($id = null, $params = array()) {
         try {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -391,7 +391,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function fillGrid_sysNavigationLeft($args = array()) {
+    public function fillGrid($args = array()) {
 
 
         if (isset($args['page']) && $args['page'] != "" && isset($args['rows']) && $args['rows'] != "") {
@@ -491,7 +491,7 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function fillGridRowTotalCount_sysNavigationLeft($params = array()) {
+    public function fillGridRowTotalCount($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -576,15 +576,14 @@ class sysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function getLeftMenu_sysNavigationLeft($id = null) {
+    public function getLeftMenu($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             /**
              * table names and column names will be changed for specific use
              */
-            $statement = $pdo->prepare("
-              SELECT a.id, 
-                    a.menu_name, 
+            $sql = "SELECT a.id, 
+                    COALESCE(NULLIF(a.menu_name, ''), a.menu_name_eng) as menu_name, 
                     a.language_id, 
                     a.menu_name_eng, 
                     a.url, 
@@ -600,19 +599,17 @@ class sysNavigationLeft extends \DAL\DalSlim {
                     end as state,    
                     a.warning, 
                     a.warning_type, 
-                    a.hint, z_index, 
+                    COALESCE(NULLIF(hint, ''), hint_eng) as hint, 
+                    a.z_index, 
                     a.language_parent_id, 
                     a.hint_eng, 
                     a.warning_class
               FROM sys_navigation_left a 
-              where a.language_id = 91                 
-                                 ");
-
-            $where = "";
-            if ($id != NULL) {
-                $where = " and a.parent =  " . $id;
-            }
-            $statement = $statement . $where;        
+              where a.language_id = 91 
+              and a.parent = :parent
+                                 ";           
+            $statement = $pdo->prepare($sql);
+            $statement->bindValue(':parent',  $params['parent'], \PDO::PARAM_INT);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -625,4 +622,5 @@ class sysNavigationLeft extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
+
 }
