@@ -1,4 +1,5 @@
 <?php
+
 /**
  * OSTİM TEKNOLOJİ Framework 
  *
@@ -15,37 +16,35 @@ namespace DAL;
  * config class is compliant zend service config structure
  * @author Mustafa Zeynel Dağlı
  */
-class DalManagerConfig{
-    
+class DalManagerConfig {
+
     /**
      * constructor
      */
     public function __construct() {
         
     }
-    
+
     /**
      * config array for zend service manager config
      * @var array
      */
-    protected $config= array(
+    protected $config = array(
         // Initial configuration with which to seed the ServiceManager.
         // Should be compatible with Zend\ServiceManager\Config.
-         'service_manager' => array(
-             'invokables' => array(
-                 //'test' => 'Utill\BLL\Test\Test'
-             ),
-             'factories' => [
-                 'reportConfigurationPDO' => 'DAL\Factory\PDO\ReportConfigurationFactory',
-                 'cmpnyEqpmntPDO' => 'DAL\Factory\PDO\CmpnyEqpmntFactory',
-                 'sysNavigationLeftPDO' => 'DAL\Factory\PDO\SysNavigationLeftFactory',
-                 
-                 
-             ],  
-             
-         ),
-     );
-    
+        'service_manager' => array(
+            'invokables' => array(
+            //'test' => 'Utill\BLL\Test\Test'
+            ),
+            'factories' => [
+                'reportConfigurationPDO' => 'DAL\Factory\PDO\ReportConfigurationFactory',
+                'cmpnyEqpmntPDO' => 'DAL\Factory\PDO\CmpnyEqpmntFactory',
+                'sysNavigationLeftPDO' => 'DAL\Factory\PDO\SysNavigationLeftFactory',
+                'sysSectorsPDO' => 'DAL\Factory\PDO\SysSectorsFactory',
+            ],
+        ),
+    );
+
     /**
      * return config array for zend service manager config
      * @return array | null
@@ -56,7 +55,3 @@ class DalManagerConfig{
     }
 
 }
-
-
-
-

@@ -322,8 +322,6 @@ class SysSectors extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function fillGrid($args = array()) {
-
-
         if (isset($args['page']) && $args['page'] != "" && isset($args['rows']) && $args['rows'] != "") {
             $offset = ((intval($args['page']) - 1) * intval($args['rows']));
             $limit = intval($args['rows']);
@@ -369,7 +367,7 @@ class SysSectors extends \DAL\DalSlim {
 			when a.deleted = 1 then 'Silinmiş' 
 			end as state,                    
                     a.language_id, 
-                    a.ordr as siralama,
+                    a.ordr ,
                     a.language_parent_id
                 FROM sys_sectors  a
                 where language_id = 91 
@@ -414,6 +412,7 @@ class SysSectors extends \DAL\DalSlim {
      */
     public function fillGridRowTotalCount($params = array()) {
         try {
+
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
                     SELECT 

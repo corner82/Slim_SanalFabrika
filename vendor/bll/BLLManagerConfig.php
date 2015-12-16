@@ -35,6 +35,9 @@ class BLLManagerConfig{
                  'reportConfigurationBLL' => 'BLL\BLL\ReportConfiguration',
                  'cmpnyEqpmntBLL' => 'BLL\BLL\CmpnyEqpmnt',
                  'sysNavigationLeftBLL' => 'BLL\BLL\SysNavigationLeft',
+                 'sysSectorsBLL' => 'BLL\BLL\SysSectors',
+                 
+                 
                  
              ),
              'factories' => [

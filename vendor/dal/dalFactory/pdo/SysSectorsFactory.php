@@ -19,7 +19,7 @@ class SysSectorsFactory  implements \Zend\ServiceManager\FactoryInterface{
     
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
         $sysSectors  = new \DAL\PDO\SysSectors()   ;   
-             //print_r('asqweqweqwewqweeee ') ; 
+       // print_r('servis  yaratılıyor...  ') ; 
         $slimapp = $serviceLocator->get('slimapp') ;            
         $sysSectors -> setSlimApp($slimapp);
         
