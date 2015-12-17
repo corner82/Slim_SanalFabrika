@@ -14,10 +14,6 @@ namespace DAL;
  * @author Mustafa Zeynel Dağlı
  */
 interface DalInfo {
-    public function getAll();
-    public function update($id = null, $params = array());
-    public function delete ($id = null);
-    public function insert($params = array());
     public function deletedAct($id = null, $params = array());
 }
 
