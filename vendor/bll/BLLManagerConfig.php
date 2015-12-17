@@ -37,6 +37,7 @@ class BLLManagerConfig{
                  'sysNavigationLeftBLL' => 'BLL\BLL\SysNavigationLeft',
                  'sysSectorsBLL' => 'BLL\BLL\SysSectors',
                  'infoUsersBLL' => 'BLL\BLL\InfoUsers',
+                 'sysCountrysBLL' => 'BLL\BLL\SysCountrys',
                  
                  
                  

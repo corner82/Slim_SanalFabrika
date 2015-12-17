@@ -42,6 +42,7 @@ class DalManagerConfig {
                 'sysNavigationLeftPDO' => 'DAL\Factory\PDO\SysNavigationLeftFactory',
                 'sysSectorsPDO' => 'DAL\Factory\PDO\SysSectorsFactory',
                 'infoUsersPDO' => 'DAL\Factory\PDO\InfoUsersFactory',
+                'sysCountrysPDO' => 'DAL\Factory\PDO\SysCountrysFactory',
             ],
         ),
     );
