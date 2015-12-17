@@ -36,6 +36,7 @@ class BLLManagerConfig{
                  'cmpnyEqpmntBLL' => 'BLL\BLL\CmpnyEqpmnt',
                  'sysNavigationLeftBLL' => 'BLL\BLL\SysNavigationLeft',
                  'sysSectorsBLL' => 'BLL\BLL\SysSectors',
+                 'infoUsersBLL' => 'BLL\BLL\InfoUsers',
                  
                  
                  

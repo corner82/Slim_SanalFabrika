@@ -41,6 +41,7 @@ class DalManagerConfig {
                 'cmpnyEqpmntPDO' => 'DAL\Factory\PDO\CmpnyEqpmntFactory',
                 'sysNavigationLeftPDO' => 'DAL\Factory\PDO\SysNavigationLeftFactory',
                 'sysSectorsPDO' => 'DAL\Factory\PDO\SysSectorsFactory',
+                'infoUsersPDO' => 'DAL\Factory\PDO\InfoUsersFactory',
             ],
         ),
     );
