@@ -149,16 +149,18 @@ class SysSectors extends \DAL\DalSlim {
                     a.name, 
                     a.name_eng, 
                     a.deleted, 
-		    case 
-			when a.deleted = 0 then 'Aktif' 
-			when a.deleted = 1 then 'Silinmiş' 
-			end as state,                    
+		    sd.description as state,                      
                     a.language_id, 
                     a.ordr as siralama,
-                    a.language_parent_id
+                    a.language_parent_id,
+                    a.description,
+                    a.description_eng,
+                    a.active,
+                    a.user_id                    
                 FROM sys_sectors  a
-                where language_id = 91 
-                 
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
+                WHERE a.language_id = 91    
+                
                                  ");
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
@@ -214,17 +216,23 @@ class SysSectors extends \DAL\DalSlim {
              */
             $statement = $pdo->prepare("
                 INSERT INTO sys_sectors(
-                        name, name_eng, language_id, ordr)
+                        name, name_eng, language_id, ordr ,description,description_eng,user_id    )
                 VALUES (
                         :name,
                         :name_eng, 
                         :language_id,
-                        :ordr )
+                        :ordr,
+                        :description,
+                        :description_eng,                       
+                        :user_id  
                                                 ");
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
             $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
             $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
             $statement->bindValue(':ordr', $params['ordr'], \PDO::PARAM_INT);
+            $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
+            $statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
+            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
 
             $result = $statement->execute();
 
@@ -288,7 +296,10 @@ class SysSectors extends \DAL\DalSlim {
                     name = :name, 
                     name_eng = :name_eng, 
                     language_id = :language_id, 
-                    ordr = :ordr
+                    ordr = :ordr,
+                    description=  :description,
+                    description_eng=   :description_eng,                       
+                    user_id= :user_id  
                 WHERE id = :id");
             //Bind our value to the parameter :id.
             $statement->bindValue(':id', $id, \PDO::PARAM_INT);
@@ -296,7 +307,10 @@ class SysSectors extends \DAL\DalSlim {
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
             $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
             $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':ordr', $params['ordr'], \PDO::PARAM_INT);
+            $statement->bindValue(':ordr', $params['ordr'], \PDO::PARAM_INT);                       
+            $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
+            $statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
+            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
             //Execute our UPDATE statement.
             $update = $statement->execute();
             $affectedRows = $statement->rowCount();
@@ -362,15 +376,17 @@ class SysSectors extends \DAL\DalSlim {
                     a.name, 
                     a.name_eng, 
                     a.deleted, 
-		    case 
-			when a.deleted = 0 then 'Aktif' 
-			when a.deleted = 1 then 'Silinmiş' 
-			end as state,                    
+		    sd.description as state,                      
                     a.language_id, 
-                    a.ordr ,
-                    a.language_parent_id
+                    a.ordr as siralama,
+                    a.language_parent_id,
+                    a.description,
+                    a.description_eng,
+                    a.active,
+                    a.user_id    
                 FROM sys_sectors  a
-                where language_id = 91 
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
+                WHERE a.language_id = 91 
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
