@@ -619,7 +619,7 @@ class InfoUsers extends \DAL\DalSlim {
                         operation_type_id= :operation_type_id,                         
                         active = 1,
                         user_id = :user_id,
-                        deleted = 1
+                        deleted = 0
                         act_parent_id = :act_parent_id 
                     WHERE id = :id
                     
