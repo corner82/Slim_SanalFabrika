@@ -445,6 +445,7 @@ class SysCountrys extends \DAL\DalSlim {
                        (SELECT count(id) as toplam FROM sys_countrys where deleted =1 ) as silinmis_toplam    
                     FROM sys_countrys
                     where language_id = 91 
+               
                     ";
             $statement = $pdo->prepare($sql);
 
@@ -481,7 +482,7 @@ class SysCountrys extends \DAL\DalSlim {
                     a.name as name       
                 FROM sys_countrys  a               
                 WHERE a.active =0 and a.deleted=0 and a.language_id = 91    
-                order by  a.name asc
+                ORDER BY priority,  a.name ASC
                 
                                  ");
               $statement->execute();
