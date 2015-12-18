@@ -2,9 +2,7 @@
 // test commit for branch slim2
 require 'vendor/autoload.php';
 
-
-
-
+ 
 /*$app = new \Slim\Slim(array(
     'mode' => 'development',
     'debug' => true,
@@ -38,16 +36,11 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
 $app->add(new \Slim\Middleware\MiddlewareHMAC());
 
 
-    
-
-
-
-
-
-
+  
 
 /**
- *  * zeynel daÄŸlÄ±
+ *  *  
+  *  * zeynel dağlı
  * @since 11-09-2014
  */
 $app->get("/fillComboBox_syscountrys/", function () use ($app ) {
@@ -61,7 +54,7 @@ $app->get("/fillComboBox_syscountrys/", function () use ($app ) {
     //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
  
   
-    print_r('--****************get parent--' );  
+    //print_r('--****************get parent--' );  
     $resCombobox = $BLL->fillComboBox();
     //print_r($resDataMenu);
    

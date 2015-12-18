@@ -478,10 +478,10 @@ class SysCountrys extends \DAL\DalSlim {
             $statement = $pdo->prepare("
              SELECT 
                     a.id, 
-                    a.name        
+                    a.name as name       
                 FROM sys_countrys  a               
-                WHERE a.active =0 and a.deleted=0 and a.language_id = 91     
-                order by  a.priority asc , a.name asc
+                WHERE a.active =0 and a.deleted=0 and a.language_id = 91    
+                order by  a.name asc
                 
                                  ");
               $statement->execute();

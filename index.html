@@ -105,6 +105,44 @@ and open the template in the editor.
             url : 'http://sanalfabrika.proxy.com:9990/SlimProxyBoot.php',   
             data : {
                     parent : 0 ,
+                    url : 'fillComboBox_syscountryssilinecek',
+                   pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
+            },
+            method : 'GET',
+        
+            success: function(data, textStatus, jqXHR) {
+
+             
+            },
+            error: function(jqXHR , textStatus, errorThrown) {
+              console.warn('error text status-->'+textStatus);
+            }
+        });  
+
+ $.ajax({
+          //  url : '../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',   
+            url : 'http://sanalfabrika.proxy.com:9990/SlimProxyBoot.php',   
+            data : {
+                    parent : 0 ,
+                    url : 'fillComboBox_syscountrys',
+                   pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
+            },
+            method : 'GET',
+        
+            success: function(data, textStatus, jqXHR) {
+
+             
+            },
+            error: function(jqXHR , textStatus, errorThrown) {
+              console.warn('error text status-->'+textStatus);
+            }
+        });  
+
+      $.ajax({
+          //  url : '../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',   
+            url : 'http://sanalfabrika.proxy.com:9990/SlimProxyBoot.php',   
+            data : {
+                    parent : 0 ,
                     url : 'fillGrid_infoUsers',
                    pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
             },
@@ -118,8 +156,6 @@ and open the template in the editor.
               console.warn('error text status-->'+textStatus);
             }
         });  
-
-    
     
     
 
