@@ -1,5 +1,4 @@
 <?php
-
 /**
  * OSTİM TEKNOLOJİ Framework 
  *
@@ -10,11 +9,12 @@
 
 namespace DAL\PDO;
 
+
 /**
  * Class using Zend\ServiceManager\FactoryInterface
  * created to be used by DAL MAnager
  * @
- * @author Okan CIRAN
+ * @author Okan CİRANĞ
  */
 class SysCountrys extends \DAL\DalSlim {
 
@@ -445,7 +445,6 @@ class SysCountrys extends \DAL\DalSlim {
                        (SELECT count(id) as toplam FROM sys_countrys where deleted =1 ) as silinmis_toplam    
                     FROM sys_countrys
                     where language_id = 91 
-               
                     ";
             $statement = $pdo->prepare($sql);
 
@@ -477,12 +476,12 @@ class SysCountrys extends \DAL\DalSlim {
              * table names and column names will be changed for specific use
              */
             $statement = $pdo->prepare("
-             SELECT 
+                SELECT 
                     a.id, 
                     a.name as name       
                 FROM sys_countrys  a               
-                WHERE a.active =0 and a.deleted=0 and a.language_id = 91    
-                ORDER BY priority,  a.name ASC
+                WHERE a.active =0 and a.deleted=0 and a.language_id = 91   
+                order by priority,  a.name asc
                 
                                  ");
               $statement->execute();
