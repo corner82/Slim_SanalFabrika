@@ -595,7 +595,7 @@ class InfoUsers extends \DAL\DalSlim {
      * @throws PDOException
      */
     
-      public function deleted_act($id = null, $params = array()) {
+      public function deletedAct($id = null, $params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -621,8 +621,7 @@ class InfoUsers extends \DAL\DalSlim {
                         user_id = :user_id,
                         deleted = 0
                         act_parent_id = :act_parent_id 
-                    WHERE id = :id
-                    
+                    WHERE id = :id                    
                     ");
             //Bind our value to the parameter :id.
             $statement->bindValue(':id', $id, \PDO::PARAM_INT);
@@ -632,6 +631,7 @@ class InfoUsers extends \DAL\DalSlim {
             $statement->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
             $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
             $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
+            
             
             
             //Execute our UPDATE statement.

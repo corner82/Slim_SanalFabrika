@@ -89,9 +89,9 @@ class InfoUsers extends \BLL\BLLSlim{
      * @param array | null $params
      * @return array
      */
-    public function deleted_act($id = null, $params = array()) {
+    public function deletedAct($id = null, $params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
-        return $DAL->deleted_act($id, $params);
+        return $DAL->deletedAct($id, $params);
     }
     
 
