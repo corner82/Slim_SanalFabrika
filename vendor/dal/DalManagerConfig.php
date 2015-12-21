@@ -43,6 +43,10 @@ class DalManagerConfig {
                 'sysSectorsPDO' => 'DAL\Factory\PDO\SysSectorsFactory',
                 'infoUsersPDO' => 'DAL\Factory\PDO\InfoUsersFactory',
                 'sysCountrysPDO' => 'DAL\Factory\PDO\SysCountrysFactory',
+                'sysCityPDO' => 'DAL\Factory\PDO\SysCityFactory',
+                
+                
+                
             ],
         ),
     );

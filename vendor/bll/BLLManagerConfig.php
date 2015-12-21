@@ -38,6 +38,9 @@ class BLLManagerConfig{
                  'sysSectorsBLL' => 'BLL\BLL\SysSectors',
                  'infoUsersBLL' => 'BLL\BLL\InfoUsers',
                  'sysCountrysBLL' => 'BLL\BLL\SysCountrys',
+                 'sysCityBLL' => 'BLL\BLL\SysCity',
+                 
+                 
                  
                  
                  
