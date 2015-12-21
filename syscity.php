@@ -58,7 +58,7 @@ $app->get("/fillComboBox_syscity/", function () use ($app ) {
  
   
     //print_r('--****************get parent--' );  
-    $resCombobox = $BLL->fillComboBox (array('country_id'=>'91'));  
+    $resCombobox = $BLL->fillComboBox (array('country_id'=>'130'));  
     //print_r($resDataMenu);
    
  
