@@ -96,7 +96,12 @@ class SysNavigationLeft extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
 
-
+    public function getLeftMenuFull() {
+        $DAL = $this->slimApp->getDALManager()->get('sysNavigationLeftPDO');
+        $resultSet = $DAL->getLeftMenuFull();  
+        return $resultSet['resultSet'];
+    }
+    
     
     
 }

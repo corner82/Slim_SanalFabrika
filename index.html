@@ -100,6 +100,25 @@ and open the template in the editor.
             }
         });  
 
+  $.ajax({
+          //  url : '../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',   
+            url : 'http://sanalfabrika.proxy.com:9990/SlimProxyBoot.php',   
+            data : {                
+                   url : 'getLeftMenuFull_leftnavigation',
+                   pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
+            },
+            method : 'GET',
+        
+            success: function(data, textStatus, jqXHR) {
+
+                
+            },
+            error: function(jqXHR , textStatus, errorThrown) {
+              console.warn('error text status-->'+textStatus);
+            }
+        });  
+        
+        
       $.ajax({
           //  url : '../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',   
             url : 'http://sanalfabrika.proxy.com:9990/SlimProxyBoot.php',   
@@ -123,10 +142,10 @@ and open the template in the editor.
           //  url : '../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',   
             url : 'http://sanalfabrika.proxy.com:9990/SlimProxyBoot.php',   
             data : {
-                    parent : 0 ,
+                   parent : 0 ,
                    url : 'fillComboBox_syscity',
-                   pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
-                 
+                   pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348',
+                   country_id : 0                 
             },
             method : 'GET',
             

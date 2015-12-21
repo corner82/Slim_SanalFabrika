@@ -593,6 +593,56 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     a.collapse, 
                     a.active, 
                     a.deleted, 
+                    CASE 
+                            when a.deleted = 0 then 'Aktif' 
+                            when a.deleted = 1 then 'Silinmiş' 
+                    END as state,    
+                    a.warning, 
+                    a.warning_type, 
+                    COALESCE(NULLIF(hint, ''), hint_eng) as hint, 
+                    a.z_index, 
+                    a.language_parent_id, 
+                    a.hint_eng, 
+                    a.warning_class,
+                    a.acl_type
+              FROM sys_navigation_left a 
+              WHERE a.language_id = 91 
+              AND acl_type = 0  
+              AND a.parent = :parent
+              ORDER BY id
+                                 ";           
+            $statement = $pdo->prepare($sql);
+            $statement->bindValue(':parent',  $params['parent'], \PDO::PARAM_INT);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+    
+    public function getLeftMenuFull() {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            /**
+             * table names and column names will be changed for specific use
+             */
+            $sql = "SELECT a.id, 
+                    COALESCE(NULLIF(a.menu_name, ''), a.menu_name_eng) as menu_name, 
+                    a.language_id, 
+                    a.menu_name_eng, 
+                    a.url, 
+                    a.parent, 
+                    a.icon_class, 
+                    a.page_state, 
+                    a.collapse, 
+                    a.active, 
+                    a.deleted, 
                     case 
                             when a.deleted = 0 then 'Aktif' 
                             when a.deleted = 1 then 'Silinmiş' 
@@ -603,14 +653,15 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     a.z_index, 
                     a.language_parent_id, 
                     a.hint_eng, 
-                    a.warning_class
+                    a.warning_class,
+                     a.acl_type
               FROM sys_navigation_left a 
-              where a.language_id = 91 
-              and a.parent = :parent
+              where a.language_id = 91  
+              AND acl_type = 0  
               ORDER BY id
                                  ";           
             $statement = $pdo->prepare($sql);
-            $statement->bindValue(':parent',  $params['parent'], \PDO::PARAM_INT);
+           
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
