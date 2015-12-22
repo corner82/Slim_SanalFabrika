@@ -451,7 +451,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     a.hint_eng, 
                     a.warning_class
               FROM sys_navigation_left a 
-                where language_id = 91 
+                where language_id = :language_id 
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -468,7 +468,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             //   echo debugPDO($sql, $parameters);
-
+            $statement->bindValue(':language_id', $args['language_id'], \PDO::PARAM_INT);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -500,10 +500,10 @@ class SysNavigationLeft extends \DAL\DalSlim {
                        (SELECT count(id) as toplam FROM sys_navigation_left where deleted =0 ) as aktif_toplam   ,
                        (SELECT count(id) as toplam FROM sys_navigation_left where deleted =1 ) as silinmis_toplam    
                     FROM sys_navigation_left
-                    where language_id = 91 
+                    where language_id = :language_id 
                     ";
             $statement = $pdo->prepare($sql);
-
+            $statement->bindValue(':language_id', $args['language_id'], \PDO::PARAM_INT);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -606,13 +606,14 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     a.warning_class,
                     a.acl_type
               FROM sys_navigation_left a 
-              WHERE a.language_id = 91 
+              WHERE a.language_id = :language_id 
               AND acl_type = 0  
               AND a.parent = :parent
-              ORDER BY id
+              ORDER BY a.id
                                  ";           
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':parent',  $params['parent'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -656,7 +657,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     a.warning_class,
                      a.acl_type
               FROM sys_navigation_left a 
-              where a.language_id = 91  
+              where a.language_id = 647
               AND acl_type = 0  
               ORDER BY id
                                  ";           

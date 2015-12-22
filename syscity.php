@@ -57,8 +57,10 @@ $app->get("/fillComboBox_syscity/", function () use ($app ) {
     //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
  
   
-    //print_r('--****************get parent--' );  
-    $resCombobox = $BLL->fillComboBox (array('country_id'=>$_GET['country_id'] ));  
+  //  print_r('--****************get parent--' .$_GET['country_id'] );  
+    $resCombobox = $BLL->fillComboBox (array('country_id'=>$_GET['country_id'],
+                                             'language_id'=>$_GET['language_id']));  
+ 
     //print_r($resDataMenu);
    
  

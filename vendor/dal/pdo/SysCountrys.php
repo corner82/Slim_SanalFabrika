@@ -159,11 +159,10 @@ class SysCountrys extends \DAL\DalSlim {
                     a.priority                  
                 FROM sys_countrys  a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
-                WHERE a.language_id = 91    
-                order by  a.priority asc , a.name
-
                 
-                                 ");
+                order by  a.priority asc , a.name
+                          ");            
+           
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
             /* while ($row = $statement->fetch()) {
@@ -394,7 +393,7 @@ class SysCountrys extends \DAL\DalSlim {
                     a.priority                  
                 FROM sys_countrys  a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
-                WHERE a.language_id = 91                    
+                WHERE a.language_id = :language_id                    
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -411,7 +410,7 @@ class SysCountrys extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
            // echo debugPDO($sql, $parameters);
-
+            $statement->bindValue(':language_id', $args['language_id'], \PDO::PARAM_INT);  
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -469,7 +468,7 @@ class SysCountrys extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-     public function fillComboBox() {
+     public function fillComboBox($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             /**
@@ -480,10 +479,11 @@ class SysCountrys extends \DAL\DalSlim {
                     a.id, 
                     a.name as name       
                 FROM sys_countrys  a               
-                WHERE a.active =0 and a.deleted=0 and a.language_id = 91   
+                WHERE a.active =0 AND a.deleted=0 AND a.language_id = :language_id  
                 order by priority,  a.name asc
                 
                                  ");
+              $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);  
               $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             

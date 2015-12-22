@@ -159,7 +159,7 @@ class SysCity extends \DAL\DalSlim {
                     a.city_id     
                 FROM sys_city  a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
-                WHERE a.language_id = 91                  
+                           
                 ORDER BY a.priority ASC , a.name
 
                 
@@ -409,7 +409,7 @@ class SysCity extends \DAL\DalSlim {
                     a.city_id     
                 FROM sys_city  a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
-                WHERE a.language_id = 91     
+                WHERE a.language_id = :language_id     
                 AND country_id = :country_id 
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
@@ -430,6 +430,7 @@ class SysCity extends \DAL\DalSlim {
 
             
             $statement->bindValue(':country_id', $args['country_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_id', $args['language_id'], \PDO::PARAM_INT);  
             
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -460,14 +461,15 @@ class SysCity extends \DAL\DalSlim {
             $sql = "
                     SELECT 
                        count(id) as toplam  , 
-                       (SELECT count(id) as toplam FROM sys_city where deleted =0 ) as aktif_toplam   ,
-                       (SELECT count(id) as toplam FROM sys_city where deleted =1 ) as silinmis_toplam    
+                       (SELECT count(x.id) AS toplam FROM sys_city x where x.deleted =0  AND x.country_id = :country_id AND language_id = :language_id) AS aktif_toplam   ,
+                       (SELECT count(y.id) AS toplam FROM sys_city y where y.deleted =1  AND y.country_id = :country_id AND language_id = :language_id) AS silinmis_toplam    
                     FROM sys_city
-                    where language_id = 91 
+                    where language_id = :language_id 
                     AND country_id = :country_id 
                     ";
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);  
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -498,19 +500,20 @@ class SysCity extends \DAL\DalSlim {
              */
             $sql = "
                SELECT 
-                    a.id,                     
+                    a.city_id as id,                     
                     a.name                     
                 FROM sys_city  a
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
-                WHERE a.language_id = 91 
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group = a.deleted AND sd.language_id = a.language_id
+                WHERE a.language_id = :language_id AND a.active = 0 AND a.deleted= 0 
                 AND country_id = :country_id 
                 ORDER BY a.priority ASC, a.name
                 
                                  ";
             $statement = $pdo->prepare($sql);
-           //echo debugPDO($sql, $params);
+          // echo debugPDO($sql, $params);
             
             $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);  
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
