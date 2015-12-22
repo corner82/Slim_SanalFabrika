@@ -44,6 +44,7 @@ class DalManagerConfig {
                 'infoUsersPDO' => 'DAL\Factory\PDO\InfoUsersFactory',
                 'sysCountrysPDO' => 'DAL\Factory\PDO\SysCountrysFactory',
                 'sysCityPDO' => 'DAL\Factory\PDO\SysCityFactory',
+                'sysLanguagePDO' => 'DAL\Factory\PDO\SysLanguageFactory',
                 
                 
                 

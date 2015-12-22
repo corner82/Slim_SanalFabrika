@@ -39,9 +39,10 @@ class BLLManagerConfig{
                  'infoUsersBLL' => 'BLL\BLL\InfoUsers',
                  'sysCountrysBLL' => 'BLL\BLL\SysCountrys',
                  'sysCityBLL' => 'BLL\BLL\SysCity',
+                 'sysLanguageBLL' => 'BLL\BLL\SysLanguage',
                  
                  
-                 
+                  
                  
                  
              ),
