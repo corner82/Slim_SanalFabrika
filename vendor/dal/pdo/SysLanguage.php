@@ -228,26 +228,44 @@ class SysLanguage extends \DAL\DalSlim {
              */
             $statement = $pdo->prepare("
                 INSERT INTO sys_language(
-                        name, name_eng, language_id, language_parent_id, 
-                        user_id, flag_icon_road, country_code3, priority   )
+                        country_name, country_name_eng, country_id, language_parent_id, 
+                        icon_road, user_id, country_code3, link, language_code, 
+                        language_id, parent_id, language_eng, language_main_code, language, 
+                        priority)  
                 VALUES (
-                        :name,
-                        :name_eng, 
-                        :language_id,
-                        :language_parent_id,
-                        :user_id,
-                        :flag_icon_road,                       
-                        :country_code3,
-                        :priority 
+                        :country_name, 
+                        :country_name_eng, 
+                        :country_id, 
+                        :language_parent_id, 
+                        :icon_road, 
+                        :user_id, 
+                        :country_code3, 
+                        :link, 
+                        :language_code, 
+                        :language_id, 
+                        :parent_id, 
+                        :language_eng, 
+                        :language_main_code, 
+                        :language, 
+                        :priority
                                                 ");
-            $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-            $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':country_name', $params['country_name'], \PDO::PARAM_STR);
+            $statement->bindValue(':country_name_eng', $params['country_name_eng'], \PDO::PARAM_STR);
+            $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
             $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':flag_icon_road', $params['flag_icon_road'], \PDO::PARAM_STR);
+            $statement->bindValue(':icon_road', $params['icon_road'], \PDO::PARAM_STR);
+            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_STR);
             $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
+            $statement->bindValue(':link', $params['link'], \PDO::PARAM_STR);
+            
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_eng', $params['language_eng'], \PDO::PARAM_STR);
+            $statement->bindValue(':language_main_code', $params['language_main_code'], \PDO::PARAM_STR);
+            $statement->bindValue(':language', $params['language'], \PDO::PARAM_STR);
             $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);
+                        
 
             $result = $statement->execute();
 
@@ -308,27 +326,43 @@ class SysLanguage extends \DAL\DalSlim {
             $statement = $pdo->prepare("
                 UPDATE sys_language
                 SET              
-                    name = :name, 
-                    name_eng = :name_eng, 
-                    language_id = :language_id,                    
-                    language_parent_id = :language_parent_id,
-                    user_id = :user_id,
-                    flag_icon_road = :flag_icon_road,                       
-                    country_code3 = :country_code3,
-                    priority = :priority 
+                    country_name = :country_name, 
+                    country_name_eng = :country_name_eng, 
+                    country_id  = :country_id, 
+                    language_parent_id  = :language_parent_id, 
+                    icon_road  = :icon_road, 
+                    user_id  = :user_id, 
+                    country_code3  = :country_code3, 
+                    link  = :link, 
+                    language_code  = :language_code, 
+                    language_id  = :language_id, 
+                    parent_id  = :parent_id, 
+                    language_eng  = :language_eng, 
+                    language_main_code  = :language_main_code, 
+                    language  = :language, 
+                    priority  = :priority
                 WHERE id = :id");
             //Bind our value to the parameter :id.
             $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            //Bind our :model parameter.
-            $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-            $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);                       
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':flag_icon_road', $params['flag_icon_road'], \PDO::PARAM_STR);
+            //Bind our :model parameter.     
+            $statement->bindValue(':country_name', $params['country_name'], \PDO::PARAM_STR);
+            $statement->bindValue(':country_name_eng', $params['country_name_eng'], \PDO::PARAM_STR);
+            $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':icon_road', $params['icon_road'], \PDO::PARAM_STR);
+            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_STR);
             $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
+            $statement->bindValue(':link', $params['link'], \PDO::PARAM_STR);
+            
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_eng', $params['language_eng'], \PDO::PARAM_STR);
+            $statement->bindValue(':language_main_code', $params['language_main_code'], \PDO::PARAM_STR);
+            $statement->bindValue(':language', $params['language'], \PDO::PARAM_STR);
             $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);
-        
+            
+            
             //Execute our UPDATE statement.
             $update = $statement->execute(); 
             $affectedRows = $statement->rowCount();
