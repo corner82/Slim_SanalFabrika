@@ -40,6 +40,9 @@ class BLLManagerConfig{
                  'sysCountrysBLL' => 'BLL\BLL\SysCountrys',
                  'sysCityBLL' => 'BLL\BLL\SysCity',
                  'sysLanguageBLL' => 'BLL\BLL\SysLanguage',
+                 'sysBoroughBLL' => 'BLL\BLL\SysBorough',
+                 
+            
                  
                  
                   
