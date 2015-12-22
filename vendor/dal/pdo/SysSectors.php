@@ -159,7 +159,7 @@ class SysSectors extends \DAL\DalSlim {
                     a.user_id                    
                 FROM sys_sectors  a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
-                WHERE a.language_id = 91    
+                  
                 
                                  ");
             $statement->execute();
@@ -386,7 +386,7 @@ class SysSectors extends \DAL\DalSlim {
                     a.user_id    
                 FROM sys_sectors  a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
-                WHERE a.language_id = 91 
+                WHERE a.language_id = :language_id
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -402,8 +402,8 @@ class SysSectors extends \DAL\DalSlim {
                 'limit' => $pdo->quote($limit),
                 'offset' => $pdo->quote($offset),
             );
-            echo debugPDO($sql, $parameters);
-
+          //  echo debugPDO($sql, $parameters);
+            $statement->bindValue(':language_id', $args['language_id'], \PDO::PARAM_INT);  
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -431,15 +431,20 @@ class SysSectors extends \DAL\DalSlim {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-                    SELECT 
-                       count(id) as toplam  , 
-                       (SELECT count(id) as toplam FROM sys_sectors where deleted =0 ) as aktif_toplam   ,
-                       (SELECT count(id) as toplam FROM sys_sectors where deleted =1 ) as silinmis_toplam    
-                    FROM sys_sectors
-                    where language_id = 91 
+                  SELECT 
+                       count(a.id) as toplam  , 
+                       (SELECT count(a1.id) as toplam FROM sys_sectors a1
+                       INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 15 AND sd1.first_group= a1.deleted AND sd1.language_id = a1.language_id
+                       where a1.deleted =0 and a1.language_id = :language_id) as aktif_toplam   ,
+                       (SELECT count(a2.id) as toplam FROM sys_sectors a2
+                       INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_id = a2.language_id
+                       where a2.deleted =1 and a2.language_id = :language_id) as silinmis_toplam    
+	    FROM sys_sectors a
+	    INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
+	    where a.language_id = :language_id
                     ";
             $statement = $pdo->prepare($sql);
-
+            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);  
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 

@@ -59,7 +59,7 @@ class InfoUsers extends \DAL\DalSlim {
                     ");
             //Bind our value to the parameter :id.
             $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            ;
+           
 
             //Execute our DELETE statement.
             $update = $statement->execute();
@@ -165,13 +165,11 @@ class InfoUsers extends \DAL\DalSlim {
                     inner join sys_operation_types op on op.id = a.operation_type_id and  op.language_id =  a.language_id
                     inner join sys_specific_definitions sd on sd.main_group = 13 and  sd.language_id =  a.language_id and a.auth_allow_id = sd.first_group 
 		    inner join sys_specific_definitions sd1 on sd1.main_group = 14 and  sd1.language_id =  a.language_id and a.cons_allow_id = sd1.first_group 
-                    where   
-                        a.language_id = 91 and 
-                        deleted = 0 and 
-                        active =0   
+                  
  
                 
                 ");
+            
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             /* while ($row = $statement->fetch()) {
@@ -327,7 +325,8 @@ class InfoUsers extends \DAL\DalSlim {
                         active = 1,
                         user_id = :user_id,
                         deleted = :deleted  
-                        act_parent_id = :act_parent_id 
+                        act_parent_id = :act_parent_idi,
+                        language_id = :language_id
                     WHERE id = :id
                     
                     ");
@@ -336,6 +335,7 @@ class InfoUsers extends \DAL\DalSlim {
             $statement->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);
             
             //Bind our :model parameter.
+            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);  
             $statement->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
             $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
             $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
@@ -496,7 +496,7 @@ class InfoUsers extends \DAL\DalSlim {
                     inner join sys_specific_definitions sd on sd.main_group = 13 and  sd.language_id =  a.language_id and a.auth_allow_id = sd.first_group 
 		    inner join sys_specific_definitions sd1 on sd1.main_group = 14 and  sd1.language_id =  a.language_id and a.cons_allow_id = sd1.first_group 
                     where   
-                        a.language_id = 91 and 
+                        a.language_id = :language_id and 
                         deleted = 0 and 
                         active =0                    
                     ORDER BY  " . $sort . " "
@@ -516,6 +516,7 @@ class InfoUsers extends \DAL\DalSlim {
               'offset' => $pdo->quote($offset),
               );
               echo debugPDO($sql, $parameters); */
+            $statement->bindValue(':language_id', $args['language_id'], \PDO::PARAM_INT);  
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             /* while ($row = $statement->fetch()) {
@@ -542,16 +543,19 @@ class InfoUsers extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
                     SELECT 
-                       count(id) as toplam  , 
-                       (SELECT count(id) as toplam FROM sys_navigation_left where deleted =0 ) as aktif_toplam   ,
-                       (SELECT count(id) as toplam FROM sys_navigation_left where deleted =1 ) as silinmis_toplam
-                    FROM info_users 
-                    WHERE   
-                         language_id = 91 AND 
-                        deleted = 0 AND 
-                        active =0   
+                       count(a.id) as toplam  , 
+                       (SELECT count(a1.id) as toplam FROM info_users a1
+                       INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 15 AND sd1.first_group= a1.deleted AND sd1.language_id = a1.language_id
+                       where a1.deleted =0 and a1.language_id = :language_id) as aktif_toplam   ,
+                       (SELECT count(a2.id) as toplam FROM info_users a2
+                       INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_id = a2.language_id
+                       where a2.deleted =1 and a2.language_id = :language_id) as silinmis_toplam    
+	    FROM info_users a
+	    INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
+	    where a.language_id = :language_id 
                          ";
             $statement = $pdo->prepare($sql);
+            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);  
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
