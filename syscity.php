@@ -49,7 +49,7 @@ $app->add(new \Slim\Middleware\MiddlewareHMAC());
 $app->get("/fillComboBox_syscity/", function () use ($app ) {
 
     
-    $BLL = $app->getBLLManager()->get('syscityBLL'); 
+    $BLL = $app->getBLLManager()->get('sysCityBLL'); 
  
     // Filters are called from service manager
     //$filterHtmlAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
