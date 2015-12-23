@@ -149,25 +149,30 @@ class SysBorough extends \DAL\DalSlim {
                     a.id, 
 		    a.city_id,
 		    ci.name as city_name,
-                    a.name, 
+		    COALESCE(NULLIF(c.name, ''), c.name_eng) AS country_name,  
+                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name,                      
                     a.name_eng, 
                     a.deleted, 
-		    sd.description as state,                      
-                    a.language_id,  
-                    l.language_name ,
-		    a.boroughs_id, 
+		    sd.description as state_deleted,                       
+                    a.language_id,                      
+		    COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,   
+		    a.boroughs_id,
+                    a.name as borough_name,
 		    a.country_id, 
 		    c.name as country_name,
                     a.active,
-                    a.user_id                                      
+		    sd1.description as state_active,  
+                    a.user_id,
+		    u.username,
+                    a.language_parent_id
                 FROM sys_borough  a
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted =0 AND sd.active =0 
-                INNER JOIN sys_countrys c ON c.id = a.country_id AND c.language_id = a.language_id  AND c.deleted =0 AND c.active =0 
-                INNER JOIN sys_city ci ON ci.country_id = a.country_id AND ci.id = a.city_id AND ci.language_id = a.language_id AND ci.deleted =0 AND ci.active =0                
-                INNER JOIN sys_language l ON l.country_id = a.language_id AND l.deleted =0 AND l.active =0 
-                               
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0 
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0
+                INNER JOIN sys_countrys c ON c.id = a.country_id AND c.language_id = a.language_id AND c.deleted = 0 AND c.active = 0 
+                INNER JOIN sys_city ci ON ci.country_id= a.country_id AND ci.id = a.city_id AND ci.language_id = a.language_id AND ci.deleted =0 AND ci.active = 0                
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted = 0 AND l.active = 0 
+                INNER JOIN info_users u ON u.id = a.user_id                 
                 ORDER BY a.city_id, a.name
-
                 
                                  ");
          
@@ -226,7 +231,7 @@ class SysBorough extends \DAL\DalSlim {
             $statement = $pdo->prepare("
                 INSERT INTO sys_borough(
                         name, name_eng, language_id, language_parent_id, 
-                        user_id, flag_icon_road, country_code3, priority   )
+                        user_id, flag_icon_road, country_code3, priority, language_parent_id   )
                 VALUES (
                         :name,
                         :name_eng, 
@@ -235,7 +240,8 @@ class SysBorough extends \DAL\DalSlim {
                         :user_id,
                         :flag_icon_road,                       
                         :country_code3,
-                        :priority 
+                        :priority,
+                        :language_parent_id
                                                 ");
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
             $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
@@ -245,6 +251,7 @@ class SysBorough extends \DAL\DalSlim {
             $statement->bindValue(':flag_icon_road', $params['flag_icon_road'], \PDO::PARAM_STR);
             $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
             $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
 
             $result = $statement->execute();
 
@@ -312,7 +319,8 @@ class SysBorough extends \DAL\DalSlim {
                     user_id = :user_id,
                     flag_icon_road = :flag_icon_road,                       
                     country_code3 = :country_code3,
-                    priority = :priority 
+                    priority = :priority,
+                    language_parent_id = :language_parent_id 
                 WHERE id = :id");
             //Bind our value to the parameter :id.
             $statement->bindValue(':id', $id, \PDO::PARAM_INT);
@@ -325,6 +333,7 @@ class SysBorough extends \DAL\DalSlim {
             $statement->bindValue(':flag_icon_road', $params['flag_icon_road'], \PDO::PARAM_STR);
             $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
             $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
         
             //Execute our UPDATE statement.
             $update = $statement->execute(); 
@@ -386,34 +395,38 @@ class SysBorough extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-                SELECT 
+                 SELECT 
                     a.id, 
 		    a.city_id,
 		    ci.name as city_name,
-                    a.name, 
+		    COALESCE(NULLIF(c.name, ''), c.name_eng) AS country_name,  
+                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name,                      
                     a.name_eng, 
                     a.deleted, 
-		    sd.description as state,                      
-                    a.language_id,  
-                    l.language_name ,
-		    a.boroughs_id, 
+		    sd.description AS state_deleted,                       
+                    a.language_id,                      
+		    COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,   
+		    a.boroughs_id,
+                    a.name as borough_name,
 		    a.country_id, 
-		    c.name as country_name,
+		    c.name AS country_name,
                     a.active,
-                    a.user_id                                      
-                FROM sys_borough  a
+		    sd1.description AS state_active,  
+                    a.user_id,
+		    u.username,
+                    a.language_parent_id
+		    FROM sys_borough  a
                     INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0 
+                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0
                     INNER JOIN sys_countrys c ON c.id = a.country_id AND c.language_id = a.language_id AND c.deleted = 0 AND c.active = 0 
                     INNER JOIN sys_city ci ON ci.country_id= a.country_id AND ci.id = a.city_id AND ci.language_id = a.language_id AND ci.deleted =0 AND ci.active = 0                
-                    INNER JOIN sys_language l ON l.country_id = a.language_id AND l.deleted =0 AND l.active = 0 
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted = 0 AND l.active = 0 
+                    INNER JOIN info_users u ON u.id = a.user_id  
                     WHERE 
                         a.language_id = :language_id AND 
                         a.city_id = :city_id AND 
-                        a.country_id = :country_id AND
-                        a.deleted = 0 AND 
-                        a.active = 0 AND                        
-                        a.city_id = :city_id
-             
+                        a.country_id = :country_id 
+                        
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -461,31 +474,27 @@ class SysBorough extends \DAL\DalSlim {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-                    SELECT 
+                     SELECT 
                         COUNT(a.id) AS toplam  , 
-                        (SELECT count(az.id) as toplam FROM sys_borough az
-                                 INNER JOIN sys_specific_definitions sdz ON sdz.main_group = 15 AND sdz.first_group= az.deleted AND sdz.language_id = az.language_id AND sdz.deleted = 0
-                                 INNER JOIN sys_countrys cz ON cz.id = az.country_id AND cz.language_id = az.language_id AND cz.deleted = 0
-                                 INNER JOIN sys_city ciz ON ciz.country_id=  az.country_id AND ciz.id = az.city_id AND ciz.language_id = az.language_id AND ciz.deleted = 0               
-                                 INNER JOIN sys_language lz ON lz.language_id  = az.language_id AND lz.deleted = 0  
-                                  where az.language_id = :language_id AND az.city_id = :city_id AND az.deleted = 0 AND az.active =0) AS aktif_toplam ,
-                        (SELECT count(az1.id) AS toplam FROM sys_borough az1
-                                 INNER JOIN sys_specific_definitions sdz1 ON sdz1.main_group = 15 AND sdz1.first_group= az1.deleted AND sdz1.language_id = az1.language_id AND sdz1.deleted = 0
-                                 INNER JOIN sys_countrys cz1 ON cz1.id = az1.country_id AND cz1.language_id = az1.language_id AND cz1.deleted = 0
-                                 INNER JOIN sys_city ciz1 ON ciz1.country_id = az1.country_id AND ciz1.id = az1.city_id AND ciz1.language_id = az1.language_id AND ciz1.deleted = 0               
-                                 INNER JOIN sys_language lz1 ON lz1.language_id = az1.language_id AND lz1.deleted = 0   
-                                  where az1.language_id = :language_id AND az1.city_id = :city_id AND az1.deleted = 1 AND az1.active = 0) AS silinmis_toplam    
+                        (SELECT count(a1.id) as toplam FROM sys_borough a1
+				INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 15 AND sd1.first_group= a1.deleted AND sd1.language_id = a1.language_id AND sd1.deleted = 0 AND sd1.active = 0 
+				INNER JOIN sys_countrys c1 ON c1.id = a1.country_id AND c1.language_id = a1.language_id AND c1.deleted = 0 AND c1.active = 0 
+				INNER JOIN sys_city ci1 ON ci1.country_id= a1.country_id AND ci1.id = a1.city_id AND ci1.language_id = a1.language_id AND ci1.deleted =0 AND ci1.active = 0                
+				INNER JOIN sys_language l1 ON l1.id = a1.language_id AND l1.deleted =0 AND l1.active = 0 
+				WHERE a1.language_id = :language_id AND a1.country_id = :country_id AND a1.city_id = :city_id   AND a1.deleted = 0 AND a1.active =0) AS aktif_toplam ,
+                        (SELECT count(a2.id) AS toplam FROM sys_borough a2
+                                INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_id = a2.language_id AND sd2.deleted = 0 AND sd2.active = 0 
+				INNER JOIN sys_countrys c2 ON c2.id = a2.country_id AND c2.language_id = a2.language_id AND c2.deleted = 0 AND c2.active = 0 
+				INNER JOIN sys_city ci2 ON ci2.country_id= a2.country_id AND ci2.id = a2.city_id AND ci2.language_id = a2.language_id AND ci2.deleted =0 AND ci2.active = 0                
+				INNER JOIN sys_language l2 ON l2.id = a2.language_id AND l2.deleted =0 AND l2.active = 0 
+				WHERE a2.language_id = :language_id AND a2.country_id = :country_id AND a2.city_id = :city_id   AND a2.deleted = 1 AND a2.active = 1) AS silinmis_toplam    
                     FROM sys_borough  a
                     INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0 
                     INNER JOIN sys_countrys c ON c.id = a.country_id AND c.language_id = a.language_id AND c.deleted = 0 AND c.active = 0 
                     INNER JOIN sys_city ci ON ci.country_id= a.country_id AND ci.id = a.city_id AND ci.language_id = a.language_id AND ci.deleted =0 AND ci.active = 0                
-                    INNER JOIN sys_language l ON l.language_id = a.language_id AND l.deleted =0 AND l.active = 0 
-                    WHERE 
-                        a.language_id = :language_id AND 
-                        a.country_id = :country_id AND 
-                        a.city_id = :city_id AND 
-                        a.deleted =0 AND 
-                        a.active = 0  
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+                    WHERE a.language_id = :language_id AND a.country_id = :country_id AND a.city_id = :city_id   
+                      
                   
                     ";
             $statement = $pdo->prepare($sql);
@@ -521,13 +530,16 @@ class SysBorough extends \DAL\DalSlim {
              */
             $sql = "
                SELECT 
-                    a.id AS id,                     
-                    a.name                     
-                FROM sys_borough  a
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
+                    a.id AS id,                                         
+                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name 
+                FROM sys_borough a
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND 
+                    sd.language_id = a.language_id AND sd.active = 0 AND sd.deleted = 0 
                 WHERE a.language_id = :language_id 
                 AND a.country_id = :country_id 
                 AND a.city_id = :city_id
+                AND a.active = 0 
+                AND a.deleted = 0 
                 ORDER BY a.name
                 
                                  ";

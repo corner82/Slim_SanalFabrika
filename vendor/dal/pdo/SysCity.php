@@ -147,21 +147,27 @@ class SysCity extends \DAL\DalSlim {
               SELECT 
                     a.id, 
                     a.country_id, 
-                    a.name, 
+		    COALESCE(NULLIF(c.name, ''), c.name_eng) AS country_name,  
+                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name,    
                     a.name_eng, 
                     a.deleted, 
-                    sd.description as state,                 
+                    sd.description as state_deleted,                 
                     a.active, 
-                    a.parent_eng_id, 
+		    sd1.description as state_active,  
+                    a.language_parent_id, 
                     a.language_id, 
+		    COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,  
                     a.user_id, 
+		    u.username,
                     a.priority, 
                     a.city_id     
                 FROM sys_city  a
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
-                           
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0
+                INNER JOIN sys_countrys c ON c.id = a.country_id AND c.language_id = a.language_id AND c.deleted = 0 AND c.active = 0 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+		INNER JOIN info_users u ON u.id = a.user_id            
                 ORDER BY a.priority ASC , a.name
-
                 
                                  ");   
             $statement->execute();
@@ -394,23 +400,31 @@ class SysCity extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-                SELECT 
+              SELECT 
                     a.id, 
                     a.country_id, 
-                    a.name, 
+		    COALESCE(NULLIF(c.name, ''), c.name_eng) AS country_name,  
+                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name,    
                     a.name_eng, 
                     a.deleted, 
-                    sd.description as state,                 
+                    sd.description as state_deleted,                 
                     a.active, 
-                    a.parent_eng_id, 
+		    sd1.description as state_active,  
+                    a.language_parent_id, 
                     a.language_id, 
+		    COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,  
                     a.user_id, 
+		    u.username,
                     a.priority, 
                     a.city_id     
                 FROM sys_city  a
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0
+                INNER JOIN sys_countrys c ON c.id = a.country_id AND c.language_id = a.language_id AND c.deleted = 0 AND c.active = 0 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+		INNER JOIN info_users u ON u.id = a.user_id 
                 WHERE a.language_id = :language_id     
-                AND country_id = :country_id 
+                    AND country_id = :country_id 
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -459,13 +473,30 @@ class SysCity extends \DAL\DalSlim {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-                    SELECT 
-                       count(id) as toplam  , 
-                       (SELECT count(x.id) AS toplam FROM sys_city x where x.deleted =0  AND x.country_id = :country_id AND language_id = :language_id) AS aktif_toplam   ,
-                       (SELECT count(y.id) AS toplam FROM sys_city y where y.deleted =1  AND y.country_id = :country_id AND language_id = :language_id) AS silinmis_toplam    
-                    FROM sys_city
-                    where language_id = :language_id 
-                    AND country_id = :country_id 
+                        SELECT 
+                        count(a.id) as count ,
+                            (SELECT count(a1.id) AS toplam FROM sys_city  a1
+                            INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 15 AND sd1.first_group= a1.deleted AND sd1.language_id = a1.language_id AND sd1.deleted = 0 AND sd1.active = 0
+                            INNER JOIN sys_specific_definitions sd11 ON sd11.main_group = 16 AND sd11.first_group= a1.active AND sd11.language_id = a1.language_id AND sd11.deleted = 0 AND sd11.active = 0
+                            INNER JOIN sys_countrys c1 ON c1.id = a1.country_id AND c1.language_id = a1.language_id AND c1.deleted = 0 AND c1.active = 0 
+                            INNER JOIN sys_language l1 ON l1.id = a1.language_id AND l1.deleted = 0 AND l1.active = 0 
+                            INNER JOIN info_users u1 ON u1.id   = a1.user_id  
+                            WHERE a1.deleted = 0) AS undeleted_count, 
+                            (SELECT count(a2.id) as toplam FROM sys_city  a2
+                            INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_id = a2.language_id AND sd2.deleted = 0 AND sd2.active = 0
+                            INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group= a2.active AND sd12.language_id = a2.language_id AND sd12.deleted = 0 AND sd12.active = 0
+                            INNER JOIN sys_countrys c2 ON c2.id = a2.country_id AND c2.language_id = a2.language_id AND c2.deleted = 0 AND c2.active = 0 
+                            INNER JOIN sys_language l2 ON l2.id = a2.language_id AND l2.deleted =0 AND l2.active = 0 
+                            INNER JOIN info_users u2 ON u2.id   = a2.user_id  
+                            WHERE a2.deleted = 1) AS deleted_count 
+                    FROM sys_city  a
+                    INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0
+                    INNER JOIN sys_countrys c ON c.id = a.country_id AND c.language_id = a.language_id AND c.deleted = 0 AND c.active = 0 
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+                    INNER JOIN info_users u ON u.id = a.user_id  
+                    where a.language_id = :language_id 
+                    AND a.country_id = :country_id 
                     ";
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
@@ -500,11 +531,10 @@ class SysCity extends \DAL\DalSlim {
              */
             $sql = "
                SELECT 
-                    a.city_id as id,                     
-                    a.name                     
-                FROM sys_city  a
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group = a.deleted AND sd.language_id = a.language_id
-                WHERE a.language_id = :language_id AND a.active = 0 AND a.deleted= 0 
+                    a.city_id AS id,
+                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name 
+                FROM sys_city a                 
+                WHERE a.language_id = :language_id AND a.active = 0 AND a.deleted = 0 
                 AND country_id = :country_id 
                 ORDER BY a.priority ASC, a.name
                 

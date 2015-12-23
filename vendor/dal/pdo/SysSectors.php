@@ -144,22 +144,28 @@ class SysSectors extends \DAL\DalSlim {
              * table names and column names will be changed for specific use
              */
             $statement = $pdo->prepare("
-              SELECT 
+            SELECT 
                     a.id, 
-                    a.name, 
+                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name, 
                     a.name_eng, 
                     a.deleted, 
-		    sd.description as state,                      
+		    sd.description as state_deleted,                 
+                    a.active, 
+		    sd1.description as state_active,                      
                     a.language_id, 
+		    COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,
                     a.ordr as siralama,
                     a.language_parent_id,
                     a.description,
-                    a.description_eng,
-                    a.active,
-                    a.user_id                    
+                    a.description_eng,                   
+                    a.user_id,
+                    u.username    
                 FROM sys_sectors  a
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
-                  
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+		INNER JOIN info_users u ON u.id = a.user_id 
+                ORDER BY a.name
                 
                                  ");
             $statement->execute();
@@ -371,21 +377,27 @@ class SysSectors extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-              SELECT 
+                SELECT 
                     a.id, 
-                    a.name, 
+                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name, 
                     a.name_eng, 
                     a.deleted, 
-		    sd.description as state,                      
+		    sd.description as state_deleted,                 
+                    a.active, 
+		    sd1.description as state_active,                      
                     a.language_id, 
+		    COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,
                     a.ordr as siralama,
                     a.language_parent_id,
                     a.description,
-                    a.description_eng,
-                    a.active,
-                    a.user_id    
+                    a.description_eng,                  
+                    a.user_id,
+                    u.username    
                 FROM sys_sectors  a
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+		INNER JOIN info_users u ON u.id = a.user_id 
                 WHERE a.language_id = :language_id
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
@@ -431,17 +443,27 @@ class SysSectors extends \DAL\DalSlim {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-                  SELECT 
-                       count(a.id) as toplam  , 
-                       (SELECT count(a1.id) as toplam FROM sys_sectors a1
-                       INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 15 AND sd1.first_group= a1.deleted AND sd1.language_id = a1.language_id
-                       where a1.deleted =0 and a1.language_id = :language_id) as aktif_toplam   ,
-                       (SELECT count(a2.id) as toplam FROM sys_sectors a2
-                       INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_id = a2.language_id
-                       where a2.deleted =1 and a2.language_id = :language_id) as silinmis_toplam    
-	    FROM sys_sectors a
-	    INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
-	    where a.language_id = :language_id
+                SELECT 
+			COUNT(a.id) AS COUNT ,    
+			( SELECT COUNT(a1.id) FROM sys_sectors a1
+			INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 15 AND sd1.first_group= a1.deleted AND sd1.language_id = a1.language_id AND sd1.deleted = 0 AND sd1.active = 0
+			INNER JOIN sys_specific_definitions sd11 ON sd11.main_group = 16 AND sd11.first_group= a1.active AND sd11.language_id = a1.language_id AND sd11.deleted = 0 AND sd11.active = 0                
+			INNER JOIN sys_language l1 ON l1.id = a1.language_id AND l1.deleted =0 AND l1.active = 0 
+			INNER JOIN info_users u1 ON u1.id = a1.user_id  
+			WHERE a1.language_id = :language_id AND a1.deleted =0) AS undeleted_count, 
+			 
+			(SELECT COUNT(a2.id) FROM sys_sectors a2			
+			INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_id = a2.language_id AND sd2.deleted = 0 AND sd2.active = 0
+			INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group= a2.active AND sd12.language_id = a2.language_id AND sd12.deleted = 0 AND sd12.active = 0                
+			INNER JOIN sys_language l2 ON l2.id = a2.language_id AND l2.deleted =0 AND l2.active = 0 
+			INNER JOIN info_users u2 ON u2.id = a2.user_id  
+			WHERE a2.language_id = :language_id  AND a2.deleted =1) AS deleted_count 			
+                FROM sys_sectors  a
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+		INNER JOIN info_users u ON u.id = a.user_id  
+                WHERE a.language_id = :language_id
                     ";
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);  
@@ -457,5 +479,38 @@ class SysSectors extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
+    
+      public function fillComboBox() {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            /**
+             * table names and column names will be changed for specific use
+             */
+            $statement = $pdo->prepare("
+                SELECT                    
+                    a.id, 	
+                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name                                 
+                FROM sys_sectors  a       
+                WHERE  
+                    a.deleted = 0 AND a.active =0    
+                ORDER BY COALESCE(NULLIF(a.name, ''), a.name_eng)
+                
+                                 ");
+              $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            
+            /* while ($row = $statement->fetch()) {
+              print_r($row);
+              } */
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
 
 }
