@@ -174,7 +174,7 @@ class SysLanguage extends \DAL\DalSlim {
 			sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.user_id  
-                ORDER BY a.priority, a.country_name 
+                ORDER BY a.priority, language 
                 
                                  ");
             $statement->execute();

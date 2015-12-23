@@ -167,7 +167,7 @@ class SysCity extends \DAL\DalSlim {
                 INNER JOIN sys_countrys c ON c.id = a.country_id AND c.language_id = a.language_id AND c.deleted = 0 AND c.active = 0 
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.user_id            
-                ORDER BY a.priority ASC , a.name
+                ORDER BY a.priority ASC, name
                 
                                  ");   
             $statement->execute();
@@ -536,7 +536,7 @@ class SysCity extends \DAL\DalSlim {
                 FROM sys_city a                 
                 WHERE a.language_id = :language_id AND a.active = 0 AND a.deleted = 0 
                 AND country_id = :country_id 
-                ORDER BY a.priority ASC, a.name
+                ORDER BY a.priority ASC, name
                 
                                  ";
             $statement = $pdo->prepare($sql);

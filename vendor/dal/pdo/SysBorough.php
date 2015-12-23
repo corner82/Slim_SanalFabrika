@@ -172,7 +172,7 @@ class SysBorough extends \DAL\DalSlim {
                 INNER JOIN sys_city ci ON ci.country_id= a.country_id AND ci.id = a.city_id AND ci.language_id = a.language_id AND ci.deleted =0 AND ci.active = 0                
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted = 0 AND l.active = 0 
                 INNER JOIN info_users u ON u.id = a.user_id                 
-                ORDER BY a.city_id, a.name
+                ORDER BY a.city_id, name
                 
                                  ");
          
@@ -397,8 +397,8 @@ class SysBorough extends \DAL\DalSlim {
             $sql = "
                  SELECT 
                     a.id, 
-		    a.city_id,
-		    ci.name as city_name,
+		    a.city_id,		 
+                    COALESCE(NULLIF(ci.name, ''), ci.name_eng) AS city_name, 
 		    COALESCE(NULLIF(c.name, ''), c.name_eng) AS country_name,  
                     COALESCE(NULLIF(a.name, ''), a.name_eng) AS name,                      
                     a.name_eng, 

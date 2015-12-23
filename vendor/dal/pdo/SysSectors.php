@@ -457,7 +457,7 @@ class SysSectors extends \DAL\DalSlim {
 			INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group= a2.active AND sd12.language_id = a2.language_id AND sd12.deleted = 0 AND sd12.active = 0                
 			INNER JOIN sys_language l2 ON l2.id = a2.language_id AND l2.deleted =0 AND l2.active = 0 
 			INNER JOIN info_users u2 ON u2.id = a2.user_id  
-			WHERE a2.language_id = :language_id  AND a2.deleted =1) AS deleted_count 			
+			WHERE a2.language_id = :language_id AND a2.deleted =1) AS deleted_count 			
                 FROM sys_sectors  a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                
@@ -493,7 +493,7 @@ class SysSectors extends \DAL\DalSlim {
                 FROM sys_sectors  a       
                 WHERE  
                     a.deleted = 0 AND a.active =0    
-                ORDER BY COALESCE(NULLIF(a.name, ''), a.name_eng)
+                ORDER BY name
                 
                                  ");
               $statement->execute();

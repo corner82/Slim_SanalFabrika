@@ -167,7 +167,7 @@ class SysCountrys extends \DAL\DalSlim {
 			sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0
 		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.user_id  
-                ORDER BY a.priority asc, a.name
+                ORDER BY a.priority asc, name
                           ");            
            
             $statement->execute();
@@ -511,7 +511,7 @@ class SysCountrys extends \DAL\DalSlim {
                     COALESCE(NULLIF(a.name, ''), a.name_eng) AS name
                 FROM sys_countrys  a               
                 WHERE a.active =0 AND a.deleted = 0 AND a.language_id = :language_id  
-                ORDER BY a.priority, a.name ASC
+                ORDER BY a.priority, name  
                 
                                  ");
               $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);  
