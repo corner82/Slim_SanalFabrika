@@ -320,7 +320,8 @@ class SysBorough extends \DAL\DalSlim {
                     flag_icon_road = :flag_icon_road,                       
                     country_code3 = :country_code3,
                     priority = :priority,
-                    language_parent_id = :language_parent_id 
+                    language_parent_id = :language_parent_id ,
+                    active = :active
                 WHERE id = :id");
             //Bind our value to the parameter :id.
             $statement->bindValue(':id', $id, \PDO::PARAM_INT);
@@ -334,6 +335,7 @@ class SysBorough extends \DAL\DalSlim {
             $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
             $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);
             $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
         
             //Execute our UPDATE statement.
             $update = $statement->execute(); 
@@ -532,9 +534,7 @@ class SysBorough extends \DAL\DalSlim {
                SELECT 
                     a.id AS id,                                         
                     COALESCE(NULLIF(a.name, ''), a.name_eng) AS name 
-                FROM sys_borough a
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND 
-                    sd.language_id = a.language_id AND sd.active = 0 AND sd.deleted = 0 
+                FROM sys_borough a                
                 WHERE a.language_id = :language_id 
                 AND a.country_id = :country_id 
                 AND a.city_id = :city_id
