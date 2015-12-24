@@ -138,34 +138,44 @@ class InfoUsers extends \DAL\DalSlim {
              * table names and column names will be changed for specific use
              */
             $statement = $pdo->prepare(" 
-            SELECT 
-                     a.id, 
-                     a.profile_public, 
-                     a.f_check, 
-                     a.s_date, 
-                     a.c_date, 
-                     a.operation_type_id,
-                     op.operation_name, 
-                     a.name, 
-                     a.surname, 
-                     a.username, 
-                     a.password, 
-                     a.auth_email, 
-                     a.gender_id, 
-                     a.language_id,       
-                     a.active, 
-                     a.deleted, 
-                     a.user_id, 
-                     a.act_parent_id, 
-                     a.auth_allow_id, 
-                     sd.description as auth_alow ,
-                     a.cons_allow_id
-                     ,sd1.description as cons_allow 
-                    FROM info_users   a    
-                    inner join sys_operation_types op on op.id = a.operation_type_id and  op.language_id =  a.language_id
-                    inner join sys_specific_definitions sd on sd.main_group = 13 and  sd.language_id =  a.language_id and a.auth_allow_id = sd.first_group 
-		    inner join sys_specific_definitions sd1 on sd1.main_group = 14 and  sd1.language_id =  a.language_id and a.cons_allow_id = sd1.first_group 
-                  
+                    SELECT 
+                        a.id, 
+                        a.profile_public, 
+                        a.f_check, 
+                        a.s_date, 
+                        a.c_date, 
+                        a.operation_type_id,
+                        op.operation_name, 
+                        a.name, 
+                        a.surname, 
+                        a.username, 
+                        a.password, 
+                        a.auth_email, 
+                        a.gender_id, 
+                        sd4.description AS gender,  
+                        a.language_id, 
+                        COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,
+                        sd2.description AS state_deleted, 
+                        a.active, 
+                        sd3.description AS state_active,  
+                        a.deleted, 
+                        a.user_id,
+                        u.username ,
+                        a.act_parent_id, 
+                        a.auth_allow_id, 
+                        sd.description AS auth_alow ,
+                        a.cons_allow_id,
+                        sd1.description AS cons_allow 
+                    FROM info_users a    
+                    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_id = a.language_id
+                    INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_id = a.language_id AND a.auth_allow_id = sd.first_group 
+                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 14 AND  sd1.language_id = a.language_id AND a.cons_allow_id = sd1.first_group 
+                    INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a.deleted AND sd2.language_id = a.language_id AND sd2.deleted =0 AND sd2.active =0 
+                    INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_id = a.language_id AND sd3.deleted = 0 AND sd3.active = 0
+                    INNER JOIN sys_specific_definitions sd4 ON sd4.main_group = 3 AND sd4.first_group= a.active AND sd4.language_id = a.language_id AND sd4.deleted = 0 AND sd4.active = 0
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                    INNER JOIN info_users u ON u.id = a.user_id  
+                    ORDER BY a.name, a.surname
  
                 
                 ");
@@ -468,37 +478,48 @@ class InfoUsers extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "    
-                      SELECT 
-                     a.id, 
-                     a.profile_public, 
-                     a.f_check, 
-                     a.s_date, 
-                     a.c_date, 
-                     a.operation_type_id,
-                     op.operation_name, 
-                     a.name, 
-                     a.surname, 
-                     a.username, 
-                     a.password, 
-                     a.auth_email, 
-                     a.gender_id, 
-                     a.language_id,       
-                     a.active, 
-                     a.deleted, 
-                     a.user_id, 
-                     a.act_parent_id, 
-                     a.auth_allow_id, 
-                     sd.description as auth_alow ,
-                     a.cons_allow_id
-                     ,sd1.description as cons_allow 
-                    FROM info_users   a    
-                    inner join sys_operation_types op on op.id = a.operation_type_id and  op.language_id =  a.language_id
-                    inner join sys_specific_definitions sd on sd.main_group = 13 and  sd.language_id =  a.language_id and a.auth_allow_id = sd.first_group 
-		    inner join sys_specific_definitions sd1 on sd1.main_group = 14 and  sd1.language_id =  a.language_id and a.cons_allow_id = sd1.first_group 
-                    where   
-                        a.language_id = :language_id and 
-                        deleted = 0 and 
-                        active =0                    
+                    SELECT 
+                        a.id, 
+                        a.profile_public, 
+                        a.f_check, 
+                        a.s_date, 
+                        a.c_date, 
+                        a.operation_type_id,
+                        op.operation_name, 
+                        a.name, 
+                        a.surname, 
+                        a.username, 
+                        a.password, 
+                        a.auth_email, 
+                        a.gender_id, 
+                        sd4.description AS gender,  
+                        a.language_id, 
+                        COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,
+                        sd2.description AS state_deleted, 
+                        a.active, 
+                        sd3.description AS state_active,  
+                        a.deleted, 
+                        a.user_id,
+                        u.username ,
+                        a.act_parent_id, 
+                        a.auth_allow_id, 
+                        sd.description AS auth_alow ,
+                        a.cons_allow_id,
+                        sd1.description AS cons_allow 
+                    FROM info_users a    
+                    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_id = a.language_id
+                    INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_id = a.language_id AND a.auth_allow_id = sd.first_group 
+                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 14 AND  sd1.language_id = a.language_id AND a.cons_allow_id = sd1.first_group 
+                    INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a.deleted AND sd2.language_id = a.language_id AND sd2.deleted =0 AND sd2.active =0 
+                    INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_id = a.language_id AND sd3.deleted = 0 AND sd3.active = 0
+                    INNER JOIN sys_specific_definitions sd4 ON sd4.main_group = 3 AND sd4.first_group= a.active AND sd4.language_id = a.language_id AND sd4.deleted = 0 AND sd4.active = 0
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                    INNER JOIN info_users u ON u.id = a.user_id   
+
+                    WHERE   
+                            a.language_id = :language_id and 
+                            deleted = 0 and 
+                            active =0                    
                     ORDER BY  " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -542,17 +563,42 @@ class InfoUsers extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-                    SELECT 
-                       count(a.id) as toplam  , 
-                       (SELECT count(a1.id) as toplam FROM info_users a1
-                       INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 15 AND sd1.first_group= a1.deleted AND sd1.language_id = a1.language_id
-                       where a1.deleted =0 and a1.language_id = :language_id) as aktif_toplam   ,
-                       (SELECT count(a2.id) as toplam FROM info_users a2
-                       INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_id = a2.language_id
-                       where a2.deleted =1 and a2.language_id = :language_id) as silinmis_toplam    
-	    FROM info_users a
-	    INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id
-	    where a.language_id = :language_id 
+                   SELECT 
+                        count(a.id) as count ,
+                        (SELECT count(a1.id) AS toplam FROM info_users a1  		   
+                        INNER JOIN sys_operation_types op1 ON op1.id = a1.operation_type_id and op1.language_id = a1.language_id
+                        INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 13 AND sd1.language_id = a1.language_id AND a1.auth_allow_id = sd1.first_group 
+                        INNER JOIN sys_specific_definitions sd11 ON sd11.main_group = 14 AND  sd11.language_id = a1.language_id AND a1.cons_allow_id = sd11.first_group 
+                        INNER JOIN sys_specific_definitions sd21 ON sd21.main_group = 15 AND sd21.first_group= a1.deleted AND sd21.language_id = a1.language_id AND sd21.deleted =0 AND sd21.active =0 
+                        INNER JOIN sys_specific_definitions sd31 ON sd31.main_group = 16 AND sd31.first_group= a1.active AND sd31.language_id = a1.language_id AND sd31.deleted = 0 AND sd31.active = 0
+                        INNER JOIN sys_specific_definitions sd41 ON sd41.main_group = 3 AND sd41.first_group= a1.active AND sd41.language_id = a1.language_id AND sd41.deleted = 0 AND sd41.active = 0
+                        INNER JOIN sys_language l1 ON l1.id = a1.language_id AND l1.deleted =0 AND l1.active =0 
+                        INNER JOIN info_users u1 ON u1.id = a1.user_id 
+                        WHERE a1.language_id = :language_id  AND a1.deleted = 0) AS undeleted_count, 
+                        
+                        (SELECT count(a2.id) AS toplam FROM info_users a2
+                        INNER JOIN sys_operation_types op2 ON op2.id = a2.operation_type_id and op2.language_id = a2.language_id
+                        INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 13 AND sd2.language_id = a2.language_id AND a2.auth_allow_id = sd2.first_group 
+                        INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 14 AND sd12.language_id = a2.language_id AND a2.cons_allow_id = sd12.first_group 
+                        INNER JOIN sys_specific_definitions sd22 ON sd22.main_group = 15 AND sd22.first_group = a2.deleted AND sd22.language_id = a2.language_id AND sd22.deleted =0 AND sd22.active =0 
+                        INNER JOIN sys_specific_definitions sd32 ON sd32.main_group = 16 AND sd32.first_group = a2.active AND sd32.language_id = a2.language_id AND sd32.deleted = 0 AND sd32.active = 0
+                        INNER JOIN sys_specific_definitions sd42 ON sd42.main_group = 3 AND sd42.first_group = a2.active AND sd42.language_id = a2.language_id AND sd42.deleted = 0 AND sd42.active = 0
+                        INNER JOIN sys_language l2 ON l2.id = a2.language_id AND l2.deleted =0 AND l2.active =0 
+                        INNER JOIN info_users u2 ON u2.id = a2.user_id 
+                        WHERE a2.language_id = :language_id  AND a2.deleted = 1) AS deleted_count 
+                 
+                    FROM info_users   a  		   
+		    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_id = a.language_id
+		    INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_id = a.language_id AND a.auth_allow_id = sd.first_group 
+		    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 14 AND  sd1.language_id = a.language_id AND a.cons_allow_id = sd1.first_group 
+		    INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a.deleted AND sd2.language_id = a.language_id AND sd2.deleted =0 AND sd2.active =0 
+		    INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_id = a.language_id AND sd3.deleted = 0 AND sd3.active = 0
+		    INNER JOIN sys_specific_definitions sd4 ON sd4.main_group = 3 AND sd4.first_group= a.active AND sd4.language_id = a.language_id AND sd4.deleted = 0 AND sd4.active = 0
+		    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+		    INNER JOIN info_users u ON u.id = a.user_id 
+		    WHERE a.language_id = :language_id 
+
+ 
                          ";
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);  

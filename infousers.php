@@ -64,11 +64,11 @@ $app->get("/fillGrid_infoUsers/", function () use ($app ) {
     
   
     print_r('--****************get parent--' );  
-     $resTotalRowCount = $BLL->fillGridRowTotalCount();
+     $resTotalRowCount = $BLL->fillGridRowTotalCount(array('language_id'=>$_GET['language_id'])); 
     $resultArray = array();
-    $resultArray['total'] = $resTotalRowCount[0]['toplam'];
+    $resultArray['total'] = $resTotalRowCount[0]['count'];
 
-    print_r(' row sayımız =' . $resultArray['total'] );
+    print_r(' user sayımız =' . $resultArray['total'] );
 
    
    /*
