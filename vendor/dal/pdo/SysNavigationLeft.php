@@ -642,9 +642,10 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     a.language_parent_id, 
                     a.hint_eng, 
                     a.warning_class,
-                    a.acl_type
+                    a.acl_type,
+                    a.language_code
               FROM sys_navigation_left a 
-              WHERE a.language_id = :language_id 
+              WHERE a.language_code = :language_code 
               AND acl_type = 0  
               AND a.active = 0 
               AND a.deleted = 0 
@@ -653,7 +654,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                                  ";           
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':parent',  $params['parent'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();

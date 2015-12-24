@@ -67,7 +67,7 @@ $app->get("/getLeftMenu_leftnavigation/", function () use ($app ) {
   
     //print_r('--****************get parent--'.$_GET['parent']);  
     $resDataMenu = $BLL->getLeftMenu(array('parent'=>$_GET['parent'],
-                                           'language_id'=>$_GET['language_id'] 
+                                           'language_code'=>$_GET['language_code'] 
                                            ) );
     //print_r($resDataMenu);
    
