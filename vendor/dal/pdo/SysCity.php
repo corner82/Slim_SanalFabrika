@@ -14,7 +14,7 @@ namespace DAL\PDO;
  * Class using Zend\ServiceManager\FactoryInterface
  * created to be used by DAL MAnager
  * @
- * @author Okan CİRANĞ
+ * @author Okan CİRAN Ğ
  */
 class SysCity extends \DAL\DalSlim {
 
