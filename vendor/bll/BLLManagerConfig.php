@@ -1,7 +1,7 @@
 <?php
 /**
  * OSTİM TEKNOLOJİ Framework 
- *
+ * Ğİ
  * @link      https://github.com/corner82/slim_test for the canonical source repository
  * @copyright Copyright (c) 2015 OSTİM TEKNOLOJİ (http://www.ostim.com.tr)
  * @license   
@@ -41,11 +41,8 @@ class BLLManagerConfig{
                  'sysCityBLL' => 'BLL\BLL\SysCity',
                  'sysLanguageBLL' => 'BLL\BLL\SysLanguage',
                  'sysBoroughBLL' => 'BLL\BLL\SysBorough',
-                 
-            
-                 
-                 
-                  
+                 'sysVillageBLL' => 'BLL\BLL\SysVillage',
+                   
                  
                  
              ),
