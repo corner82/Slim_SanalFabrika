@@ -98,6 +98,9 @@ $app->get("/getLeftMenu_leftnavigation/", function () use ($app ) {
              "hint_eng" => $menu["hint_eng"],
              "warning_class" => $menu["warning_class"],
              "acl_type" => $menu["acl_type"],
+            "active_control" => $menu["active_control"],
+            
+            
              
             
            

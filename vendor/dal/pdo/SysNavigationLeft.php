@@ -167,7 +167,18 @@ class SysNavigationLeft extends \DAL\DalSlim {
 		    a.warning_class,
                     a.user_id,
                     u.username,
-                    a.acl_type
+                    a.acl_type,
+                     (select COALESCE(NULLIF(max(ax.active), 0),0)+COALESCE(NULLIF(max(bx.active), 0),0)+COALESCE(NULLIF(max(cx.active), 0),0)+
+			COALESCE(NULLIF(max(dx.active), 0),0) +COALESCE(NULLIF(max(ex.active), 0),0)+ COALESCE(NULLIF(max(fx.active), 0),0)+
+			COALESCE(NULLIF(max(gx.active), 0),0) 
+			from sys_navigation_left ax 
+			left join sys_navigation_left bx on ax.parent = bx.id
+			left join sys_navigation_left cx on bx.parent = cx.id 
+			left join sys_navigation_left dx on cx.parent = dx.id
+			left join sys_navigation_left ex on dx.parent = ex.id
+			left join sys_navigation_left fx on ex.parent = fx.id
+			left join sys_navigation_left gx on fx.parent = gx.id
+			where ax.id = a.id ) as active_control
 		FROM sys_navigation_left a                 
 		INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
 		INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0		
@@ -468,7 +479,18 @@ class SysNavigationLeft extends \DAL\DalSlim {
 		    a.warning_class,
                     a.user_id,
                     u.username,
-                    a.acl_type
+                    a.acl_type,
+                     (select COALESCE(NULLIF(max(ax.active), 0),0)+COALESCE(NULLIF(max(bx.active), 0),0)+COALESCE(NULLIF(max(cx.active), 0),0)+
+			COALESCE(NULLIF(max(dx.active), 0),0) +COALESCE(NULLIF(max(ex.active), 0),0)+ COALESCE(NULLIF(max(fx.active), 0),0)+
+			COALESCE(NULLIF(max(gx.active), 0),0) 
+			from sys_navigation_left ax 
+			left join sys_navigation_left bx on ax.parent = bx.id
+			left join sys_navigation_left cx on bx.parent = cx.id 
+			left join sys_navigation_left dx on cx.parent = dx.id
+			left join sys_navigation_left ex on dx.parent = ex.id
+			left join sys_navigation_left fx on ex.parent = fx.id
+			left join sys_navigation_left gx on fx.parent = gx.id
+			where ax.id = a.id ) as active_control
 		FROM sys_navigation_left a                 
 		INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
 		INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0		
@@ -643,7 +665,18 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     a.hint_eng, 
                     a.warning_class,
                     a.acl_type,
-                    a.language_code
+                    a.language_code,
+                    (select COALESCE(NULLIF(max(ax.active), 0),0)+COALESCE(NULLIF(max(bx.active), 0),0)+COALESCE(NULLIF(max(cx.active), 0),0)+
+			COALESCE(NULLIF(max(dx.active), 0),0) +COALESCE(NULLIF(max(ex.active), 0),0)+ COALESCE(NULLIF(max(fx.active), 0),0)+
+			COALESCE(NULLIF(max(gx.active), 0),0) 
+			from sys_navigation_left ax 
+			left join sys_navigation_left bx on ax.parent = bx.id
+			left join sys_navigation_left cx on bx.parent = cx.id 
+			left join sys_navigation_left dx on cx.parent = dx.id
+			left join sys_navigation_left ex on dx.parent = ex.id
+			left join sys_navigation_left fx on ex.parent = fx.id
+			left join sys_navigation_left gx on fx.parent = gx.id
+			where ax.id = a.id ) as active_control
               FROM sys_navigation_left a 
               WHERE a.language_code = :language_code 
               AND acl_type = 0  
@@ -696,7 +729,18 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     a.language_parent_id, 
                     a.hint_eng, 
                     a.warning_class,
-                    a.acl_type
+                    a.acl_type,
+                     (select COALESCE(NULLIF(max(ax.active), 0),0)+COALESCE(NULLIF(max(bx.active), 0),0)+COALESCE(NULLIF(max(cx.active), 0),0)+
+			COALESCE(NULLIF(max(dx.active), 0),0) +COALESCE(NULLIF(max(ex.active), 0),0)+ COALESCE(NULLIF(max(fx.active), 0),0)+
+			COALESCE(NULLIF(max(gx.active), 0),0) 
+			from sys_navigation_left ax 
+			left join sys_navigation_left bx on ax.parent = bx.id
+			left join sys_navigation_left cx on bx.parent = cx.id 
+			left join sys_navigation_left dx on cx.parent = dx.id
+			left join sys_navigation_left ex on dx.parent = ex.id
+			left join sys_navigation_left fx on ex.parent = fx.id
+			left join sys_navigation_left gx on fx.parent = gx.id
+			where ax.id = a.id ) as active_control
               FROM sys_navigation_left a 
               WHERE a.language_id = 647
               AND acl_type = 0                

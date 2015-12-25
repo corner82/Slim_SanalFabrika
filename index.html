@@ -2,7 +2,8 @@
 <!--
 To change this license header, choose License Headers in Project Properties.
 To change this template file, choose Tools | Templates
-and open the template in the editor.
+and open the template in the editor. Ğİ
+
 -->
 <html>
     <head>
@@ -81,7 +82,33 @@ and open the template in the editor.
     });
     
     
-         $.ajax({
+    $.ajax({
+          //  url : '../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',   
+         
+              url :'../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',
+            data : {  
+                   country_id :91 ,
+                   city_id : 66 ,
+                   boroughs_id : 738 ,
+                   language_id : 647,
+                   url : 'fillComboBox_sysvillage',
+                   pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
+            },
+            method : 'GET',
+        
+            success: function(data, textStatus, jqXHR) {
+
+                
+            },
+            error: function(jqXHR , textStatus, errorThrown) {
+              console.warn('error text status-->'+textStatus);
+            }
+        });  
+    
+    
+    
+    
+    $.ajax({
           //  url : '../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',   
          
               url :'../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',
@@ -106,7 +133,7 @@ and open the template in the editor.
      url :'../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',
             data : {
                     parent : 0 ,
-                    language_id : 647,
+                    language_code : 'tr',
                     url : 'getLeftMenu_leftnavigation',
                    pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
             },
@@ -167,7 +194,7 @@ and open the template in the editor.
                    language_id : 647,
                    url : 'fillComboBox_syscity',
                    pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348',
-                   country_id : 0                 
+                   country_id : 91                 
             },
             method : 'GET',
             
@@ -229,8 +256,9 @@ and open the template in the editor.
            url :'../Slim_Proxy_SanalFabrika/SlimProxyBoot.php', 
             data : {
                     parent : 0 ,
+                    language_id : 647, 
                     url : 'fillGrid_infoUsers',
-                   pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
+                    pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
             },
             method : 'GET',
         
