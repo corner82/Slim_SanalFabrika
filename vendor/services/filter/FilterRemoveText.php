@@ -25,12 +25,8 @@ class FilterRemoveText implements \Zend\ServiceManager\FactoryInterface {
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
         // Create a filter chain and filter for usage
         $filterChain = new \Zend\Filter\FilterChain();
-        $filterChain->attach(new \Zend\Filter\StripTags())
-                    ->attach(new \Zend\Filter\StringTrim())
-                    ->attach(new \Zend\Filter\HtmlEntities())
-                    ->attach(new \Zend\Filter\StripNewlines())
-                    ->attach(new \Zend\Filter\StringToLower(array('encoding' => 'UTF-8')))
-                    ->attach(new \Zend\Filter\PregReplace(array(                                           
+        $filterChain ->attach(new \Zend\Filter\Digits());
+        $filterChain ->attach(new \Zend\Filter\PregReplace(array(                                           
                         'pattern'     => array('/[A-Za-z]/',
                                            
                                             

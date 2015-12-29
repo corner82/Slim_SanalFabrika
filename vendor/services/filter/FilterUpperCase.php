@@ -10,12 +10,13 @@
 namespace Services\Filter;
 
 
+
 /**
  * service manager layer for filter functions
- * @author Mustafa Zeynel Dağlı
+ * @author Okan CIRAN
+ * @version 29.12.2015
  */
-class FilterRemoveNumber implements \Zend\ServiceManager\FactoryInterface {
-    
+class FilterUpperCase implements \Zend\ServiceManager\FactoryInterface {
     
     /**
      * service ceration via factory on zend service manager
@@ -25,15 +26,10 @@ class FilterRemoveNumber implements \Zend\ServiceManager\FactoryInterface {
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
         // Create a filter chain and filter for usage
         $filterChain = new \Zend\Filter\FilterChain();
-        $filterChain ->attach(new \Zend\Filter\PregReplace(array(
-                        'pattern'     => array('/[0-9]/',
-
-                                               ),
-                        'replacement' => '',
-                    ), 200));
+        $filterChain->attach(new \Zend\Filter\StringToUpper(array('encoding' => 'UTF-8')))
+                   ;
         return $filterChain;
 
-        
     }
 
 }

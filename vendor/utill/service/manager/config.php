@@ -1,4 +1,5 @@
 <?php
+
 /**
  * OSTİM TEKNOLOJİ Framework 
  *
@@ -12,43 +13,42 @@ namespace Utill\Service\Manager;
 /**
  * config class for zend service manager
  */
-class config{
-    
+class config {
+
     /**
      * constructor
      */
     public function __construct() {
         
     }
-    
+
     /**
      * config array for zend service manager config
      * @var array
      */
-    protected $config= array(
+    protected $config = array(
         // Initial configuration with which to seed the ServiceManager.
         // Should be compatible with Zend\ServiceManager\Config.
-         'service_manager' => array(
-             'invokables' => array(
-                 'test' => 'Utill\BLL\Test\Test'
-             ),
-             'factories' => [
-                 'pgConnectFactory' => 'Services\Database\Postgresql\PostgreSQLConnectPDO',
-                 'filterTextBase' => 'Services\Filter\FilterTextBase',
-                 'filterTextBaseNotToLowerCase' => 'Services\Filter\FilterTextBaseNotToLowerCase',
-                 'filterTextBaseWithSQLReservedWords' => 'Services\Filter\FilterTextBaseWithSQLReservedWords',
-                 'filterSQLReservedWords' => 'Services\Filter\FilterSQLReservedWords',
-                 'filterHTMLTagsAdvanced' => 'Services\Filter\FilterHTMLTagsAdvanced',
-                 'filterHexadecimalBase' => 'Services\Filter\FilterHexadecimalBase',
-                 'filterHexadecimalAdvanced' => 'Services\Filter\FilterHexadecimalAdvanced',
-                 'filterRemoweText' => 'Services\Filter\FilterRemoveText',
-                 'filterRemoveNumber' => 'Services\Filter\FilterRemoveNumber',
-                 
-             ],  
+        'service_manager' => array(
+            'invokables' => array(
+                'test' => 'Utill\BLL\Test\Test'
+            ),
+            'factories' => [
+                'pgConnectFactory' => 'Services\Database\Postgresql\PostgreSQLConnectPDO',
+                'filterDefault' => 'Services\Filter\FilterDefault',
+                'filterHTMLTagsAdvanced' => 'Services\Filter\FilterHTMLTagsAdvanced',
+                'filterHexadecimalAdvanced' => 'Services\Filter\FilterHexadecimalAdvanced',
+                'filterLowerCase' => 'Services\Filter\FilterLowerCase',
+                'filterPregReplace' => 'Services\Filter\FilterPregReplace',
+                'filterRemoveNumber' => 'Services\Filter\FilterRemoveNumber',
+                'filterRemoveText' => 'Services\Filter\FilterRemoveText',
+                'filterSQLReservedWords' => 'Services\Filter\FilterSQLReservedWords',
+                'filterToNull' => 'Services\Filter\FilterToNull',
+                'filterUpperCase' => 'Services\Filter\FilterUpperCase',
+            ],
+        ),
+    );
 
-         ),
-     );
-    
     /**
      * return config array for zend service manager config
      * @return array | null
@@ -59,5 +59,3 @@ class config{
     }
 
 }
-
-
