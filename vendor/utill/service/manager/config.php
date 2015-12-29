@@ -34,13 +34,15 @@ class config{
              ),
              'factories' => [
                  'pgConnectFactory' => 'Services\Database\Postgresql\PostgreSQLConnectPDO',
-                 'textBaseFilter' => 'Services\Filter\TextBaseFilter',
-                 'textBaseFilterNotToLowerCase' => 'Services\Filter\TextBaseFilterNotToLowerCase',
-                 'textBaseFilterWithSQLReservedWords' => 'Services\Filter\TextBaseFilterWithSQLReservedWords',
+                 'filterTextBase' => 'Services\Filter\FilterTextBase',
+                 'filterTextBaseNotToLowerCase' => 'Services\Filter\FilterTextBaseNotToLowerCase',
+                 'filterTextBaseWithSQLReservedWords' => 'Services\Filter\FilterTextBaseWithSQLReservedWords',
                  'filterSQLReservedWords' => 'Services\Filter\FilterSQLReservedWords',
                  'filterHTMLTagsAdvanced' => 'Services\Filter\FilterHTMLTagsAdvanced',
                  'filterHexadecimalBase' => 'Services\Filter\FilterHexadecimalBase',
                  'filterHexadecimalAdvanced' => 'Services\Filter\FilterHexadecimalAdvanced',
+                 'filterRemoweText' => 'Services\Filter\FilterRemoveText',
+                 'filterRemoveNumber' => 'Services\Filter\FilterRemoveNumber',
                  
              ],  
 

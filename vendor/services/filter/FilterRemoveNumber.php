@@ -14,7 +14,7 @@ namespace Services\Filter;
  * service manager layer for filter functions
  * @author Mustafa Zeynel Dağlı
  */
-class FilterJustText implements \Zend\ServiceManager\FactoryInterface {
+class FilterRemoveNumber implements \Zend\ServiceManager\FactoryInterface {
     
     
     /**

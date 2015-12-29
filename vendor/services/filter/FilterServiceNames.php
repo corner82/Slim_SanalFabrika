@@ -14,13 +14,17 @@ namespace Services\Filter;
  */
 final class FilterServiceNames {
     
-    const TEXT_BASE_FILTER = 'textBaseFilter';
-    const TEXT_BASE_FILTER_NOT_TOLOWER_CASE = 'textBaseFilterNotToLowerCase';
-    const TEXT_BASE_FILTER_WITH_SQL_RESERVED_WORDS = 'textBaseFilterWithSQLReservedWords';
+    const FILTER_TEXT_BASE = 'filterTextBase';
+    const FILTER_TEXT_BASE_NOT_TOLOWER_CASE = 'filterTextBaseNotToLowerCase';
+    const FILTER_TEXT_BASE_WITH_SQL_RESERVED_WORDS = 'filterTextBaseWithSQLReservedWords';
     const FILTER_SQL_RESERVEDWORDS = 'filterSQLReservedWords';
     const FILTER_HTML_TAGS_ADVANCED = 'filterHTMLTagsAdvanced';
     const FILTER_HEXADECIMAL_BASE = 'filterHexadecimalBase';
     const FILTER_HEXADECIMAL_ADVANCED = 'filterHexadecimalAdvanced';
+    const FILTER_REMOVE_TEXT_ADVANCED = 'filterRemoweText';
+    const FILTER_REMOVE_NUMBER_ADVANCED = 'filterRemoveNumber';
+    
+    
     
     
 }

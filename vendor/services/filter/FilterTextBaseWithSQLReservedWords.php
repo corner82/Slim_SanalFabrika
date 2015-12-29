@@ -11,10 +11,10 @@ namespace Services\Filter;
 
 
 /**
- * service manager layer for filter functions
+ * service manager layer for database connection
  * @author Mustafa Zeynel Dağlı
  */
-class TextBaseFilterNotToLowerCase implements \Zend\ServiceManager\FactoryInterface {
+class FilterTextBaseWithSQLReservedWords implements \Zend\ServiceManager\FactoryInterface {
     
     /**
      * service ceration via factory on zend service manager
@@ -28,6 +28,7 @@ class TextBaseFilterNotToLowerCase implements \Zend\ServiceManager\FactoryInterf
                     ->attach(new \Zend\Filter\StringTrim())
                     ->attach(new \Zend\Filter\HtmlEntities())
                     ->attach(new \Zend\Filter\StripNewlines())
+                    ->attach(new \Zend\Filter\StringToLower(array('encoding' => 'UTF-8')))
                     ->attach(new \Zend\Filter\PregReplace(array(
                         'pattern'     => array("/javascript/i",
                                                "/([^A-Za-z0-9])*(document)([^A-Za-z0-9])+/i",
@@ -60,7 +61,7 @@ class TextBaseFilterNotToLowerCase implements \Zend\ServiceManager\FactoryInterf
                                                "/http/i",
                                                "/(<a)|(<\/a>)/i",*/
                                                ),
-                        'replacement' => '',
+                        'replacement' => 'john',
                     ), 200));
         return $filterChain;
 

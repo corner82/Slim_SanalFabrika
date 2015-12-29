@@ -14,7 +14,7 @@ namespace Services\Filter;
  * service manager layer for filter functions
  * @author Mustafa Zeynel Dağlı
  */
-class TextBaseFilter implements \Zend\ServiceManager\FactoryInterface {
+class FilterTextBase implements \Zend\ServiceManager\FactoryInterface {
     
     /**
      * service ceration via factory on zend service manager
