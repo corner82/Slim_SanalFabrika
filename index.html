@@ -90,7 +90,7 @@ and open the template in the editor. Ğİ
                    country_id :91 ,
                    city_id : 66 ,
                    boroughs_id : 738 ,
-                   language_id : 647,
+                   language_code : 'tr',
                    url : 'fillComboBox_sysvillage',
                    pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
             },
@@ -190,11 +190,11 @@ and open the template in the editor. Ğİ
           //  url : '../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',   
        url :'../Slim_Proxy_SanalFabrika/SlimProxyBoot.php', 
             data : {
-                   parent : 0 ,
-                   language_id : 647,
+                   country_id : 91,  
+                   language_code : 'tr',
                    url : 'fillComboBox_syscity',
-                   pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348',
-                   country_id : 91                 
+                   pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
+                                  
             },
             method : 'GET',
             
@@ -211,9 +211,8 @@ and open the template in the editor. Ğİ
     $.ajax({
     //  url : '../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',   
      url :'../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',
-      data : {
-             parent : 0 ,
-             language_id : 647,
+      data : {            
+             language_code : 'tr',
              url : 'fillComboBox_sysborough',
              pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348',
              country_id : 91 ,    
@@ -234,11 +233,10 @@ and open the template in the editor. Ğİ
       $.ajax({
           //  url : '../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',   
       url :'../Slim_Proxy_SanalFabrika/SlimProxyBoot.php', 
-            data : {
-                    parent : 0 ,
-                    language_id : 647,
-                    url : 'fillComboBox_syscountrys',
-                   pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
+            data : {                   
+                language_code : 'tr',
+                url : 'fillComboBox_syscountrys',
+                pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
             },
             method : 'GET',
         
@@ -255,8 +253,8 @@ and open the template in the editor. Ğİ
           //  url : '../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',   
            url :'../Slim_Proxy_SanalFabrika/SlimProxyBoot.php', 
             data : {
-                    parent : 0 ,
-                    language_id : 647, 
+                   
+                    language_code : 'tr',
                     url : 'fillGrid_infoUsers',
                     pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
             },

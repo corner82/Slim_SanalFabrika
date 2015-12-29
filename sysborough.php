@@ -51,15 +51,11 @@ $app->get("/fillComboBox_sysborough/", function () use ($app ) {
     
     $BLL = $app->getBLLManager()->get('sysBoroughBLL'); 
  
-    // Filters are called from service manager
-    //$filterHtmlAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
-  //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
-    //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
- 
+   
   
   //  print_r('--****************get parent--' .$_GET['country_id'] );  
     $resCombobox = $BLL->fillComboBox (array('country_id'=>$_GET['country_id'],
-                                             'language_id'=>$_GET['language_id'],
+                                             'language_code'=>$_GET['language_code'],
                                              'city_id'=>$_GET['city_id']   
                                                 ));  
  

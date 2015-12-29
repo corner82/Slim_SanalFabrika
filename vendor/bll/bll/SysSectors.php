@@ -83,6 +83,19 @@ class SysSectors extends \BLL\BLLSlim{
         $resultSet = $DAL->fillGridRowTotalCount($params);  
         return $resultSet['resultSet'];
     }
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function insertLanguageTemplate($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysSectorsPDO');
+        $resultSet = $DAL->insertLanguageTemplate($params);  
+        return $resultSet['resultSet'];
+    }
 
+    
+    
+    
 }
 

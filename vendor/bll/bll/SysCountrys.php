@@ -89,5 +89,16 @@ class SysCountrys extends \BLL\BLLSlim{
         $resultSet = $DAL->fillComboBox($params);  
         return $resultSet['resultSet'];
     }
+       public function insertLanguageTemplate($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysCountrysPDO');
+        $resultSet = $DAL->insertLanguageTemplate($params);  
+        return $resultSet['resultSet'];
+    }
+    
+    
+    
+    
+    
+    
 }
 

@@ -85,7 +85,7 @@ class SysVillage extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
 
-        /**
+    /**
      * Function to get datagrid row count on user interface layer
      * @param array | null $params
      * @return array
@@ -94,8 +94,20 @@ class SysVillage extends \BLL\BLLSlim{
         $DAL = $this->slimApp->getDALManager()->get('sysVillagePDO');
         $resultSet = $DAL->fillComboBox($params);  
         return $resultSet['resultSet'];
-
      }
     
-    
+ /**
+     * Function to get datagrid row count on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+     public function insertLanguageTemplate($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysVillagePDO');
+        $resultSet = $DAL->insertLanguageTemplate($params);  
+        return $resultSet['resultSet'];
+     }
+     
+     
+     
+     
 }

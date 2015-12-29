@@ -61,7 +61,7 @@ $app->get("/fillComboBox_sysvillage/", function () use ($app ) {
      $resCombobox = $BLL->fillComboBox (array('country_id'=>$_GET['country_id'],
                                              'city_id'=>$_GET['city_id'],
                                              'boroughs_id'=>$_GET['boroughs_id'],
-                                             'language_id'=>$_GET['language_id']));  
+                                             'language_code'=>$_GET['language_code']));  
  
  
     //print_r($resDataMenu);
