@@ -31,15 +31,8 @@ class FilterJustText implements \Zend\ServiceManager\FactoryInterface {
                     ->attach(new \Zend\Filter\StripNewlines())
                     ->attach(new \Zend\Filter\StringToLower(array('encoding' => 'UTF-8')))
                     ->attach(new \Zend\Filter\PregReplace(array(
-                        'pattern'     => array('/<!\[cdata\[(.*?)\]\]>/is',// cdata[ filter
-                                               "/javascript/i",
-                                              
-                                                "/[^A-Za-z]/",
-                                                "/[^A-Za-z]/",
-                                           
-                                            
-                                              
-                                             
+                        'pattern'     => array('/[0-9]/',
+
                                                ),
                         'replacement' => '',
                     ), 200));
