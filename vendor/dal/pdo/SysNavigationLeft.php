@@ -642,7 +642,8 @@ class SysNavigationLeft extends \DAL\DalSlim {
             /**
              * table names and column names will be changed for specific use
              */
-            $sql = "SELECT a.id, 
+            $sql = "
+                SELECT a.id, 
                     COALESCE(NULLIF(a.menu_name, ''), a.menu_name_eng) AS menu_name, 
                     a.language_id, 
                     a.menu_name_eng, 
@@ -654,8 +655,8 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     a.active, 
                     a.deleted, 
                     CASE 
-                            WHEN a.deleted = 0 THEN 'Aktif' 
-                            WHEN a.deleted = 1 THEN 'Silinmiş' 
+                        WHEN a.deleted = 0 THEN 'Aktif' 
+                        WHEN a.deleted = 1 THEN 'Silinmiş' 
                     END AS state,    
                     a.warning, 
                     a.warning_type, 
@@ -676,18 +677,39 @@ class SysNavigationLeft extends \DAL\DalSlim {
 			left join sys_navigation_left ex on dx.parent = ex.id
 			left join sys_navigation_left fx on ex.parent = fx.id
 			left join sys_navigation_left gx on fx.parent = gx.id
-			where ax.id = a.id ) as active_control
-              FROM sys_navigation_left a 
-              WHERE a.language_code = :language_code 
-              AND acl_type = 0  
-              AND a.active = 0 
-              AND a.deleted = 0 
-              AND a.parent = :parent
-              ORDER BY a.parent, a.z_index
+			where ax.id = a.id ) as active_control,
+			a.menu_type			
+                FROM sys_navigation_left a 
+                INNER JOIN info_users iu on iu.active =0 and iu.deleted =0	     	
+                INNER JOIN act_session ssx ON CRYPT(iu.sf_private_key_value,CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))  
+                WHERE a.language_code = 'tr' AND
+                    acl_type = 0 AND 
+                    a.active = 0 AND 
+                    a.deleted = 0 AND 
+                    a.parent = :parent AND                    
+                    a.menu_type = cast(
+                      (SELECT                               
+                          COALESCE(NULLIF( 
+                         (SELECT CAST(MIN(bz.parent) AS varchar(5))
+                                           FROM sys_acl_roles az 
+                                           LEFT JOIN sys_acl_roles bz ON bz.parent = az.id   
+                                           WHERE az.id= sarmapv.role_id),''), CAST(sarv.parent AS varchar(5))) AS Menu_type  
+                         FROM info_users av
+                         INNER JOIN act_users_rrpmap usrv ON usrv.info_users_id = av.id AND usrv.active = 0 AND usrv.deleted = 0 
+                         INNER JOIN sys_acl_rrpmap sarmapv ON sarmapv.id = usrv.rrpmap_id AND sarmapv.active=0 AND sarmapv.deleted =0 
+                         INNER JOIN sys_acl_roles sarv ON sarv.id = sarmapv.role_id AND sarv.active=0 AND sarv.deleted=0 
+                         INNER JOIN act_session sszv ON CRYPT(av.sf_private_key_value,CONCAT('_J9..',REPLACE(sszv.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(sszv.public_key,'*','/'))  
+                         WHERE av.active =0 and av.deleted =0 AND sszv.public_key = ssx.public_key 
+                      ) as integer) AND
+                      ssx.public_key = :public_key                    
+
+                ORDER BY a.parent, a.z_index
+
                                  ";           
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':parent',  $params['parent'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+            $statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
