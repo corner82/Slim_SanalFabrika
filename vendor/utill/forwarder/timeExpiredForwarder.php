@@ -31,10 +31,11 @@ class timeExpiredForwarder extends \Utill\Forwarder\abstractForwarder {
         header("Location: {$newURL}");*/
         
         ob_end_clean();  
-        $ch = curl_init('http://localhost/slim_redirect_test/index.php/timeExpired');
-        /*curl_setopt($ch,CURLOPT_HTTPHEADER,$headers);
-        curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
-        curl_setopt($ch,CURLOPT_POSTFIELDS,$content);*/
+        //$ch = curl_init('http://localhost/slim_redirect_test/index.php/timeExpired');
+        $ch = curl_init('http://slimRedirect.sanalfabrika.com/index.php/timeExpired');
+        //curl_setopt($ch,CURLOPT_HTTPHEADER,$headers);
+        //curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
+        //curl_setopt($ch,CURLOPT_POSTFIELDS,$content);
 
         $result = curl_exec($ch);
         curl_close($ch);
