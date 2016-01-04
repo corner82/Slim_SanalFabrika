@@ -360,7 +360,7 @@ class BlLoginLogout extends \DAL\DalSlim {
     /**
      * user interface datagrid fill operation get row count for widget
      * @author Okan CIRAN
-     * @ public key e ait bir private key li kullanıcı var mı yok mu bilgisini döndürür   !!
+     * @ public key e ait bir private key li kullanıcı varsa True değeri döndürür.  !!
      * @version v 1.0  31.12.2015
      * @param array | null $args
      * @return array
@@ -369,8 +369,8 @@ class BlLoginLogout extends \DAL\DalSlim {
     public function pkControl($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $sql = "
-          
+            /*
+            $sql = "          
                 SELECT * FROM (
                     SELECT id, sf_private_key_value = 
                     Pgp_sym_decrypt( 
@@ -381,12 +381,20 @@ class BlLoginLogout extends \DAL\DalSlim {
                     '))
                     , 'Bahram Lotfi Sadigh', 'compress-algo=1, cipher-algo=bf') AS pkey
                     FROM info_users) AS logintable
-                WHERE pkey = TRUE
-                
-                                 ";
-
+                WHERE pkey = TRUE                
+                                 ";             
+             */
+            $sql = "    
+                    SELECT id,pkey FROM (
+                            SELECT id, 		
+                                CRYPT(sf_private_key_value,CONCAT('_J9..',:public_key)) = CONCAT('_J9..',:public_key) AS pkey
+                            FROM info_users) AS logintable
+                        WHERE pkey = TRUE
+                    ";  
+            
+            
             $statement = $pdo->prepare($sql);
-            $statement->bindValue(':pk', $params['pk'], \PDO::PARAM_STR);
+            $statement->bindValue(':public_key', $params['public_key'], \PDO::PARAM_STR);
             echo debugPDO($sql, $parameters);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -406,6 +414,7 @@ class BlLoginLogout extends \DAL\DalSlim {
      * user interface datagrid fill operation get row count for widget
      * @author Okan CIRAN
      * @ login için info_users tablosundan çekilen kayıtları döndürür   !!
+     * bu fonksiyon aktif olarak kullanılmıyor. ihtiyaç a göre aktifleştirilecek. public key algoritması farklı. 
      * @version v 1.0  31.12.2015
      * @param array | null $args
      * @return array
@@ -486,7 +495,11 @@ class BlLoginLogout extends \DAL\DalSlim {
     public function getPK($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $sql = "          
+      
+            /**
+             * @version kapatılmıs olan kısımdaki public key algoritması kullanılmıyor.
+             */
+            /*      $sql = "          
             SELECT                
                 REPLACE(REPLACE(ARMOR(pgp_sym_encrypt(a.sf_private_key_value, 'Bahram Lotfi Sadigh', 'compress-algo=1, cipher-algo=bf'))
 	,'-----BEGIN PGP MESSAGE-----
@@ -496,9 +509,12 @@ class BlLoginLogout extends \DAL\DalSlim {
 ','') as public_key1     ,
 
                 substring(ARMOR(pgp_sym_encrypt(a.sf_private_key_value, 'Bahram Lotfi Sadigh', 'compress-algo=1, cipher-algo=bf')),30,length( trim( sf_private_key))-62) as public_key2, 
-                
-                trim(substring(crypt(sf_private_key_value,gen_salt('xdes')),6,20)) as public_key
- 
+        */      
+            ///crypt(:password, gen_salt('bf', 8)); örnek bf komut
+                  $sql = "   
+                        
+                SELECT       
+                     REPLACE(TRIM(SUBSTRING(crypt(sf_private_key_value,gen_salt('xdes')),6,20)),'/','*') AS public_key 
                 FROM info_users a              
                 INNER JOIN act_users_rrpmap usr ON usr.info_users_id = a.id AND usr.active = 0 AND usr.deleted = 0 
 		INNER JOIN sys_acl_rrpmap sarmap ON sarmap.id = usr.rrpmap_id AND sarmap.active=0 AND sarmap.deleted =0 
@@ -529,5 +545,58 @@ class BlLoginLogout extends \DAL\DalSlim {
     }
 
     
+    /**
+     * user interface datagrid fill operation get row count for widget
+     * @author Okan CIRAN
+     * @ public key e ait bir private key li kullanıcı varsa True değeri döndürür.  !!
+     * @version v 1.0  31.12.2015
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function pkSesionControl($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            /*
+            $sql = "          
+                SELECT * FROM (
+                    SELECT id, sf_private_key_value = 
+                    Pgp_sym_decrypt( 
+                     DEARMOR(CONCAT( '-----BEGIN PGP MESSAGE-----
+
+                    ',:pk,'
+                    -----END PGP MESSAGE-----
+                    '))
+                    , 'Bahram Lotfi Sadigh', 'compress-algo=1, cipher-algo=bf') AS pkey
+                    FROM info_users) AS logintable
+                WHERE pkey = TRUE                
+                                 ";             
+             */
+            $sql = "    
+                    SELECT id,pkey FROM (
+                            SELECT id, 		
+                                CRYPT(sf_private_key_value,CONCAT('_J9..',:public_key)) = CONCAT('_J9..',:public_key) AS pkey
+                            FROM info_users) AS logintable
+                        WHERE pkey = TRUE
+                    ";  
+            
+            
+            $statement = $pdo->prepare($sql);
+            $statement->bindValue(':public_key', $params['public_key'], \PDO::PARAM_STR);
+            echo debugPDO($sql, $parameters);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+
+
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
     
 }
