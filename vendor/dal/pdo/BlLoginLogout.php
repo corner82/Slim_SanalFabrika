@@ -554,7 +554,7 @@ class BlLoginLogout extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function pkSesionControl($params = array()) {
+    public function pkSessionControl($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             /*
@@ -573,17 +573,16 @@ class BlLoginLogout extends \DAL\DalSlim {
                                  ";             
              */
             $sql = "    
-                    SELECT id,pkey FROM (
-                            SELECT id, 		
-                                CRYPT(sf_private_key_value,CONCAT('_J9..',:public_key)) = CONCAT('_J9..',:public_key) AS pkey
-                            FROM info_users) AS logintable
-                        WHERE pkey = TRUE
+                    SELECT a.id, a.name, a.data, a.lifetime, a.c_date, a.modified, a.public_key, b.name AS u_name, b.surname AS u_surname, b.username
+                    FROM act_session a 
+                    INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(a.public_key,'*','/'))  
+                    WHERE a.public_key = :public_key 
                     ";  
             
             
             $statement = $pdo->prepare($sql);
-            $statement->bindValue(':public_key', $params['public_key'], \PDO::PARAM_STR);
-            echo debugPDO($sql, $parameters);
+            $statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
+            echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 

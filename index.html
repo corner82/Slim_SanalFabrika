@@ -82,6 +82,29 @@ and open the template in the editor. Ğİ
     });
     
     
+     $.ajax({
+          //  url : '../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',   
+     url :'../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',
+            data : {                              
+                    pk : 'VjLzfZK*B99MP7E',
+                    url : 'pkSessionControl_blLoginLogout',
+                    
+            },
+            method : 'GET',
+        
+            success: function(data, textStatus, jqXHR) {
+
+                
+            },
+            error: function(jqXHR , textStatus, errorThrown) {
+              console.warn('error text status-->'+textStatus);
+            }
+        });  
+
+    
+    
+    
+    
     $.ajax({
           //  url : '../Slim_Proxy_SanalFabrika/SlimProxyBoot.php',   
          
@@ -134,8 +157,9 @@ and open the template in the editor. Ğİ
             data : {
                     parent : 0 ,
                     language_code : 'tr',
+                    pk : 'Cl68lRxFidrIT4o',
                     url : 'getLeftMenu_leftnavigation',
-                   pk  : '3441df0babc2a2dda551d7cd39fb235bc4e09cd1e4556bf261bb49188f548348'
+                    
             },
             method : 'GET',
         

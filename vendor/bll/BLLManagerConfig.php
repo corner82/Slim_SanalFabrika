@@ -42,6 +42,8 @@ class BLLManagerConfig{
                  'sysLanguageBLL' => 'BLL\BLL\SysLanguage',
                  'sysBoroughBLL' => 'BLL\BLL\SysBorough',
                  'sysVillageBLL' => 'BLL\BLL\SysVillage',
+                 'blLoginLogoutBLL' => 'BLL\BLL\BlLoginLogout',
+            
                    
                  
                  

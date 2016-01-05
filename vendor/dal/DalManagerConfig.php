@@ -46,7 +46,8 @@ class DalManagerConfig {
                 'sysCityPDO' => 'DAL\Factory\PDO\SysCityFactory',
                 'sysLanguagePDO' => 'DAL\Factory\PDO\SysLanguageFactory',
                 'sysBoroughPDO' => 'DAL\Factory\PDO\SysBoroughFactory',
-                'sysVillagePDO' => 'DAL\Factory\PDO\SysVillageFactory',                
+                'sysVillagePDO' => 'DAL\Factory\PDO\SysVillageFactory',      
+                'blLoginLogoutPDO' => 'DAL\Factory\PDO\BlLoginLogoutFactory',    
                 
             ],
         ),
