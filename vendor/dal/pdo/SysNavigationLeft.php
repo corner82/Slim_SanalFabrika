@@ -669,27 +669,28 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     a.warning_class,
                     a.acl_type,
                     a.language_code,
-                    (select COALESCE(NULLIF(max(ax.active), 0),0)+COALESCE(NULLIF(max(bx.active), 0),0)+COALESCE(NULLIF(max(cx.active), 0),0)+
-			COALESCE(NULLIF(max(dx.active), 0),0) +COALESCE(NULLIF(max(ex.active), 0),0)+ COALESCE(NULLIF(max(fx.active), 0),0)+
-			COALESCE(NULLIF(max(gx.active), 0),0) 
-			from sys_navigation_left ax 
-			LEFT JOIN sys_navigation_left bx on ax.parent = bx.id
-			LEFT JOIN sys_navigation_left cx on bx.parent = cx.id 
-			LEFT JOIN sys_navigation_left dx on cx.parent = dx.id
-			LEFT JOIN sys_navigation_left ex on dx.parent = ex.id
-			LEFT JOIN sys_navigation_left fx on ex.parent = fx.id
-			LEFT JOIN sys_navigation_left gx on fx.parent = gx.id
-			where ax.id = a.id ) as active_control,
+                    (   SELECT COALESCE(NULLIF(max(ax.active), 0),0)+COALESCE(NULLIF(max(bx.active), 0),0)+COALESCE(NULLIF(max(cx.active), 0),0)+
+                            COALESCE(NULLIF(max(dx.active), 0),0) +COALESCE(NULLIF(max(ex.active), 0),0)+ COALESCE(NULLIF(max(fx.active), 0),0)+
+                            COALESCE(NULLIF(max(gx.active), 0),0) 
+                        FROM sys_navigation_left ax 
+			LEFT JOIN sys_navigation_left bx ON ax.parent = bx.id
+			LEFT JOIN sys_navigation_left cx ON bx.parent = cx.id 
+			LEFT JOIN sys_navigation_left dx ON cx.parent = dx.id
+			LEFT JOIN sys_navigation_left ex ON dx.parent = ex.id
+			LEFT JOIN sys_navigation_left fx ON ex.parent = fx.id
+			LEFT JOIN sys_navigation_left gx ON fx.parent = gx.id
+			WHERE ax.id = a.id ) AS active_control,
 			a.menu_type			
                 FROM sys_navigation_left a 
-                INNER JOIN info_users iu on iu.active =0 and iu.deleted =0	     	
+                INNER JOIN info_users iu ON iu.active =0 AND iu.deleted =0	     	
                 INNER JOIN act_session ssx ON CRYPT(iu.sf_private_key_value,CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))  
-                WHERE a.language_code = '".$params['language_code']."' AND
+                WHERE a.language_code = 
+                    (SELECT COALESCE(NULLIF((SELECT language_main_code FROM sys_language lz WHERE lz.language_main_code = '".$params['language_code']."' AND lz.deleted =0 AND lz.active =0 ),''),'tr')) AND                        
                     acl_type = 0 AND 
                     a.active = 0 AND 
                     a.deleted = 0 AND 
                     a.parent = ".intval($params['parent'])." AND                    
-                    a.menu_type = cast(
+                    a.menu_type = CAST(
                       (SELECT                               
                           COALESCE(NULLIF( 
                          (SELECT CAST(MIN(bz.parent) AS varchar(5))
@@ -713,7 +714,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
          
          //   $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
         //    $statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
-         //  echo debugPDO($sql, $params);  
+        // echo debugPDO($sql, $params);  
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
