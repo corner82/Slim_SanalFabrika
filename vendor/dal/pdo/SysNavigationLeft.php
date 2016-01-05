@@ -702,7 +702,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                          INNER JOIN act_session sszv ON CRYPT(av.sf_private_key_value,CONCAT('_J9..',REPLACE(sszv.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(sszv.public_key,'*','/'))  
                          WHERE av.active =0 and av.deleted =0 AND sszv.public_key = ssx.public_key 
                       ) as integer) AND
-                      ssx.public_key = ".$params['public_key']."                     
+                      ssx.public_key = ".$params['pk']."                     
 
                 ORDER BY a.parent, a.z_index
 
