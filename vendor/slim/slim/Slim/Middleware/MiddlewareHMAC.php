@@ -162,9 +162,9 @@ use PhpAmqpLib\Message\AMQPMessage;
      */
      private function setHmacObj() {            
         $this->hmacObj = new \HMAC\Hmac();       
-     } 
+     }
      
-    /**
+     /**
      * get info to calculate HMAC security measures
      * @author Mustafa Zeynel Dağlı
      */
@@ -174,16 +174,30 @@ use PhpAmqpLib\Message\AMQPMessage;
         $this->hmacObj->setPublicKey($this->getRequestHeaderData()['X-Public']);
         $this->hmacObj->setNonce($this->getRequestHeaderData()['X-Nonce']);
         // bu private key kısmı veri tabanından alınır hale gelecek
-        $this->hmacObj->setPrivateKey('zze249c439ed7697df2a4b045d97d4b9b7e1854c3ff8dd668c779013653913572e');
-        $this->hmacObj->makeHmac();
+        $BLLLogLogout = $this->app->getBLLManager()->get('blLoginLogoutBLL');
         
+        /**
+         * private key due to public key,
+         * if public key not found request redirected
+         * @author Mustafa Zeynel Dağlı
+         * @since 05/01/2016
+         */
+        $resultset = $BLLLogLogout->pkControl(array('pk'=>$this->getRequestHeaderData()['X-Public']));
+        //print_r($resultset[0]['sf_private_key_value']);
+        $publicNotFoundForwarder = new \Utill\Forwarder\publicNotFoundForwarder();
+        //if(empty($resultset[0])) $publicNotFoundForwarder->redirect();
+        
+        
+        $this->hmacObj->setPrivateKey($resultset[0]['sf_private_key_value']);
+        //$this->hmacObj->setPrivateKey('zze249c439ed7697df2a4b045d97d4b9b7e1854c3ff8dd668c779013653913572e');
+        $this->hmacObj->makeHmac();
         //print_r($hmacObj->getHash()); 
         
         if($this->hmacObj->getHash() != $this->getRequestHeaderData()['X-Hash'])  {
             //print_r ('-----hash eşit değil----');
             $this->publishMessage();
             $hashNotMatchForwarder = new \Utill\Forwarder\hashNotMatchForwarder();
-            //$hashNotMatchForwarder->redirect();
+            $hashNotMatchForwarder->redirect();
             
         } else {
            //print_r ('-----hash eşit ----'); 

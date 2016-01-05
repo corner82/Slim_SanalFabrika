@@ -12,7 +12,7 @@ namespace Utill\Forwarder;
  * hash control and redirection if necessary
  * @author Mustafa Zeynel Dağlı
  */
-class hashNotMatchForwarder extends \Utill\Forwarder\abstractForwarder {
+class publicNotFoundForwarder extends \Utill\Forwarder\abstractForwarder {
     
     /**
      * constructor
@@ -24,7 +24,7 @@ class hashNotMatchForwarder extends \Utill\Forwarder\abstractForwarder {
     /**
      * redirect
      */
-    public function redirect() {
+    public  function redirect() {
         //ob_end_flush();
         /*ob_end_clean();
         $newURL = 'http://localhost/slim_redirect_test/index.php/hashNotMatch';
@@ -32,7 +32,7 @@ class hashNotMatchForwarder extends \Utill\Forwarder\abstractForwarder {
         
         ob_end_clean();
         //$ch = curl_init('http://slimRedirect.sanalfabrika.com/index.php/hashNotMatch');
-        $ch = curl_init('http://localhost/slim_Redirect_SanalFabrika/index.php/hashNotMatch');
+        $ch = curl_init('http://localhost/slim_Redirect_SanalFabrika/index.php/publicNotFound');
         //curl_setopt($ch,CURLOPT_HTTPHEADER,$headers);
         //curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
         //curl_setopt($ch,CURLOPT_POSTFIELDS,$content);
