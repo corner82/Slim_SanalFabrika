@@ -385,16 +385,17 @@ class BlLoginLogout extends \DAL\DalSlim {
                                  ";             
              */
             $sql = "    
-                    SELECT id,pkey FROM (
+                    SELECT id,pkey,sf_private_key_value FROM (
                             SELECT id, 		
-                                CRYPT(sf_private_key_value,CONCAT('_J9..',:public_key)) = CONCAT('_J9..',:public_key) AS pkey
+                                CRYPT(sf_private_key_value,CONCAT('_J9..',:public_key)) = CONCAT('_J9..',:public_key) AS pkey,
+                                sf_private_key_value
                             FROM info_users) AS logintable
                         WHERE pkey = TRUE
                     ";  
             
             
             $statement = $pdo->prepare($sql);
-            $statement->bindValue(':public_key', $params['public_key'], \PDO::PARAM_STR);
+            $statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
             echo debugPDO($sql, $parameters);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -573,7 +574,7 @@ class BlLoginLogout extends \DAL\DalSlim {
                                  ";             
              */
             $sql = "    
-                    SELECT a.id, a.name, a.data, a.lifetime, a.c_date, a.modified, a.public_key, b.name AS u_name, b.surname AS u_surname, b.username
+                    SELECT a.id, a.name, a.data, a.lifetime, a.c_date, a.modified, a.public_key, b.name AS u_name, b.surname AS u_surname, b.username,bsf_private_key_value
                     FROM act_session a 
                     INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(a.public_key,'*','/'))  
                     WHERE a.public_key = :public_key 
