@@ -61,10 +61,8 @@ $app->get("/getLeftMenu_leftnavigation/", function () use ($app ) {
   //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
     //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
 
-    print_r('deneme');
     $headerParams = $app->request()->headers();
-    $pk = $headerParams['X-Public']  ;
-    print_r('pk = '.$pk);       
+    $pk = $headerParams['X-Public']  ;     
     $resDataMenu = $BLL->getLeftMenu(array('parent' => $_GET['parent'],
                                            'language_code' => $_GET['language_code'], 
                                            'pk' => $pk ,
