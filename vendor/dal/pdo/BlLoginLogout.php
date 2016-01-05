@@ -574,7 +574,7 @@ class BlLoginLogout extends \DAL\DalSlim {
                                  ";             
              */
             $sql = "    
-                    SELECT a.id, a.name, a.data, a.lifetime, a.c_date, a.modified, a.public_key, b.name AS u_name, b.surname AS u_surname, b.username,bsf_private_key_value
+                    SELECT a.id, a.name, a.data, a.lifetime, a.c_date, a.modified, a.public_key, b.name AS u_name, b.surname AS u_surname, b.username,b.sf_private_key_value
                     FROM act_session a 
                     INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(a.public_key,'*','/'))  
                     WHERE a.public_key = :public_key 
