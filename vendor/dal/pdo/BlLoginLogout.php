@@ -387,7 +387,7 @@ class BlLoginLogout extends \DAL\DalSlim {
             $sql = "    
                     SELECT id,pkey,sf_private_key_value FROM (
                             SELECT id, 		
-                                CRYPT(sf_private_key_value,CONCAT('_J9..',:public_key)) = CONCAT('_J9..',:public_key) AS pkey,
+                                CRYPT(sf_private_key_value,CONCAT('_J9..','".$params['pk']."')) = CONCAT('_J9..','".$params['pk']."') AS pkey,
                                 sf_private_key_value
                             FROM info_users) AS logintable
                         WHERE pkey = TRUE
@@ -395,7 +395,7 @@ class BlLoginLogout extends \DAL\DalSlim {
             
             
             $statement = $pdo->prepare($sql);
-            $statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
+            //$statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
             echo debugPDO($sql, $parameters);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
