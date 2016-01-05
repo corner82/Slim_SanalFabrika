@@ -63,10 +63,11 @@ $app->get("/getLeftMenu_leftnavigation/", function () use ($app ) {
 
      
  
-   // print_r(headers('X-Public') );
+    $pk = $app->getRequestHeaderData()['X-Public']  ;
+    print_r('pk = ' . $pk); 
     $resDataMenu = $BLL->getLeftMenu(array('parent'=>$_GET['parent'],
                                            'language_code'=>$_GET['language_code'], 
-                                           'pk'=>$app->request()->headers('X-Public') 
+                                           'pk'=>$pk ,
             
                                            ) );
     //print_r($resDataMenu);
