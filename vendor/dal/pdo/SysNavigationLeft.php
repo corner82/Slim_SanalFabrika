@@ -637,7 +637,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function getLeftMenu($params = array()) {
+    public function pkGetLeftMenu($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             /**

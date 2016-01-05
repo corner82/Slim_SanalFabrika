@@ -88,11 +88,12 @@ class SysNavigationLeft extends \BLL\BLLSlim{
         /**
      * Function to get datagrid row count on user interface layer
      * @param array | null $params
+        * pk zorunlu 
      * @return array
      */
-    public function getLeftMenu($params = array()) {
+    public function pkGetLeftMenu($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysNavigationLeftPDO');
-        $resultSet = $DAL->getLeftMenu($params);  
+        $resultSet = $DAL->pkGetLeftMenu($params);  
         return $resultSet['resultSet'];
     }
 

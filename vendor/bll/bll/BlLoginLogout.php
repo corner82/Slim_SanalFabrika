@@ -74,9 +74,9 @@ class BlLoginLogout extends \BLL\BLLSlim{
     }
 
     
-    public function loginControl($params = array()) {
+    public function pkLoginControl($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('blLoginLogoutPDO');
-        $resultSet = $DAL->loginControl($params);  
+        $resultSet = $DAL->pkLoginControl($params);  
         return $resultSet['resultSet'];
     }
 

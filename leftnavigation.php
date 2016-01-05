@@ -51,7 +51,7 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
  *  * zeynel daÄŸlÄ±
  * @since 11-09-2014
  */
-$app->get("/getLeftMenu_leftnavigation/", function () use ($app ) {
+$app->get("/pkGetLeftMenu_leftnavigation/", function () use ($app ) {
 
     
     $BLL = $app->getBLLManager()->get('sysNavigationLeftBLL'); 
@@ -63,7 +63,7 @@ $app->get("/getLeftMenu_leftnavigation/", function () use ($app ) {
 
     $headerParams = $app->request()->headers();
     $pk = $headerParams['X-Public']  ;     
-    $resDataMenu = $BLL->getLeftMenu(array('parent' => $_GET['parent'],
+    $resDataMenu = $BLL->pkGetLeftMenu(array('parent' => $_GET['parent'],
                                            'language_code' => $_GET['language_code'], 
                                            'pk' => $pk ,
                                            ) );
