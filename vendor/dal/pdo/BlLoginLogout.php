@@ -384,19 +384,20 @@ class BlLoginLogout extends \DAL\DalSlim {
                 WHERE pkey = TRUE                
                                  ";             
              */
-            $sql = "    
+            $sql = "              
                     SELECT id,pkey,sf_private_key_value FROM (
-                            SELECT id, 		
-                                CRYPT(sf_private_key_value,CONCAT('_J9..','".$params['pk']."')) = CONCAT('_J9..','".$params['pk']."') AS pkey,
+                            SELECT id, 	
+                                CRYPT(sf_private_key_value,CONCAT('_J9..',REPLACE('".$params['pk']."','*','/'))) = CONCAT('_J9..',REPLACE('".$params['pk']."','*','/')) as pkey,	                                
                                 sf_private_key_value
                             FROM info_users) AS logintable
                         WHERE pkey = TRUE
+
                     ";  
             
             
             $statement = $pdo->prepare($sql);
             //$statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
-            echo debugPDO($sql, $parameters);
+            //echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -434,9 +435,9 @@ class BlLoginLogout extends \DAL\DalSlim {
                 sd4.description AS gender, 
                 a.active, 
                 a.auth_allow_id, 
-                sd.description AS auth_alow ,
+                sd.description AS auth_alow,
                 a.cons_allow_id,
-                sd1.description AS cons_allow  ,
+                sd1.description AS cons_allow,
                 a.language_code,  
 		COALESCE(NULLIF(l.language_main_code, ''), 'en') ,
                 REPLACE(REPLACE(ARMOR(pgp_sym_encrypt(a.sf_private_key_value, 'Bahram Lotfi Sadigh', 'compress-algo=1, cipher-algo=bf'))

@@ -156,7 +156,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
 		    sd.description as state_deleted,                 
                     a.active, 
 		    sd1.description as state_active, 
-		    a.language_id, 
+		    a.language_code, 
 		    COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,  		        
 		    a.warning, 
 		    a.warning_type, 
@@ -180,9 +180,9 @@ class SysNavigationLeft extends \DAL\DalSlim {
 			left join sys_navigation_left gx on fx.parent = gx.id
 			where ax.id = a.id ) as active_control
 		FROM sys_navigation_left a                 
-		INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
-		INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0		
-		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+		INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
+		INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0		
+		INNER JOIN sys_language l ON l.id = a.language_code AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.user_id  
                 ORDER BY a.parent, a.z_index
                 
@@ -243,7 +243,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
             $statement = $pdo->prepare("
                 INSERT INTO sys_navigation_left(
                     menu_name, 
-                    language_id, 
+                    language_code, 
                     menu_name_eng, 
                     url, 
                     parent, 
@@ -261,7 +261,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     acl_type)    
                 VALUES (
                         :menu_name, 
-                        :language_id, 
+                        :language_code, 
                         :menu_name_eng, 
                         :url, 
                         :parent, 
@@ -279,7 +279,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                         :acl_type)
                                                 ");
             $statement->bindValue(':menu_name', $params['menu_name'], \PDO::PARAM_STR);
-            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
             $statement->bindValue(':menu_name_eng', $params['menu_name_eng'], \PDO::PARAM_STR);
             $statement->bindValue(':url', $params['url'], \PDO::PARAM_STR);
             $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);
@@ -356,7 +356,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 UPDATE sys_navigation_left
                 SET              
                     menu_name = :menu_name, 
-                    language_id = :language_id, 
+                    language_code = :language_code, 
                     menu_name_eng = :menu_name_eng, 
                     parent = :parent, 
                     icon_class = :icon_class, 
@@ -378,7 +378,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
             $statement->bindValue(':id', $id, \PDO::PARAM_INT);
             //Bind our :model parameter.
             $statement->bindValue(':menu_name', $params['menu_name'], \PDO::PARAM_STR);
-            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
             $statement->bindValue(':menu_name_eng', $params['menu_name_eng'], \PDO::PARAM_STR);
             $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);
             $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
@@ -419,7 +419,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function fillGrid($args = array()) {
-
+ /// su  an aktif  kullanılmıyor. language code a göre değiştirilecek oki..
 
         if (isset($args['page']) && $args['page'] != "" && isset($args['rows']) && $args['rows'] != "") {
             $offset = ((intval($args['page']) - 1) * intval($args['rows']));
@@ -468,7 +468,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
 		    sd.description as state_deleted,                 
                     a.active, 
 		    sd1.description as state_active, 
-		    a.language_id, 
+		    a.language_code, 
 		    COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,  		        
 		    a.warning, 
 		    a.warning_type, 
@@ -492,11 +492,11 @@ class SysNavigationLeft extends \DAL\DalSlim {
 			left join sys_navigation_left gx on fx.parent = gx.id
 			where ax.id = a.id ) as active_control
 		FROM sys_navigation_left a                 
-		INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
-		INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0		
-		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+		INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
+		INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0		
+		INNER JOIN sys_language l ON l.id = a.language_code AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.user_id  
-                where a.language_id = :language_id 
+                where a.language_code = :language_code 
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -513,7 +513,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             //   echo debugPDO($sql, $parameters);
-            $statement->bindValue(':language_id', $args['language_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_INT);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -537,33 +537,34 @@ class SysNavigationLeft extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function fillGridRowTotalCount($params = array()) {
+        // su an kullanılmıyor. sql  language code gore ayarlanacak.. oki.. 
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
                     SELECT 
 			COUNT(a.id) AS COUNT , 
 			(SELECT COUNT(a1.id) FROM sys_navigation_left a1 
-			INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 15 AND sd1.first_group= a1.deleted AND sd1.language_id = a1.language_id AND sd1.deleted = 0 AND sd1.active = 0
-			INNER JOIN sys_specific_definitions sd11 ON sd11.main_group = 16 AND sd11.first_group= a1.active AND sd11.language_id = a1.language_id AND sd11.deleted = 0 AND sd11.active = 0		
-			INNER JOIN sys_language l1 ON l1.id = a1.language_id AND l1.deleted =0 AND l1.active = 0 
+			INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 15 AND sd1.first_group= a1.deleted AND sd1.language_code = a1.language_code AND sd1.deleted = 0 AND sd1.active = 0
+			INNER JOIN sys_specific_definitions sd11 ON sd11.main_group = 16 AND sd11.first_group= a1.active AND sd11.language_code = a1.language_code AND sd11.deleted = 0 AND sd11.active = 0		
+			INNER JOIN sys_language l1 ON l1.id = a1.language_code AND l1.deleted =0 AND l1.active = 0 
 			INNER JOIN info_users u1 ON u1.id = a1.user_id  
-			WHERE a1.language_id = :language_id AND a1.deleted =0) AS undeleted_count, 
+			WHERE a1.language_code = :language_code AND a1.deleted =0) AS undeleted_count, 
 			(SELECT COUNT(a2.id)
 			FROM sys_navigation_left a2                 
-			INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_id = a2.language_id AND sd2.deleted = 0 AND sd2.active = 0
-			INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group= a2.active AND sd12.language_id = a2.language_id AND sd12.deleted = 0 AND sd12.active = 0		
-			INNER JOIN sys_language l2 ON l2.id = a2.language_id AND l2.deleted =0 AND l2.active = 0 
+			INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_code = a2.language_code AND sd2.deleted = 0 AND sd2.active = 0
+			INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group= a2.active AND sd12.language_code = a2.language_code AND sd12.deleted = 0 AND sd12.active = 0		
+			INNER JOIN sys_language l2 ON l2.id = a2.language_code AND l2.deleted =0 AND l2.active = 0 
 			INNER JOIN info_users u2 ON u2.id = a2.user_id  
-			WHERE a2.language_id = :language_id AND a2.deleted =1) AS deleted_count  
+			WHERE a2.language_code = :language_code AND a2.deleted =1) AS deleted_count  
 		FROM sys_navigation_left a                 
-		INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
-		INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0		
-		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+		INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
+		INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0		
+		INNER JOIN sys_language l ON l.id = a.language_code AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.user_id  		 
-                WHERE a.language_code = ".$params['language_code']."  
+                WHERE a.language_code = '".$params['language_code']."'  
                     ";
             $statement = $pdo->prepare($sql);
-            $statement->bindValue(':language_id', $args['language_id'], \PDO::PARAM_INT);
+          //  $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_INT);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -672,18 +673,18 @@ class SysNavigationLeft extends \DAL\DalSlim {
 			COALESCE(NULLIF(max(dx.active), 0),0) +COALESCE(NULLIF(max(ex.active), 0),0)+ COALESCE(NULLIF(max(fx.active), 0),0)+
 			COALESCE(NULLIF(max(gx.active), 0),0) 
 			from sys_navigation_left ax 
-			left join sys_navigation_left bx on ax.parent = bx.id
-			left join sys_navigation_left cx on bx.parent = cx.id 
-			left join sys_navigation_left dx on cx.parent = dx.id
-			left join sys_navigation_left ex on dx.parent = ex.id
-			left join sys_navigation_left fx on ex.parent = fx.id
-			left join sys_navigation_left gx on fx.parent = gx.id
+			LEFT JOIN sys_navigation_left bx on ax.parent = bx.id
+			LEFT JOIN sys_navigation_left cx on bx.parent = cx.id 
+			LEFT JOIN sys_navigation_left dx on cx.parent = dx.id
+			LEFT JOIN sys_navigation_left ex on dx.parent = ex.id
+			LEFT JOIN sys_navigation_left fx on ex.parent = fx.id
+			LEFT JOIN sys_navigation_left gx on fx.parent = gx.id
 			where ax.id = a.id ) as active_control,
 			a.menu_type			
                 FROM sys_navigation_left a 
                 INNER JOIN info_users iu on iu.active =0 and iu.deleted =0	     	
                 INNER JOIN act_session ssx ON CRYPT(iu.sf_private_key_value,CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))  
-                WHERE a.language_code = ".$params['language_code']." AND
+                WHERE a.language_code = '".$params['language_code']."' AND
                     acl_type = 0 AND 
                     a.active = 0 AND 
                     a.deleted = 0 AND 
@@ -702,17 +703,17 @@ class SysNavigationLeft extends \DAL\DalSlim {
                          INNER JOIN act_session sszv ON CRYPT(av.sf_private_key_value,CONCAT('_J9..',REPLACE(sszv.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(sszv.public_key,'*','/'))  
                          WHERE av.active =0 and av.deleted =0 AND sszv.public_key = ssx.public_key 
                       ) as integer) AND
-                      ssx.public_key = ".$params['pk']."                     
+                      ssx.public_key = '".$params['pk']."'                     
 
                 ORDER BY a.parent, a.z_index
 
                                  ";           
             $statement = $pdo->prepare($sql);
-            $statement->bindValue(':parent',  $params['parent'], \PDO::PARAM_INT);
+          //  $statement->bindValue(':parent',  $params['parent'], \PDO::PARAM_INT);
          
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
-            $statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
-         //   echo debugPDO($sql, $params);  
+         //   $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+        //    $statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
+         //  echo debugPDO($sql, $params);  
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -738,7 +739,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
              */
             $sql = "SELECT a.id, 
                     COALESCE(NULLIF(a.menu_name, ''), a.menu_name_eng) AS menu_name, 
-                    a.language_id, 
+                    a.language_code, 
                     a.menu_name_eng, 
                     a.url, 
                     a.parent, 
@@ -771,7 +772,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
 			left join sys_navigation_left gx on fx.parent = gx.id
 			where ax.id = a.id ) as active_control
               FROM sys_navigation_left a 
-              WHERE a.language_id = 647
+              WHERE a.language_code = 647
               AND acl_type = 0                
               ORDER BY a.parent, a.z_index 
                                  ";           
