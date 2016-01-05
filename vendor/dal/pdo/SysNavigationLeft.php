@@ -560,7 +560,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
 		INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0		
 		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.user_id  		 
-                WHERE language_id = :language_id 
+                WHERE a.language_code = ".$params['language_code']."  
                     ";
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':language_id', $args['language_id'], \PDO::PARAM_INT);
@@ -642,6 +642,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
             /**
              * table names and column names will be changed for specific use
              */
+            
             $sql = "
                 SELECT a.id, 
                     COALESCE(NULLIF(a.menu_name, ''), a.menu_name_eng) AS menu_name, 
@@ -682,11 +683,11 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 FROM sys_navigation_left a 
                 INNER JOIN info_users iu on iu.active =0 and iu.deleted =0	     	
                 INNER JOIN act_session ssx ON CRYPT(iu.sf_private_key_value,CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))  
-                WHERE a.language_code = 'tr' AND
+                WHERE a.language_code = ".$params['language_code']." AND
                     acl_type = 0 AND 
                     a.active = 0 AND 
                     a.deleted = 0 AND 
-                    a.parent = :parent AND                    
+                    a.parent = ".intval($params['parent'])." AND                    
                     a.menu_type = cast(
                       (SELECT                               
                           COALESCE(NULLIF( 
@@ -701,15 +702,17 @@ class SysNavigationLeft extends \DAL\DalSlim {
                          INNER JOIN act_session sszv ON CRYPT(av.sf_private_key_value,CONCAT('_J9..',REPLACE(sszv.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(sszv.public_key,'*','/'))  
                          WHERE av.active =0 and av.deleted =0 AND sszv.public_key = ssx.public_key 
                       ) as integer) AND
-                      ssx.public_key = :public_key                    
+                      ssx.public_key = ".$params['public_key']."                     
 
                 ORDER BY a.parent, a.z_index
 
                                  ";           
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':parent',  $params['parent'], \PDO::PARAM_INT);
+         
             $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
             $statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
+         //   echo debugPDO($sql, $params);  
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -722,7 +725,11 @@ class SysNavigationLeft extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-    
+    /**
+     * 
+     * @return type
+     * @version bu  fonksiyon kullanılmıyor.
+     */
     public function getLeftMenuFull() {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
