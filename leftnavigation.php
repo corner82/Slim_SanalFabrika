@@ -31,11 +31,12 @@ $res->header('Access-Control-Allow-Origin', '*');
 $res->header("Access-Control-Allow-Methods: PUT, GET, POST, DELETE, OPTIONS");
 
 //$app->add(new \Slim\Middleware\MiddlewareTest());
+$app->add(new \Slim\Middleware\MiddlewareHMAC());
 $app->add(new \Slim\Middleware\MiddlewareBLLManager());
 $app->add(new \Slim\Middleware\MiddlewareDalManager());
 $app->add(new \Slim\Middleware\MiddlewareServiceManager());
 $app->add(new \Slim\Middleware\MiddlewareMQManager());
-$app->add(new \Slim\Middleware\MiddlewareHMAC());
+
 
 
     
@@ -60,14 +61,13 @@ $app->get("/getLeftMenu_leftnavigation/", function () use ($app ) {
   //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
     //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
 
-    
-    
-    
+     
  
-  
-    //print_r('--****************get parent--'.$_GET['parent']);  
+   // print_r(headers('X-Public') );
     $resDataMenu = $BLL->getLeftMenu(array('parent'=>$_GET['parent'],
-                                           'language_code'=>$_GET['language_code'] 
+                                           'language_code'=>$_GET['language_code'], 
+                                           'pk'=>$app->request()->headers('X-Public') 
+            
                                            ) );
     //print_r($resDataMenu);
    
@@ -98,7 +98,10 @@ $app->get("/getLeftMenu_leftnavigation/", function () use ($app ) {
              "hint_eng" => $menu["hint_eng"],
              "warning_class" => $menu["warning_class"],
              "acl_type" => $menu["acl_type"],
-            "active_control" => $menu["active_control"],
+             "language_code" => $menu["language_code"],
+             "active_control" => $menu["active_control"],
+            
+            
             
             
              
