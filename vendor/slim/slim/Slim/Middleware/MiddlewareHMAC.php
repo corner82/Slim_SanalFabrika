@@ -110,8 +110,10 @@ use PhpAmqpLib\Message\AMQPMessage;
     {
         //print_r('--middlewareHMAC call()--');
         //fopen('zeyn.txt');
-        $this->evaluateExpireTime();
-        $this->evaluateHash();
+        if($this->app->isServicePkRequired ) {
+            $this->evaluateExpireTime();
+            $this->evaluateHash();
+        }
         $this->next->call();
     }
     
@@ -183,7 +185,7 @@ use PhpAmqpLib\Message\AMQPMessage;
          * @since 05/01/2016
          */
         $resultset = $BLLLogLogout->pkControl(array('pk'=>$this->getRequestHeaderData()['X-Public']));
-        //print_r($resultset[0]['sf_private_key_value']);
+        //print_r($resultset);
         $publicNotFoundForwarder = new \Utill\Forwarder\publicNotFoundForwarder();
         //if(empty($resultset[0])) $publicNotFoundForwarder->redirect();
         
