@@ -25,7 +25,13 @@ class SlimExtended extends Slim implements  \Utill\MQ\ImessagePublisher,
      */
     const TIME_ZONE_ISTANBUL = 'Europe/Istanbul';
 
-
+    /**
+     * service pk required or not
+     * @var boolean
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3
+     */
+    protected $isServicePkRequired = null;
     
     /**
     * @var string

@@ -10,6 +10,7 @@ namespace Slim\Middleware;
 
 use PhpAmqpLib\Connection\AMQPConnection;
 use PhpAmqpLib\Message\AMQPMessage;
+use Security\Forwarder;
  
  /**
   * Flash
@@ -24,7 +25,8 @@ use PhpAmqpLib\Message\AMQPMessage;
   * @author     Josh Lockhart
   * @since      1.6.0
   */
-  class MiddlewareSecurity extends \Slim\Middleware\MiddlewareHMAC 
+  class MiddlewareSecurity extends \Slim\Middleware\MiddlewareHMAC implements \Security\Forwarder\PrivateKeyNotFoundInterface,
+                                                                \Security\Forwarder\PublicKeyRequiredInterface
 {
     
     /**
@@ -36,7 +38,28 @@ use PhpAmqpLib\Message\AMQPMessage;
         parent::__construct();
     }
     
-   
+    
+    
+    /**
+      * set if public / private key controler to be worked
+      * @return boolean
+      * @author Mustafa Zeynel Dağlı
+      * @since version 0.3
+      */
+    public function servicePkRequired() {
+        if($this->app->isServicePkRequired == null) {
+             $params = $this->getAppRequestParams();
+             print_r($params);
+             if(substr(trim($params['url']),0,2) == 'pk') {
+                $this->app->isServicePkRequired = true;
+                return $this->app->isServicePkRequired ;
+             }
+             $this->app->isServicePkRequired = false;
+             $this->app->isServicePkRequired;
+         } else {
+             return $this->app->isServicePkRequired;
+         }
+    }
     
     
     
@@ -45,6 +68,7 @@ use PhpAmqpLib\Message\AMQPMessage;
      */
     public function call()
     {
+        $this->servicePkRequired();
         //print_r('--middlewareHMAC call()--');
         //fopen('zeyn.txt');
         /*$this->evaluateExpireTime();
@@ -99,6 +123,20 @@ use PhpAmqpLib\Message\AMQPMessage;
         } else {
            //print_r ('-----hash eşit ----'); 
         }
+    }
+
+    public function getPrivateKeyNotFoundRedirect() {
+        
+    }
+
+    public function privateKeyNotFoundRedirect() {
+        
+    }
+
+    
+
+    public function setPrivateKeyNotFoundRedirect($boolean = null) {
+        
     }
 
 }
