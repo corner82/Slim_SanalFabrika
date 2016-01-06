@@ -594,10 +594,10 @@ class BlLoginLogout extends \DAL\DalSlim {
 
    
       /**
-     * user interface datagrid fill operation get row count for widget
+     * 
      * @author Okan CIRAN
      * @ public key varsa True değeri döndürür.  !!
-     * @version v 1.0  31.12.2015
+     * @version v 1.0  06.01.2016
      * @param array | null $args
      * @return array
      * @throws \PDOException
