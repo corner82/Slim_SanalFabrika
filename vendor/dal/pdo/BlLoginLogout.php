@@ -358,7 +358,7 @@ class BlLoginLogout extends \DAL\DalSlim {
     }
 
     /**
-     * user interface datagrid fill operation get row count for widget
+     * 
      * @author Okan CIRAN
      * @ public key e ait bir private key li kullanıcı varsa True değeri döndürür.  !!
      * @version v 1.0  31.12.2015
@@ -413,7 +413,7 @@ class BlLoginLogout extends \DAL\DalSlim {
     }
 
     /**
-     * user interface datagrid fill operation get row count for widget
+     * 
      * @author Okan CIRAN
      * @ login için info_users tablosundan çekilen kayıtları döndürür   !!
      * bu fonksiyon aktif olarak kullanılmıyor. ihtiyaç a göre aktifleştirilecek. public key algoritması farklı. 
@@ -478,7 +478,7 @@ class BlLoginLogout extends \DAL\DalSlim {
 
     
     /**
-     * user interface datagrid fill operation get row count for widget
+     * 
      * @author Okan CIRAN
      * @ info_users tablosundan public key i döndürür   !!
      * @version v 1.0  31.12.2015
@@ -540,7 +540,7 @@ class BlLoginLogout extends \DAL\DalSlim {
 
     
     /**
-     * user interface datagrid fill operation get row count for widget
+     * 
      * @author Okan CIRAN
      * @ public key e ait bir private key li kullanıcı varsa True değeri döndürür.  !!
      * @version v 1.0  31.12.2015
