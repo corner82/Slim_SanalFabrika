@@ -625,6 +625,42 @@ class BlLoginLogout extends \DAL\DalSlim {
         }
     }
 
-    
+      /**
+     * 
+     * @author Okan CIRAN
+     * @ parametre olarak gelen public key in private key inden üretilmiş aktif tüm public key leri döndürür.  !!     
+     * @version v 1.0  06.01.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function pkAllPkGeneratedFromPrivate($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');          
+            $sql = "  
+                    SELECT ax.id, ax.name,ax.data,ax.lifetime,ax.c_date,ax.public_key FROM act_session ax 
+                    WHERE 
+                        CRYPT((SELECT b.sf_private_key_value
+                                            FROM act_session a 
+                                            INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(a.public_key,'*','/'))
+                                                AND b.active = 0 AND b.deleted = 0
+                                            WHERE a.public_key = '".$params['pk']."'
+                        ),CONCAT('_J9..',REPLACE(ax.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(ax.public_key,'*','/'))
+ 
+                    ";           
+            
+            $statement = $pdo->prepare($sql);            
+            //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
     
 }

@@ -104,6 +104,17 @@ class BlLoginLogout extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }  
     
+     /**
+     *  
+     * @param array | null $params
+     * @return array
+     */
+    public function pkAllPkGeneratedFromPrivate($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('blLoginLogoutPDO');
+        $resultSet = $DAL->pkAllPkGeneratedFromPrivate($params);  
+        return $resultSet['resultSet'];
+    }   
+    
     
     
     
