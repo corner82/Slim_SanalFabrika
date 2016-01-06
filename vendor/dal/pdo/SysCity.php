@@ -444,7 +444,7 @@ class SysCity extends \DAL\DalSlim {
 
             
             $statement->bindValue(':country_id', $args['country_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_INT);  
+            $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_STR);  
             
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -481,26 +481,25 @@ class SysCity extends \DAL\DalSlim {
                             INNER JOIN sys_countrys c1 ON c1.id = a1.country_id AND c1.language_code = a1.language_code AND c1.deleted = 0 AND c1.active = 0 
                             INNER JOIN sys_language l1 ON l1.language_main_code = a1.language_code AND l1.deleted = 0 AND l1.active = 0 
                             INNER JOIN info_users u1 ON u1.id   = a1.user_id  
-                            WHERE a1.deleted = 0) AS undeleted_count, 
+                            WHERE a1.language_code = ".$params['language_code']." AND a1.country_id = ".intval($params['country_id'])." AND  a1.deleted = 0) AS undeleted_count, 
                             (SELECT count(a2.id) as toplam FROM sys_city  a2
                             INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_code = a2.language_code AND sd2.deleted = 0 AND sd2.active = 0
                             INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group= a2.active AND sd12.language_code = a2.language_code AND sd12.deleted = 0 AND sd12.active = 0
                             INNER JOIN sys_countrys c2 ON c2.id = a2.country_id AND c2.language_code = a2.language_code AND c2.deleted = 0 AND c2.active = 0 
                             INNER JOIN sys_language l2 ON l2.language_main_code = a2.language_code AND l2.deleted =0 AND l2.active = 0 
                             INNER JOIN info_users u2 ON u2.id   = a2.user_id  
-                            WHERE a2.deleted = 1) AS deleted_count 
+                            WHERE a2.language_code = ".$params['language_code']." AND a2.country_id = ".intval($params['country_id'])." AND a2.deleted = 1) AS deleted_count 
                     FROM sys_city  a
                     INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
                     INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0
                     INNER JOIN sys_countrys c ON c.id = a.country_id AND c.language_code = a.language_code AND c.deleted = 0 AND c.active = 0 
                     INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
                     INNER JOIN info_users u ON u.id = a.user_id  
-                    where a.language_code = :language_code 
-                    AND a.country_id = :country_id 
+                    WHERE a.language_code = ".$params['language_code']."
+                    AND a.country_id =  ".intval($params['country_id'])."
                     ";
             $statement = $pdo->prepare($sql);
-            $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);  
+           
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -534,16 +533,13 @@ class SysCity extends \DAL\DalSlim {
                     a.city_id AS id,
                     COALESCE(NULLIF(a.name, ''), a.name_eng) AS name 
                 FROM sys_city a                 
-                WHERE a.language_code = :language_code AND a.active = 0 AND a.deleted = 0 
-                AND country_id = :country_id 
+                WHERE a.language_code =  ".$params['language_code']." AND a.active = 0 AND a.deleted = 0 
+                AND country_id =  ".intval($params['country_id'])." 
                 ORDER BY a.priority ASC, name
                 
                                  ";
             $statement = $pdo->prepare($sql);
-          // echo debugPDO($sql, $params);
-            
-            $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);  
+          // echo debugPDO($sql, $params);  
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -616,15 +612,15 @@ class SysCity extends \DAL\DalSlim {
                             l.language_main_code
                         FROM sys_city c
                         LEFT JOIN sys_language l ON l.deleted =0 AND l.active =0 
-                        WHERE c.id =:id
+                        WHERE c.id =".intval($params['id'])." 
                         ) AS xy   
                         WHERE xy.language_main_code NOT IN 
                            (SELECT distinct language_code 
                            FROM sys_city cx 
-                           WHERE (cx.language_parent_id =:id OR cx.id =:id) AND cx.deleted =0 AND cx.active =0)
+                           WHERE (cx.language_parent_id =".intval($params['id'])."  OR cx.id =".intval($params['id'])." ) AND cx.deleted =0 AND cx.active =0)
                 ");
  
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);   
+           
             $result = $statement->execute();
             $insertID = $pdo->lastInsertId('sys_city_id_seq');
             $errorInfo = $statement->errorInfo();

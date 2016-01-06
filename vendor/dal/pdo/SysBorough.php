@@ -472,8 +472,8 @@ class SysBorough extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function fillGridRowTotalCount($params = array()) {
-        try {
-
+        try {        
+            
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
                      SELECT 
@@ -483,26 +483,23 @@ class SysBorough extends \DAL\DalSlim {
 				INNER JOIN sys_countrys c1 ON c1.id = a1.country_id AND c1.language_code = a1.language_code AND c1.deleted = 0 AND c1.active = 0 
 				INNER JOIN sys_city ci1 ON ci1.country_id= a1.country_id AND ci1.id = a1.city_id AND ci1.language_code = a1.language_code AND ci1.deleted =0 AND ci1.active = 0                
 				INNER JOIN sys_language l1 ON l1.language_main_code = a1.language_code AND l1.deleted =0 AND l1.active = 0 
-				WHERE a1.language_code = :language_code AND a1.country_id = :country_id AND a1.city_id = :city_id   AND a1.deleted = 0 AND a1.active =0) AS aktif_toplam ,
+				WHERE a1.language_code = '".$params['language_code']."' AND a1.country_id = ".intval($params['country_id'])." AND a1.city_id = ".intval($params['city_id'])." AND a1.deleted = 0 AND a1.active =0) AS aktif_toplam ,
                         (SELECT count(a2.id) AS toplam FROM sys_borough a2
                                 INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_code = a2.language_code AND sd2.deleted = 0 AND sd2.active = 0 
 				INNER JOIN sys_countrys c2 ON c2.id = a2.country_id AND c2.language_code = a2.language_code AND c2.deleted = 0 AND c2.active = 0 
 				INNER JOIN sys_city ci2 ON ci2.country_id= a2.country_id AND ci2.id = a2.city_id AND ci2.language_code = a2.language_code AND ci2.deleted =0 AND ci2.active = 0                
 				INNER JOIN sys_language l2 ON l2.language_main_code = a2.language_code AND l2.deleted =0 AND l2.active = 0 
-				WHERE a2.language_code = :language_code AND a2.country_id = :country_id AND a2.city_id = :city_id   AND a2.deleted = 1 AND a2.active = 1) AS silinmis_toplam    
+				WHERE a2.language_code = '".$params['language_code']."' AND a2.country_id = ".intval($params['country_id'])." AND a2.city_id = ".intval($params['city_id'])." AND a2.deleted = 1 AND a2.active = 1) AS silinmis_toplam    
                     FROM sys_borough  a
                     INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0 
                     INNER JOIN sys_countrys c ON c.id = a.country_id AND c.language_code = a.language_code AND c.deleted = 0 AND c.active = 0 
                     INNER JOIN sys_city ci ON ci.country_id= a.country_id AND ci.id = a.city_id AND ci.language_code = a.language_code AND ci.deleted =0 AND ci.active = 0                
                     INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
-                    WHERE a.language_code = :language_code AND a.country_id = :country_id AND a.city_id = :city_id   
+                    WHERE a.language_code = ".$params['language_code']." AND a.country_id = ".intval($params['country_id'])." AND a.city_id = ".intval($params['city_id'])."    
                       
                   
                     ";
-            $statement = $pdo->prepare($sql);
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
-            $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':city_id', $params['city_id'], \PDO::PARAM_INT);
+            $statement = $pdo->prepare($sql);           
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -617,19 +614,19 @@ class SysBorough extends \DAL\DalSlim {
                              c.user_id, 
 		             c.boroughs_id,
 			     c.country_id,
-                            (SELECT x.id FROM sys_borough x WHERE x.id =:id AND x.deleted =0 AND x.active =0 AND x.language_parent_id =0) AS language_parent_id,                           	 
+                            (SELECT x.id FROM sys_borough x WHERE x.id = ".intval($params['id'])." AND x.deleted =0 AND x.active =0 AND x.language_parent_id =0) AS language_parent_id,                           	 
                             l.language_main_code
                         FROM sys_borough c
                         LEFT JOIN sys_language l ON l.deleted =0 AND l.active =0 
-                        WHERE c.id =:id
+                        WHERE c.id = ".intval($params['id'])." 
                         ) AS xy   
                         WHERE xy.language_main_code NOT IN 
                            (SELECT distinct language_code 
                            FROM sys_borough cx 
-                           WHERE (cx.language_parent_id =:id OR cx.id =:id) AND cx.deleted =0 AND cx.active =0)
+                           WHERE (cx.language_parent_id = ".intval($params['id'])." OR cx.id = ".intval($params['id']).") AND cx.deleted =0 AND cx.active =0)
                 ");
  
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);   
+          //  $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);   
             $result = $statement->execute();
             $insertID = $pdo->lastInsertId('sys_borough_id_seq');
             $errorInfo = $statement->errorInfo();
