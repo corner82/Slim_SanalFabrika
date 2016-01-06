@@ -685,7 +685,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 INNER JOIN info_users iu ON iu.active =0 AND iu.deleted =0	     	
                 INNER JOIN act_session ssx ON CRYPT(iu.sf_private_key_value,CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))  
                 WHERE a.language_code = 
-                    (SELECT COALESCE(NULLIF((SELECT language_main_code FROM sys_language lz WHERE lz.language_main_code = '".$params['language_code']."' AND lz.deleted =0 AND lz.active =0 ),''),'tr')) AND                        
+                    (SELECT COALESCE(NULLIF((SELECT language_main_code FROM sys_language lz WHERE lz.language_main_code = '".$params['language_code']."' AND lz.deleted =0 AND lz.active =0 ),''),'en')) AND                        
                     acl_type = 0 AND 
                     a.active = 0 AND 
                     a.deleted = 0 AND 
