@@ -63,7 +63,7 @@ class BlLoginLogout extends \BLL\BLLSlim{
     
     
     /**
-     * Function to get datagrid row count on user interface layer
+     *  
      * @param array | null $params
      * @return array
      */
@@ -93,7 +93,16 @@ class BlLoginLogout extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
 
-      
+     /**
+     *  
+     * @param array | null $params
+     * @return array
+     */
+    public function pkIsThere($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('blLoginLogoutPDO');
+        $resultSet = $DAL->pkIsThere($params);  
+        return $resultSet['resultSet'];
+    }  
     
     
     

@@ -592,5 +592,39 @@ class BlLoginLogout extends \DAL\DalSlim {
         }
     }
 
+   
+      /**
+     * user interface datagrid fill operation get row count for widget
+     * @author Okan CIRAN
+     * @ public key varsa True değeri döndürür.  !!
+     * @version v 1.0  31.12.2015
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function pkIsThere($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');          
+            $sql = "              
+                    SELECT a.public_key =  '".$params['pk']."'
+                    FROM act_session a                  
+                    WHERE a.public_key =   '".$params['pk']."'
+                    ";           
+            
+            $statement = $pdo->prepare($sql);            
+            //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
     
 }
