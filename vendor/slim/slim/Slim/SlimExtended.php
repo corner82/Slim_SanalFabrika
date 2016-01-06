@@ -31,7 +31,7 @@ class SlimExtended extends Slim implements  \Utill\MQ\ImessagePublisher,
      * @author Mustafa Zeynel Dağlı
      * @since version 0.3
      */
-    protected $isServicePkRequired = null;
+    public $isServicePkRequired = null;
     
     /**
     * @var string

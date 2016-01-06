@@ -1,16 +1,16 @@
 <?php
-
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * OSTİM TEKNOLOJİ Framework 
+ *
+ * @link      https://github.com/corner82/slim_test for the canonical source repository
+ * @copyright Copyright (c) 2015 OSTİM TEKNOLOJİ (http://www.ostim.com.tr)
+ * @license   
  */
 
 namespace Slim\Middleware;
 
 use PhpAmqpLib\Connection\AMQPConnection;
 use PhpAmqpLib\Message\AMQPMessage;
-use Security\Forwarder;
  
  /**
   * Flash
@@ -26,9 +26,35 @@ use Security\Forwarder;
   * @since      1.6.0
   */
   class MiddlewareSecurity extends \Slim\Middleware\MiddlewareHMAC implements \Security\Forwarder\PrivateKeyNotFoundInterface,
-                                                                \Security\Forwarder\PublicKeyRequiredInterface
+                                                                \Security\Forwarder\PublicKeyRequiredInterface,
+                                                                \Security\Forwarder\PublicKeyNotFoundInterface,
+                                                                \Security\Forwarder\UserNotRegisteredInterface
 {
     
+      /**
+     * determine if private key not found
+     * @var boolean | null
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3
+     */
+    protected $isPrivateKeyNotFoundRedirect = true;
+    
+    /**
+     * determine if public key not found
+     * @var boolean | null
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3
+     */
+    protected $isPublicKeyNotFoundRedirect = true;
+    
+    /**
+     * determine if user not registered
+     * @var boolean | null
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3
+     */
+    protected $isUserNotRegisteredRedirect = true;
+      
     /**
      * Constructor
      * @param  array  $settings
@@ -38,8 +64,109 @@ use Security\Forwarder;
         parent::__construct();
     }
     
+    /**
+     * get if to redirect due to user not registered  process
+     * @return boolean
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3
+     */
+    public function getUserNotRegisteredRedirect() {
+        return $this->isUserNotRegisteredRedirect;
+    }
     
+    /**
+     * set if to redirect due to user not registered  process
+     * @param boolean $boolean
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3
+     */
+    public function setUserNotRegisteredRedirect($boolean = null) {
+        $this->isUserNotRegisteredRedirect = $boolean;
+    }
     
+    /**
+     * user not registered process is being evaluated here
+     * inherit classes
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3
+     */
+    public function userNotRegisteredRedirect() {
+        if($this->app->isServicePkRequired && $this->isUserNotRegisteredRedirect) {
+            $forwarder = new \Utill\Forwarder\UserNotRegisteredForwarder();
+            $forwarder->redirect();
+        } else {
+            return true;
+        }
+    }
+    
+    /**
+     * get if to redirect due to public key not found process
+     * @return boolean 
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3
+     */
+    public function getPublicKeyNotFoundRedirect() {
+        return $this->isPublicKeyNotFoundRedirect;
+    }
+    
+    /**
+     * set if to redirect due to public key not found process
+     * @param boolean | null $boolean 
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3
+     */
+    public function setPublicKeyNotFoundRedirect($boolean = null) {
+        $this->isPublicKeyNotFoundRedirect = $boolean;
+    }
+
+    /**
+     * public key not found process is being evaluated here
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3
+     */
+    public function publicKeyNotFoundRedirect() {
+        if($this->app->isServicePkRequired && $this->isPublicKeyNotFoundRedirect) {
+             $forwarder = new \Utill\Forwarder\PublicNotFoundForwarder();
+             $forwarder->redirect();  
+         } else {
+             return true;
+         }
+    }
+
+    /**
+     * get if to redirect due to private key not found process
+     * @return type
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3
+     */
+    public function getPrivateKeyNotFoundRedirect() {
+        return $this->isPrivateKeyNotFoundRedirect;
+    }
+    
+    /**
+     * set if to redirect due to private key not found process
+     * @param boolean $boolean
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3
+     */
+    public function setPrivateKeyNotFoundRedirect($boolean = null) {
+        $this->isPrivateKeyNotFoundRedirect = $boolean;
+    }
+    
+    /**
+     * private key not found process is being evaluated here
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3
+     */
+    public function privateKeyNotFoundRedirect() {
+        if($this->app->isServicePkRequired && $this->isPrivateKeyNotFoundRedirect) {
+            $forwarder = new \Utill\Forwarder\PrivateNotFoundForwarder();
+            $forwarder->redirect();
+        } else {
+            return true;
+        }
+    }
+
     /**
       * set if public / private key controler to be worked
       * @return boolean
@@ -49,7 +176,7 @@ use Security\Forwarder;
     public function servicePkRequired() {
         if($this->app->isServicePkRequired == null) {
              $params = $this->getAppRequestParams();
-             print_r($params);
+             //print_r($params);
              if(substr(trim($params['url']),0,2) == 'pk') {
                 $this->app->isServicePkRequired = true;
                 return $this->app->isServicePkRequired ;
@@ -60,83 +187,39 @@ use Security\Forwarder;
              return $this->app->isServicePkRequired;
          }
     }
-    
-    
-    
+
     /**
      * Call
      */
     public function call()
     {
         $this->servicePkRequired();
-        //print_r('--middlewareHMAC call()--');
-        //fopen('zeyn.txt');
-        /*$this->evaluateExpireTime();
-        $this->evaluateHash();
-        $this->next->call();*/  
-    }
-    
-   
-    
-    protected function calcExpireTime() {
-        
-    }
-    
-    
-     
-     /**
-     * get info to calculate HMAC security measures
-     * @author Mustafa Zeynel Dağlı
-     */
-    private function evaluateHash() {
-        $this->getHmacObj();
-        $this->hmacObj->setRequestParams($this->getAppRequestParams());
-        $this->hmacObj->setPublicKey($this->getRequestHeaderData()['X-Public']);
-        $this->hmacObj->setNonce($this->getRequestHeaderData()['X-Nonce']);
-        // bu private key kısmı veri tabanından alınır hale gelecek
-        $BLLLogLogout = $this->app->getBLLManager()->get('blLoginLogoutBLL');
+        $params = $this->getAppRequestParams();
+        /**
+         * controlling public key if public key is necessary for this service and
+         * public key not found forwarder is in effect then making forward
+         * @since version 0.3 06/01/2016
+         */
+        if(!isset($params['pk']) || $params['pk']==null) $this->publicKeyNotFoundRedirect();
         
         /**
-         * private key due to public key,
-         * if public key not found request redirected
+         * getting public key if user registered    
          * @author Mustafa Zeynel Dağlı
-         * @since 05/01/2016
+         * @since 06/01/2016 version 0.3
          */
-        $resultset = $BLLLogLogout->pkControl(array('pk'=>$this->getRequestHeaderData()['X-Public']));
-        print_r($resultset);
-        print_r($resultset[0]['sf_private_key_value']);
-        $publicNotFoundForwarder = new \Utill\Forwarder\publicNotFoundForwarder();
-        //if(empty($resultset[0])) $publicNotFoundForwarder->redirect();
-        
-        
-        $this->hmacObj->setPrivateKey($resultset[0]['sf_private_key_value']);
-        //$this->hmacObj->setPrivateKey('zze249c439ed7697df2a4b045d97d4b9b7e1854c3ff8dd668c779013653913572e');
-        $this->hmacObj->makeHmac();
-        //print_r($hmacObj->getHash()); 
-        
-        if($this->hmacObj->getHash() != $this->getRequestHeaderData()['X-Hash'])  {
-            //print_r ('-----hash eşit değil----');
-            $this->publishMessage();
-            $hashNotMatchForwarder = new \Utill\Forwarder\hashNotMatchForwarder();
-            $hashNotMatchForwarder->redirect();
-            
-        } else {
-           //print_r ('-----hash eşit ----'); 
+        if(isset($params['pk']) &&  $this->isServicePkRequired) {
+            $resultSet = $this->app->getBLLManager->get('blLoginLogoutBLL')->pkIsThere(array('pk' => $params['pk']));
+            if(!isset($resultSet['resultSet'][0]['?column?'])) $this->userNotRegisteredRedirect();
         }
-    }
-
-    public function getPrivateKeyNotFoundRedirect() {
         
-    }
-
-    public function privateKeyNotFoundRedirect() {
+        /**
+         * getting private key due to public key
+         * @author Mustafa Zeynel Dağlı
+         * @since 05/01/2016 version 0.3
+         */
+        if(isset($params['pk']) && $this->app->isServicePkRequired) $resultSet = $this->app->getBLLManager->get('blLoginLogoutBLL')->pkControl($params['pk']);
+        if(empty($resultSet['resultSet'])) $this->privateKeyNotFoundRedirect();
         
+        $this->next->call();
     }
-
-    
-
-    public function setPrivateKeyNotFoundRedirect($boolean = null) {
-        
-    }
-
 }
