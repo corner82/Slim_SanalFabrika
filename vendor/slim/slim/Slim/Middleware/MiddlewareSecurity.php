@@ -195,21 +195,25 @@ use PhpAmqpLib\Message\AMQPMessage;
     {
         $this->servicePkRequired();
         $params = $this->getAppRequestParams();
+        $requestHeaderParams = $this->getRequestHeaderData();
         /**
          * controlling public key if public key is necessary for this service and
          * public key not found forwarder is in effect then making forward
          * @since version 0.3 06/01/2016
          */
-        if(!isset($params['pk']) || $params['pk']==null) $this->publicKeyNotFoundRedirect();
+        if((!isset($requestHeaderParams['X-Public']) || $requestHeaderParams['X-Public']==null) && ($this->app->isServicePkRequired) ) {
+            $this->publicKeyNotFoundRedirect();
+        }
         
         /**
          * getting public key if user registered    
          * @author Mustafa Zeynel Dağlı
          * @since 06/01/2016 version 0.3
          */
-        if(isset($params['pk']) &&  $this->isServicePkRequired) {
-            $resultSet = $this->app->getBLLManager->get('blLoginLogoutBLL')->pkIsThere(array('pk' => $params['pk']));
-            if(!isset($resultSet['resultSet'][0]['?column?'])) $this->userNotRegisteredRedirect();
+        if(isset($requestHeaderParams['X-Public']) &&  $this->app->isServicePkRequired) {
+            $resultSet = $this->app->getBLLManager()->get('blLoginLogoutBLL')->pkIsThere(array('pk' => $requestHeaderParams['X-Public']));
+            //print_r($resultSet);
+            if(!isset($resultSet[0]['?column?'])) $this->userNotRegisteredRedirect();
         }
         
         /**
@@ -217,9 +221,11 @@ use PhpAmqpLib\Message\AMQPMessage;
          * @author Mustafa Zeynel Dağlı
          * @since 05/01/2016 version 0.3
          */
-        if(isset($params['pk']) && $this->app->isServicePkRequired) $resultSet = $this->app->getBLLManager->get('blLoginLogoutBLL')->pkControl($params['pk']);
-        if(empty($resultSet['resultSet'])) $this->privateKeyNotFoundRedirect();
-        
+        if(isset($requestHeaderParams['X-Public']) && $this->app->isServicePkRequired) { 
+            $resultSet = $this->app->getBLLManager()->get('blLoginLogoutBLL')->pkControl(array('pk'=>$requestHeaderParams['X-Public']));
+            //print_r($resultSet);
+            if($resultSet[0]['sf_private_key_value'] == null) $this->privateKeyNotFoundRedirect();
+        }
         $this->next->call();
     }
 }
