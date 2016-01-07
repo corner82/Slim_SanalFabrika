@@ -51,8 +51,8 @@ $pdo = new PDO('pgsql:dbname=ecoman_01_10;host=88.249.18.205;user=postgres;passw
 
 
 /**
- *  * zeynel daÄŸlÄ±
- * @since 11-09-2014
+ *  * Okan CIRAN
+ * @since 07-01-2016
  */
 $app->get("/fillGridRowTotalCount_sysAclRoles/", function () use ($app, $pdo) {
  
@@ -73,8 +73,247 @@ $app->get("/fillGridRowTotalCount_sysAclRoles/", function () use ($app, $pdo) {
 
     $app->response()->body(json_encode($resultArray));
 });
+/**
+ *  * Okan CIRAN
+ * @since 07-01-2016
+ */
+$app->get("/pkFillComboBoxMainRoles_sysAclRoles/", function () use ($app ) {
+
+    
+    $BLL = $app->getBLLManager()->get('sysAclRolesBLL'); 
+ 
+    // Filters are called from service manager
+    //$filterHtmlAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
+  //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
+    //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
+ 
+  
+    //print_r('--****************get parent--' );  
+    $resCombobox = $BLL->fillComboBoxMainRoles();
+    //print_r($resDataMenu);
+       
+        
+   $flows = array();
+        foreach ($resCombobox as $flow){
+            $flows[]  = array(
+                "id" => $flow["id"],
+                //"text" => strtolower($flow["name"]),
+                "text" => $flow["name"],
+                "state" => 'closed',
+                "checked" => false,
+                "attributes" => array ("notroot"=>true),
+            );
+        }
+  
+    
+    $app->response()->header("Content-Type", "application/json");
+   
+  
+    
+    /*$app->contentType('application/json');
+    $app->halt(302, '{"error":"Something went wrong"}');
+    $app->stop();*/
+    
+  $app->response()->body(json_encode($flows));
+  
+});
+/**
+ *  * Okan CIRAN
+ * @since 07-01-2016
+ */
+$app->get("/pkFillComboBoxFullRoles_sysAclRoles/", function () use ($app ) {
+
+    
+    $BLL = $app->getBLLManager()->get('sysAclRolesBLL'); 
+ 
+    // Filters are called from service manager
+    //$filterHtmlAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
+  //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
+    //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
+ 
+  
+    //print_r('--****************get parent--' );  
+    $resCombobox = $BLL->fillComboBoxFullRoles();
+    //print_r($resDataMenu);
+   
+       
+        
+ 
+    $menus = array();
+    foreach ($resCombobox as $menu){
+        $menus[]  = array(
+            "id" => $menu["id"],
+            "name" => $menu["name"],
+        );
+    }
+    
+    $app->response()->header("Content-Type", "application/json");
+    
+  
+    
+    /*$app->contentType('application/json');
+    $app->halt(302, '{"error":"Something went wrong"}');
+    $app->stop();*/
+    
+  $app->response()->body(json_encode($menus));
+  
+});
 
 
+/**
+ *  * Okan CIRAN
+ * @since 07-01-2016
+ */
+$app->get("/pkFillGrid_sysAclRoles/", function () use ($app ) {
+
+    
+    $BLL = $app->getBLLManager()->get('sysAclRolesBLL'); 
+ 
+    // Filters are called from service manager
+    //$filterHtmlAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
+  //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
+    //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
+
+    $headerParams = $app->request()->headers();
+    $pk = $headerParams['X-Public'];   
+    //print_r($resDataMenu);
+    
+   
+    $resDataGrid = $BLL->fillGrid(array('page'=>$_GET['page'],
+                                        'rows'=>$_GET['rows'],
+                                        'sort'=>$_GET['sort'],
+                                        'order'=>$_GET['order'],
+                                        'pk' => $pk  ));
+    //print_r($resDataGrid);
+    
+    /**
+     * BLL fillGridRowTotalCount örneği test edildi
+     * datagrid için total row count döndürüyor
+     * Okan CIRAN
+     */ 
+    $resTotalRowCount = $BLL->fillGridRowTotalCount();
+
+    $flows = array();
+    foreach ($resDataGrid as $flow){
+        $flows[]  = array(
+            "id" => $flow["id"],
+            "name" => $flow["name"],
+            "icon_class" => $flow["icon_class"],
+            "create_date" => $flow["create_date"],
+            "icon_class" => $flow["icon_class"],
+            "create_date" => $flow["create_date"],
+            "start_date" => $flow["start_date"],
+            "end_date" => $flow["end_date"],
+            "parent" => $flow["parent"],
+            "deleted" => $flow["deleted"],
+            
+             "state_deleted" => $flow["state_deleted"],
+            "deleted" => $flow["deleted"],
+            
+             "active" => $flow["active"],
+            "state_active" => $flow["state_active"],
+            
+             "description" => $flow["description"],
+            "user_id" => $flow["user_id"],
+            
+                  "username" => $flow["username"],
+            "Role_Parent" => $flow["Role_Parent"], 
+            
+        );
+    }
+    
+    $app->response()->header("Content-Type", "application/json");
+    
+    $resultArray = array();
+    $resultArray['total'] = $resTotalRowCount[0]['count'];
+    $resultArray['rows'] = $flows;
+    
+    /*$app->contentType('application/json');
+    $app->halt(302, '{"error":"Something went wrong"}');
+    $app->stop();*/
+    
+    $app->response()->body(json_encode($resultArray));
+  
+});
+
+ 
+/**
+ *  * Okan CIRAN
+ * @since 07-01-2016
+ */
+$app->get("/pkInsert_sysAclRoles/", function () use ($app ) {
+
+    
+    $BLL = $app->getBLLManager()->get('sysAclRolesBLL'); 
+ 
+    // Filters are called from service manager
+    //$filterHtmlAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
+  //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
+    //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
+
+    $headerParams = $app->request()->headers();
+    $pk = $headerParams['X-Public'];   
+    //print_r($resDataMenu);
+    
+   
+    $resDataGrid = $BLL->insert(array('page'=>$_GET['page'],
+                                        'rows'=>$_GET['rows'],
+                                        'sort'=>$_GET['sort'],
+                                        'order'=>$_GET['order'],
+                                        'pk' => $pk  ));
+    //print_r($resDataGrid);
+    
+    /**
+     * BLL fillGridRowTotalCount örneği test edildi
+     * datagrid için total row count döndürüyor
+     * Okan CIRAN
+     */ 
+    $resTotalRowCount = $BLL->fillGridRowTotalCount();
+
+    $flows = array();
+    foreach ($resDataGrid as $flow){
+        $flows[]  = array(
+            "id" => $flow["id"],
+            "name" => $flow["name"],
+            "icon_class" => $flow["icon_class"],
+            "create_date" => $flow["create_date"],
+            "icon_class" => $flow["icon_class"],
+            "create_date" => $flow["create_date"],
+            "start_date" => $flow["start_date"],
+            "end_date" => $flow["end_date"],
+            "parent" => $flow["parent"],
+            "deleted" => $flow["deleted"],
+            
+             "state_deleted" => $flow["state_deleted"],
+            "deleted" => $flow["deleted"],
+            
+             "active" => $flow["active"],
+            "state_active" => $flow["state_active"],
+            
+             "description" => $flow["description"],
+            "user_id" => $flow["user_id"],
+            
+                  "username" => $flow["username"],
+            "Role_Parent" => $flow["Role_Parent"], 
+            
+        );
+    }
+    
+    $app->response()->header("Content-Type", "application/json");
+    
+    $resultArray = array();
+    $resultArray['total'] = $resTotalRowCount[0]['count'];
+    $resultArray['rows'] = $flows;
+    
+    /*$app->contentType('application/json');
+    $app->halt(302, '{"error":"Something went wrong"}');
+    $app->stop();*/
+    
+    $app->response()->body(json_encode($resultArray));
+  
+});
+
+ 
 
 
 $app->run();
