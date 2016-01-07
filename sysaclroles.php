@@ -99,7 +99,7 @@ $app->get("/pkFillComboBoxMainRoles_sysAclRoles/", function () use ($app ) {
                 "id" => $flow["id"],
                 //"text" => strtolower($flow["name"]),
                 "text" => $flow["name"],
-                "state" => 'closed',
+                "state" => 'open',
                 "checked" => false,
                 "attributes" => array ("notroot"=>true),
             );
@@ -133,19 +133,23 @@ $app->get("/pkFillComboBoxFullRoles_sysAclRoles/", function () use ($app ) {
  
   
     //print_r('--****************get parent--' );  
-    $resCombobox = $BLL->fillComboBoxFullRoles();
+    $resCombobox = $BLL->fillComboBoxFullRoles( );
     //print_r($resDataMenu);
    
        
-        
+     $flows = array();
+        foreach ($resCombobox as $flow){
+            $flows[]  = array(
+                "id" => $flow["id"],
+                //"text" => strtolower($flow["name"]),
+                "text" => $flow["name"],
+                "state" => 'closed',
+                "checked" => false,
+                "attributes" => array ("notroot"=>true),
+            );
+        }   
  
-    $menus = array();
-    foreach ($resCombobox as $menu){
-        $menus[]  = array(
-            "id" => $menu["id"],
-            "name" => $menu["name"],
-        );
-    }
+   
     
     $app->response()->header("Content-Type", "application/json");
     
@@ -155,7 +159,7 @@ $app->get("/pkFillComboBoxFullRoles_sysAclRoles/", function () use ($app ) {
     $app->halt(302, '{"error":"Something went wrong"}');
     $app->stop();*/
     
-  $app->response()->body(json_encode($menus));
+  $app->response()->body(json_encode($flows));
   
 });
 

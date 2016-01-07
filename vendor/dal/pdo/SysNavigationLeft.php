@@ -693,9 +693,9 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     a.menu_type = CAST(
                       (SELECT                               
                           COALESCE(NULLIF( 
-                         (SELECT CAST(MIN(bz.parent) AS varchar(5))
-                                           FROM sys_acl_roles az 
-                                           LEFT JOIN sys_acl_roles bz ON bz.parent = az.id   
+                         (SELECT CAST(MIN(az.parent) AS varchar(5))
+                                           FROM sys_acl_roles az                                         
+					   LEFT JOIN sys_acl_roles sar ON az.root > 0 AND sar.id = az.root AND sar.active =0 AND sar.deleted =0  
                                            WHERE az.id= sarmapv.role_id),''), CAST(sarv.parent AS varchar(5))) AS Menu_type  
                          FROM info_users av
                          INNER JOIN act_users_rrpmap usrv ON usrv.info_users_id = av.id AND usrv.active = 0 AND usrv.deleted = 0 

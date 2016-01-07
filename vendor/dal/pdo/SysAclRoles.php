@@ -144,7 +144,7 @@ class SysAclRoles extends \DAL\DalSlim {
              * table names and column names will be changed for specific use
              */
             $statement = $pdo->prepare("
-            SELECT 
+             SELECT 
                     a.id, 
                     a.name AS name,
 		    a.icon_class, 
@@ -159,12 +159,13 @@ class SysAclRoles extends \DAL\DalSlim {
                     a.description,                                     
                     a.user_id,
                     u.username,
-                    sar.name as Role_Parent                        
+                    a.root,
+                    sar.name as root_parent                                            
             FROM sys_acl_roles  a
             INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
             INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
             INNER JOIN info_users u ON u.id = a.user_id 
-            LEFT JOIN sys_acl_roles sar ON a.parent > 0 AND sar.id = a.parent AND sar.active =0 AND sar.deleted =0 
+            LEFT JOIN sys_acl_roles sar ON a.root > 0 AND sar.id = a.root AND sar.active =0 AND sar.deleted =0 
             ORDER BY a.name 
                 
                                  ");
@@ -223,7 +224,7 @@ class SysAclRoles extends \DAL\DalSlim {
             $statement = $pdo->prepare("
                 INSERT INTO sys_acl_roles(
                         name, icon_class, start_date, end_date, 
-                        parent, user_id, description )
+                        parent, user_id, description, root )
                 VALUES (
                         :name,
                         :icon_class,                       
@@ -231,7 +232,8 @@ class SysAclRoles extends \DAL\DalSlim {
                         :end_date,
                         :parent,                       
                         :user_id,
-                        :description
+                        :description,
+                        :root
                                                 ");
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
             $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
@@ -240,6 +242,7 @@ class SysAclRoles extends \DAL\DalSlim {
             $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);            
             $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
             $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':root', $params['root'], \PDO::PARAM_INT);
 
             $result = $statement->execute();
             $insertID = $pdo->lastInsertId('sys_acl_roles_id_seq');
@@ -305,7 +308,8 @@ class SysAclRoles extends \DAL\DalSlim {
                     end_date = :end_date,
                     parent = :parent,
                     user_id= :user_id  
-                    description = :description,                                           
+                    description = :description, 
+                    root = :root
                 WHERE id = :id");
             //Bind our value to the parameter :id.
             $statement->bindValue(':id', $id, \PDO::PARAM_INT);
@@ -318,6 +322,7 @@ class SysAclRoles extends \DAL\DalSlim {
             $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);
             $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
             $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
+            $statement->bindValue(':root', $params['root'], \PDO::PARAM_INT);
             //Execute our UPDATE statement.
             $update = $statement->execute();
             $affectedRows = $statement->rowCount();
@@ -373,12 +378,10 @@ class SysAclRoles extends \DAL\DalSlim {
             //$order = "desc";
             $order = "ASC";
         }
-
-
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-                SELECT 
+                 SELECT 
                     a.id, 
                     a.name AS name,
 		    a.icon_class, 
@@ -393,12 +396,13 @@ class SysAclRoles extends \DAL\DalSlim {
                     a.description,                                     
                     a.user_id,
                     u.username,
-                    sar.name as Role_Parent                        
+                    a.root,
+                    sar.name as root_parent                                            
                 FROM sys_acl_roles  a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
                 INNER JOIN info_users u ON u.id = a.user_id 
-                LEFT JOIN sys_acl_roles sar ON a.parent > 0 AND sar.id = a.parent AND sar.active =0 AND sar.deleted =0             
+                LEFT JOIN sys_acl_roles sar ON a.root > 0 AND sar.id = a.root AND sar.active =0 AND sar.deleted =0              
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -525,18 +529,27 @@ class SysAclRoles extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function fillComboBoxFullRoles() {
+    public function fillComboBoxFullRoles($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             /**
              * table names and column names will be changed for specific use
              */
+            $id = 0 ;
+            if(isset($_GET['id']) && $_GET['id']!="" ) {
+                 $id = $_GET['id'] ;
+            }
+             
+            
             $statement = $pdo->prepare("
                 SELECT                    
                     a.id, 	
-                    a.name AS name                                 
+                    a.name AS name,
+                    a.parent
                 FROM sys_acl_roles a       
-                WHERE a.active =0 AND a.deleted = 0                  
+                WHERE 
+                    a.active =0 AND a.deleted = 0 AND
+                    a.parent = ".$id."
                 ORDER BY name                
                                  ");
               
