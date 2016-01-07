@@ -34,7 +34,7 @@ class SysSectors extends \BLL\BLLSlim{
     /**
      * Data update function
      * @param integer $id
-     * @param array | null $params
+     * @param array $params
      * @return array
      */
     public function update($id = null, $params = array()) {
@@ -75,7 +75,7 @@ class SysSectors extends \BLL\BLLSlim{
     
     /**
      * Function to get datagrid row count on user interface layer
-     * @param array | null $params
+     * @param array $params
      * @return array
      */
     public function fillGridRowTotalCount($params = array()) {
@@ -84,8 +84,8 @@ class SysSectors extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
     /**
-     * Function to get datagrid row count on user interface layer
-     * @param array | null $params
+     *  
+     * @param array  $params
      * @return array
      */
     public function insertLanguageTemplate($params = array()) {
@@ -94,7 +94,18 @@ class SysSectors extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
 
-    
+     
+    /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillTextLanguageTemplate ($params = array()) {
+        
+        $DAL = $this->slimApp->getDALManager()->get('sysSectorsPDO');
+        $resultSet = $DAL->fillTextLanguageTemplate($params);  
+        return $resultSet['resultSet'];
+    }
     
     
 }

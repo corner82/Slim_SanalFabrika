@@ -62,7 +62,7 @@ $app->post('/hello/:name/:firstName', function ($name) {
  *  * zeynel daÄŸlÄ±
  * @since 11-09-2014
  */
-$app->get("/fillGrid_syssectors/", function () use ($app, $pdo) {
+$app->get("/pkFillGrid_syssectors/", function () use ($app, $pdo) {
  
     $BLL = $app->getBLLManager()->get('sysSectorsBLL');
     
@@ -70,7 +70,7 @@ $app->get("/fillGrid_syssectors/", function () use ($app, $pdo) {
     $resultArray = array();
     $resultArray['total'] = $resTotalRowCount[0]['toplam'];
 
-    print_r(' row sayımız =' . $resultArray['total'] );
+   // print_r(' row sayımız =' . $resultArray['total'] );
 
 
     $app->response()->header("Content-Type", "application/json");
