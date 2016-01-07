@@ -44,6 +44,7 @@ class BLLManagerConfig{
                  'sysVillageBLL' => 'BLL\BLL\SysVillage',
                  'blLoginLogoutBLL' => 'BLL\BLL\BlLoginLogout',
                  'infoFirmProfileBLL' => 'BLL\BLL\InfoFirmProfile',
+                 'sysAclRolesBLL' => 'BLL\BLL\SysAclRoles',
             
                    
                  

@@ -49,6 +49,7 @@ class DalManagerConfig {
                 'sysVillagePDO' => 'DAL\Factory\PDO\SysVillageFactory',      
                 'blLoginLogoutPDO' => 'DAL\Factory\PDO\BlLoginLogoutFactory',   
                 'infoFirmProfilePDO' => 'DAL\Factory\PDO\InfoFirmProfileFactory',   
+                'sysAclRolesPDO' => 'DAL\Factory\PDO\SysAclRolesFactory',   
                 
             ],
         ),

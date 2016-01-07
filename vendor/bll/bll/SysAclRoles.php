@@ -12,7 +12,7 @@ namespace BLL\BLL;
 /**
  * Business Layer class for report Configuration entity
  */
-class SysSectors extends \BLL\BLLSlim{
+class SysAclRoles extends \BLL\BLLSlim{
     
     /**
      * constructor
@@ -27,7 +27,7 @@ class SysSectors extends \BLL\BLLSlim{
      * @return array
      */
     public function insert($params = array()) {
-        $DAL = $this->slimApp->getDALManager()->get('sysSectorsPDO');
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
         return $DAL->insert($params);
     }
     
@@ -38,7 +38,7 @@ class SysSectors extends \BLL\BLLSlim{
      * @return array
      */
     public function update($id = null, $params = array()) {
-        $DAL = $this->slimApp->getDALManager()->get('sysSectorsPDO');
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
         return $DAL->update($id, $params);
     }
     
@@ -48,7 +48,7 @@ class SysSectors extends \BLL\BLLSlim{
      * @return array
      */
     public function delete($id = null) {
-        $DAL = $this->slimApp->getDALManager()->get('sysSectorsPDO');
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
         return $DAL->delete($id);
     }
 
@@ -57,7 +57,7 @@ class SysSectors extends \BLL\BLLSlim{
      * @return array
      */
     public function getAll() {
-        $DAL = $this->slimApp->getDALManager()->get('sysSectorsPDO');
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
         return $DAL->getAll();
     }
     
@@ -68,7 +68,7 @@ class SysSectors extends \BLL\BLLSlim{
      */
     public function fillGrid ($params = array()) {
         
-        $DAL = $this->slimApp->getDALManager()->get('sysSectorsPDO');
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
         $resultSet = $DAL->fillGrid($params);  
         return $resultSet['resultSet'];
     }
@@ -79,7 +79,7 @@ class SysSectors extends \BLL\BLLSlim{
      * @return array
      */
     public function fillGridRowTotalCount($params = array()) {
-        $DAL = $this->slimApp->getDALManager()->get('sysSectorsPDO');
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
         $resultSet = $DAL->fillGridRowTotalCount($params);  
         return $resultSet['resultSet'];
     }
@@ -88,18 +88,9 @@ class SysSectors extends \BLL\BLLSlim{
      * @param array  $params
      * @return array
      */
-     
-     
-    public function fillComboBox($params = array()) {
-        $DAL = $this->slimApp->getDALManager()->get('sysSectorsPDO');
-        $resultSet = $DAL->fillComboBox($params);  
-        return $resultSet['resultSet'];
-    }
-     
-    
-    public function insertLanguageTemplate($params = array()) {
-        $DAL = $this->slimApp->getDALManager()->get('sysSectorsPDO');
-        $resultSet = $DAL->insertLanguageTemplate($params);  
+    public function fillComboBoxMainRoles($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
+        $resultSet = $DAL->fillComboBoxMainRoles($params);  
         return $resultSet['resultSet'];
     }
 
@@ -109,10 +100,10 @@ class SysSectors extends \BLL\BLLSlim{
      * @param array $params
      * @return array
      */
-    public function fillTextLanguageTemplate ($params = array()) {
+    public function fillComboBoxFullRoles ($params = array()) {
         
-        $DAL = $this->slimApp->getDALManager()->get('sysSectorsPDO');
-        $resultSet = $DAL->fillTextLanguageTemplate($params);  
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
+        $resultSet = $DAL->fillComboBoxFullRoles($params);  
         return $resultSet['resultSet'];
     }
     
