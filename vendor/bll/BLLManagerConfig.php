@@ -43,6 +43,7 @@ class BLLManagerConfig{
                  'sysBoroughBLL' => 'BLL\BLL\SysBorough',
                  'sysVillageBLL' => 'BLL\BLL\SysVillage',
                  'blLoginLogoutBLL' => 'BLL\BLL\BlLoginLogout',
+                 'infoFirmProfileBLL' => 'BLL\BLL\InfoFirmProfile',
             
                    
                  
