@@ -533,7 +533,7 @@ class SysCity extends \DAL\DalSlim {
                     a.city_id AS id,
                     COALESCE(NULLIF(a.name, ''), a.name_eng) AS name 
                 FROM sys_city a                 
-                WHERE a.language_code =  ".$params['language_code']." AND a.active = 0 AND a.deleted = 0 
+                WHERE a.language_code =  '".$params['language_code']."' AND a.active = 0 AND a.deleted = 0 
                 AND country_id =  ".intval($params['country_id'])." 
                 ORDER BY a.priority ASC, name
                 
