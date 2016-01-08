@@ -216,6 +216,21 @@ class SysSectors extends \DAL\DalSlim {
     public function insert($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+             $sql = " 
+            SELECT  
+                name as name , 
+                '" . $params['name'] . "' as value , 
+                name ='" . $params['name'] . "' as control,
+                concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
+            FROM sys_sectors        
+            WHERE name = '" . $params['name'] . "'               
+                               ";
+            $statement = $pdo->prepare($sql);            
+            $statement->execute();
+            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);          
+
+            if (!isset($kontrol[0]['control'])) {  
+            
             $pdo->beginTransaction();
             /**
              * table names and column names will be changed for specific use
@@ -250,6 +265,9 @@ class SysSectors extends \DAL\DalSlim {
             $pdo->commit();
 
             return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+            } else {           
+                $result  = $kontrol;      
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());

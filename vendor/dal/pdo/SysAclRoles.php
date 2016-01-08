@@ -217,41 +217,84 @@ class SysAclRoles extends \DAL\DalSlim {
     public function insert($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
-            /**
-             * table names and column names will be changed for specific use
-             */
-            $statement = $pdo->prepare("
+
+            $sql = " 
+            SELECT  
+                name as name , 
+                '" . $params['name'] . "' as value , 
+                name ='" . $params['name'] . "' as control,
+                concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
+            FROM sys_acl_roles        
+            WHERE name = '" . $params['name'] . "'               
+                               ";
+            $statement = $pdo->prepare($sql);            
+            $statement->execute();
+            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);          
+
+            if (!isset($kontrol[0]['control'])) {               
+    
+                $valuesSqlStartDate = '';
+                if (isset($params['start_date']) && $params['start_date'] != "") {
+                    $valuesSqlStartDate = ':start_date,';
+                } else {
+                    $valuesSqlStartDate = ' null,';
+                }
+
+                $valuesSqlEndDate = '';
+                if (isset($params['end_date']) && $params['end_date'] != "") {
+                    $valuesSqlEndDate = ':end_date,';
+                } else {
+                    $valuesSqlEndDate = ' null,';
+                }
+
+                $pdo->beginTransaction();
+                /**
+                 * table names and column names will be changed for specific use
+                 */
+                $sql = "
                 INSERT INTO sys_acl_roles(
-                        name, icon_class, start_date, end_date, 
+                        name, icon_class,  start_date,  end_date,
                         parent, user_id, description, root )
                 VALUES (
                         :name,
                         :icon_class,                       
-                        :start_date,
-                        :end_date,
+                        " . $valuesSqlStartDate . "
+                        " . $valuesSqlEndDate . "
                         :parent,                       
                         :user_id,
                         :description,
                         :root
-                                                ");
-            $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-            $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
-            $statement->bindValue(':start_date', $params['start_date'], \PDO::PARAM_STR);
-            $statement->bindValue(':end_date', $params['end_date'], \PDO::PARAM_STR);
-            $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);            
-            $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':root', $params['root'], \PDO::PARAM_INT);
+                                             )   ";
 
-            $result = $statement->execute();
-            $insertID = $pdo->lastInsertId('sys_acl_roles_id_seq');
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $pdo->commit();
+                $statement = $pdo->prepare($sql);
+                $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
+                $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
+                if (isset($params['start_date']) && $params['start_date'] != "") {
+                    $statement->bindValue(':start_date', $params['start_date'], \PDO::PARAM_STR);
+                }
+                if (isset($params['end_date']) && $params['end_date'] != "") {
+                    $statement->bindValue(':end_date', $params['end_date'], \PDO::PARAM_STR);
+                }
+                $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);
+                $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
+                $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
+                $statement->bindValue(':root', $params['root'], \PDO::PARAM_INT);
 
-            return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+               // echo debugPDO($sql, $params);
+                $result = $statement->execute();
+                $insertID = $pdo->lastInsertId('sys_acl_roles_id_seq');
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                $pdo->commit();
+
+                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                 
+            } else {
+           
+                $result  = $kontrol;
+             //   print_r($result);
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -293,36 +336,59 @@ class SysAclRoles extends \DAL\DalSlim {
         try {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            print_r($id);
+            $valuesSqlStartDate = '';
+            if (isset($params['start_date']) && $params['start_date'] != "") {
+                $valuesSqlStartDate = ' start_date = :start_date,';
+            } else {
+                $valuesSqlStartDate = ' start_date = null,';
+            }
+
+            $valuesSqlEndDate = '';
+            if (isset($params['end_date']) && $params['end_date'] != "") {
+                $valuesSqlEndDate = 'end_date = :end_date,';
+            } else {
+                $valuesSqlEndDate = 'end_date = null,';
+            }
+
             $pdo->beginTransaction();
             /**
              * table names and  column names will be changed for specific use
              */
             //Prepare our UPDATE SQL statement.            
-            $statement = $pdo->prepare("
+            $sql = "
                 UPDATE sys_acl_roles
                 SET   
                     name = :name, 
                     icon_class = :icon_class, 
                     active = :active, 
-                    start_date = :start_date,
-                    end_date = :end_date,
+                    " . $valuesSqlStartDate . "
+                    " . $valuesSqlEndDate . "
                     parent = :parent,
-                    user_id= :user_id  
+                    user_id= :user_id,  
                     description = :description, 
                     root = :root
-                WHERE id = :id");
-            //Bind our value to the parameter :id.
+                WHERE id = :id ";
+
+            $statement = $pdo->prepare($sql);
+            //Bind our value to the parameter :id.         
             $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            //Bind our :model parameter.
+            //Bind our :model parameter.                  
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
             $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
             $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
-            $statement->bindValue(':start_date', $params['start_date'], \PDO::PARAM_INT);                       
-            $statement->bindValue(':end_date', $params['end_date'], \PDO::PARAM_STR);
+            if (isset($params['start_date']) && $params['start_date'] != "") {
+                $statement->bindValue(':start_date', $params['start_date'], \PDO::PARAM_STR);
+            }
+            if (isset($params['end_date']) && $params['end_date'] != "") {
+                $statement->bindValue(':end_date', $params['end_date'], \PDO::PARAM_STR);
+            }
             $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);
             $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
             $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
             $statement->bindValue(':root', $params['root'], \PDO::PARAM_INT);
+
+            echo debugPDO($sql, $params);
             //Execute our UPDATE statement.
             $update = $statement->execute();
             $affectedRows = $statement->rowCount();
@@ -418,8 +484,8 @@ class SysAclRoles extends \DAL\DalSlim {
                 'limit' => $pdo->quote($limit),
                 'offset' => $pdo->quote($offset),
             );
-          //  echo debugPDO($sql, $parameters);
-            $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_INT);  
+            //  echo debugPDO($sql, $parameters);
+            $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_INT);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -465,7 +531,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 INNER JOIN info_users u ON u.id = a.user_id 
 
                     ";
-            $statement = $pdo->prepare($sql);          
+            $statement = $pdo->prepare($sql);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -478,8 +544,8 @@ class SysAclRoles extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-    
-      /**
+
+    /**
      * Combobox fill function used for testing
      * user interface combobox fill operation   
      * @author Okan CIRAN
@@ -490,36 +556,36 @@ class SysAclRoles extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function fillComboBoxMainRoles() {
-      try {
-          $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-          /**
-           * table names and column names will be changed for specific use
-           */
-          $statement = $pdo->prepare("
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            /**
+             * table names and column names will be changed for specific use
+             */
+            $statement = $pdo->prepare("
               SELECT                    
                   a.id, 	
                   a.name AS name                                 
               FROM sys_acl_roles a       
               WHERE a.active =0 AND a.deleted = 0 AND parent =0                 
               ORDER BY name                
-                               ");              
+                               ");
             $statement->execute();
-          $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
-          /* while ($row = $statement->fetch()) {
-            print_r($row);
-            } */
-          $errorInfo = $statement->errorInfo();
-          if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-              throw new \PDOException($errorInfo[0]);
-          return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-      } catch (\PDOException $e /* Exception $e */) {
-          $pdo->rollback();
-          return array("found" => false, "errorInfo" => $e->getMessage());
-      }
-  }
+            /* while ($row = $statement->fetch()) {
+              print_r($row);
+              } */
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
 
-   /**
+    /**
      * Combobox fill function used for testing
      * user interface combobox fill operation   
      * @author Okan CIRAN
@@ -535,12 +601,12 @@ class SysAclRoles extends \DAL\DalSlim {
             /**
              * table names and column names will be changed for specific use
              */
-            $id = 0 ;
-            if(isset($_GET['id']) && $_GET['id']!="" ) {
-                 $id = $_GET['id'] ;
+            $id = 0;
+            if (isset($_GET['id']) && $_GET['id'] != "") {
+                $id = $_GET['id'];
             }
-             
-            
+
+
             $statement = $pdo->prepare("
                 SELECT                    
                     a.id, 	
@@ -549,13 +615,13 @@ class SysAclRoles extends \DAL\DalSlim {
                 FROM sys_acl_roles a       
                 WHERE 
                     a.active =0 AND a.deleted = 0 AND
-                    a.parent = ".$id."
+                    a.parent = " . $id . "
                 ORDER BY name                
                                  ");
-              
+
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            
+
             /* while ($row = $statement->fetch()) {
               print_r($row);
               } */
@@ -568,7 +634,5 @@ class SysAclRoles extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
- 
-}
 
- 
+}

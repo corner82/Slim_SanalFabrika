@@ -242,6 +242,24 @@ class InfoFirmProfile extends \DAL\DalSlim {
     public function insert($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            
+            
+            $sql = " 
+            SELECT  
+                name as name , 
+                '" . $params['tax_no'] . "' as value , 
+                name ='" . $params['tax_no'] . "' as control,
+                concat(name , ' numaralı Vergi Numarası daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
+            FROM info_firm_profile        
+            WHERE name = '" . $params['tax_no'] . "'               
+                               ";
+            $statement = $pdo->prepare($sql);            
+            $statement->execute();
+            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);          
+
+            if (!isset($kontrol[0]['control'])) {     
+                
+           
             $pdo->beginTransaction();
             /**
              * table names and column names will be changed for specific use
@@ -306,6 +324,9 @@ class InfoFirmProfile extends \DAL\DalSlim {
             $pdo->commit();
 
             return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+            } else {           
+                $result  = $kontrol;          
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());

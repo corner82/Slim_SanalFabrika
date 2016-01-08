@@ -229,6 +229,23 @@ class InfoUsers extends \DAL\DalSlim {
             /**
              * table names and column names will be changed for specific use
              */
+            
+            
+            $sql = " 
+            SELECT  
+                username as name , 
+                '" . $params['username'] . "' as value , 
+                username ='" . $params['username'] . "' as control,
+                concat(username , ' Kullanıcı adı daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
+            FROM info_users        
+            WHERE username = '" . $params['username'] . "'               
+                               ";
+            $statement = $pdo->prepare($sql);            
+            $statement->execute();
+            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);          
+
+            if (!isset($kontrol[0]['control'])) {     
+           
             $statement = $pdo->prepare(" 
                 INSERT INTO info_users(
                             profile_public, 
@@ -274,6 +291,11 @@ class InfoUsers extends \DAL\DalSlim {
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
             return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+            } else {
+           
+                $result  = $kontrol;
+             //   print_r($result);
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -333,9 +355,8 @@ class InfoUsers extends \DAL\DalSlim {
                         c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) , 
                         operation_type_id= :operation_type_id,                         
                         active = 1,
-                        user_id = :user_id,
                         deleted = :deleted  
-                        act_parent_id = :act_parent_idi,
+                        act_parent_id = :act_parent_id,
                         language_code = :language_code
                     WHERE id = :id
                     
@@ -347,8 +368,7 @@ class InfoUsers extends \DAL\DalSlim {
             //Bind our :model parameter.
             $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);  
             $statement->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
-            $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);            
             $statement->bindValue(':deleted', $params['deleted'], \PDO::PARAM_INT);
             
             //Execute our UPDATE statement.
@@ -612,7 +632,7 @@ class InfoUsers extends \DAL\DalSlim {
     }
     
     
-     /**
+    /**
      * action delete from database  example for PDO prepared
      * statements, table names are irrevelant and should be changed on specific 
      * returned result set example;
@@ -650,7 +670,7 @@ class InfoUsers extends \DAL\DalSlim {
             if ($act_parent_id =0 ){
                 $act_parent_id =  intval($id);                
             }                
-            print_r('******* delete act_parent_id = '. $act_parent_id);
+         //   print_r('******* delete act_parent_id = '. $act_parent_id);
                     
 
              /**
@@ -664,7 +684,6 @@ class InfoUsers extends \DAL\DalSlim {
                         c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) , 
                         operation_type_id= :operation_type_id,                         
                         active = 1,
-                        user_id = :user_id,
                         deleted = 0
                         act_parent_id = :act_parent_id 
                     WHERE id = :id                    
@@ -675,9 +694,7 @@ class InfoUsers extends \DAL\DalSlim {
             
             //Bind our :model parameter.
             $statement->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
-            $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-            
+            $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);                        
             
             
             //Execute our UPDATE statement.
