@@ -127,6 +127,7 @@ use PhpAmqpLib\Message\AMQPMessage;
     public function publicKeyNotFoundRedirect() {
         if($this->app->isServicePkRequired && $this->isPublicKeyNotFoundRedirect) {
              $forwarder = new \Utill\Forwarder\PublicNotFoundForwarder();
+             $forwarder->setParameters($this->getAppRequestParams());
              $forwarder->redirect();  
          } else {
              return true;

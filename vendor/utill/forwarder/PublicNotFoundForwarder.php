@@ -32,10 +32,10 @@ class PublicNotFoundForwarder extends \Utill\Forwarder\AbstractForwarder {
         
         ob_end_clean();
         //$ch = curl_init('http://slimRedirect.sanalfabrika.com/index.php/hashNotMatch');
-        $ch = curl_init('http://localhost/slim_Redirect_SanalFabrika/index.php/publicNotFoundSlim');
+        $ch = curl_init('http://localhost/slim_Redirect_SanalFabrika/index.php/publicNotFoundSlim?test='.  serialize($this->parameters).'&test2='.$_SERVER['REMOTE_ADDR'].'');
         //curl_setopt($ch,CURLOPT_HTTPHEADER,$headers);
         //curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
-        //curl_setopt($ch,CURLOPT_POSTFIELDS,$content);
+        //curl_setopt($ch,CURLOPT_POSTFIELDS,$this->parameters);
 
         $result = curl_exec($ch);
         curl_close($ch);
