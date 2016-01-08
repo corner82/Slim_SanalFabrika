@@ -162,8 +162,6 @@ $app->get("/pkFillComboBoxFullRoles_sysAclRoles/", function () use ($app ) {
   $app->response()->body(json_encode($flows));
   
 });
-
-
 /**
  *  * Okan CIRAN
  * @since 07-01-2016
@@ -209,19 +207,15 @@ $app->get("/pkFillGrid_sysAclRoles/", function () use ($app ) {
             "start_date" => $flow["start_date"],
             "end_date" => $flow["end_date"],
             "parent" => $flow["parent"],
-            "deleted" => $flow["deleted"],
-            
-             "state_deleted" => $flow["state_deleted"],
-            "deleted" => $flow["deleted"],
-            
-             "active" => $flow["active"],
-            "state_active" => $flow["state_active"],
-            
-             "description" => $flow["description"],
-            "user_id" => $flow["user_id"],
-            
-                  "username" => $flow["username"],
-            "Role_Parent" => $flow["Role_Parent"], 
+            "deleted" => $flow["deleted"],            
+            "state_deleted" => $flow["state_deleted"],            
+            "active" => $flow["active"],
+            "state_active" => $flow["state_active"],            
+            "description" => $flow["description"],
+            "user_id" => $flow["user_id"],            
+            "username" => $flow["username"],
+            "root_parent" => $flow["root_parent"], 
+            "root" => $flow["root"], 
             
         );
     }
@@ -238,9 +232,7 @@ $app->get("/pkFillGrid_sysAclRoles/", function () use ($app ) {
     
     $app->response()->body(json_encode($resultArray));
   
-});
-
- 
+}); 
 /**
  *  * Okan CIRAN
  * @since 07-01-2016
@@ -258,66 +250,74 @@ $app->get("/pkInsert_sysAclRoles/", function () use ($app ) {
     $headerParams = $app->request()->headers();
     $pk = $headerParams['X-Public'];   
     //print_r($resDataMenu);
-    
-   
-    $resDataGrid = $BLL->insert(array('page'=>$_GET['page'],
-                                        'rows'=>$_GET['rows'],
-                                        'sort'=>$_GET['sort'],
-                                        'order'=>$_GET['order'],
+     
+           
+    $resDataInsert = $BLL->insert(array('name'=>$_GET['name'],
+                                        'icon_class'=>$_GET['icon_class'],
+                                        'start_date'=>$_GET['start_date'],
+                                        'end_date'=>$_GET['end_date'],
+                                        'parent'=>$_GET['parent'],
+                                        'user_id'=>$_GET['user_id'],
+                                        'description'=>$_GET['description'],
+                                        'root'=>$_GET['root'],
                                         'pk' => $pk  ));
-    //print_r($resDataGrid);
-    
-    /**
-     * BLL fillGridRowTotalCount örneği test edildi
-     * datagrid için total row count döndürüyor
-     * Okan CIRAN
-     */ 
-    $resTotalRowCount = $BLL->fillGridRowTotalCount();
-
-    $flows = array();
-    foreach ($resDataGrid as $flow){
-        $flows[]  = array(
-            "id" => $flow["id"],
-            "name" => $flow["name"],
-            "icon_class" => $flow["icon_class"],
-            "create_date" => $flow["create_date"],
-            "icon_class" => $flow["icon_class"],
-            "create_date" => $flow["create_date"],
-            "start_date" => $flow["start_date"],
-            "end_date" => $flow["end_date"],
-            "parent" => $flow["parent"],
-            "deleted" => $flow["deleted"],
-            
-             "state_deleted" => $flow["state_deleted"],
-            "deleted" => $flow["deleted"],
-            
-             "active" => $flow["active"],
-            "state_active" => $flow["state_active"],
-            
-             "description" => $flow["description"],
-            "user_id" => $flow["user_id"],
-            
-                  "username" => $flow["username"],
-            "Role_Parent" => $flow["Role_Parent"], 
-            
-        );
-    }
+  // print_r($resDataInsert);    
+     
+     
     
     $app->response()->header("Content-Type", "application/json");
     
-    $resultArray = array();
-    $resultArray['total'] = $resTotalRowCount[0]['count'];
-    $resultArray['rows'] = $flows;
+    
     
     /*$app->contentType('application/json');
     $app->halt(302, '{"error":"Something went wrong"}');
     $app->stop();*/
     
-    $app->response()->body(json_encode($resultArray));
+    $app->response()->body(json_encode($resDataInsert));
+  
+}); 
+/**
+ *  * Okan CIRAN
+ * @since 07-01-2016
+ */
+$app->get("/pkUpdate_sysAclRoles/", function () use ($app ) {
+
+    
+    $BLL = $app->getBLLManager()->get('sysAclRolesBLL'); 
+ 
+    // Filters are called from service manager
+    //$filterHtmlAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
+  //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
+    //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
+
+    $headerParams = $app->request()->headers();
+    $pk = $headerParams['X-Public'];   
+     
+    $resDataUpdate = $BLL->update($_GET['id'],
+                                        array('name'=>$_GET['name'],
+                                        'icon_class'=>$_GET['icon_class'],
+                                        'active'=>$_GET['active'],
+                                        'start_date'=>$_GET['start_date'],
+                                        'end_date'=>$_GET['end_date'],
+                                        'parent'=>$_GET['parent'],
+                                        'user_id'=>$_GET['user_id'],
+                                        'description'=>$_GET['description'],
+                                        'root'=>$_GET['root'],
+                                        'pk' => $pk  ));
+    //print_r($resDataGrid);    
+      
+    $app->response()->header("Content-Type", "application/json");
+    
+    
+    
+    /*$app->contentType('application/json');
+    $app->halt(302, '{"error":"Something went wrong"}');
+    $app->stop();*/
+    
+    $app->response()->body(json_encode($resDataUpdate));
   
 });
 
  
-
 
 $app->run();
