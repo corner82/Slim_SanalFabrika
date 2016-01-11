@@ -564,9 +564,11 @@ class SysAclRoles extends \DAL\DalSlim {
             $statement = $pdo->prepare("
               SELECT                    
                   a.id, 	
-                  a.name AS name                                 
+                  a.name AS name,
+                  a.active,
+                  a.deleted
               FROM sys_acl_roles a       
-              WHERE a.active =0 AND a.deleted = 0 AND parent =0                 
+              WHERE a.parent =0                 
               ORDER BY name                
                                ");
             $statement->execute();
@@ -611,10 +613,11 @@ class SysAclRoles extends \DAL\DalSlim {
                 SELECT                    
                     a.id, 	
                     a.name AS name,
-                    a.parent
+                    a.parent,
+                    a.active,
+                    a.deleted
                 FROM sys_acl_roles a       
-                WHERE 
-                    a.active =0 AND a.deleted = 0 AND
+                WHERE                    
                     a.parent = " . $id . "
                 ORDER BY name                
                                  ");

@@ -101,10 +101,10 @@ $app->get("/pkFillComboBoxMainRoles_sysAclRoles/", function () use ($app ) {
                 "text" => $flow["name"],
                 "state" => 'open',
                 "checked" => false,
-                "attributes" => array ("notroot"=>true),
+                "attributes" => array ("notroot"=>true,"active" => $flow["active"],"deleted" => $flow["deleted"]),
             );
         }
-  
+        print_r($flows);
     
     $app->response()->header("Content-Type", "application/json");
    
@@ -145,7 +145,7 @@ $app->get("/pkFillComboBoxFullRoles_sysAclRoles/", function () use ($app ) {
                 "text" => $flow["name"],
                 "state" => 'closed',
                 "checked" => false,
-                "attributes" => array ("notroot"=>true),
+                 "attributes" => array ("notroot"=>true,"active" => $flow["active"],"deleted" => $flow["deleted"]),
             );
         }   
  
@@ -216,7 +216,7 @@ $app->get("/pkFillGrid_sysAclRoles/", function () use ($app ) {
             "username" => $flow["username"],
             "root_parent" => $flow["root_parent"], 
             "root" => $flow["root"], 
-            
+            "attributes" => array ("notroot"=>true,"active" => $flow["active"],"deleted" => $flow["deleted"]),
         );
     }
     
@@ -317,6 +317,69 @@ $app->get("/pkUpdate_sysAclRoles/", function () use ($app ) {
     $app->response()->body(json_encode($resDataUpdate));
   
 });
+/**
+ *  * Okan CIRAN
+ * @since 11-01-2016
+ */
+$app->get("/pkGetAll_sysAclRoles/", function () use ($app ) {
+
+    
+    $BLL = $app->getBLLManager()->get('sysAclRolesBLL'); 
+ 
+ 
+    $headerParams = $app->request()->headers();
+    $pk = $headerParams['X-Public'];   
+    //print_r($resDataMenu);
+    
+   
+    $resDataGrid = $BLL->getAll();
+    //print_r($resDataGrid);
+    
+    /**
+     * BLL fillGridRowTotalCount örneği test edildi
+     * datagrid için total row count döndürüyor
+     * Okan CIRAN
+     */ 
+    $resTotalRowCount = $BLL->fillGridRowTotalCount();
+
+    $flows = array();
+    foreach ($resDataGrid as $flow){
+        $flows[]  = array(
+            "id" => $flow["id"],
+            "name" => $flow["name"],
+            "icon_class" => $flow["icon_class"],
+            "create_date" => $flow["create_date"],
+            "icon_class" => $flow["icon_class"],
+            "create_date" => $flow["create_date"],
+            "start_date" => $flow["start_date"],
+            "end_date" => $flow["end_date"],
+            "parent" => $flow["parent"],
+            "deleted" => $flow["deleted"],            
+            "state_deleted" => $flow["state_deleted"],            
+            "active" => $flow["active"],
+            "state_active" => $flow["state_active"],            
+            "description" => $flow["description"],
+            "user_id" => $flow["user_id"],            
+            "username" => $flow["username"],
+            "root_parent" => $flow["root_parent"], 
+            "root" => $flow["root"], 
+            "attributes" => array ("notroot"=>true,"active" => $flow["active"],"deleted" => $flow["deleted"]),
+        );
+    }
+    
+    $app->response()->header("Content-Type", "application/json");
+    
+    $resultArray = array();
+    $resultArray['total'] = $resTotalRowCount[0]['count'];
+    $resultArray['rows'] = $flows;
+    
+    /*$app->contentType('application/json');
+    $app->halt(302, '{"error":"Something went wrong"}');
+    $app->stop();*/
+    
+    $app->response()->body(json_encode($resultArray));
+  
+}); 
 
  
 
