@@ -230,7 +230,7 @@ class SysAclRoles extends \DAL\DalSlim {
             $statement = $pdo->prepare($sql);            
             $statement->execute();
             $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);          
-
+          //  print_r($kontrol);
             if (!isset($kontrol[0]['control'])) {               
     
                 $valuesSqlStartDate = '';
@@ -290,9 +290,8 @@ class SysAclRoles extends \DAL\DalSlim {
 
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                  
-            } else {
-           
-                $result  = $kontrol;
+            } else {           
+              return  $result  = $kontrol;
              //   print_r($result);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -485,7 +484,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             //  echo debugPDO($sql, $parameters);
-            $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_INT);
+          
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
