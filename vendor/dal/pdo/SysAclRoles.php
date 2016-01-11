@@ -287,6 +287,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
                 $pdo->commit();
+                
 
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                  
