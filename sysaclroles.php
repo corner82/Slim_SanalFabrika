@@ -102,7 +102,8 @@ $app->get("/pkFillComboBoxFullRoles_sysAclRoles/", function () use ($app ) {
             "text" => $flow["name"],
             "state" => 'closed',
             "checked" => false,
-            "attributes" => array("notroot" => true, "active" => $flow["active"], "deleted" => $flow["deleted"]),
+             "attributes" => array("notroot" => true, "active" => $flow["active"] ),
+            
         );
     }
 
@@ -167,8 +168,8 @@ $app->get("/pkFillGrid_sysAclRoles/", function () use ($app ) {
             "user_id" => $flow["user_id"],
             "username" => $flow["username"],
             "root_parent" => $flow["root_parent"],
-            "root" => $flow["root"],
-            "attributes" => array("notroot" => true, "active" => $flow["active"], "deleted" => $flow["deleted"]),
+            "root" => $flow["root"],            
+            "attributes" => array("notroot" => true, "active" => $flow["active"] ),
         );
     }
 
@@ -647,7 +648,7 @@ $app->get("/pkGetAll_sysAclRoles/", function () use ($app ) {
             "username" => $flow["username"],
             "root_parent" => $flow["root_parent"],
             "root" => $flow["root"],
-            "attributes" => array("notroot" => true, "active" => $flow["active"], "deleted" => $flow["deleted"]),
+            "attributes" => array("notroot" => true, "active" => $flow["active"] ),
         );
     }
 

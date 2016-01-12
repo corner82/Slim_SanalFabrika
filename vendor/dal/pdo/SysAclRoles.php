@@ -168,6 +168,7 @@ class SysAclRoles extends \DAL\DalSlim {
             INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
             INNER JOIN info_users u ON u.id = a.user_id 
             LEFT JOIN sys_acl_roles sar ON a.root > 0 AND sar.id = a.root AND sar.active =0 AND sar.deleted =0 
+            WHERE a.deleted =0 
             ORDER BY a.name 
                 
                                  ");
@@ -484,6 +485,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
                 INNER JOIN info_users u ON u.id = a.user_id 
                 LEFT JOIN sys_acl_roles sar ON a.root > 0 AND sar.id = a.root AND sar.active =0 AND sar.deleted =0              
+                WHERE a.deleted =0 
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -580,10 +582,10 @@ class SysAclRoles extends \DAL\DalSlim {
               SELECT                    
                   a.id, 	
                   a.name AS name,
-                  a.active,
-                  a.deleted
+                  a.active                   
               FROM sys_acl_roles a       
-              WHERE a.parent =0                 
+              WHERE a.parent =0 AND 
+              a.deleted =0               
               ORDER BY name                
                                ");
             $statement->execute();
@@ -629,11 +631,11 @@ class SysAclRoles extends \DAL\DalSlim {
                     a.id, 	
                     a.name AS name,
                     a.parent,
-                    a.active,
-                    a.deleted
+                    a.active                  
                 FROM sys_acl_roles a       
                 WHERE                    
-                    a.parent = " . $id . "
+                    a.parent = " . $id . " AND 
+                    a.deleted = 0     
                 ORDER BY name                
                                  ");
 
