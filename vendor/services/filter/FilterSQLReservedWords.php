@@ -25,10 +25,10 @@ class FilterSQLReservedWords implements \Zend\ServiceManager\FactoryInterface {
         // Create a filter chain and filter for usage
         $filterChain = new \Zend\Filter\FilterChain();
         $filterChain->attach(new \Zend\Filter\PregReplace(array(
-                            'pattern'=> array("/(;)|(%3b)/",
-                                            "/\/\*/",
-                                            "/\*\//",
-                                            "/\*/",
+                            'pattern'=> array(//"/(;)|(%3b)/",
+                                            //"/\/\*/",
+                                            //"/\*\//",
+                                            //"/\*/",
                                             "/@@/",
                                             "/([^A-Za-z0-9])(@)([^A-Za-z0-9])*/"
                                             ,"/nchar/"

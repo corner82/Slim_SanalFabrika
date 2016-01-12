@@ -47,7 +47,7 @@ class FilterHexadecimalAdvanced implements \Zend\ServiceManager\FactoryInterface
                                                 "/&#125;/i",
                                                 "/&#124;/i",
                                                 "/&#126;/i",
-                                                "/([#|&#35;|%|&#37;|&|&#38;|&amp;]+([A-Fa-f0-9]){2,3})/i"),
+                                                /*"/([#|&#35;|%|&#37;|&|&#38;|&amp;]+([A-Fa-f0-9]){2,3})/i"*/),
                         'replacement' => '',
                     )));
         return $filterChain;

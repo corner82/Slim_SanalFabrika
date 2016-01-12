@@ -32,7 +32,7 @@ class FilterHTMLTagsAdvanced implements \Zend\ServiceManager\FactoryInterface {
                                               "/(\()|(&#40;)/",
                                               "/(\))|(&#41;)/",
                                               "/&quot/",
-                                              "/(&)|(%26)/"),
+                                              /*"/(&)|(%26)/"*/),
                         'replacement' => '',
                     ), 200));
         return $filterChain;
