@@ -47,9 +47,9 @@ class SysAclRoles extends \BLL\BLLSlim{
      * @param integer $id
      * @return array
      */
-    public function delete($id = null) {
+    public function delete($id = null, $params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
-        return $DAL->delete($id);
+        return $DAL->delete($id, $params);
     }
 
     /**

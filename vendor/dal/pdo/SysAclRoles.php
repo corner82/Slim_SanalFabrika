@@ -49,7 +49,7 @@ class SysAclRoles extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function delete($id = null) {
+    public function delete($id = null, $params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -59,10 +59,12 @@ class SysAclRoles extends \DAL\DalSlim {
             //Prepare our UPDATE SQL statement. 
             $statement = $pdo->prepare(" 
                 UPDATE sys_acl_roles
-                SET  deleted= 1
+                SET  deleted= 1 , 
+                    user_id =  ".intval($params['user_id'])." 
                 WHERE id = :id");
             //Bind our value to the parameter :id.
             $statement->bindValue(':id', $id, \PDO::PARAM_INT);
+            
             //Execute our DELETE statement.
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
@@ -217,7 +219,7 @@ class SysAclRoles extends \DAL\DalSlim {
     public function insert($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-
+            $pdo->beginTransaction();
             $sql = " 
             SELECT  
                 name as name , 
@@ -227,12 +229,18 @@ class SysAclRoles extends \DAL\DalSlim {
             FROM sys_acl_roles        
             WHERE name = '" . $params['name'] . "'               
                                ";
-            $statement = $pdo->prepare($sql);            
+            $statement = $pdo->prepare($sql);
+         //   print_r($params);
+       //   echo debugPDO($sql, $params);
             $statement->execute();
-            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);          
-          //  print_r($kontrol);
-            if (!isset($kontrol[0]['control'])) {               
-    
+            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+
+
+            if (!isset($kontrol[0]['control'])) {
+
                 $valuesSqlStartDate = '';
                 if (isset($params['start_date']) && $params['start_date'] != "") {
                     $valuesSqlStartDate = ':start_date,';
@@ -247,7 +255,7 @@ class SysAclRoles extends \DAL\DalSlim {
                     $valuesSqlEndDate = ' null,';
                 }
 
-                $pdo->beginTransaction();
+
                 /**
                  * table names and column names will be changed for specific use
                  */
@@ -280,20 +288,26 @@ class SysAclRoles extends \DAL\DalSlim {
                 $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':root', $params['root'], \PDO::PARAM_INT);
 
-               // echo debugPDO($sql, $params);
+                // echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_acl_roles_id_seq');
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
                 $pdo->commit();
-                
+
 
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
-                 
-            } else {           
-              return  $result  = $kontrol;
-             //   print_r($result);
+            } else {
+
+                $insertID = -1000;
+                $errorInfo = $kontrol[0]['message'];
+                //  if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                //   throw new \PDOException($kontrol[0]['message']); 
+                return array("found" => true, "errorInfo" => $kontrol[0]['message'], "lastInsertId" => $insertID);
+                $pdo->commit();
+                // return $result = $kontrol;
+                //   print_r($result);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -369,6 +383,7 @@ class SysAclRoles extends \DAL\DalSlim {
                     description = :description, 
                     root = :root
                 WHERE id = :id ";
+           //  echo debugPDO($sql, $params);
 
             $statement = $pdo->prepare($sql);
             //Bind our value to the parameter :id.         
@@ -485,7 +500,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             //  echo debugPDO($sql, $parameters);
-          
+
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
