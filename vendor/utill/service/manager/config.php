@@ -45,6 +45,7 @@ class config {
                 'filterSQLReservedWords' => 'Services\Filter\FilterSQLReservedWords',
                 'filterToNull' => 'Services\Filter\FilterToNull',
                 'filterUpperCase' => 'Services\Filter\FilterUpperCase',
+                'filterChainerCustom' => 'Services\Filter\FilterChainerCustom',
             ],
         ),
     );

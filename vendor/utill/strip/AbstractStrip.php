@@ -1,0 +1,155 @@
+<?php
+/**
+ * OSTİM TEKNOLOJİ Framework 
+ *
+ * @link      https://github.com/corner82/slim_test for the canonical source repository
+ * @copyright Copyright (c) 2015 OSTİM TEKNOLOJİ (http://www.ostim.com.tr)
+ * @license   
+ */
+
+namespace Utill\Strip;
+
+use Iterator;
+use ArrayAccess;
+use Countable;
+
+abstract class AbstractStrip extends \Strip\AbstractStrip implements Iterator, Countable, ArrayAccess {
+    
+    /*const SQL_STRATEGY    = 'sql_strategy';
+    const HEX_STRATEGY    = 'hex_strategy';
+    const HEX_ADVANCED_STRATEGY  = 'hex_advanced_strategy';
+    const CDATA_STRATEGY = 'cdata_strategy';
+    const ALL_HTML_STRATEGY  = 'all_html_strategy';
+    const BASE_STRATEGY  = 'base_strategy';*/
+    
+    protected $stripStrategies;
+    
+     /**
+     * returns the count of countable interface method
+     * @return integer
+     */
+    public function count($mode = 'COUNT_NORMAL') {
+        return count($this->stripStrategies);
+    }
+    
+    /**
+     * returns the current object for iterator interface method
+     * @return mixed any type 
+     */
+    public function current() {
+        return current($this->stripStrategies);
+    }
+    
+    /**
+     * returns the object determined by ket value for iterator interface method
+     * @return mixed any type 
+     */
+    public function key() {
+        return key($this->stripStrategies);
+    }
+    
+    /**
+     * get next type for iterator interface method
+     * @return mixed any type 
+     */
+    public function next() {
+        return next($this->stripStrategies);
+    }
+    
+    /**
+     * reset current iteartor for iterator interface method
+     */
+    public function rewind() {
+        reset($this->stripStrategies);
+    }
+
+    /**
+     * is iterator type valid for iterator interface method
+     * @return boolean
+     */
+    public function valid() {
+        return (current($this->stripStrategies) !== false);
+    }
+    
+    /**
+     * control if offset element exists
+     * @param mixed string | integer $offset
+     * @return boolean
+     * @author Mustafa Zeynel Dağlı
+     * @since 12/01/2016
+     */
+    public function offsetExists($offset) {
+        return (isset($this->stripStrategies[$offset])) ?  true : false;
+    }
+    
+    /**
+     * return offset element or null
+     * @param type $offset
+     * @return mixed Can return all value types or null
+     * @author Mustafa Zeynel Dağlı
+     * @since 12/01/2016
+     */
+    public function offsetGet($offset) {
+        return (isset($this->stripStrategies[$offset])) ?  $this->stripStrategies[$offset] : null;
+    }
+    
+    /**
+     * set any type to determined offset  for arrayaccess interface method
+     * @param mixed any type $offset
+     * @param \Zend\Filter\AbstractFilter $value
+     * @throws Exception
+     */
+    public function offsetSet($offset, $value) {
+        if($value instanceof \Strip\AbstractStripStrategy) {
+            $this->stripStrategies[$offset] = $value;
+        } else {
+            throw new Exception('invalid strip strategy class!!');
+        }
+    }
+    
+    /**
+     * unset any type due to offset for arrayaccess interface method
+     * @param mixed any type $offset
+     * @return \Utill\Strip\Chain\StripChainer
+     */
+     public function offsetUnset($offset) {
+        unset($this->stripStrategies[$offset]);
+        return $this;
+    }
+    
+   
+    public function stripStrategyExists($offset) {
+        return (isset($this->stripStrategies[$offset]));
+    }
+
+    public function getStripStrategy($offset) {
+        return (isset($this->stripStrategies[$offset])) ? $this->stripStrategies[$offset] : null;
+    }
+
+    public function setStripStrategy($offset,$value) {
+        if($value instanceof \Strip\AbstractStripStrategy) {
+            $this->stripStrategies[$offset] = $value;
+        } else {
+            throw new Exception('invalid strip strategy class!!');
+        }
+    }
+
+    public function removeStripStrategy($offset) {
+        unset($this->stripStrategies[$offset]);
+        return $this;
+    }
+    
+    public function strip($value=null) {
+        $strippedText = $value;
+        foreach ($this->stripStrategies as $key=>$strategy) {
+            if($strategy instanceof \Strip\AbstractStripStrategy) {
+                $strippedText = $strategy->strip($strippedText);
+            }
+        }
+        return $strippedText;
+    }
+
+    
+
+}
+

@@ -46,6 +46,7 @@ return array(
     'PFBC\\View\\' => array($vendorDir . '/PFBC/View'),
     'PFBC\\' => array($vendorDir . '/PFBC'),
     'Strip\\' => array($vendorDir . '/strip'),
-    'Strip\\Strategy\\' => array($vendorDir . '/strip/strategy'),
+    'Utill\\Strip\\' => array($vendorDir . '/utill/strip'),
+    'Utill\\Strip\\Chain\\' => array($vendorDir . '/utill/strip/chain'),
     'Security\\Forwarder\\' => array($vendorDir . '/security/forwarder'),
 );
