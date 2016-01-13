@@ -35,7 +35,7 @@ class StripChainer extends AbstractStripChainer implements \Services\Filter\Filt
     
     public function strip() {
         foreach ($this->chainer as $key => $value) {
-          print_r('-key-'.$key.'--');
+          //print_r('-key-'.$key.'--');
           //print_r('-filter-'.$value.'--');
           if(method_exists($value, 'filter')) { 
             $this->filterValue = $value->filter($this->filterValue);
@@ -43,7 +43,7 @@ class StripChainer extends AbstractStripChainer implements \Services\Filter\Filt
                 throw new \Exception('invalid filter  method for \Zend\Filter\AbstractFilter');
             }
         }
-        print_r('--value filtered-->'.$this->filterValue);
+        //print_r('--value filtered-->'.$this->filterValue);
     }
 
     public function getFilter($name = null) {
@@ -51,10 +51,10 @@ class StripChainer extends AbstractStripChainer implements \Services\Filter\Filt
     }
     
     public function setFilter($params = null) {
-        print_r(key($params));
+        //print_r(key($params));
         $key = key($params);
         if(!$this->offsetExists($key)) {
-            print_r('--test--');
+            //print_r('--test--');
             $this->offsetSet($key, $params[$key]);
             return true;
         }
