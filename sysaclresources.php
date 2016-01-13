@@ -102,8 +102,7 @@ $app->get("/pkFillComboBoxFullResources_sysAclResources/", function () use ($app
             "text" => $flow["name"],
             "state" => 'closed',
             "checked" => false,
-             "attributes" => array("notroot" => true, "active" => $flow["active"] ),
-            
+            "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }
 
@@ -168,8 +167,8 @@ $app->get("/pkFillGrid_sysAclResources/", function () use ($app ) {
             "user_id" => $flow["user_id"],
             "username" => $flow["username"],
             "root_parent" => $flow["root_parent"],
-            "root" => $flow["root"],            
-            "attributes" => array("notroot" => true, "active" => $flow["active"] ),
+            "root" => $flow["root"],
+            "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }
 
@@ -220,348 +219,39 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
 
     $vName = $_GET['name'];
     $vIconClass = $_GET['icon_class'];
-    $vStartDate = $_GET['start_date'];
-    $vEndDate = $_GET['end_date'];
     $vParent = $_GET['parent'];
     $vUserId = $_GET['user_id'];
     $vDescription = $_GET['description'];
-    $vRoot = $_GET['root'];
-    $vName = $filterDefault->filter($vName);
 
 
 
-    $filterSQLReservedWordsData = $vName . $vIconClass . $vStartDate . $vEndDate .
-            $vParent . $vUserId . $vDescription . $vRoot;
-
-    $filterSQLReservedWordsData = $filterLowerCase->filter($filterSQLReservedWordsData);
-    $filterSQLReservedWordsData1 = ($filterSQLReservedWords->filter($filterSQLReservedWordsData) );
+    if ($errorcode == 0) {
+        $headerParams = $app->request()->headers();
+        $vPk = $headerParams['X-Public'];
 
 
-    //print_r('xxxxxx'.$filterSQLReservedWordsData.'----');
-    // print_r($filterSQLReservedWordsData1.'xxxx');
-    // print_r( strlen($filterSQLReservedWordsData). 'dddd' . strlen ($filterSQLReservedWordsData1) ) ; 
 
-    if (strlen($filterSQLReservedWordsData) != strlen($filterSQLReservedWordsData1)) {
-        print_r('xxxxxx'.$filterSQLReservedWordsData.'----');
-        $errorcode = 999;
+        $resDataInsert = $BLL->insert(array('name' => $vName,
+            'icon_class' => $vIconClass,
+            'parent' => $vParent,
+            'user_id' => $vUserId,
+            'description' => $vDescription,
+            'pk' => $vPk));
+        // print_r($resDataInsert);    
+
+
+
+        $app->response()->header("Content-Type", "application/json");
+
+
+
+        /* $app->contentType('application/json');
+          $app->halt(302, '{"error":"Something went wrong"}');
+          $app->stop(); */
+
+        $app->response()->body(json_encode($resDataInsert));
     }
-
-            
-
-        $messageName = 'Role Adı ';
-        $controlMessage = $messageName;
-        // echo $filterAlpha->filter($vName);
-        //echo $filterAlpha->filter("This....!!!As is (my) content: 123");
-        //  if (  strlen($filterAlpha->filter($vName)) != strlen($vName)  ) {   
-
-        if (!$validatorAlpha->isValid($vName)) {
-            $vName = $filterAlpha->filter($vName);
-            $controlMessage = $controlMessage . ' içerisinde alfabetik olmayan değer var!!! // ';
-            $errorcode = 3;
-            $hatasayisi = $hatasayisi + 1;
-        }
-
-        if (!$validatorNotEmptyString->isValid($vName)) {
-            $result = $validatorNotEmptyString->isValid($vName);
-            $controlMessage = $controlMessage . '  Boş Değer //';
-            $errorcode = 2;
-            $hatasayisi = $hatasayisi + 1;
-        }
-
-        $validatorStringLength->setMessages(array('stringLengthTooShort' => $messageName . 'en az ' . $validatorStringLength->getMin() . ' karakter olmak zorunda...',
-            'stringLengthTooLong' => $messageName . 'en fazla ' . $validatorStringLength->getMax() . ' karakter olmak zorunda...')
-        );
-        if (!$validatorStringLength->isValid($vName)) {
-            $messages = $validatorStringLength->getMessages();
-            $controlMessage = $controlMessage . current($messages);
-            $errorcode = 1;
-            $hatasayisi = $hatasayisi + 1;
-        }
-
-        //////////////////////////////////////////////////////////////////////////
-
-        $vParent = trim($_GET['parent']);
-        $messageName = 'Parent Değerinde ';
-        $controlMessage1 = $messageName;
-
-        if (!$validatorAlpha->isValid($vParent)) {
-            $vParent = $filterAlpha->filter($vParent);
-            $controlMessage1 = $controlMessage1 . ' içerisinde alfabetik olmayan değer var!!! // ';
-            $errorcode = 6;
-            $hatasayisi1 = $hatasayisi1 + 1;
-        }
-
-        if (!$validatorNotEmptyString->isValid($vParent)) {
-            $result = $validatorNotEmptyString->isValid($vParent);
-            $controlMessage1 = $controlMessage1 . '  Boş Değer //';
-            $errorcode = 5;
-            $hatasayisi1 = $hatasayisi1 + 1;
-        }
-        $validatorStringLength->setMin(1);
-        $validatorStringLength->setMax(20);
-        $validatorStringLength->setMessages(array('stringLengthTooShort' => $controlMessage1 . 'en az ' . $validatorStringLength->getMin() . ' karakter olmak zorunda...',
-            'stringLengthTooLong' => $controlMessage1 . 'en fazla ' . $validatorStringLength->getMax() . ' karakter olmak zorunda...')
-        );
-
-        if (!$validatorStringLength->isValid($vParent)) {
-            $messages = $validatorStringLength->getMessages();
-            $controlMessage1 = $controlMessage1 . current($messages);
-            $errorcode = 4;
-            $hatasayisi1 = $hatasayisi1 + 1;
-        }
-
-
-
-        //////////////////////////////////////////////////////////////////////////
-
-        $vRoot = trim($_GET['root']);
-        $messageName = 'Root Değerinde ';
-        $controlMessage2 = $messageName;
-
-        if (!$validatorAlpha->isValid($vRoot)) {
-            $vRoot = $filterAlpha->filter($vRoot);
-            $controlMessage2 = $controlMessage2 . ' içerisinde alfabetik olmayan değer var!!! // ';
-            $errorcode = 9;
-            $hatasayisi2 = $hatasayisi2 + 1;
-        }
-
-        if (!$validatorNotEmptyString->isValid($vRoot)) {
-            $result = $validatorNotEmptyString->isValid($vRoot);
-            $controlMessage2 = $controlMessage2 . '  Boş Değer //';
-            $errorcode = 8;
-            $hatasayisi2 = $hatasayisi2 + 1;
-        }
-        $validatorStringLength->setMin(1);
-        $validatorStringLength->setMax(20);
-        $validatorStringLength->setMessages(array('stringLengthTooShort' => $controlMessage2 . 'en az ' . $validatorStringLength->getMin() . ' karakter olmak zorunda...',
-            'stringLengthTooLong' => $controlMessage2 . 'en fazla ' . $validatorStringLength->getMax() . ' karakter olmak zorunda...')
-        );
-
-        if (!$validatorStringLength->isValid($vRoot)) {
-            $messages = $validatorStringLength->getMessages();
-            $controlMessage2 = $controlMessage2 . current($messages);
-            $errorcode = 7;
-            $hatasayisi2 = $hatasayisi2 + 1;
-        }
-
-
-        //////////////////////////////////////////////////////////////////////////
-
-
-        $vUserId = trim($_GET['user_id']);
-        $messageName = 'User Değerinde ';
-        $controlMessage3 = $messageName;
-
-        if (!$validatorAlpha->isValid($vUserId)) {
-            $vUserId = $filterAlpha->filter($vUserId);
-            $controlMessage3 = $controlMessage3 . ' içerisinde alfabetik olmayan değer var!!! // ';
-            $errorcode = 12;
-            $hatasayisi3 = $hatasayisi3 + 1;
-        }
-
-        if (!$validatorNotEmptyString->isValid($vUserId)) {
-            $result = $validatorNotEmptyString->isValid($vUserId);
-            $controlMessage3 = $controlMessage3 . '  Boş Değer //';
-            $errorcode = 11;
-            $hatasayisi3 = $hatasayisi3 + 1;
-        }
-        $validatorStringLength->setMin(1);
-        $validatorStringLength->setMax(20);
-        $validatorStringLength->setMessages(array('stringLengthTooShort' => $controlMessage2 . 'en az ' . $validatorStringLength->getMin() . ' karakter olmak zorunda...',
-            'stringLengthTooLong' => $controlMessage2 . 'en fazla ' . $validatorStringLength->getMax() . ' karakter olmak zorunda...')
-        );
-
-        if (!$validatorStringLength->isValid($vUserId)) {
-            $messages = $validatorStringLength->getMessages();
-            $controlMessage3 = $controlMessage3 . current($messages);
-            $errorcode = 10;
-            $hatasayisi3 = $hatasayisi3 + 1;
-        }
-
-
-
-
-
-
-        if ($hatasayisi > 0)
-            print_r($hatasayisi . ' adet hatanız var. ' . $controlMessage);
-        if ($hatasayisi1 > 0)
-            print_r($hatasayisi1 . ' adet hatanız var. ' . $controlMessage1);
-        if ($hatasayisi2 > 0)
-            print_r($hatasayisi2 . ' adet hatanız var. ' . $controlMessage2);
-        if ($hatasayisi3 > 0)
-            print_r($hatasayisi3 . ' adet hatanız var. ' . $controlMessage3);
-
-
-
-        switch ($errorcode) {
-            case 1:
-                //  print_r($hatasayisi .' adet hatanız var. '. $controlMessage ) ;          
-                break;
-            case 2:
-                //    print_r($hatasayisi .' adet hatanız var. '.$controlMessage );
-                break;
-            case 3:
-                //    print_r($hatasayisi .' adet hatanız var. '.$controlMessage );
-                break;
-            case 4:
-                //    print_r($hatasayisi .' adet hatanız var. '. $controlMessage1 ) ;          
-                break;
-            case 5:
-                //    print_r($hatasayisi .' adet hatanız var. '.$controlMessage1 );
-                break;
-            case 6:
-                //    print_r($hatasayisi .' adet hatanız var. '.$controlMessage1 );
-                break;
-            case 7:
-                //  print_r($hatasayisi .' adet hatanız var. '. $controlMessage ) ;          
-                break;
-            case 8:
-                //    print_r($hatasayisi .' adet hatanız var. '.$controlMessage );
-                break;
-            case 9:
-                //    print_r($hatasayisi .' adet hatanız var. '.$controlMessage );
-                break;
-            case 10:
-                //  print_r($hatasayisi .' adet hatanız var. '. $controlMessage ) ;          
-                break;
-            case 11:
-                //    print_r($hatasayisi .' adet hatanız var. '.$controlMessage );
-                break;
-            case 12:
-                //    print_r($hatasayisi .' adet hatanız var. '.$controlMessage );
-                break;
-            default:
-
-                break;
-        }
-
-
-        //  $result =  $validatorStringLength->isValid($vName)  ;
-        //  $validatorNotEmpty = Zend\Validator\NotEmpty::STRING;
-        //  $result =  $validatorNotEmpty->isValid($vName)  ;
-        // print_r($result) ;
-        //$vName->addValidator(new Zend_Validate_NotEmpty());
-        // $vName->setAllowEmpty(false);
-        // print_r($vName) ;
-
-
-
-        if ($errorcode == 0) {
-            $headerParams = $app->request()->headers();
-            $vPk = $headerParams['X-Public'];
-            //print_r($resDataMenu);
-            //   print_r('---'.strlen($vName).'***');
-            //default filters
-            //   $vName = $filterToNull->filter(trim($vName));
-            // print_r('///---'.strlen($vName).'***');
-            ///  print_r ('empty degeri = *//--'.empty(' '). '--/**/*/');
-            //  if  (empty($vName)) { print_r (empty($vName));}
-            //  else { print_r (' empty deger 123  ');}
-            //print_r('123') ; 
-            // if (strlen($vName) > 0) {
-            //  print_r('---s///'.strlen($vName).'***');
-            //   $vName = urlencode  ($vName);
-            $vName = urldecode(trim($vName));
-            $vName = $filterLowerCase->filter($vName);
-            //  print_r('========'.$vName.'======') ; 
-            $vName = $filterDefault->filter($vName);
-            $vName = $filterHexadecimalAdvanced->filter($vName);
-            $vName = $filterHTMLTagsAdvanced->filter($vName);
-            $vName = $filterPregReplace->filter($vName);
-            $vName = $filterSQLReservedWords->filter($vName);
-            // $vName = $filterRemoveNumber->filter($vName);
-
-
-            $vIconClass = urldecode(trim($vIconClass));
-            $vIconClass = $filterLowerCase->filter($vIconClass);
-            $vIconClass = $filterDefault->filter($vIconClass);
-            $vIconClass = $filterHexadecimalAdvanced->filter($vIconClass);
-            $vIconClass = $filterHTMLTagsAdvanced->filter($vIconClass);
-            $vIconClass = $filterPregReplace->filter($vIconClass);
-            $vIconClass = $filterSQLReservedWords->filter($vIconClass);
-            // $vIconClass = $filterRemoveNumber->filter($vIconClass);
-
-            $vStartDate = urldecode(trim($vStartDate));
-            $vStartDate = $filterLowerCase->filter($vStartDate);
-            $vStartDate = $filterDefault->filter($vStartDate);
-            $vStartDate = $filterHexadecimalAdvanced->filter($vStartDate);
-            $vStartDate = $filterHTMLTagsAdvanced->filter($vStartDate);
-            $vStartDate = $filterPregReplace->filter($vStartDate);
-            $vStartDate = $filterSQLReservedWords->filter($vStartDate);
-            // $vStartDate = $filterRemoveNumber->filter($vIconClass);
-
-            $vEndDate = urldecode(trim($vEndDate));
-            $vEndDate = $filterLowerCase->filter($vEndDate);
-            $vEndDate = $filterDefault->filter($vEndDate);
-            $vEndDate = $filterHexadecimalAdvanced->filter($vEndDate);
-            $vEndDate = $filterHTMLTagsAdvanced->filter($vEndDate);
-            $vEndDate = $filterPregReplace->filter($vEndDate);
-            $vEndDate = $filterSQLReservedWords->filter($vEndDate);
-            // $vEndDate = $filterRemoveNumber->filter($vEndDate);
-
-
-            $vParent = urldecode(trim($vParent));
-            $vParent = $filterLowerCase->filter($vParent);
-            $vParent = $filterDefault->filter($vParent);
-            $vParent = $filterHexadecimalAdvanced->filter($vParent);
-            $vParent = $filterHTMLTagsAdvanced->filter($vParent);
-            $vParent = $filterPregReplace->filter($vParent);
-            $vParent = $filterSQLReservedWords->filter($vParent);
-            // $vParent = $filterRemoveNumber->filter($vParent);
-
-            $vUserId = urldecode(trim($vUserId));
-            $vUserId = $filterLowerCase->filter($vUserId);
-            $vUserId = $filterDefault->filter($vUserId);
-            $vUserId = $filterHexadecimalAdvanced->filter($vUserId);
-            $vUserId = $filterHTMLTagsAdvanced->filter($vUserId);
-            $vUserId = $filterPregReplace->filter($vUserId);
-            $vUserId = $filterSQLReservedWords->filter($vUserId);
-            // $vUserId = $filterRemoveNumber->filter($vUserId);
-
-            $vDescription = urldecode(trim($vDescription));
-            $vDescription = $filterLowerCase->filter($vDescription);
-            $vDescription = $filterDefault->filter($vDescription);
-            $vDescription = $filterHexadecimalAdvanced->filter($vDescription);
-            $vDescription = $filterHTMLTagsAdvanced->filter($vDescription);
-            $vDescription = $filterPregReplace->filter($vDescription);
-            $vDescription = $filterSQLReservedWords->filter($vDescription);
-
-            $vRoot = urldecode(trim($vRoot));
-            $vRoot = $filterLowerCase->filter($vRoot);
-            $vRoot = $filterDefault->filter($vRoot);
-            $vRoot = $filterHexadecimalAdvanced->filter($vRoot);
-            $vRoot = $filterHTMLTagsAdvanced->filter($vRoot);
-            $vRoot = $filterPregReplace->filter($vRoot);
-            $vRoot = $filterSQLReservedWords->filter($vRoot);
-            // $vRoot = $filterRemoveNumber->filter($vRoot);
-
-
-            $resDataInsert = $BLL->insert(array('name' => $vName,
-                'icon_class' => $vIconClass,
-                'start_date' => $vStartDate,
-                'end_date' => $vEndDate,
-                'parent' => $vParent,
-                'user_id' => $vUserId,
-                'description' => $vDescription,
-                'root' => $vRoot,
-                'pk' => $vPk));
-            // print_r($resDataInsert);    
-
-
-
-            $app->response()->header("Content-Type", "application/json");
-
-
-
-            /* $app->contentType('application/json');
-              $app->halt(302, '{"error":"Something went wrong"}');
-              $app->stop(); */
-
-            $app->response()->body(json_encode($resDataInsert));
-        }
-    } 
-            
+}
 );
 /**
  *  * Okan CIRAN
@@ -648,7 +338,7 @@ $app->get("/pkGetAll_sysAclResources/", function () use ($app ) {
             "username" => $flow["username"],
             "root_parent" => $flow["root_parent"],
             "root" => $flow["root"],
-            "attributes" => array("notroot" => true, "active" => $flow["active"] ),
+            "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }
 

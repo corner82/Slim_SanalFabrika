@@ -226,7 +226,7 @@ class SysAclResources extends \DAL\DalSlim {
                                ";
             $statement = $pdo->prepare($sql);
             //   print_r($params);
-            //   echo debugPDO($sql, $params);
+         //   echo debugPDO($sql, $params);
             $statement->execute();
             $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -247,7 +247,7 @@ class SysAclResources extends \DAL\DalSlim {
                         :parent,                       
                         :user_id,
                         :description                      
-                                                ";
+                                              )  ";
 
                 $statement = $pdo->prepare($sql);
                 $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
@@ -256,7 +256,7 @@ class SysAclResources extends \DAL\DalSlim {
                 $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
 
-
+                //echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_acl_resources_id_seq');
                 $errorInfo = $statement->errorInfo();
