@@ -138,6 +138,7 @@ $app->get("/pkFillGrid_sysAclRoles/", function () use ($app ) {
         'rows' => $_GET['rows'],
         'sort' => $_GET['sort'],
         'order' => $_GET['order'],
+        'search_name' => $_GET['search_name'],
         'pk' => $pk));
     //print_r($resDataGrid);
 
@@ -602,6 +603,38 @@ $app->get("/pkUpdate_sysAclRoles/", function () use ($app ) {
 
     $app->response()->body(json_encode($resDataUpdate));
 });
+
+
+/**
+ *  * Okan CIRAN
+ * @since 13-01-2016
+ */
+$app->get("/pkUpdateChild_sysAclRoles/", function () use ($app ) {
+
+
+    $BLL = $app->getBLLManager()->get('sysAclRolesBLL');
+            
+    $headerParams = $app->request()->headers();
+    $pk = $headerParams['X-Public'];
+
+    $resDataUpdate = $BLL->updateChild(  array(             
+        'active' => $_GET['active'],
+        'user_id' => $_GET['user_id'],
+        'child_ids' => $_GET['child_ids'],        
+        'pk' => $pk));
+    //print_r($resDataGrid);    
+
+    $app->response()->header("Content-Type", "application/json");
+
+
+
+    /* $app->contentType('application/json');
+      $app->halt(302, '{"error":"Something went wrong"}');
+      $app->stop(); */
+
+    $app->response()->body(json_encode($resDataUpdate));
+});
+
 /**
  *  * Okan CIRAN
  * @since 11-01-2016

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * OSTİM TEKNOLOJİ Framework 
  *
@@ -12,15 +13,15 @@ namespace BLL\BLL;
 /**
  * Business Layer class for report Configuration entity
  */
-class SysAclRoles extends \BLL\BLLSlim{
-    
+class SysAclRoles extends \BLL\BLLSlim {
+
     /**
      * constructor
      */
     public function __construct() {
         //parent::__construct();
     }
-    
+
     /**
      * DAta insert function
      * @param array | null $params
@@ -30,7 +31,7 @@ class SysAclRoles extends \BLL\BLLSlim{
         $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
         return $DAL->insert($params);
     }
-    
+
     /**
      * Data update function
      * @param integer $id
@@ -41,7 +42,7 @@ class SysAclRoles extends \BLL\BLLSlim{
         $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
         return $DAL->update($id, $params);
     }
-    
+
     /**
      * Data delete function
      * @param integer $id
@@ -60,19 +61,19 @@ class SysAclRoles extends \BLL\BLLSlim{
         $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
         return $DAL->getAll();
     }
-    
+
     /**
      * Function to fill datagrid on user interface layer
      * @param array | null $params
      * @return array
      */
-    public function fillGrid ($params = array()) {
-        
+    public function fillGrid($params = array()) {
+
         $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
-        $resultSet = $DAL->fillGrid($params);  
+        $resultSet = $DAL->fillGrid($params);
         return $resultSet['resultSet'];
     }
-    
+
     /**
      * Function to get datagrid row count on user interface layer
      * @param array $params
@@ -80,9 +81,10 @@ class SysAclRoles extends \BLL\BLLSlim{
      */
     public function fillGridRowTotalCount($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
-        $resultSet = $DAL->fillGridRowTotalCount($params);  
+        $resultSet = $DAL->fillGridRowTotalCount($params);
         return $resultSet['resultSet'];
     }
+
     /**
      *  
      * @param array  $params
@@ -90,23 +92,30 @@ class SysAclRoles extends \BLL\BLLSlim{
      */
     public function fillComboBoxMainRoles($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
-        $resultSet = $DAL->fillComboBoxMainRoles($params);  
+        $resultSet = $DAL->fillComboBoxMainRoles($params);
         return $resultSet['resultSet'];
     }
 
-     
     /**
      * Function to fill text on user interface layer
      * @param array $params
      * @return array
      */
-    public function fillComboBoxFullRoles ($params = array()) {
-        
+    public function fillComboBoxFullRoles($params = array()) {
+
         $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
-        $resultSet = $DAL->fillComboBoxFullRoles($params);  
+        $resultSet = $DAL->fillComboBoxFullRoles($params);
         return $resultSet['resultSet'];
     }
-    
-    
-}
 
+    /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */
+    public function updateChild($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
+        return $DAL->updateChild($params);
+    }
+
+}

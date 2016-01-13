@@ -60,11 +60,11 @@ class SysAclRoles extends \DAL\DalSlim {
             $statement = $pdo->prepare(" 
                 UPDATE sys_acl_roles
                 SET  deleted= 1 , 
-                    user_id =  ".intval($params['user_id'])." 
+                    user_id =  " . intval($params['user_id']) . " 
                 WHERE id = :id");
             //Bind our value to the parameter :id.
             $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            
+
             //Execute our DELETE statement.
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
@@ -227,12 +227,13 @@ class SysAclRoles extends \DAL\DalSlim {
                 '" . $params['name'] . "' as value , 
                 name ='" . $params['name'] . "' as control,
                 concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
-            FROM sys_acl_roles        
+            FROM sys_acl_roles                
             WHERE name = '" . $params['name'] . "'               
+               AND deleted =0   
                                ";
             $statement = $pdo->prepare($sql);
-         //   print_r($params);
-       //   echo debugPDO($sql, $params);
+            //   print_r($params);
+            //  echo debugPDO($sql, $params);
             $statement->execute();
             $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -289,7 +290,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':root', $params['root'], \PDO::PARAM_INT);
 
-                // echo debugPDO($sql, $params);
+                echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_acl_roles_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -300,15 +301,10 @@ class SysAclRoles extends \DAL\DalSlim {
 
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
             } else {
-
                 $insertID = -1000;
                 $errorInfo = $kontrol[0]['message'];
-                //  if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                //   throw new \PDOException($kontrol[0]['message']); 
                 return array("found" => true, "errorInfo" => $kontrol[0]['message'], "lastInsertId" => $insertID);
                 $pdo->commit();
-                // return $result = $kontrol;
-                //   print_r($result);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -351,27 +347,51 @@ class SysAclRoles extends \DAL\DalSlim {
         try {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            print_r($id);
-            $valuesSqlStartDate = '';
-            if (isset($params['start_date']) && $params['start_date'] != "") {
-                $valuesSqlStartDate = ' start_date = :start_date,';
-            } else {
-                $valuesSqlStartDate = ' start_date = null,';
-            }
-
-            $valuesSqlEndDate = '';
-            if (isset($params['end_date']) && $params['end_date'] != "") {
-                $valuesSqlEndDate = 'end_date = :end_date,';
-            } else {
-                $valuesSqlEndDate = 'end_date = null,';
-            }
-
             $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement.            
-            $sql = "
+            $sql = " 
+            SELECT  
+                name as name , 
+                '" . $params['name'] . "' as value , 
+                name ='" . $params['name'] . "' as control,
+                concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
+            FROM sys_acl_roles                 
+            WHERE name = '" . $params['name'] . "'    
+               AND id != " .intval($id). "
+               AND deleted =0   
+                               ";
+            $statement = $pdo->prepare($sql);
+            //   print_r($params);
+            //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+
+
+            if (!isset($kontrol[0]['control'])) {
+
+
+                $valuesSqlStartDate = '';
+                if (isset($params['start_date']) && $params['start_date'] != "") {
+                    $valuesSqlStartDate = ' start_date = :start_date,';
+                } else {
+                    $valuesSqlStartDate = ' start_date = null,';
+                }
+
+                $valuesSqlEndDate = '';
+                if (isset($params['end_date']) && $params['end_date'] != "") {
+                    $valuesSqlEndDate = 'end_date = :end_date,';
+                } else {
+                    $valuesSqlEndDate = 'end_date = null,';
+                }
+
+                $pdo->beginTransaction();
+                /**
+                 * table names and  column names will be changed for specific use
+                 */
+                //Prepare our UPDATE SQL statement.            
+                $sql = "
                 UPDATE sys_acl_roles
                 SET   
                     name = :name, 
@@ -384,25 +404,99 @@ class SysAclRoles extends \DAL\DalSlim {
                     description = :description, 
                     root = :root
                 WHERE id = :id ";
-           //  echo debugPDO($sql, $params);
+                //  echo debugPDO($sql, $params);
+
+                $statement = $pdo->prepare($sql);
+                //Bind our value to the parameter :id.         
+                $statement->bindValue(':id', $id, \PDO::PARAM_INT);
+                //Bind our :model parameter.                  
+                $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
+                $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
+                $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
+                if (isset($params['start_date']) && $params['start_date'] != "") {
+                    $statement->bindValue(':start_date', $params['start_date'], \PDO::PARAM_STR);
+                }
+                if (isset($params['end_date']) && $params['end_date'] != "") {
+                    $statement->bindValue(':end_date', $params['end_date'], \PDO::PARAM_STR);
+                }
+                $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);
+                $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
+                $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
+                $statement->bindValue(':root', $params['root'], \PDO::PARAM_INT);
+
+                echo debugPDO($sql, $params);
+                //Execute our UPDATE statement.
+                $update = $statement->execute();
+                $affectedRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+            } else {
+                $updateID = -2000;
+                $errorInfo = $kontrol[0]['message'];
+                return array("found" => true, "errorInfo" => $kontrol[0]['message'], "lastInsertId" => $updateID);
+                $pdo->commit();
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * basic update database example for PDO prepared
+     * statements, table names are irrevelant and should be changed on specific
+     * returned result set example;
+     * for success result
+     * Array
+      (
+      [found] => 1
+      [errorInfo] => Array
+      (
+      [0] => 00000
+      [1] =>
+      [2] =>
+      )
+
+      [affectedRowsCount] => 1
+      )
+     * for error result
+     * Array
+      (
+      [found] => 0
+      [errorInfo] => 42P01
+      )
+     * usage  
+     * @author Okan CIRAN
+     * sys_acl_roles tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
+     * @version v 1.0  07.01.2016
+     * @param type $id
+     * @return array
+     * @throws \PDOException
+     */
+    public function updateChild($params = array()) {
+        try {
+
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+
+            $pdo->beginTransaction();
+            /**
+             * table names and  column names will be changed for specific use
+             */
+            //Prepare our UPDATE SQL statement.            
+            $sql = "
+                UPDATE sys_acl_roles
+                SET                     
+                    active = :active,              
+                    user_id= :user_id
+                WHERE id IN (" . $params['child_ids'] . ")";
+
 
             $statement = $pdo->prepare($sql);
-            //Bind our value to the parameter :id.         
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            //Bind our :model parameter.                  
-            $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-            $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
             $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
-            if (isset($params['start_date']) && $params['start_date'] != "") {
-                $statement->bindValue(':start_date', $params['start_date'], \PDO::PARAM_STR);
-            }
-            if (isset($params['end_date']) && $params['end_date'] != "") {
-                $statement->bindValue(':end_date', $params['end_date'], \PDO::PARAM_STR);
-            }
-            $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);
             $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
-            $statement->bindValue(':root', $params['root'], \PDO::PARAM_INT);
 
             echo debugPDO($sql, $params);
             //Execute our UPDATE statement.
@@ -445,9 +539,8 @@ class SysAclRoles extends \DAL\DalSlim {
             $sortArr = explode(",", $sort);
             if (count($sortArr) === 1)
                 $sort = trim($args['sort']);
-        } else {
-            //$sort = "id";
-            $sort = "r_date";
+        } else {   
+            $sort = "a.id";
         }
 
         if (isset($args['order']) && $args['order'] != "") {
@@ -460,6 +553,12 @@ class SysAclRoles extends \DAL\DalSlim {
             //$order = "desc";
             $order = "ASC";
         }
+        
+        $whereNameSQL = '';
+        if (isset($_GET['search_name']) && $_GET['search_name'] != "") {
+            $whereNameSQL = " AND a.name LIKE '%" . $_GET['search_name'] . "%' ";
+        }
+        
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -485,7 +584,8 @@ class SysAclRoles extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
                 INNER JOIN info_users u ON u.id = a.user_id 
                 LEFT JOIN sys_acl_roles sar ON a.root > 0 AND sar.id = a.root AND sar.active =0 AND sar.deleted =0              
-                WHERE a.deleted =0 
+                WHERE a.deleted =0  
+                ".$whereNameSQL."
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -501,7 +601,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 'limit' => $pdo->quote($limit),
                 'offset' => $pdo->quote($offset),
             );
-            //  echo debugPDO($sql, $parameters);
+          // echo debugPDO($sql, $parameters);
 
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
