@@ -190,8 +190,22 @@ $app->get("/pkFillGrid_sysAclResources/", function () use ($app ) {
  */
 $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
 
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
 
-    $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');
+    //print_r('---'.array_search($_GET['url'], $_GET).'???');
+    $stripper->offsetSet(array_search($_GET['url'], $_GET), new \Utill\Strip\Chain\StripChainer($app, 'filter to value value select test', array(\Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED, )));
+    $stripper->offsetSet(array_search($_GET['name'], $_GET), new \Utill\Strip\Chain\StripChainer($app, 'filter to value value test2', array(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED,
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_PREG_REPLACE, )));
+    $stripper->strip();
+    $filteredValue = $stripper->offsetGet(array_search($_GET['url'], $_GET))->getFilterValue();
+    $filteredValue2 = $stripper->offsetGet(array_search($_GET['name'], $_GET))->getFilterValue();
+    print_r('--filtered value in api end point-->'.$filteredValue.'----');
+    print_r('--filtered value in api end point-->'.$filteredValue2.'----');
+    //print_r($stripChainer->offsetGet('test'));
+    
+    
+    $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');  
     $errorcode = 0;
     $hatasayisi = 0;
     $hatasayisi1 = 0;

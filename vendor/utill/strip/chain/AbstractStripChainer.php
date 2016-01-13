@@ -11,12 +11,29 @@ namespace Utill\Strip\Chain;
 use Iterator;
 use ArrayAccess;
 use Countable;
+use Slim;
 
 
-abstract class AbstractStripChainer implements Iterator, Countable, ArrayAccess {
+abstract class AbstractStripChainer implements Iterator, Countable, ArrayAccess, 
+                                        Slim\SlimAppInterface ,
+                                        \Utill\Strip\StripInterface{
     
     
     protected $chainer;
+    protected $slimApp;
+    
+    public function strip() {
+        
+    }
+
+    
+    public function getSlimApp() {
+        return $this->slimApp;
+    }
+
+    public function setSlimApp(Slim\Slim $slimApp) {
+        $this->slimApp = $slimApp;
+    }
     
     /**
      * returns the count of countable interface method
@@ -93,7 +110,7 @@ abstract class AbstractStripChainer implements Iterator, Countable, ArrayAccess 
         if($value instanceof \Zend\Filter\AbstractFilter) {
             $this->chainer[$offset] = $value;
         } else {
-            throw new Exception('invalid filter class!!');
+            throw new Exception('invalid filter class, witing for \Zend\Filter\AbstractFilter !!');
         }
     }
 

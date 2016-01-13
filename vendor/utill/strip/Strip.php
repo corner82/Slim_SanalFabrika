@@ -9,13 +9,24 @@
 
 namespace Utill\Strip;
 
- class Strip extends AbstractStrip implements \Services\Filter\FilterChainInterface {
+ class Strip extends AbstractStrip implements \Services\Filter\FilterChainInterface
+                                              {
     
-    public function __construct($params) {
+    public function __construct($params = null) {
         
-        if(empty($params))throw new Exception('strip class constructor parametre hatası');
+        //if(empty($params))throw new Exception('strip class constructor parametre hatası');
         
         
+    }
+    
+    public function strip() {
+        foreach ($this->stripStrategies as $key => $value) {
+            if(method_exists($value, 'strip')) { 
+                $value->strip();
+            } else {
+                throw new \Exception('invalid strip method for strip');
+            }
+        }
     }
 
     public function getFilterChain($name = null) {

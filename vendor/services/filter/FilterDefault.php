@@ -12,10 +12,10 @@ namespace Services\Filter;
 
 /**
  * service manager layer for filter functions
- * @author Mustafa Zeynel Dağlı
- * @version 13/01/
+ * @author Okan Ciran
+ * @version 29.12.2015
  */
-class FilterChainerCustom implements \Zend\ServiceManager\FactoryInterface {
+class FilterDefault implements \Zend\ServiceManager\FactoryInterface {
     
     /**
      * service ceration via factory on zend service manager

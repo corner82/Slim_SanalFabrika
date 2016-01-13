@@ -13,7 +13,8 @@ use Iterator;
 use ArrayAccess;
 use Countable;
 
-abstract class AbstractStrip extends \Strip\AbstractStrip implements Iterator, Countable, ArrayAccess {
+ class AbstractStrip  implements Iterator, Countable, ArrayAccess,
+                                        \Utill\Strip\StripInterface{
     
     /*const SQL_STRATEGY    = 'sql_strategy';
     const HEX_STRATEGY    = 'hex_strategy';
@@ -100,11 +101,16 @@ abstract class AbstractStrip extends \Strip\AbstractStrip implements Iterator, C
      * @throws Exception
      */
     public function offsetSet($offset, $value) {
-        if($value instanceof \Strip\AbstractStripStrategy) {
-            $this->stripStrategies[$offset] = $value;
-        } else {
-            throw new Exception('invalid strip strategy class!!');
+        if(!$this->offsetExists($offset)) {
+            if($value instanceof \Utill\Strip\Chain\AbstractStripChainer) {
+                $this->stripStrategies[$offset] = $value;
+                return true;
+            } else {
+                throw new \Exception('invalid \Utill\Strip\Chain\AbstractStripChainer class!!');
+            }
         }
+        throw new \Exception('repeated  key in strip class!!');
+        //return false;
     }
     
     /**
@@ -117,39 +123,12 @@ abstract class AbstractStrip extends \Strip\AbstractStrip implements Iterator, C
         return $this;
     }
     
-   
-    public function stripStrategyExists($offset) {
-        return (isset($this->stripStrategies[$offset]));
+    /**
+     * strip method for Utill\Strip\StripInterface
+     * will be overridden in subclasses
+     */
+    public function strip() {
+        
     }
-
-    public function getStripStrategy($offset) {
-        return (isset($this->stripStrategies[$offset])) ? $this->stripStrategies[$offset] : null;
-    }
-
-    public function setStripStrategy($offset,$value) {
-        if($value instanceof \Strip\AbstractStripStrategy) {
-            $this->stripStrategies[$offset] = $value;
-        } else {
-            throw new Exception('invalid strip strategy class!!');
-        }
-    }
-
-    public function removeStripStrategy($offset) {
-        unset($this->stripStrategies[$offset]);
-        return $this;
-    }
-    
-    public function strip($value=null) {
-        $strippedText = $value;
-        foreach ($this->stripStrategies as $key=>$strategy) {
-            if($strategy instanceof \Strip\AbstractStripStrategy) {
-                $strippedText = $strategy->strip($strippedText);
-            }
-        }
-        return $strippedText;
-    }
-
-    
 
 }
-
