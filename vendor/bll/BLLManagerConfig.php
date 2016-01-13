@@ -46,6 +46,9 @@ class BLLManagerConfig{
                  'infoFirmProfileBLL' => 'BLL\BLL\InfoFirmProfile',
                  'sysAclRolesBLL' => 'BLL\BLL\SysAclRoles',
                  'sysAclResourcesBLL' => 'BLL\BLL\SysAclResources',
+                 'sysAclPrivilegeBLL' => 'BLL\BLL\SysAclPrivilege',
+                 
+                 
                  
                
             

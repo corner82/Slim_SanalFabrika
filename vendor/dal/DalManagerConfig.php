@@ -51,6 +51,7 @@ class DalManagerConfig {
                 'infoFirmProfilePDO' => 'DAL\Factory\PDO\InfoFirmProfileFactory',   
                 'sysAclRolesPDO' => 'DAL\Factory\PDO\SysAclRolesFactory',   
                 'sysAclResourcesPDO' => 'DAL\Factory\PDO\SysAclResourcesFactory',   
+                'sysAclPrivilegePDO' => 'DAL\Factory\PDO\SysAclPrivilegeFactory',   
                 
                 
                 
