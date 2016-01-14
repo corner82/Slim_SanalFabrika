@@ -29,6 +29,7 @@ class FilterDefault implements \Zend\ServiceManager\FactoryInterface {
                     ->attach(new \Zend\Filter\StringTrim())
                     ->attach(new \Zend\Filter\HtmlEntities())
                     ->attach(new \Zend\Filter\StripNewlines())
+                    ->attach(new \Zend\Filter\HtmlEntities(array('quotestyle' => ENT_QUOTES)))
                      ;
         return $filterChain;
 
