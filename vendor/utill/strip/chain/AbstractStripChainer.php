@@ -22,11 +22,6 @@ abstract class AbstractStripChainer implements Iterator, Countable, ArrayAccess,
     protected $chainer;
     protected $slimApp;
     
-    public function strip() {
-        
-    }
-
-    
     public function getSlimApp() {
         return $this->slimApp;
     }
@@ -110,7 +105,7 @@ abstract class AbstractStripChainer implements Iterator, Countable, ArrayAccess,
         if($value instanceof \Zend\Filter\AbstractFilter) {
             $this->chainer[$offset] = $value;
         } else {
-            throw new Exception('invalid filter class, witing for \Zend\Filter\AbstractFilter !!');
+            throw new Exception('invalid filter class, waiting for \Zend\Filter\AbstractFilter !!');
         }
     }
 

@@ -46,6 +46,7 @@ class config {
                 'filterToNull' => 'Services\Filter\FilterToNull',
                 'filterUpperCase' => 'Services\Filter\FilterUpperCase',
                 'filterChainerCustom' => 'Services\Filter\FilterChainerCustom',
+                'filterValidatorMessager' => 'Services\Messager\FilterValidatorMessager',
             ],
         ),
     );

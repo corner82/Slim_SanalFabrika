@@ -39,15 +39,20 @@ class StripChainer extends AbstractStripChainer implements \Services\Filter\Filt
      */
     public function strip() {
         $this->rewind();
+        $filterValidatorMessager = $this->slimApp->getServiceManager()->get('filterValidatorMessager');
         foreach ($this->chainer as $key => $value) {
           //print_r('-key-'.$key.'--');
           //print_r('-filter-'.$value.'--');
-          if(method_exists($value, 'filter')) { 
+          $oldValue = $this->filterValue;
+          if(method_exists($value, 'filter')) {
             $this->filterValue = $value->filter($this->filterValue);
             } else {
                 throw new \Exception('invalid filter  method for \Zend\Filter\AbstractFilter');
             }
+            $filterValidatorMessager->compareFilteredValue($this->filterValue, $oldValue, $key);
+            
         }
+        //print_r($filterValidatorMessager->getFilterMessage());
         //print_r('--value filtered-->'.$this->filterValue);
     }
 

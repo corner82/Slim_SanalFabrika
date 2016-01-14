@@ -34,6 +34,7 @@ return array(
     'Services\\Database\\Postgresql\\' => array($vendorDir . '/services/database/postgresql'),
     'Services\\Filter\\' => array($vendorDir . '/services/filter'),
     'Services\\' => array($vendorDir . '/services'),
+    'Services\\Messager\\' => array($vendorDir . '/services/messager'),
     'DAL\\' => array($vendorDir . '/dal'),
     'DAL\\PDO\\' => array($vendorDir . '/dal/pdo'),
     'DAL\\Factory\\PDO\\' => array($vendorDir . '/dal/dalFactory/pdo'),
@@ -49,4 +50,7 @@ return array(
     'Utill\\Strip\\' => array($vendorDir . '/utill/strip'),
     'Utill\\Strip\\Chain\\' => array($vendorDir . '/utill/strip/chain'),
     'Security\\Forwarder\\' => array($vendorDir . '/security/forwarder'),
+    'Messager\\' => array($vendorDir . '/messager'),
+    'Messager\\Filter\\' => array($vendorDir . '/messager/filter'),
+    'Messager\\Validator\\' => array($vendorDir . '/messager/validator'),
 );
