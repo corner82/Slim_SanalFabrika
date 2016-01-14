@@ -20,6 +20,7 @@ namespace Utill\Strip;
     }
     
     public function strip() {
+        $this->rewind();
         foreach ($this->stripStrategies as $key => $value) {
             if(method_exists($value, 'strip')) { 
                 $value->strip();
