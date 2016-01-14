@@ -100,7 +100,7 @@ $app->get("/pkFillComboBoxFullRoles_sysAclRoles/", function () use ($app ) {
             "id" => $flow["id"],
             //"text" => strtolower($flow["name"]),
             "text" => $flow["name"],
-            "state" => 'closed',
+            "state" =>  $flow["state_type"], //   'closed',
             "checked" => false,
              "attributes" => array("notroot" => true, "active" => $flow["active"] ),
             

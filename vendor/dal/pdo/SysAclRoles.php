@@ -731,7 +731,12 @@ class SysAclRoles extends \DAL\DalSlim {
                     a.id, 	
                     a.name AS name,
                     a.parent,
-                    a.active                  
+                    a.active ,
+                    CASE 
+                    (SELECT DISTINCT 1 state_type FROM sys_acl_roles WHERE parent = a.id AND deleted = 0)    
+                     WHEN 1 THEN 'closed'
+                     ELSE 'open'   
+                     END AS state_type  
                 FROM sys_acl_roles a       
                 WHERE                    
                     a.parent = " . $id . " AND 
