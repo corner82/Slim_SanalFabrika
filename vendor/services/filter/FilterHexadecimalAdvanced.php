@@ -25,10 +25,10 @@ class FilterHexadecimalAdvanced implements \Zend\ServiceManager\FactoryInterface
         // Create a filter chain and filter for usage
         $filterChain = new \Zend\Filter\FilterChain();
         $filterChain->attach(new \Zend\Filter\PregReplace(array(
-                            'pattern'=> array("/&amp;/i",
+                            'pattern'=> array(/*"/&amp;/i",
                                                  "/&lt;/i",
                                                 "/&gt;/i",
-                                                "/&quot;/i",
+                                                "/&quot;/i",*/
                                                 "/&#x27;/i",
                                                 "/&#x2F;/i",
                                                 "/&#42;/i",

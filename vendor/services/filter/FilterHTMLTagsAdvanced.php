@@ -28,9 +28,9 @@ class FilterHTMLTagsAdvanced implements \Zend\ServiceManager\FactoryInterface {
                             'pattern'=> array("/(\\\)|(%5c)/",
                                               "/(<)|(%3c)/",
                                               "/(>)|(%3e)/",
-                                              "/(\/)|(%2f)/",
+                                              /*"/(\/)|(%2f)/",
                                               "/(\()|(&#40;)/",
-                                              "/(\))|(&#41;)/",
+                                              "/(\))|(&#41;)/",*/
                                               "/&quot/",
                                               /*"/(&)|(%26)/"*/),
                         'replacement' => '',

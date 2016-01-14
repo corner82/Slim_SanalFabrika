@@ -25,11 +25,10 @@ class FilterDefault implements \Zend\ServiceManager\FactoryInterface {
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
         // Create a filter chain and filter for usage
         $filterChain = new \Zend\Filter\FilterChain();
-        $filterChain->attach(new \Zend\Filter\StripTags())
+        $filterChain->attach(new \Zend\Filter\HtmlEntities(array('quotestyle' => ENT_QUOTES)))
+                    ->attach(new \Zend\Filter\StripTags())
                     ->attach(new \Zend\Filter\StringTrim())
-                    ->attach(new \Zend\Filter\HtmlEntities())
-                    ->attach(new \Zend\Filter\StripNewlines())
-                    ->attach(new \Zend\Filter\HtmlEntities(array('quotestyle' => ENT_QUOTES)))
+                    ->attach(new \Zend\Filter\StripNewlines())                    
                      ;
         return $filterChain;
 
