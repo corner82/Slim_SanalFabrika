@@ -36,18 +36,21 @@ class config {
             'factories' => [
                 'pgConnectFactory' => 'Services\Database\Postgresql\PostgreSQLConnectPDO',
                 'filterDefault' => 'Services\Filter\FilterDefault',
-                'filterHTMLTagsAdvanced' => 'Services\Filter\FilterHTMLTagsAdvanced',
+                'filterHtmlTagsCustomAdvanced' => 'Services\Filter\filterHtmlTagsCustomAdvanced',
+                'filterHtmlTagsCustomBase' => 'Services\Filter\filterHtmlTagsCustomBase',
                 'filterHexadecimalAdvanced' => 'Services\Filter\FilterHexadecimalAdvanced',
                 'filterLowerCase' => 'Services\Filter\FilterLowerCase',
                 'filterPregReplace' => 'Services\Filter\FilterPregReplace',
-                'filterRemoveNumber' => 'Services\Filter\FilterRemoveNumber',
-                'filterRemoveText' => 'Services\Filter\FilterRemoveText',
+                'filterOnlyNumberAllowed' => 'Services\Filter\filterOnlyNumberAllowed',
+                'filterOnlyAlphabeticAllowed' => 'Services\Filter\filterOnlyAlphabeticAllowed',
+                'filterParentheses' => 'Services\Filter\filterParentheses',
                 'filterSQLReservedWords' => 'Services\Filter\FilterSQLReservedWords',
                 'filterToNull' => 'Services\Filter\FilterToNull',
                 'filterUpperCase' => 'Services\Filter\FilterUpperCase',
                 'filterChainerCustom' => 'Services\Filter\FilterChainerCustom',
                 'filterValidatorMessager' => 'Services\Messager\FilterValidatorMessager',
                 'filterParentheses' => 'Services\Messager\FilterParentheses',
+                'validationChainerServiceForZendChainer' => 'Services\Validator\ValidationChainerServiceForZendChainer',
                 
                 
                 

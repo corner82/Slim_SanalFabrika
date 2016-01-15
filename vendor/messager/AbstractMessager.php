@@ -60,7 +60,7 @@ abstract class AbstractMessager implements
      * @param mixed string | null $validationMessage
      */
     public function addValidationMessage($validationMessage = null) {
-        
+        $this->validationMessage.=$validationMessage;
     }
 
     /**

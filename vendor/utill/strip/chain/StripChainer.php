@@ -24,7 +24,7 @@ class StripChainer extends AbstractStripChainer implements \Services\Filter\Filt
         if(empty($valueToFilter)) throw new Exception ('no value to filter in StripChainer class');
         $this->setFilterValue($valueToFilter);
         
-        if(empty($filters)) throw new Exception ('iflter class name is empty in StripChainer class');
+        if(empty($filters)) throw new Exception ('filter class name is empty in StripChainer class');
         
         foreach ($filters as $key =>$value) {
             $filter = $this->getSlimApp()->getServiceManager()->get($value);

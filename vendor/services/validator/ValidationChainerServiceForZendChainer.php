@@ -7,26 +7,25 @@
  * @license   
  */
 
-namespace Services\Filter;
-
+namespace Services\Validator;
 
 /**
- * service manager layer for filter functions
+ * service manager layer for validation chainer which is using \Zend\Validator\ValidatorChainer
  * @author Mustafa Zeynel Dağlı
+ * @version 13/01/2016
  */
-class FilterToNull implements \Zend\ServiceManager\FactoryInterface {
-    
+class ValidationChainerServiceForZendChainer implements \Zend\ServiceManager\FactoryInterface {
     
     /**
      * service ceration via factory on zend service manager
      * @param \Zend\ServiceManager\ServiceLocatorInterface $serviceLocator
-     * @return boolean|\PDO
+     * @return Utill\Strip\Strip
      */
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
-        // Create a filter chain and filter for usage
-        $filterChain = new \Zend\Filter\FilterChain();
-        $filterChain ->attach(new \Zend\Filter\ToNull());        
-        return $filterChain;
+        // Create a message broker for usage
+        $zendChainerValidator = new \Utill\Validation\ZendChainerValidator();
+        return $zendChainerValidator;
+
     }
 
 }

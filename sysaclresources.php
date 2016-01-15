@@ -194,43 +194,43 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
 
     //print_r('---'.array_search($_GET['url'], $_GET).'???');
     $stripper->offsetSet(array_search($_GET['url'], $_GET), new \Utill\Strip\Chain\StripChainer($app, 'filter to value value select test', array(\Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED, )));
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_CUSTOM_ADVANCED, )));
     $stripper->offsetSet(array_search($_GET['name'], $_GET), new \Utill\Strip\Chain\StripChainer($app, 'filter to value value test2', array(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED,
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_PREG_REPLACE, )));
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS, )));
     $stripper->strip();
     $filteredValue = $stripper->offsetGet(array_search($_GET['url'], $_GET))->getFilterValue();
     $filteredValue2 = $stripper->offsetGet(array_search($_GET['name'], $_GET))->getFilterValue();
-    print_r('--filtered value in api end point-->'.$filteredValue.'----');
-    print_r('--filtered value in api end point-->'.$filteredValue2.'----');
+    //print_r('--filtered value in api end point-->'.$filteredValue.'----');
+    //print_r('--filtered value in api end point-->'.$filteredValue2.'----');
     //print_r($stripChainer->offsetGet('test'));
+    
+    /**
+     * validat chain test
+     * @author Mustafa Zeynel Dağlı
+     * @since 15/01/2016
+     */
+    $validater = $app->getServiceManager()->get('validationChainerServiceForZendChainer');
+    
+    $validatorChain = new Zend\Validator\ValidatorChain();
+    
+    
+    $validater->offsetSet(array_search($_GET['url'], $_GET), 
+            new \Utill\Validation\Chain\ZendValidationChainer($app, 
+                                                              'filter to value value test2', 
+                                                               $validatorChain->attach(
+                                                                        new Zend\Validator\StringLength(array('min' => 6,
+                                                                                                              'max' => 12)))
+                                                                              ->attach(new Zend\I18n\Validator\Alnum())));
+    $validater->offsetSet(array_search($_GET['name'], $_GET), 
+            new \Utill\Validation\Chain\ZendValidationChainer($app, 'filter to value value test2', $validatorChain));
+    
+    $validater->validate();
+    $messager = $app->getServiceManager()->get('filterValidatorMessager');
+    print_r($messager->getValidationMessage());
     
     
     $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');  
-    $errorcode = 0;
-    $hatasayisi = 0;
-    $hatasayisi1 = 0;
-    $hatasayisi2 = 0;
-    $hatasayisi3 = 0;
-    ////******************Filters ******************//////////
-    // Filters are called from service manager
-    $filterDefault = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_DEFAULT);
-    $filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
-    $filterHTMLTagsAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
-    $filterLowerCase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_LOWER_CASE);
-    $filterPregReplace = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_PREG_REPLACE);
-    $filterSQLReservedWords = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS);
-    $filterRemoveText = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_REMOVE_TEXT);
-    $filterRemoveNumber = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_REMOVE_NUMBER);
-    $filterToNull = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_TONULL);
-    $filterAlpha = new \Zend\I18n\Filter\Alnum(array('allowWhiteSpace' => true));
-
-    ////******************Filters ******************//////////
-    ////******************Validators ******************//////////   
-    $validatorAlpha = new Zend\I18n\Validator\Alnum(array('allowWhiteSpace' => true));
-    $validatorStringLength = new Zend\Validator\StringLength(array('min' => 3, 'max' => 20));
-    $validatorNotEmptyString = new Zend\Validator\NotEmpty();
-
-
+    
     $vName = $_GET['name'];
     $vIconClass = $_GET['icon_class'];
     $vParent = $_GET['parent'];
@@ -239,7 +239,7 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
 
 
 
-    if ($errorcode == 0) {
+
         $headerParams = $app->request()->headers();
         $vPk = $headerParams['X-Public'];
 
@@ -264,7 +264,7 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
           $app->stop(); */
 
         $app->response()->body(json_encode($resDataInsert));
-    }
+    
 }
 );
 /**
