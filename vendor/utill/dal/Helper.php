@@ -12,7 +12,7 @@ final class Helper {
     
     
     public static function haveRecord($result = null) {
-        if(!isset($result['resultSet'][0]['control'])) return true;
+        if(isset($result['resultSet'][0]['control'])) return true;
         return false;
     }
 }
