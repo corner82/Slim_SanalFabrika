@@ -356,7 +356,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
             FROM sys_acl_roles                 
             WHERE name = '" . $params['name'] . "'    
-               AND id != " .intval($id). "
+               AND id != " . intval($id) . "
                AND deleted =0   
                                ";
             $statement = $pdo->prepare($sql);
@@ -486,12 +486,18 @@ class SysAclRoles extends \DAL\DalSlim {
              * table names and  column names will be changed for specific use
              */
             //Prepare our UPDATE SQL statement.            
-            $sql = "
-                UPDATE sys_acl_roles
+            $sql = " 
+
+            UPDATE sys_acl_roles
                 SET                     
                     active = :active,              
                     user_id= :user_id
-                WHERE id IN (" . $params['child_ids'] . ")";
+                WHERE id IN (
+                  SELECT id FROM sys_acl_roles P WHERE p.root = (
+                                  SELECT DISTINCT COALESCE(NULLIF(root, 0),id) FROM sys_acl_roles WHERE deleted = 0 AND id=" . $params['id'] . " )
+                  AND parent >=" . $params['id'] . " OR id = " . $params['id'] . " 
+                  )
+                ";
 
 
             $statement = $pdo->prepare($sql);
@@ -539,7 +545,7 @@ class SysAclRoles extends \DAL\DalSlim {
             $sortArr = explode(",", $sort);
             if (count($sortArr) === 1)
                 $sort = trim($args['sort']);
-        } else {   
+        } else {
             $sort = "a.id";
         }
 
@@ -553,12 +559,16 @@ class SysAclRoles extends \DAL\DalSlim {
             //$order = "desc";
             $order = "ASC";
         }
-        
+
         $whereNameSQL = '';
-        if (isset($_GET['search_name']) && $_GET['search_name'] != "") {
-            $whereNameSQL = " AND a.name LIKE '%" . $_GET['search_name'] . "%' ";
+        if (isset($args['search_name']) && $args['search_name'] != "") {
+            $whereNameSQL = " AND a.name LIKE '%" . $args['search_name'] . "%' ";
+            //    print_r('2<<<<< sql e gelen ='.$args['search_name'].'>>>>>>>>>>2');
         }
-        
+
+
+
+
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -585,11 +595,13 @@ class SysAclRoles extends \DAL\DalSlim {
                 INNER JOIN info_users u ON u.id = a.user_id 
                 LEFT JOIN sys_acl_roles sar ON a.root > 0 AND sar.id = a.root AND sar.active =0 AND sar.deleted =0              
                 WHERE a.deleted =0  
-                ".$whereNameSQL."
+                " . $whereNameSQL . "
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
                     . "OFFSET " . $pdo->quote($offset) . " ";
+
+            //  print_r('<<<<<'.$whereNameSQL.'>>>>>>>>>>');
             $statement = $pdo->prepare($sql);
             /**
              * For debug purposes PDO statement sql
@@ -601,7 +613,8 @@ class SysAclRoles extends \DAL\DalSlim {
                 'limit' => $pdo->quote($limit),
                 'offset' => $pdo->quote($offset),
             );
-          // echo debugPDO($sql, $parameters);
+
+            //   echo debugPDO($sql, $parameters);
 
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -629,6 +642,18 @@ class SysAclRoles extends \DAL\DalSlim {
         try {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+
+            $whereNameSQL = '';
+            $whereNameSQL1 = '';
+            $whereNameSQL2 = '';
+            if (isset($params['search_name']) && $params['search_name'] != "") {
+                $whereNameSQL = " WHERE a.name LIKE '%" . $params['search_name'] . "%' ";
+                $whereNameSQL1 = " AND a1.name LIKE '%" . $params['search_name'] . "%' ";
+                $whereNameSQL2 = " AND a2.name LIKE '%" . $params['search_name'] . "%' ";
+                  print_r('2<<<<< sql e gelen ='.$params['search_name'].'>>>>>>>>>>2');
+            }
+
+
             $sql = "
                 SELECT 
                     COUNT(a.id) AS COUNT ,
@@ -636,19 +661,20 @@ class SysAclRoles extends \DAL\DalSlim {
                     INNER JOIN sys_specific_definitions sd1x ON sd1x.main_group = 15 AND sd1x.first_group= a1.deleted AND sd1x.language_code = 'tr' AND sd1x.deleted = 0 AND sd1x.active = 0
                     INNER JOIN sys_specific_definitions sd11 ON sd11.main_group = 16 AND sd11.first_group= a1.active AND sd11.language_code = 'tr' AND sd11.deleted = 0 AND sd11.active = 0                             
                     INNER JOIN info_users u1 ON u1.id = a1.user_id 
-                    WHERE a1.deleted =0) AS undeleted_count, 
+                    WHERE a1.deleted =0   " . $whereNameSQL1 . " ) AS undeleted_count, 
                     (SELECT COUNT(a2.id) FROM sys_acl_roles a2
                     INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_code = 'tr' AND sd2.deleted = 0 AND sd2.active = 0
                     INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group= a2.active AND sd12.language_code = 'tr' AND sd12.deleted = 0 AND sd12.active = 0                             
                     INNER JOIN info_users u2 ON u2.id = a2.user_id 			
-                    WHERE a2.deleted =1) AS deleted_count                        
+                    WHERE a2.deleted =1   " . $whereNameSQL2 . " ) AS deleted_count                        
                 FROM sys_acl_roles a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
                 INNER JOIN info_users u ON u.id = a.user_id 
-
+                " . $whereNameSQL . "
                     ";
             $statement = $pdo->prepare($sql);
+            echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
