@@ -11,11 +11,10 @@ namespace Services\Filter;
 
 
 /**
- * service manager layer for filter functions
+ * service manager layer for custom html tags filter
  * @author Mustafa Zeynel Dağlı
  */
-class FilterRemoveText implements \Zend\ServiceManager\FactoryInterface {
-    
+class FilterHtmlTagsCustomBase implements \Zend\ServiceManager\FactoryInterface {
     
     /**
      * service ceration via factory on zend service manager
@@ -25,19 +24,19 @@ class FilterRemoveText implements \Zend\ServiceManager\FactoryInterface {
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
         // Create a filter chain and filter for usage
         $filterChain = new \Zend\Filter\FilterChain();
-        $filterChain ->attach(new \Zend\Filter\Digits());
-        $filterChain ->attach(new \Zend\Filter\PregReplace(array(                                           
-                        'pattern'     => array('/[A-Za-z]/',
-                                           
-                                            
-                                              
-                                             
-                                               ),
+        $filterChain->attach(new \Zend\Filter\PregReplace(array(
+                            'pattern'=> array("/(\\\)|(%5c)/",
+                                              "/(<)|(%3c)/",
+                                              "/(>)|(%3e)/",
+                                              /*"/(\/)|(%2f)/",
+                                              "/(\()|(&#40;)/",
+                                              "/(\))|(&#41;)/",*/
+                                              "/&quot/",
+                                              /*"/(&)|(%26)/"*/),
                         'replacement' => '',
                     ), 200));
         return $filterChain;
 
-        
     }
 
 }

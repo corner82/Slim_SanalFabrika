@@ -14,7 +14,7 @@ namespace Services\Filter;
  * service manager layer for filter functions
  * @author Mustafa Zeynel Dağlı
  */
-class FilterRemoveNumber implements \Zend\ServiceManager\FactoryInterface {
+class FilterOnlyNumberAllowed implements \Zend\ServiceManager\FactoryInterface {
     
     
     /**
@@ -25,12 +25,8 @@ class FilterRemoveNumber implements \Zend\ServiceManager\FactoryInterface {
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
         // Create a filter chain and filter for usage
         $filterChain = new \Zend\Filter\FilterChain();
-        $filterChain ->attach(new \Zend\Filter\PregReplace(array(
-                        'pattern'     => array('/[0-9]/',
-
-                                               ),
-                        'replacement' => '',
-                    ), 200));
+        $filterChain ->attach(new \Zend\I18n\Filter\Alnum())
+                     ->attach(new I18n\Filter\Alpha(true));
         return $filterChain;
 
         

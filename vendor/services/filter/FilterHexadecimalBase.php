@@ -13,6 +13,7 @@ namespace Services\Filter;
 /**
  * service manager layer for database connection
  * @author Mustafa Zeynel Dağlı
+ * @deprecated since 15/01/2016
  */
 class FilterHexadecimalBase implements \Zend\ServiceManager\FactoryInterface {
     

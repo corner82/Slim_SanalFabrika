@@ -21,6 +21,7 @@ class FilterPregReplace implements \Zend\ServiceManager\FactoryInterface {
      * service ceration via factory on zend service manager
      * @param \Zend\ServiceManager\ServiceLocatorInterface $serviceLocator
      * @return boolean|\PDO
+     * @deprecated 15/01/2016 version 0.2
      */
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
         // Create a filter chain and filter for usage

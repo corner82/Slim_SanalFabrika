@@ -11,10 +11,11 @@ namespace Services\Filter;
 
 
 /**
- * service manager layer for database connection
+ * service manager layer for filter functions for filtering [cdata] tags
  * @author Mustafa Zeynel Dağlı
+ * @version 15/01/2016
  */
-class FilterHTMLTagsAdvanced implements \Zend\ServiceManager\FactoryInterface {
+class FilterCdata implements \Zend\ServiceManager\FactoryInterface {
     
     /**
      * service ceration via factory on zend service manager
@@ -24,15 +25,9 @@ class FilterHTMLTagsAdvanced implements \Zend\ServiceManager\FactoryInterface {
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
         // Create a filter chain and filter for usage
         $filterChain = new \Zend\Filter\FilterChain();
-        $filterChain->attach(new \Zend\Filter\PregReplace(array(
-                            'pattern'=> array("/(\\\)|(%5c)/",
-                                              "/(<)|(%3c)/",
-                                              "/(>)|(%3e)/",
-                                              /*"/(\/)|(%2f)/",
-                                              "/(\()|(&#40;)/",
-                                              "/(\))|(&#41;)/",*/
-                                              "/&quot/",
-                                              /*"/(&)|(%26)/"*/),
+        $filterChain ->attach(new \Zend\Filter\PregReplace(array(
+                        'pattern'     => array('/<!\[cdata\[(.*?)\]\]>/is',
+                                               ),
                         'replacement' => '',
                     ), 200));
         return $filterChain;

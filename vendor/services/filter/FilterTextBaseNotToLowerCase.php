@@ -13,6 +13,7 @@ namespace Services\Filter;
 /**
  * service manager layer for filter functions
  * @author Mustafa Zeynel Dağlı
+ * @deprecated since 15/01/2015 version 0.2
  */
 class FilterTextBaseNotToLowerCase implements \Zend\ServiceManager\FactoryInterface {
     
