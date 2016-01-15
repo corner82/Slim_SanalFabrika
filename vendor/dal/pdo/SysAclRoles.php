@@ -349,8 +349,8 @@ class SysAclRoles extends \DAL\DalSlim {
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-
+                throw new \PDOException($errorInfo[0]); 
+            
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -416,11 +416,12 @@ class SysAclRoles extends \DAL\DalSlim {
                     throw new \PDOException($errorInfo[0]);
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
-            } else {
-                $updateID = -2000;
-                $errorInfo = $kontrol ['resultSet'][0]['message'];  
+            } else {                
+                // 23505 	unique_violation
+                $errorInfo = '23505';// $kontrol ['resultSet'][0]['message'];  
                 $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $updateID);
+                $result= $kontrol;            
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
