@@ -47,6 +47,10 @@ class config {
                 'filterUpperCase' => 'Services\Filter\FilterUpperCase',
                 'filterChainerCustom' => 'Services\Filter\FilterChainerCustom',
                 'filterValidatorMessager' => 'Services\Messager\FilterValidatorMessager',
+                'filterParentheses' => 'Services\Messager\FilterParentheses',
+                
+                
+                
             ],
         ),
     );

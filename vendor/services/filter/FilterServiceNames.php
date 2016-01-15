@@ -25,6 +25,9 @@ final class FilterServiceNames {
     const FILTER_SQL_RESERVEDWORDS = 'filterSQLReservedWords';
     const FILTER_TONULL = 'filterToNull';
     const FILTER_UPPER_CASE = 'filterUpperCase';
+    const FILTER_PARENTHESES = 'filterParentheses';
+    
+    
     
     
      
