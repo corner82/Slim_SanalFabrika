@@ -392,8 +392,9 @@ class SysAclRoles extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');           
             $pdo->beginTransaction();
-            $kontrol = $this->haveRecords($params);  
-            if (!isset($kontrol ['resultSet'][0]['control'])) {                
+            $kontrol = $this->haveRecords($params); 
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+            //if (!isset($kontrol ['resultSet'][0]['control'])) {                
                 $valuesSqlStartDate = '';
                 /**
                  * table names and  column names will be changed for specific use
