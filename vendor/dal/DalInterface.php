@@ -18,5 +18,6 @@ interface DalInterface {
     public function update($id = null, $params = array());
     public function delete ($id = null);
     public function insert($params = array());
+    public function haveRecords($params = array());
 }
 

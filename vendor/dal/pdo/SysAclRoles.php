@@ -324,7 +324,7 @@ class SysAclRoles extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    protected function haveRecords($params = array()) {
+    public function haveRecords($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
 

@@ -15,11 +15,22 @@ namespace BLL;
  * @author Mustafa Zeynel Dağlı
  */
 abstract class BLLSlim extends \BLL\AbstractBLL implements 
-                                            \Slim\SlimAppInterface, \DAL\DalInterface{
+                                            \Slim\SlimAppInterface, 
+                                            \DAL\DalInterface{
     /**
      * constructor
      */
     public function __construct() {
+        
+    }
+    
+    /**
+     * implemented method from \DAL\DalInterface has been overriden
+     * @param type $params
+     * @author Mustafa Zeynel Dağlı
+     * @version 16/01/2016
+     */
+    public function haveRecords($params = array()){
         
     }
 

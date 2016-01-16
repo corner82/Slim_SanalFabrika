@@ -22,6 +22,17 @@ abstract class DalSlim extends AbstractDal
      */
     protected $slimApp;
     
+    
+    /**
+     * implemented method from \DAL\DalInterface has been overriden
+     * @param array $params
+     * @author Mustafa Zeynel Dağlı
+     * @since 16/01/2016
+     */
+    public function haveRecords($params = array()) {
+        
+    }
+    
     /**
      * return slim app
      * @return Slim\Slim
