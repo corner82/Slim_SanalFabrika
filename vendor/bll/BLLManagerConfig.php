@@ -47,7 +47,7 @@ class BLLManagerConfig{
                  'sysAclRolesBLL' => 'BLL\BLL\SysAclRoles',
                  'sysAclResourcesBLL' => 'BLL\BLL\SysAclResources',
                  'sysAclPrivilegeBLL' => 'BLL\BLL\SysAclPrivilege',
-                 
+                 'sysAclRrpMapBLL' => 'BLL\BLL\SysAclRrpMap',               
                  
                  
                

@@ -52,6 +52,9 @@ class DalManagerConfig {
                 'sysAclRolesPDO' => 'DAL\Factory\PDO\SysAclRolesFactory',   
                 'sysAclResourcesPDO' => 'DAL\Factory\PDO\SysAclResourcesFactory',   
                 'sysAclPrivilegePDO' => 'DAL\Factory\PDO\SysAclPrivilegeFactory',   
+                'sysAclRrpMapPDO' => 'DAL\Factory\PDO\SysAclRrpMapFactory',  
+                
+                
                 
                 
                 
