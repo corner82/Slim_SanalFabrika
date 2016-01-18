@@ -52,22 +52,15 @@ class SysAclResources extends \DAL\DalSlim {
     public function delete($id = null, $params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement. 
+            $pdo->beginTransaction();       
             $statement = $pdo->prepare(" 
                 UPDATE sys_acl_resources
                 SET  deleted= 1, user_id =  " . intval($params['user_id']) . " 
-                WHERE id = :id");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            //Execute our DELETE statement.
+                WHERE id = :id");         
+            $statement->bindValue(':id', $id, \PDO::PARAM_INT);         
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
@@ -140,11 +133,7 @@ class SysAclResources extends \DAL\DalSlim {
     public function getAll() {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */
             $statement = $pdo->prepare("
-
                 SELECT 
                         a.id,                       
                         a.name AS name,
@@ -163,14 +152,10 @@ class SysAclResources extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
                 INNER JOIN info_users u ON u.id = a.user_id    
                 WHERE a.deleted =0 
-                ORDER BY a.name  
-                
+                ORDER BY a.name                  
                                  ");
             $statement->execute();
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);   
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -216,10 +201,7 @@ class SysAclResources extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
                        $kontrol = $this->haveRecords($params); 
-            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                /**
-                 * table names and column names will be changed for specific use
-                 */
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {            
                 $sql = "
                 INSERT INTO sys_acl_resources(
                         name, icon_class, parent, user_id, description)
@@ -230,14 +212,12 @@ class SysAclResources extends \DAL\DalSlim {
                         :user_id,
                         :description                      
                                               )  ";
-
                 $statement = $pdo->prepare($sql);
                 $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
                 $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
                 $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);
                 $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
-
                 //echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_acl_resources_id_seq');
@@ -292,15 +272,10 @@ class SysAclResources extends \DAL\DalSlim {
      */
     public function update($id = null, $params = array()) {
         try {
-
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $kontrol = $this->haveRecords($params); 
-            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement.            
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {       
             $statement = $pdo->prepare("
                 UPDATE sys_acl_resources
                 SET   
@@ -311,16 +286,13 @@ class SysAclResources extends \DAL\DalSlim {
                     user_id= :user_id,  
                     description = :description                                           
                 WHERE id = :id");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-            //Bind our :model parameter.
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);      
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
             $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
             $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
             $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);
             $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
             $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
-            //Execute our UPDATE statement.
             $update = $statement->execute();
             $affectedRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
@@ -334,8 +306,7 @@ class SysAclResources extends \DAL\DalSlim {
                 $result= $kontrol;
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
-        }
-        
+        }        
         catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -356,7 +327,6 @@ class SysAclResources extends \DAL\DalSlim {
     public function haveRecords($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-
             $addSql = "";
             if (isset($params['id'])) {
                 $addSql = " AND id != " . intval($params['id']) . " ";
@@ -378,8 +348,7 @@ class SysAclResources extends \DAL\DalSlim {
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]); 
-            
+                throw new \PDOException($errorInfo[0]);             
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -412,32 +381,27 @@ class SysAclResources extends \DAL\DalSlim {
             $sortArr = explode(",", $sort);
             if (count($sortArr) === 1)
                 $sort = trim($args['sort']);
-        } else {
-            //$sort = "id";
+        } else {        
             $sort = "a.name";
         }
 
         if (isset($args['order']) && $args['order'] != "") {
             $order = trim($args['order']);
             $orderArr = explode(",", $order);
-            //print_r($orderArr);
             if (count($orderArr) === 1)
                 $order = trim($args['order']);
         } else {
-            //$order = "desc";
             $order = "ASC";
         }
         
         $whereNameSQL = '';
         if (isset($args['search_name']) && $args['search_name'] != "") {
             $whereNameSQL = " AND a.name LIKE '%" . $args['search_name'] . "%' ";
-            //    print_r('2<<<<< sql e gelen ='.$args['search_name'].'>>>>>>>>>>2');
         }
  
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $sql = "
-                   
+            $sql = "                   
                 SELECT 
                         a.id,                       
                         a.name AS name,
@@ -461,11 +425,7 @@ class SysAclResources extends \DAL\DalSlim {
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
                     . "OFFSET " . $pdo->quote($offset) . " ";
-            $statement = $pdo->prepare($sql);
-            /**
-             * For debug purposes PDO statement sql
-             * uses 'Panique' library located in vendor directory
-             */
+            $statement = $pdo->prepare($sql);      
             $parameters = array(
                 'sort' => $sort,
                 'order' => $order,
@@ -473,11 +433,9 @@ class SysAclResources extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             //  echo debugPDO($sql, $parameters);
-
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -498,7 +456,6 @@ class SysAclResources extends \DAL\DalSlim {
      */
     public function fillGridRowTotalCount($params = array()) {
         try {
-
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $whereNameSQL = '';
             $whereNameSQL1 = '';
@@ -507,7 +464,6 @@ class SysAclResources extends \DAL\DalSlim {
                 $whereNameSQL = " WHERE a.name LIKE '%" . $params['search_name'] . "%' ";
                 $whereNameSQL1 = " AND a1.name LIKE '%" . $params['search_name'] . "%' ";
                 $whereNameSQL2 = " AND a2.name LIKE '%" . $params['search_name'] . "%' ";
-                print_r('2<<<<< sql e gelen =' . $params['search_name'] . '>>>>>>>>>>2');
             }
             $sql = "
                 SELECT 
@@ -531,7 +487,6 @@ class SysAclResources extends \DAL\DalSlim {
             $statement = $pdo->prepare($sql);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -555,9 +510,6 @@ class SysAclResources extends \DAL\DalSlim {
     public function fillComboBoxMainResources() {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */
             $statement = $pdo->prepare("
               SELECT                    
                   a.id, 	
@@ -568,10 +520,6 @@ class SysAclResources extends \DAL\DalSlim {
                                ");
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -595,9 +543,6 @@ class SysAclResources extends \DAL\DalSlim {
     public function fillComboBoxFullResources($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */
             $id = 0;
             if (isset($_GET['id']) && $_GET['id'] != "") {
                 $id = $_GET['id'];
@@ -613,13 +558,8 @@ class SysAclResources extends \DAL\DalSlim {
                     a.deleted = 0     
                 ORDER BY name                 
                                  ");
-
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
