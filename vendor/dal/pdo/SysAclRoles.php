@@ -259,7 +259,8 @@ class SysAclRoles extends \DAL\DalSlim {
             } else {  
                 $errorInfo = '23505'; 
                 $pdo->commit();
-                $result= $kontrol;            
+                $result= $kontrol;  
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
                 //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -360,15 +361,14 @@ class SysAclRoles extends \DAL\DalSlim {
                 $sql = "
                 UPDATE sys_acl_roles
                 SET   
-                    name = :name,
-                    active = :active,
+                    name = :name,                  
                     user_id = :user_id                    
                 WHERE id = " . $id;
                 $statement = $pdo->prepare($sql);
                 //Bind our :model parameter.                  
                 $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR); 
-                $statement->bindValue(':active', $params['active'], \PDO::PARAM_STR); 
-                $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_STR); 
+                //$statement->bindValue(':active', $params['active'], \PDO::PARAM_INT); 
+                $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT); 
                 
                 //Execute our UPDATE statement.                
                 $update = $statement->execute();

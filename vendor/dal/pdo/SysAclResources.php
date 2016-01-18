@@ -167,7 +167,7 @@ class SysAclResources extends \DAL\DalSlim {
                 
                                  ");
             $statement->execute();
-            $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             /* while ($row = $statement->fetch()) {
               print_r($row);
               } */
@@ -250,8 +250,8 @@ class SysAclResources extends \DAL\DalSlim {
             } else {  
                 $errorInfo = '23505'; 
                 $pdo->commit();
-                $result= $kontrol;            
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+                $result= $kontrol;                            
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -312,7 +312,7 @@ class SysAclResources extends \DAL\DalSlim {
                     description = :description                                           
                 WHERE id = :id");
             //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $params['user_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             //Bind our :model parameter.
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
             $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
@@ -331,8 +331,8 @@ class SysAclResources extends \DAL\DalSlim {
         } else { 
                 $errorInfo = '23505';
                 $pdo->commit();
-                $result= $kontrol;            
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+                $result= $kontrol;
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         }
         
