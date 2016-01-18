@@ -173,7 +173,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 
                                  ");
             $statement->execute();
-            $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             /* while ($row = $statement->fetch()) {
               print_r($row);
               } */
@@ -218,6 +218,7 @@ class SysAclRoles extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function insert($params = array()) {
+        
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -254,14 +255,12 @@ class SysAclRoles extends \DAL\DalSlim {
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
                 $pdo->commit();
-
-
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
             } else {  
                 $errorInfo = '23505'; 
                 $pdo->commit();
                 $result= $kontrol;            
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+                //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -283,7 +282,7 @@ class SysAclRoles extends \DAL\DalSlim {
     public function haveRecords($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            print_r($params);
+            //print_r($params);  
             $addSql = "";
             if (isset($params['id'])) {
                 $addSql = " AND id != " . intval($params['id']) . " ";
@@ -349,7 +348,7 @@ class SysAclRoles extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');           
             $pdo->beginTransaction();
-            print_r($params);
+            //print_r($params);
             $kontrol = $this->haveRecords($params); 
             if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
             //if (!isset($kontrol ['resultSet'][0]['control'])) {                
@@ -384,7 +383,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 $errorInfo = '23505';// $kontrol ['resultSet'][0]['message'];  
                 $pdo->commit();
                 $result= $kontrol;            
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();

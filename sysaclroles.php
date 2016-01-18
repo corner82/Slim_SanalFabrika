@@ -614,7 +614,8 @@ $app->get("/pkUpdate_sysAclRoles/", function () use ($app ) {
         'user_id' => $_GET['user_id'],   
         'id' => $_GET['id'],
         'pk' => $pk));
-    //print_r($resDataGrid);    
+    //print_r($resDataGrid); 
+    //print_r($resDataUpdate);
 
     $app->response()->header("Content-Type", "application/json");
 
