@@ -312,7 +312,7 @@ class SysAclResources extends \DAL\DalSlim {
                     description = :description                                           
                 WHERE id = :id");
             //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
+            $statement->bindValue(':id', $params['user_id'], \PDO::PARAM_INT);
             //Bind our :model parameter.
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
             $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
@@ -342,7 +342,7 @@ class SysAclResources extends \DAL\DalSlim {
         }
     }
     
-        /**
+    /**
      * basic have records control  
      * * returned result set example;
      * for success result  
@@ -359,7 +359,7 @@ class SysAclResources extends \DAL\DalSlim {
 
             $addSql = "";
             if (isset($params['id'])) {
-                $addSql = " AND id != " . intval($id) . " ";
+                $addSql = " AND id != " . intval($params['id']) . " ";
             }
             $sql = " 
             SELECT  
@@ -427,8 +427,13 @@ class SysAclResources extends \DAL\DalSlim {
             //$order = "desc";
             $order = "ASC";
         }
-
-
+        
+        $whereNameSQL = '';
+        if (isset($args['search_name']) && $args['search_name'] != "") {
+            $whereNameSQL = " AND a.name LIKE '%" . $args['search_name'] . "%' ";
+            //    print_r('2<<<<< sql e gelen ='.$args['search_name'].'>>>>>>>>>>2');
+        }
+ 
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -450,7 +455,8 @@ class SysAclResources extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
                 INNER JOIN info_users u ON u.id = a.user_id    
-                WHERE a.deleted =0                 
+                WHERE a.deleted =0  
+                  " . $whereNameSQL . "
                 ORDER BY " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -494,6 +500,15 @@ class SysAclResources extends \DAL\DalSlim {
         try {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $whereNameSQL = '';
+            $whereNameSQL1 = '';
+            $whereNameSQL2 = '';
+            if (isset($params['search_name']) && $params['search_name'] != "") {
+                $whereNameSQL = " WHERE a.name LIKE '%" . $params['search_name'] . "%' ";
+                $whereNameSQL1 = " AND a1.name LIKE '%" . $params['search_name'] . "%' ";
+                $whereNameSQL2 = " AND a2.name LIKE '%" . $params['search_name'] . "%' ";
+                print_r('2<<<<< sql e gelen =' . $params['search_name'] . '>>>>>>>>>>2');
+            }
             $sql = "
                 SELECT 
                     COUNT(a.id) AS COUNT ,
@@ -501,17 +516,17 @@ class SysAclResources extends \DAL\DalSlim {
                     INNER JOIN sys_specific_definitions sd1x ON sd1x.main_group = 15 AND sd1x.first_group= a1.deleted AND sd1x.language_code = 'tr' AND sd1x.deleted = 0 AND sd1x.active = 0
                     INNER JOIN sys_specific_definitions sd11 ON sd11.main_group = 16 AND sd11.first_group= a1.active AND sd11.language_code = 'tr' AND sd11.deleted = 0 AND sd11.active = 0                             
                     INNER JOIN info_users u1 ON u1.id = a1.user_id 
-                    WHERE a1.deleted =0) AS undeleted_count, 
+                    WHERE a1.deleted =0 " . $whereNameSQL1 . " ) AS undeleted_count, 
                     (SELECT COUNT(a2.id) FROM sys_acl_resources a2
                     INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_code = 'tr' AND sd2.deleted = 0 AND sd2.active = 0
                     INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group= a2.active AND sd12.language_code = 'tr' AND sd12.deleted = 0 AND sd12.active = 0                             
                     INNER JOIN info_users u2 ON u2.id = a2.user_id 			
-                    WHERE a2.deleted =1) AS deleted_count                        
+                    WHERE a2.deleted =1 " . $whereNameSQL2 . " ) AS deleted_count                        
                 FROM sys_acl_resources a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
                 INNER JOIN info_users u ON u.id = a.user_id 
-
+                " . $whereNameSQL . "
                     ";
             $statement = $pdo->prepare($sql);
             $statement->execute();

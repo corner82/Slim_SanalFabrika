@@ -222,35 +222,17 @@ class SysAclRoles extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $kontrol = $this->haveRecords($params); 
-            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-
-                $valuesSqlStartDate = '';
-                if (isset($params['start_date']) && $params['start_date'] != "") {
-                    $valuesSqlStartDate = ':start_date,';
-                } else {
-                    $valuesSqlStartDate = ' null,';
-                }
-
-                $valuesSqlEndDate = '';
-                if (isset($params['end_date']) && $params['end_date'] != "") {
-                    $valuesSqlEndDate = ':end_date,';
-                } else {
-                    $valuesSqlEndDate = ' null,';
-                }
-
-
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) { 
                 /**
                  * table names and column names will be changed for specific use
                  */
                 $sql = "
                 INSERT INTO sys_acl_roles(
-                        name, icon_class,  start_date,  end_date,
+                        name, icon_class,  
                         parent, user_id, description, root )
                 VALUES (
                         :name,
-                        :icon_class,                       
-                        " . $valuesSqlStartDate . "
-                        " . $valuesSqlEndDate . "
+                        :icon_class,  
                         :parent,                       
                         :user_id,
                         :description,
@@ -259,19 +241,13 @@ class SysAclRoles extends \DAL\DalSlim {
 
                 $statement = $pdo->prepare($sql);
                 $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-                $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
-                if (isset($params['start_date']) && $params['start_date'] != "") {
-                    $statement->bindValue(':start_date', $params['start_date'], \PDO::PARAM_STR);
-                }
-                if (isset($params['end_date']) && $params['end_date'] != "") {
-                    $statement->bindValue(':end_date', $params['end_date'], \PDO::PARAM_STR);
-                }
+                $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);                 
                 $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);
                 $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
                 $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':root', $params['root'], \PDO::PARAM_INT);
 
-                echo debugPDO($sql, $params);
+               // echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_acl_roles_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -307,10 +283,10 @@ class SysAclRoles extends \DAL\DalSlim {
     public function haveRecords($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-
+            print_r($params);
             $addSql = "";
             if (isset($params['id'])) {
-                $addSql = " AND id != " . intval($id) . " ";
+                $addSql = " AND id != " . intval($params['id']) . " ";
             }
             $sql = " 
             SELECT  
@@ -323,8 +299,9 @@ class SysAclRoles extends \DAL\DalSlim {
                     . $addSql . " 
                AND deleted =0   
                                ";
-            $statement = $pdo->prepare($sql);        
-         //   echo debugPDO($sql, $params);
+            $statement = $pdo->prepare($sql);   
+         //   print_r($params);
+       //   echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -372,6 +349,7 @@ class SysAclRoles extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');           
             $pdo->beginTransaction();
+            print_r($params);
             $kontrol = $this->haveRecords($params); 
             if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
             //if (!isset($kontrol ['resultSet'][0]['control'])) {                
@@ -383,11 +361,16 @@ class SysAclRoles extends \DAL\DalSlim {
                 $sql = "
                 UPDATE sys_acl_roles
                 SET   
-                    name = :name                   
+                    name = :name,
+                    active = :active,
+                    user_id = :user_id                    
                 WHERE id = " . $id;
                 $statement = $pdo->prepare($sql);
                 //Bind our :model parameter.                  
                 $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR); 
+                $statement->bindValue(':active', $params['active'], \PDO::PARAM_STR); 
+                $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_STR); 
+                
                 //Execute our UPDATE statement.                
                 $update = $statement->execute();
                 $affectedRows = $statement->rowCount();

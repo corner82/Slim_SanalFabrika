@@ -137,6 +137,7 @@ $app->get("/pkFillGrid_sysAclResources/", function () use ($app ) {
         'rows' => $_GET['rows'],
         'sort' => $_GET['sort'],
         'order' => $_GET['order'],
+        'search_name' => $_GET['search_name'],
         'pk' => $pk));
     //print_r($resDataGrid);
 
@@ -216,17 +217,21 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
     
     $validater->offsetSet(array_search($_GET['url'], $_GET), 
             new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                              'filter to value value test2', 
+                                                              $_GET['url'], 
                                                                $validatorChain->attach(
                                                                         new Zend\Validator\StringLength(array('min' => 6,
-                                                                                                              'max' => 12)))
-                                                                              ->attach(new Zend\I18n\Validator\Alnum())));
+                                                                                                              'max' => 50)))
+                                                                           //   ->attach(new Zend\I18n\Validator\Alnum())
+                                                                              ) );
     $validater->offsetSet(array_search($_GET['name'], $_GET), 
-            new \Utill\Validation\Chain\ZendValidationChainer($app, 'filter to value value test2', $validatorChain));
+             new \Utill\Validation\Chain\ZendValidationChainer($app, $_GET['name'], $validatorChain));
     
     $validater->validate();
     $messager = $app->getServiceManager()->get('filterValidatorMessager');
-    print_r($messager->getValidationMessage());
+  
+  //  $assd = $app->getServiceManager()->get('filterValidatorMessager');
+   print_r('***==>'.$messager->getValidationMessage());
+    // print_r('***==>'.$assd.'<==***'.$messager->getValidationMessage());
     
     
     $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');  
@@ -284,16 +289,13 @@ $app->get("/pkUpdate_sysAclResources/", function () use ($app ) {
     $headerParams = $app->request()->headers();
     $pk = $headerParams['X-Public'];
 
-    $resDataUpdate = $BLL->update($_GET['id'], array('name' => $_GET['name'],
-        'icon_class' => $_GET['icon_class'],
-        'active' => $_GET['active'],
-        'start_date' => $_GET['start_date'],
-        'end_date' => $_GET['end_date'],
-        'parent' => $_GET['parent'],
-        'user_id' => $_GET['user_id'],
-        'description' => $_GET['description'],
-        'root' => $_GET['root'],
-        'pk' => $pk));
+    $resDataUpdate = $BLL->update($_GET['id'], array('name' => $vName,
+            'icon_class' => $vIconClass,
+            'parent' => $vParent,
+            'user_id' => $vUserId,
+            'description' => $vDescription,
+            'id' =>$_GET['id'],
+            'pk' => $vPk));
     //print_r($resDataGrid);    
 
     $app->response()->header("Content-Type", "application/json");

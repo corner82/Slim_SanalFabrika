@@ -126,7 +126,7 @@ $app->get("/pkFillGrid_sysAclRoles/", function () use ($app ) {
     $vSearchName = '';
     $stripper->offsetSet(array_search($_GET['url'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['url'], array(
         \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,
-        \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED,
+    //    \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED,
     )));
 
     if (isset($_GET['search_name']) && $_GET['search_name'] != "") {
@@ -137,7 +137,7 @@ $app->get("/pkFillGrid_sysAclRoles/", function () use ($app ) {
             //  \Services\Filter\FilterServiceNames::FILTER_TONULL,
             \Services\Filter\FilterServiceNames::FILTER_LOWER_CASE,
             \Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED,
-            \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED,
+   //         \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED,
             \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,
             \Services\Filter\FilterServiceNames::FILTER_PREG_REPLACE,
         )));
@@ -223,16 +223,16 @@ $app->get("/pkInsert_sysAclRoles/", function () use ($app ) {
     $hatasayisi3 = 0;
     ////******************Filters ******************//////////
     // Filters are called from service manager
-    $filterDefault = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_DEFAULT);
-    $filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
-    $filterHTMLTagsAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
-    $filterLowerCase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_LOWER_CASE);
-    $filterPregReplace = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_PREG_REPLACE);
-    $filterSQLReservedWords = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS);
-    $filterRemoveText = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_REMOVE_TEXT);
-    $filterRemoveNumber = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_REMOVE_NUMBER);
-    $filterToNull = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_TONULL);
-    $filterAlpha = new \Zend\I18n\Filter\Alnum(array('allowWhiteSpace' => true));
+   // $filterDefault = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_DEFAULT);
+  //  $filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
+  //  $filterHTMLTagsAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
+  //  $filterLowerCase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_LOWER_CASE);
+ //   $filterPregReplace = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_PREG_REPLACE);
+  //  $filterSQLReservedWords = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS);
+ //   $filterRemoveText = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_REMOVE_TEXT);
+  //  $filterRemoveNumber = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_REMOVE_NUMBER);
+ //   $filterToNull = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_TONULL);
+  //  $filterAlpha = new \Zend\I18n\Filter\Alnum(array('allowWhiteSpace' => true));
 
     ////******************Filters ******************//////////
     ////******************Validators ******************//////////   
@@ -249,25 +249,24 @@ $app->get("/pkInsert_sysAclRoles/", function () use ($app ) {
     $vUserId = $_GET['user_id'];
     $vDescription = $_GET['description'];
     $vRoot = $_GET['root'];
-    $vName = $filterDefault->filter($vName);
+    $vName = $_GET['name']; //$filterDefault->filter($vName);
 
 
 
-    $filterSQLReservedWordsData = $vName . $vIconClass . $vStartDate . $vEndDate .
-            $vParent . $vUserId . $vDescription . $vRoot;
+   // $filterSQLReservedWordsData = $vName . $vIconClass . $vStartDate . $vEndDate .  $vParent . $vUserId . $vDescription . $vRoot;
 
-    $filterSQLReservedWordsData = $filterLowerCase->filter($filterSQLReservedWordsData);
-    $filterSQLReservedWordsData1 = ($filterSQLReservedWords->filter($filterSQLReservedWordsData) );
+  //  $filterSQLReservedWordsData = $filterLowerCase->filter($filterSQLReservedWordsData);
+  //  $filterSQLReservedWordsData1 = ($filterSQLReservedWords->filter($filterSQLReservedWordsData) );
 
 
     //print_r('xxxxxx'.$filterSQLReservedWordsData.'----');
     // print_r($filterSQLReservedWordsData1.'xxxx');
     // print_r( strlen($filterSQLReservedWordsData). 'dddd' . strlen ($filterSQLReservedWordsData1) ) ; 
 
-    if (strlen($filterSQLReservedWordsData) != strlen($filterSQLReservedWordsData1)) {
-        print_r('xxxxxx' . $filterSQLReservedWordsData . '----');
-        $errorcode = 999;
-    }
+  //  if (strlen($filterSQLReservedWordsData) != strlen($filterSQLReservedWordsData1)) {
+  //      print_r('xxxxxx' . $filterSQLReservedWordsData . '----');
+  //      $errorcode = 999;
+  //  }
 
 
 
@@ -276,7 +275,7 @@ $app->get("/pkInsert_sysAclRoles/", function () use ($app ) {
     // echo $filterAlpha->filter($vName);
     //echo $filterAlpha->filter("This....!!!As is (my) content: 123");
     //  if (  strlen($filterAlpha->filter($vName)) != strlen($vName)  ) {   
-
+/*
     if (!$validatorAlpha->isValid($vName)) {
         $vName = $filterAlpha->filter($vName);
         $controlMessage = $controlMessage . ' içerisinde alfabetik olmayan değer var!!! // ';
@@ -402,10 +401,10 @@ $app->get("/pkInsert_sysAclRoles/", function () use ($app ) {
     }
 
 
+*/
 
 
-
-
+/*
     if ($hatasayisi > 0)
         print_r($hatasayisi . ' adet hatanız var. ' . $controlMessage);
     if ($hatasayisi1 > 0)
@@ -458,7 +457,7 @@ $app->get("/pkInsert_sysAclRoles/", function () use ($app ) {
 
             break;
     }
-
+*/
 
     //  $result =  $validatorStringLength->isValid($vName)  ;
     //  $validatorNotEmpty = Zend\Validator\NotEmpty::STRING;
@@ -468,8 +467,16 @@ $app->get("/pkInsert_sysAclRoles/", function () use ($app ) {
     // $vName->setAllowEmpty(false);
     // print_r($vName) ;
 
-
-
+   $vName = $_GET['name'];
+    $vIconClass = $_GET['icon_class'];
+    $vStartDate = $_GET['start_date'];
+    $vEndDate = $_GET['end_date'];
+    $vParent = $_GET['parent'];
+    $vUserId = $_GET['user_id'];
+    $vDescription = $_GET['description'];
+    $vRoot = $_GET['root'];
+    $vName =$_GET['name'];
+    $errorcode = 0 ;
     if ($errorcode == 0) {
         $headerParams = $app->request()->headers();
         $vPk = $headerParams['X-Public'];
@@ -485,7 +492,7 @@ $app->get("/pkInsert_sysAclRoles/", function () use ($app ) {
         // if (strlen($vName) > 0) {
         //  print_r('---s///'.strlen($vName).'***');
         //   $vName = urlencode  ($vName);
-        $vName = urldecode(trim($vName));
+    /*    $vName = urldecode(trim($vName));
         $vName = $filterLowerCase->filter($vName);
         //  print_r('========'.$vName.'======') ; 
         $vName = $filterDefault->filter($vName);
@@ -558,7 +565,7 @@ $app->get("/pkInsert_sysAclRoles/", function () use ($app ) {
         $vRoot = $filterPregReplace->filter($vRoot);
         $vRoot = $filterSQLReservedWords->filter($vRoot);
         // $vRoot = $filterRemoveNumber->filter($vRoot);
-
+*/
 
         $resDataInsert = $BLL->insert(array('name' => $vName,
             'icon_class' => $vIconClass,
@@ -602,15 +609,10 @@ $app->get("/pkUpdate_sysAclRoles/", function () use ($app ) {
     $headerParams = $app->request()->headers();
     $pk = $headerParams['X-Public'];
 
-    $resDataUpdate = $BLL->update($_GET['id'], array('name' => $_GET['name'],
-        'icon_class' => $_GET['icon_class'],
-        'active' => $_GET['active'],
-        'start_date' => $_GET['start_date'],
-        'end_date' => $_GET['end_date'],
-        'parent' => $_GET['parent'],
-        'user_id' => $_GET['user_id'],
-        'description' => $_GET['description'],
-        'root' => $_GET['root'],
+    $resDataUpdate = $BLL->update($_GET['id'], array('name' => $_GET['name'],       
+        'active' => $_GET['active'],       
+        'user_id' => $_GET['user_id'],   
+        'id' => $_GET['id'],
         'pk' => $pk));
     //print_r($resDataGrid);    
 
