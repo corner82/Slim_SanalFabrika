@@ -215,26 +215,8 @@ class SysAclResources extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $sql = " 
-            SELECT  
-                name as name , 
-                '" . $params['name'] . "' as value , 
-                name ='" . $params['name'] . "' as control,
-                concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
-            FROM sys_acl_resources        
-            WHERE name = '" . $params['name'] . "'               
-                               ";
-            $statement = $pdo->prepare($sql);
-            //   print_r($params);
-         //   echo debugPDO($sql, $params);
-            $statement->execute();
-            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-
-
-            if (!isset($kontrol[0]['control'])) {
+                       $kontrol = $this->haveRecords($params); 
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                 /**
                  * table names and column names will be changed for specific use
                  */
@@ -265,12 +247,11 @@ class SysAclResources extends \DAL\DalSlim {
                 $pdo->commit();
 
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
-            } else {
-
-                $insertID = -1000;
-                $errorInfo = $kontrol[0]['message'];
-                return array("found" => true, "errorInfo" => $kontrol[0]['message'], "lastInsertId" => $insertID);
+            } else {  
+                $errorInfo = '23505'; 
                 $pdo->commit();
+                $result= $kontrol;            
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -314,6 +295,8 @@ class SysAclResources extends \DAL\DalSlim {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
+            $kontrol = $this->haveRecords($params); 
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
             /**
              * table names and  column names will be changed for specific use
              */
@@ -345,8 +328,60 @@ class SysAclResources extends \DAL\DalSlim {
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
             return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
-        } catch (\PDOException $e /* Exception $e */) {
+        } else { 
+                $errorInfo = '23505';
+                $pdo->commit();
+                $result= $kontrol;            
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            }
+        }
+        
+        catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
+        /**
+     * basic have records control  
+     * * returned result set example;
+     * for success result  
+     * usage     
+     * @author Okan CIRAN
+     * @ sys_acl_roles tablosunda name sutununda daha önce oluşturulmuş mu? 
+     * @version v 1.0 15.01.2016
+     * @return array
+     * @throws \PDOException
+     */
+    public function haveRecords($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+
+            $addSql = "";
+            if (isset($params['id'])) {
+                $addSql = " AND id != " . intval($id) . " ";
+            }
+            $sql = " 
+            SELECT  
+                name as name , 
+                '" . $params['name'] . "' as value , 
+                name ='" . $params['name'] . "' as control,
+                concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
+            FROM sys_acl_resources                
+            WHERE name = '" . $params['name'] . "'"
+                    . $addSql . " 
+               AND deleted =0   
+                               ";
+            $statement = $pdo->prepare($sql);        
+         //   echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]); 
+            
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -379,7 +414,7 @@ class SysAclResources extends \DAL\DalSlim {
                 $sort = trim($args['sort']);
         } else {
             //$sort = "id";
-            $sort = "r_date";
+            $sort = "a.name";
         }
 
         if (isset($args['order']) && $args['order'] != "") {

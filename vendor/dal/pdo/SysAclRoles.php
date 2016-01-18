@@ -221,27 +221,8 @@ class SysAclRoles extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $sql = " 
-            SELECT  
-                name as name , 
-                '" . $params['name'] . "' as value , 
-                name ='" . $params['name'] . "' as control,
-                concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
-            FROM sys_acl_roles                
-            WHERE name = '" . $params['name'] . "'               
-               AND deleted =0   
-                               ";
-            $statement = $pdo->prepare($sql);
-            //   print_r($params);
-            //  echo debugPDO($sql, $params);
-            $statement->execute();
-            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-
-
-            if (!isset($kontrol[0]['control'])) {
+            $kontrol = $this->haveRecords($params); 
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
 
                 $valuesSqlStartDate = '';
                 if (isset($params['start_date']) && $params['start_date'] != "") {
@@ -300,11 +281,11 @@ class SysAclRoles extends \DAL\DalSlim {
 
 
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
-            } else {
-                $insertID = -1000;
-                $errorInfo = $kontrol[0]['message'];
-                return array("found" => true, "errorInfo" => $kontrol[0]['message'], "lastInsertId" => $insertID);
+            } else {  
+                $errorInfo = '23505'; 
                 $pdo->commit();
+                $result= $kontrol;            
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -313,10 +294,9 @@ class SysAclRoles extends \DAL\DalSlim {
     }
 
     /**
-     * basic insert database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
+     * basic have records control  
      * * returned result set example;
-     * for success result
+     * for success result  
      * usage     
      * @author Okan CIRAN
      * @ sys_acl_roles tablosunda name sutununda daha önce oluşturulmuş mu? 
