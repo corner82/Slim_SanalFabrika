@@ -192,61 +192,120 @@ $app->get("/pkFillGrid_sysAclResources/", function () use ($app ) {
 $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
 
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
-
+ 
     //print_r('---'.array_search($_GET['url'], $_GET).'???');
-    $stripper->offsetSet(array_search($_GET['url'], $_GET), new \Utill\Strip\Chain\StripChainer($app, 'filter to value value select test', array(\Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_CUSTOM_ADVANCED, )));
-    $stripper->offsetSet(array_search($_GET['name'], $_GET), new \Utill\Strip\Chain\StripChainer($app, 'filter to value value test2', array(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED,
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS, )));
+    $stripper->offsetSet(array_search($_GET['url'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['url'], array(\Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_CUSTOM_ADVANCED,
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_JAVASCRIPT_FUNCTIONS,
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED,
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_ONLY_ALPHABETIC_ALLOWED,        
+                                                                                                )));
+    $stripper->offsetSet(array_search($_GET['name'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['name'], array(
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_DEFAULT,  
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED,  
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_CUSTOM_ADVANCED,
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_JAVASCRIPT_FUNCTIONS ,
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_LOWER_CASE,
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS, 
+        
+        )));
+  /*   $stripper->offsetSet(array_search($_GET['icon_class'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['icon_class'], array(
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_DEFAULT,  
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED,  
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_CUSTOM_ADVANCED,
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_JAVASCRIPT_FUNCTIONS ,
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_LOWER_CASE,
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,        
+        )));
+    $stripper->offsetSet(array_search($_GET['parent'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['parent'], array(
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_ONLY_ALPHABETIC_ALLOWED,                                                                                             
+        )));
+        $stripper->offsetSet(array_search($_GET['user_id'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['user_id'], array(
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_ONLY_ALPHABETIC_ALLOWED,                                                                                             
+        )));
+        $stripper->offsetSet(array_search($_GET['description'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['description'], array(
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_DEFAULT,  
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED,  
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_CUSTOM_ADVANCED,
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_JAVASCRIPT_FUNCTIONS ,
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_LOWER_CASE,
+                                                                                              \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,        
+        )));
+     * 
+     */
+       
     $stripper->strip();
     $filteredValue = $stripper->offsetGet(array_search($_GET['url'], $_GET))->getFilterValue();
-    $filteredValue2 = $stripper->offsetGet(array_search($_GET['name'], $_GET))->getFilterValue();
-    //print_r('--filtered value in api end point-->'.$filteredValue.'----');
-    //print_r('--filtered value in api end point-->'.$filteredValue2.'----');
+    $vName = urldecode(trim( $stripper->offsetGet(array_search($_GET['name'], $_GET))->getFilterValue()));
+   // $vIconClass = urldecode(trim( $stripper->offsetGet(array_search($_GET['icon_class'], $_GET))->getFilterValue()));
+   // $vParent = trim( $stripper->offsetGet(array_search($_GET['parent'], $_GET))->getFilterValue());
+   // $vUserId = trim( $stripper->offsetGet(array_search($_GET['user_id'], $_GET))->getFilterValue());
+   // $vDescription = urldecode(trim( $stripper->offsetGet(array_search($_GET['description'], $_GET))->getFilterValue()));
+    
+    
+    
+    print_r('--Name =-->'.$vName.'----');
     //print_r($stripChainer->offsetGet('test'));
+    
+     
+     
+  //  $vName = urldecode(trim($_GET['name']));
+   $vIconClass = $_GET['icon_class'];
+    $vParent = $_GET['parent'];
+    $vUserId = $_GET['user_id'];
+    $vDescription = $_GET['description']; 
+    
+    $headerParams = $app->request()->headers();
+    $vPk = $headerParams['X-Public'];
+     
+     
     
     /**
      * validat chain test
      * @author Mustafa Zeynel Dağlı
      * @since 15/01/2016
      */
-    $validater = $app->getServiceManager()->get('validationChainerServiceForZendChainer');
+    $validaterUrl = $app->getServiceManager()->get('validationChainerServiceForZendChainer');
     
-    $validatorChain = new Zend\Validator\ValidatorChain();
-    
-    
-    $validater->offsetSet(array_search($_GET['url'], $_GET), 
+    $validatorChainUrl = new Zend\Validator\ValidatorChain();
+    $validaterUrl->offsetSet(array_search($_GET['url'], $_GET), 
             new \Utill\Validation\Chain\ZendValidationChainer($app, 
                                                               $_GET['url'], 
-                                                               $validatorChain->attach(
+                                                              $validatorChainUrl->attach(
                                                                         new Zend\Validator\StringLength(array('min' => 6,
                                                                                                               'max' => 50)))
-                                                                           //   ->attach(new Zend\I18n\Validator\Alnum())
-                                                                              ) );
-    $validater->offsetSet(array_search($_GET['name'], $_GET), 
-             new \Utill\Validation\Chain\ZendValidationChainer($app, $_GET['name'], $validatorChain));
+                                                                              // ->attach(new Zend\I18n\Validator\Alnum())
     
-    $validater->validate();
+                    ) );
+    // setMin(1)
+ 
+ 
+    
+    
+   /* 
+    $validater->offsetSet(array_search($_GET['name'], $_GET), 
+              new \Utill\Validation\Chain\ZendValidationChainer($app, $_GET['name'], 
+                                                               $validatorChain));
+                                                                  //   $validatorChain->attach(
+                                                                     //    Zend\Validator\StringLength(array('min' => 3,
+                                                                     //                                      'max' => 10)))
+                                                                              // ->attach(new Zend\I18n\Validator\Alnum())
+    
+                  //  ) );
+    
+    */
+    
+    $validaterUrl->validate();
     $messager = $app->getServiceManager()->get('filterValidatorMessager');
   
   //  $assd = $app->getServiceManager()->get('filterValidatorMessager');
-   print_r('***==>'.$messager->getValidationMessage());
+   print_r( $messager->getValidationMessage());
     // print_r('***==>'.$assd.'<==***'.$messager->getValidationMessage());
     
     
     $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');  
     
-    $vName = $_GET['name'];
-    $vIconClass = $_GET['icon_class'];
-    $vParent = $_GET['parent'];
-    $vUserId = $_GET['user_id'];
-    $vDescription = $_GET['description'];
 
-
-
-
-        $headerParams = $app->request()->headers();
-        $vPk = $headerParams['X-Public'];
 
 
 
