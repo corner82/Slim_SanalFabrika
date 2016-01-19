@@ -266,11 +266,11 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
      * @since 15/01/2016
      */
     $validaterUrl = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
-    $validatorChainUrl = new Zend\Validator\ValidatorChain();
+    $validatorChain = new Zend\Validator\ValidatorChain();
     $validaterUrl->offsetSet(array_search($_GET['url'], $_GET), 
             new \Utill\Validation\Chain\ZendValidationChainer($app, 
                                                               $_GET['url'], 
-                                                              $validatorChainUrl->attach(
+                                                              $validatorChain->attach(
                                                                         new Zend\Validator\StringLength(array('min' => 6,
                                                                                                               'max' => 50)))
                                                                               // ->attach(new Zend\I18n\Validator\Alnum())    
@@ -285,13 +285,13 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
 
     
      $validaterName = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
-    $validatorChainName = new Zend\Validator\ValidatorChain();
+   // $validatorChain = new Zend\Validator\ValidatorChain();
     $validaterName->offsetSet(array_search($_GET['name'], $_GET), 
             new \Utill\Validation\Chain\ZendValidationChainer($app, 
                                                               $_GET['name'], 
-                                                              $validatorChainName->attach(
-                                                                        new Zend\Validator\StringLength(array('min' => 6,
-                                                                                                              'max' => 50)))
+                                                              $validatorChain->attach(
+                                                                        new Zend\Validator\StringLength(array('min' => 3,
+                                                                                                              'max' => 30)))
                                                                               // ->attach(new Zend\I18n\Validator\Alnum())    
                     ) );
     
