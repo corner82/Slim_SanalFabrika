@@ -265,9 +265,9 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
      * @author Mustafa Zeynel Dağlı
      * @since 15/01/2016
      */
-    $validaterUrl = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
+    $validater = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
     $validatorChain = new Zend\Validator\ValidatorChain();
-    $validaterUrl->offsetSet(array_search($_GET['url'], $_GET), 
+    $validater->offsetSet(array_search($_GET['url'], $_GET), 
             new \Utill\Validation\Chain\ZendValidationChainer($app, 
                                                               $_GET['url'], 
                                                               $validatorChain->attach(
@@ -284,21 +284,21 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
   //  print_r($validatorChainUrl.getValidators());
 
     
-     $validaterName = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
+   //  $validaterName = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
    // $validatorChain = new Zend\Validator\ValidatorChain();
-    $validaterName->offsetSet(array_search($_GET['name'], $_GET), 
+    $validater->offsetSet(array_search($_GET['name'], $_GET), 
             new \Utill\Validation\Chain\ZendValidationChainer($app, 
                                                               $_GET['name'], 
                                                               $validatorChain->attach(
                                                                         new Zend\Validator\StringLength(array('min' => 3,
-                                                                                                              'max' => 30)))
+                                                                                                              'max' => 10)))
                                                                               // ->attach(new Zend\I18n\Validator\Alnum())    
                     ) );
     
   
-    $validaterName->validate();
+    $validater->validate();
   //  $messager = $app->getServiceManager()->get('filterValidatorMessager');  
-    $validaterUrl->validate();  
+  //  $validaterUrl->validate();  
     $messager = $app->getServiceManager()->get('filterValidatorMessager');  
   //  $assd = $app->getServiceManager()->get('filterValidatorMessager');
     print_r( $messager->getValidationMessage());
