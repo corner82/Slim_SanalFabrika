@@ -252,21 +252,7 @@ $app->get("/pkInsert_sysAclRoles/", function () use ($app ) {
     $vName = $_GET['name']; //$filterDefault->filter($vName);
 
 
-
-   // $filterSQLReservedWordsData = $vName . $vIconClass . $vStartDate . $vEndDate .  $vParent . $vUserId . $vDescription . $vRoot;
-
-  //  $filterSQLReservedWordsData = $filterLowerCase->filter($filterSQLReservedWordsData);
-  //  $filterSQLReservedWordsData1 = ($filterSQLReservedWords->filter($filterSQLReservedWordsData) );
-
-
-    //print_r('xxxxxx'.$filterSQLReservedWordsData.'----');
-    // print_r($filterSQLReservedWordsData1.'xxxx');
-    // print_r( strlen($filterSQLReservedWordsData). 'dddd' . strlen ($filterSQLReservedWordsData1) ) ; 
-
-  //  if (strlen($filterSQLReservedWordsData) != strlen($filterSQLReservedWordsData1)) {
-  //      print_r('xxxxxx' . $filterSQLReservedWordsData . '----');
-  //      $errorcode = 999;
-  //  }
+ 
 
 
 
@@ -614,7 +600,7 @@ $app->get("/pkUpdate_sysAclRoles/", function () use ($app ) {
         'user_id' => $_GET['user_id'],   
         'id' => $_GET['id'],
         'pk' => $pk));
-    //print_r($resDataGrid); 
+   
     //print_r($resDataUpdate);
 
     $app->response()->header("Content-Type", "application/json");
