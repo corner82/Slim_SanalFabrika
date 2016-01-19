@@ -244,7 +244,7 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
     
     
     
-    print_r('--Name =-->'.$vName.'----');
+   // print_r('--Name =-->'.$vName.'----');
     //print_r($stripChainer->offsetGet('test'));
     
      
@@ -265,8 +265,7 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
      * @author Mustafa Zeynel Dağlı
      * @since 15/01/2016
      */
-    $validaterUrl = $app->getServiceManager()->get('validationChainerServiceForZendChainer');
-    
+    $validaterUrl = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
     $validatorChainUrl = new Zend\Validator\ValidatorChain();
     $validaterUrl->offsetSet(array_search($_GET['url'], $_GET), 
             new \Utill\Validation\Chain\ZendValidationChainer($app, 
@@ -274,33 +273,39 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
                                                               $validatorChainUrl->attach(
                                                                         new Zend\Validator\StringLength(array('min' => 6,
                                                                                                               'max' => 50)))
-                                                                              // ->attach(new Zend\I18n\Validator\Alnum())
-    
+                                                                              // ->attach(new Zend\I18n\Validator\Alnum())    
                     ) );
-    // setMin(1)
- 
- 
-    
-    
-   /* 
-    $validater->offsetSet(array_search($_GET['name'], $_GET), 
-              new \Utill\Validation\Chain\ZendValidationChainer($app, $_GET['name'], 
-                                                               $validatorChain));
-                                                                  //   $validatorChain->attach(
-                                                                     //    Zend\Validator\StringLength(array('min' => 3,
-                                                                     //                                      'max' => 10)))
-                                                                              // ->attach(new Zend\I18n\Validator\Alnum())
-    
-                  //  ) );
-    
-    */
-    
-    $validaterUrl->validate();
-    $messager = $app->getServiceManager()->get('filterValidatorMessager');
   
+  
+     
+   
+    
+ 
+  //  print_r($validatorChainUrl.getValidators());
+
+    
+     $validaterName = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
+    $validatorChainName = new Zend\Validator\ValidatorChain();
+    $validaterName->offsetSet(array_search($_GET['name'], $_GET), 
+            new \Utill\Validation\Chain\ZendValidationChainer($app, 
+                                                              $_GET['name'], 
+                                                              $validatorChainName->attach(
+                                                                        new Zend\Validator\StringLength(array('min' => 6,
+                                                                                                              'max' => 50)))
+                                                                              // ->attach(new Zend\I18n\Validator\Alnum())    
+                    ) );
+    
+  
+    $validaterName->validate();
+  //  $messager = $app->getServiceManager()->get('filterValidatorMessager');  
+    $validaterUrl->validate();  
+    $messager = $app->getServiceManager()->get('filterValidatorMessager');  
   //  $assd = $app->getServiceManager()->get('filterValidatorMessager');
-   print_r( $messager->getValidationMessage());
+    print_r( $messager->getValidationMessage());
     // print_r('***==>'.$assd.'<==***'.$messager->getValidationMessage());
+   
+    
+    
     
     
     $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');  
