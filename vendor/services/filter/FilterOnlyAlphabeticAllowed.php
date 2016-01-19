@@ -26,7 +26,7 @@ class FilterOnlyAlphabeticAllowed implements \Zend\ServiceManager\FactoryInterfa
         // Create a filter chain and filter for usage
         $filterChain = new \Zend\Filter\FilterChain();
         $filterChain ->attach(new \Zend\I18n\Filter\Alnum())
-                     ->attach(new I18n\Filter\Digits());
+                     ->attach(new \Zend\Filter\Digits());
         return $filterChain;
 
         

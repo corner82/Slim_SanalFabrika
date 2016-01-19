@@ -34,7 +34,7 @@ final class FilterServiceNames {
     const FILTER_PARENTHESES = 'filterParentheses';
     const FILTER_TONULL = 'filterToNull';
     
-    const FILTER_JAVASCRIPT_FUNCTIONS = 'filterJavascriptFunctions';
+    const FILTER_JAVASCRIPT_FUNCTIONS = 'filterJavascriptMethods';
     const FILTER_CDATA= 'filterCdata';
     
     

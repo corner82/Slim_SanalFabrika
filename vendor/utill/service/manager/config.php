@@ -50,6 +50,7 @@ class config {
                 'filterChainerCustom' => 'Services\Filter\FilterChainerCustom',
                 'filterValidatorMessager' => 'Services\Messager\FilterValidatorMessager',
                 'filterParentheses' => 'Services\Messager\FilterParentheses',
+                'filterJavascriptMethods' => 'Services\Filter\FilterJavascriptMethods',               
                 'validationChainerServiceForZendChainer' => 'Services\Validator\ValidationChainerServiceForZendChainer',
                 
                 
