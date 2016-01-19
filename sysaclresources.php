@@ -285,7 +285,7 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
 
     
    //  $validaterName = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
-   // $validatorChain = new Zend\Validator\ValidatorChain();
+    $validatorChain = new Zend\Validator\ValidatorChain();
     $validater->offsetSet(array_search($_GET['name'], $_GET), 
             new \Utill\Validation\Chain\ZendValidationChainer($app, 
                                                               $_GET['name'], 
