@@ -235,31 +235,29 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
      */
        
     $stripper->strip();
-    $filteredValue = $stripper->offsetGet(array_search($_GET['url'], $_GET))->getFilterValue();
+   // $filteredValue = $stripper->offsetGet(array_search($_GET['url'], $_GET))->getFilterValue();
     $vName = urldecode(trim( $stripper->offsetGet(array_search($_GET['name'], $_GET))->getFilterValue()));
+    $vParent = trim( $stripper->offsetGet(array_search($_GET['parent'], $_GET))->getFilterValue());
+    $vUserId = trim( $stripper->offsetGet(array_search($_GET['user_id'], $_GET))->getFilterValue());
    // $vIconClass = urldecode(trim( $stripper->offsetGet(array_search($_GET['icon_class'], $_GET))->getFilterValue()));
-   // $vParent = trim( $stripper->offsetGet(array_search($_GET['parent'], $_GET))->getFilterValue());
-   // $vUserId = trim( $stripper->offsetGet(array_search($_GET['user_id'], $_GET))->getFilterValue());
+   
    // $vDescription = urldecode(trim( $stripper->offsetGet(array_search($_GET['description'], $_GET))->getFilterValue()));
-    
-    
+        
     
    // print_r('--Name =-->'.$vName.'----');
     //print_r($stripChainer->offsetGet('test'));
     
-     
-     
+          
   //  $vName = urldecode(trim($_GET['name']));
-   $vIconClass = $_GET['icon_class'];
-    $vParent = $_GET['parent'];
-    $vUserId = $_GET['user_id'];
+    $vIconClass = $_GET['icon_class'];
+   // $vParent = $_GET['parent'];
+   // $vUserId = $_GET['user_id'];
     $vDescription = $_GET['description']; 
     
     $headerParams = $app->request()->headers();
     $vPk = $headerParams['X-Public'];
      
-     
-    
+      
     /**
      * validat chain test
      * @author Mustafa Zeynel Dağlı
@@ -275,34 +273,30 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
                                                                                                               'max' => 50)))
                                                                               // ->attach(new Zend\I18n\Validator\Alnum())    
                     ) );
-  
-  
-     
-   
-    
  
-  //  print_r($validatorChainUrl.getValidators());
-
-    
-   //  $validaterName = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
+     
     $validatorChainName = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet(array_search($_GET['name'], $_GET), 
+    $validater->offsetSet($vName, 
             new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                              $_GET['name'], 
+                                                              $vName, 
                                                               $validatorChainName->attach(
                                                                         new Zend\Validator\StringLength(array('min' => 3,
                                                                                                               'max' => 10)))
-                                                                              // ->attach(new Zend\I18n\Validator\Alnum())    
+                                                                              ->attach(new Zend\I18n\Validator\Alnum())    
                     ) );
-    
+  
+    $validater->offsetSet($vParent, 
+        new \Utill\Validation\Chain\ZendValidationChainer($app, 
+                                                          $vParent, 
+                                                          $validatorChainName->attach(
+                                                                    new Zend\Validator\StringLength(array('min' => 3,
+                                                                                                          'max' => 10)))
+                                                                          ->attach(new Zend\I18n\Validator\Alnum())    
+                ) );
   
     $validater->validate();
-  //  $messager = $app->getServiceManager()->get('filterValidatorMessager');  
-  //  $validaterUrl->validate();  
     $messager = $app->getServiceManager()->get('filterValidatorMessager');  
-  //  $assd = $app->getServiceManager()->get('filterValidatorMessager');
     print_r( $messager->getValidationMessage());
-    // print_r('***==>'.$assd.'<==***'.$messager->getValidationMessage());
    
     
     
