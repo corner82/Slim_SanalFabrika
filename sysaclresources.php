@@ -219,7 +219,7 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
                                                                                               \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,        
     )));*/
     $stripper->offsetSet(array_search($_GET['parent'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['parent'], array(
-                                                                                        \Services\Filter\FilterServiceNames::FILTER_ONLY_ALPHABETIC_ALLOWED,                                                                                             
+                                                                                        \Services\Filter\FilterServiceNames::FILTER_ONLY_NUMBER_ALLOWED,                                                                                             
     )));
     $stripper->offsetGet(array_search($_GET['parent'], $_GET));    
     $stripper->offsetSet('userID', new \Utill\Strip\Chain\StripChainer($app, $_GET['user_id'], array(
@@ -245,11 +245,11 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
     $vParent = trim( $stripper->offsetGet(array_search($_GET['parent'], $_GET))->getFilterValue());
     $vUserId = trim( $stripper->offsetGet('userID')->getFilterValue());
    // $vIconClass = urldecode(trim( $stripper->offsetGet(array_search($_GET['icon_class'], $_GET))->getFilterValue()));
-   
+
    // $vDescription = urldecode(trim( $stripper->offsetGet(array_search($_GET['description'], $_GET))->getFilterValue()));
         
     
-   // print_r('--Name =-->'.$vName.'----');
+   // print_r('--$vParent =-->'.$vParent.'----');
     //print_r($stripChainer->offsetGet('test'));
     
           
