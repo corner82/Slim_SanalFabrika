@@ -19,11 +19,11 @@ namespace Utill\Strip;
         
     }
     
-    public function strip() {
+    public function strip($key = null) {
         $this->rewind();
         foreach ($this->stripStrategies as $key => $value) {
             if(method_exists($value, 'strip')) { 
-                $value->strip();
+                $value->strip($key);
             } else {
                 throw new \Exception('invalid strip method for strip');
             }

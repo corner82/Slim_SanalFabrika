@@ -25,8 +25,10 @@ class FilterOnlyAlphabeticAllowed implements \Zend\ServiceManager\FactoryInterfa
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
         // Create a filter chain and filter for usage
         $filterChain = new \Zend\Filter\FilterChain();
-        $filterChain ->attach(new \Zend\I18n\Filter\Alnum())
-                     ->attach(new \Zend\Filter\Digits());
+        
+        $filterChain ->attach(new \Zend\I18n\Filter\Alpha()) 
+                    /*->attach(new \Zend\I18n\Filter\Alnum())
+                     ->attach(new \Zend\Filter\Digits())*/;
         return $filterChain;
 
         

@@ -9,6 +9,6 @@
 namespace Utill\Strip;
 
 Interface StripInterface {
-    public function strip();
+    public function strip($key = null);
 }
 

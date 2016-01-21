@@ -191,7 +191,7 @@ $app->get("/pkFillGrid_sysAclResources/", function () use ($app ) {
  * @since 13-01-2016
  */
 $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
-    print_r($_GET);
+    
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
  
     //print_r('---'.array_search($_GET['url'], $_GET).'???');
@@ -219,10 +219,11 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
                                                                                               \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,        
     )));*/
     $stripper->offsetSet(array_search($_GET['parent'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['parent'], array(
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_ONLY_ALPHABETIC_ALLOWED,                                                                                             
+                                                                                        \Services\Filter\FilterServiceNames::FILTER_ONLY_ALPHABETIC_ALLOWED,                                                                                             
     )));
-    $stripper->offsetSet(array_search($_GET['user_id'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['user_id'], array(
-                                                                                          \Services\Filter\FilterServiceNames::FILTER_ONLY_ALPHABETIC_ALLOWED,                                                                                             
+    $stripper->offsetGet(array_search($_GET['parent'], $_GET));    
+    $stripper->offsetSet('userID', new \Utill\Strip\Chain\StripChainer($app, $_GET['user_id'], array(
+                                                                                          \Services\Filter\FilterServiceNames::FILTER_ONLY_NUMBER_ALLOWED,                                                                                             
     )));
     /*$stripper->offsetSet(array_search($_GET['description'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['description'], array(
                                                                                           \Services\Filter\FilterServiceNames::FILTER_DEFAULT,  
@@ -235,10 +236,14 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
     
        
     $stripper->strip();
+    
+    $filterMessager = $app->getServiceManager()->get('filterMessager');
+    print_r($filterMessager->getFilterMessage());
+    
    // $filteredValue = $stripper->offsetGet(array_search($_GET['url'], $_GET))->getFilterValue();
     $vName = urldecode(trim( $stripper->offsetGet(array_search($_GET['name'], $_GET))->getFilterValue()));
     $vParent = trim( $stripper->offsetGet(array_search($_GET['parent'], $_GET))->getFilterValue());
-    $vUserId = trim( $stripper->offsetGet(array_search($_GET['user_id'], $_GET))->getFilterValue());
+    $vUserId = trim( $stripper->offsetGet('userID')->getFilterValue());
    // $vIconClass = urldecode(trim( $stripper->offsetGet(array_search($_GET['icon_class'], $_GET))->getFilterValue()));
    
    // $vDescription = urldecode(trim( $stripper->offsetGet(array_search($_GET['description'], $_GET))->getFilterValue()));
@@ -248,10 +253,7 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
     //print_r($stripChainer->offsetGet('test'));
     
           
-  //  $vName = urldecode(trim($_GET['name']));
     $vIconClass = $_GET['icon_class'];
-   // $vParent = $_GET['parent'];
-   // $vUserId = $_GET['user_id'];
     $vDescription = $_GET['description']; 
     
     $headerParams = $app->request()->headers();
@@ -311,7 +313,7 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
         $resDataInsert = $BLL->insert(array('name' => $vName,
             'icon_class' => $vIconClass,
             'parent' => $vParent,
-            'user_id' => $vUserId,
+            'user_id' => $vUserId, 
             'description' => $vDescription,
             'pk' => $vPk));
         // print_r($resDataInsert);    
