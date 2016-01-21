@@ -91,6 +91,7 @@ use Countable;
      * @since 12/01/2016
      */
     public function offsetGet($offset) {
+        if(!isset($this->stripStrategies[$offset])) throw new \Exception (' Strip class offsetGet undefined offset!!');
         return (isset($this->stripStrategies[$offset])) ?  $this->stripStrategies[$offset] : null;
     }
     
@@ -101,15 +102,17 @@ use Countable;
      * @throws Exception
      */
     public function offsetSet($offset, $value) {
+        
         if(!$this->offsetExists($offset)) {
             if($value instanceof \Utill\Strip\Chain\AbstractStripChainer) {
                 $this->stripStrategies[$offset] = $value;
+                //print_r($this->stripStrategies[$offset]);
                 return true;
             } else {
                 throw new \Exception('invalid \Utill\Strip\Chain\AbstractStripChainer class!!');
             }
         }
-        throw new \Exception('repeated  key in strip class!!');
+        throw new \Exception('repeated  "'.$offset.'" -->key in strip class!!');
         //return false;
     }
     
@@ -127,7 +130,7 @@ use Countable;
      * strip method for Utill\Strip\StripInterface
      * will be overridden in subclasses
      */
-    public function strip() {
+    public function strip($key = null) {
         
     }
 

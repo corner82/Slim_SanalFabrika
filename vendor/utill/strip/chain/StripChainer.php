@@ -18,13 +18,13 @@ class StripChainer extends AbstractStripChainer implements \Services\Filter\Filt
     
     public function __construct($slimApp, $valueToFilter, $filters) {
         
-        if(!$slimApp instanceof \Slim\Slim ) throw new Exception ('no slim app found in StripChainer');
+        if(!$slimApp instanceof \Slim\Slim ) throw new \Exception ('no slim app found in StripChainer');
         $this->setSlimApp($slimApp);
         
-        if(empty($valueToFilter)) throw new Exception ('no value to filter in StripChainer class');
+        //if(!isset($valueToFilter)) throw new \Exception ('no value to filter in StripChainer class');
         $this->setFilterValue($valueToFilter);
         
-        if(empty($filters)) throw new Exception ('filter class name is empty in StripChainer class');
+        if(empty($filters)) throw new \Exception ('filter class name is empty in StripChainer class');
         
         foreach ($filters as $key =>$value) {
             $filter = $this->getSlimApp()->getServiceManager()->get($value);
@@ -37,9 +37,10 @@ class StripChainer extends AbstractStripChainer implements \Services\Filter\Filt
      * excutes all filter operations
      * @throws \Exception
      */
-    public function strip() {
+    public function strip($baseKey = null) {
+        $baseLocalKey = $baseKey;
         $this->rewind();
-        $filterValidatorMessager = $this->slimApp->getServiceManager()->get('filterValidatorMessager');
+        $filterMessager = $this->slimApp->getServiceManager()->get('filterMessager');
         foreach ($this->chainer as $key => $value) {
           //print_r('-key-'.$key.'--');
           //print_r('-filter-'.$value.'--');
@@ -49,7 +50,7 @@ class StripChainer extends AbstractStripChainer implements \Services\Filter\Filt
             } else {
                 throw new \Exception('invalid filter  method for \Zend\Filter\AbstractFilter');
             }
-            $filterValidatorMessager->compareFilteredValue($this->filterValue, $oldValue, $key);
+            $filterMessager->compareValue($this->filterValue, $oldValue, $key, $baseLocalKey);
             
         }
         //print_r($filterValidatorMessager->getFilterMessage());

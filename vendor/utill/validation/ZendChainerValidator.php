@@ -38,11 +38,11 @@ namespace Utill\Validation;
         //return false;
     }
     
-    public function validate() {
+    public function validate($baseKey = null) {
         $this->rewind();
         foreach ($this->validationStrategies as $key => $value) {
             if(method_exists($value, 'validate')) { 
-                $value->validate();
+                $value->validate($key);
             } else {
                 throw new \Exception('invalid validate method for validation process');
             }

@@ -10,11 +10,11 @@
 namespace Services\Messager;
 
 /**
- * service manager layer for error messager functions
+ * service manager layer for validator messager functions
  * @author Mustafa Zeynel Dağlı
  * @version 13/01/2016
  */
-class FilterValidatorMessager implements \Zend\ServiceManager\FactoryInterface {
+class ServiceValidatorMessager implements \Zend\ServiceManager\FactoryInterface {
     
     /**
      * service ceration via factory on zend service manager
@@ -23,7 +23,7 @@ class FilterValidatorMessager implements \Zend\ServiceManager\FactoryInterface {
      */
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
         // Create a message broker for usage
-        $messager = new \Messager\FilterValidatorMessager();
+        $messager = new \Messager\ValidatorMessager();
         return $messager;
 
     }

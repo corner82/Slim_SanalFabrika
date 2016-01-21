@@ -9,6 +9,6 @@
 namespace Utill\Validation;
 
 Interface ValidationInterface {
-    public function validate();
+    public function validate($baseKey = null);
 }
 

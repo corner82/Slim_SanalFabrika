@@ -20,13 +20,13 @@ class ZendValidationChainer extends AbstractValidationChainer  {
     
     public function __construct($slimApp, $valueToValidate, $validatorChainer) {
         
-        if(!$slimApp instanceof \Slim\Slim ) throw new Exception ('no slim app found in ValidationChainer');
+        if(!$slimApp instanceof \Slim\Slim ) throw new \Exception ('no slim app found in ValidationChainer');
         $this->setSlimApp($slimApp);
         
-        if(empty($valueToValidate)) throw new Exception ('no value to validate in ValidationChainer class');
+        //if(empty($valueToValidate)) throw new \Exception ('no value to validate in ValidationChainer class');
         $this->setValidationValue($valueToValidate);
         
-        if(empty($validatorChainer)) throw new Exception ('validate class name is empty in ValidationChainer class');
+        if(empty($validatorChainer)) throw new \Exception ('validate class name is empty in ValidationChainer class');
         
         if(!$validatorChainer instanceof \Zend\Validator\ValidatorChain) throw new Exception ('invalid validationChainer class, expected \Zend\Validator\ValidatorChain in ZendValidationChainer class');
         $this->offsetSet($this->count(), $validatorChainer);
@@ -52,24 +52,26 @@ class ZendValidationChainer extends AbstractValidationChainer  {
      * excutes all filter operations
      * @throws \Exception
      */
-    public function validate() {
+    public function validate($baseKey = null) {
         $this->rewind();
-        $filterValidatorMessager = $this->slimApp->getServiceManager()->get('filterValidatorMessager');
+        $validatorMessager = $this->slimApp->getServiceManager()->get('validatorMessager');
+        $validatorMessager->setBaseKey($baseKey);
         foreach ($this->chainer as $key => $value) {
-          print_r('-key-'.$key.'--');
+          //print_r('-key-'.$key.'--');
           //print_r('-validate-'.$value.'--');
           $oldValue = $this->validationValue;
           if(method_exists($value, 'isValid')) {
-            $validationMessage = null;
+            $validationMessage = array();
             if ($this->validationValue = $value->isValid($this->validationValue)) {
                 //  passed validation
             } else {
                 // username failed validation; print reasons
                 foreach ($value->getMessages() as $message) {
                     //echo "$message\n";
-                    $validationMessage.='[:::]message->'.$message.'[:]ip->'.$_SERVER['REMOTE_ADDR'];
+                    //$validationMessage.='[:::]message->'.$message.'[:]ip->'.$_SERVER['REMOTE_ADDR'];
+                    array_push($validationMessage, $message);
                 }
-                $filterValidatorMessager->addValidationMessage ($validationMessage);
+                $validatorMessager->addValidationMessage ($validationMessage);
             }
             } else {
                 throw new \Exception('invalid isValid  method for \Zend\Validation\ValidatorChain');

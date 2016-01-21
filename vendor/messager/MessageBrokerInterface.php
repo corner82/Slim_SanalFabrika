@@ -10,7 +10,6 @@
 namespace Messager;
 
 interface MessageBrokerInterface{
-    public function compareFilteredValue($valuenew = null, $valueold = null, $filterName = null);
-    public function compareValidatedValue($valuenew = null, $valueold = null, $validationName = null);
+    public function compareValue($valuenew = null, $valueold = null, $filterName = null, $baseKey = null);
 }
 
