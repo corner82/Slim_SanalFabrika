@@ -12,6 +12,7 @@ require 'vendor/autoload.php';
   'log.enabled' => true,
   )); */
 
+
 $app = new \Slim\SlimExtended(array(
     'mode' => 'development',
     'debug' => true,
