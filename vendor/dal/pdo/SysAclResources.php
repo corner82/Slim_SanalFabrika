@@ -55,9 +55,10 @@ class SysAclResources extends \DAL\DalSlim {
             $pdo->beginTransaction();       
             $statement = $pdo->prepare(" 
                 UPDATE sys_acl_resources
-                SET  deleted= 1, user_id =  " . intval($params['user_id']) . " 
+                SET  deleted= 1, active = 1,
+                user_id =  " . intval($params['user_id']) . " 
                 WHERE id = :id");         
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);         
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);         
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
@@ -200,7 +201,7 @@ class SysAclResources extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-                       $kontrol = $this->haveRecords($params); 
+            $kontrol = $this->haveRecords($params); 
             if (!\Utill\Dal\Helper::haveRecord($kontrol)) {            
                 $sql = "
                 INSERT INTO sys_acl_resources(
@@ -225,7 +226,6 @@ class SysAclResources extends \DAL\DalSlim {
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
                 $pdo->commit();
-
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
             } else {  
                 $errorInfo = '23505'; 
@@ -394,9 +394,9 @@ class SysAclResources extends \DAL\DalSlim {
             $order = "ASC";
         }
         
-        $whereNameSQL = '';
+        $whereSQL = '';
         if (isset($args['search_name']) && $args['search_name'] != "") {
-            $whereNameSQL = " AND a.name LIKE '%" . $args['search_name'] . "%' ";
+            $whereSQL = " AND a.name LIKE '%" . $args['search_name'] . "%' ";
         }
  
         try {
@@ -420,7 +420,7 @@ class SysAclResources extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
                 INNER JOIN info_users u ON u.id = a.user_id    
                 WHERE a.deleted =0  
-                  " . $whereNameSQL . "
+                  " . $whereSQL . "
                 ORDER BY " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -457,13 +457,13 @@ class SysAclResources extends \DAL\DalSlim {
     public function fillGridRowTotalCount($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $whereNameSQL = '';
-            $whereNameSQL1 = '';
-            $whereNameSQL2 = '';
+            $whereSQL = '';
+            $whereSQL1 = ' WHERE a1.deleted =0 ';
+            $whereSQL2 = ' WHERE a2.deleted =1 ';
             if (isset($params['search_name']) && $params['search_name'] != "") {
-                $whereNameSQL = " WHERE a.name LIKE '%" . $params['search_name'] . "%' ";
-                $whereNameSQL1 = " AND a1.name LIKE '%" . $params['search_name'] . "%' ";
-                $whereNameSQL2 = " AND a2.name LIKE '%" . $params['search_name'] . "%' ";
+                $whereSQL = " WHERE a.name LIKE '%" . $params['search_name'] . "%' ";
+                $whereSQL1 .= " AND a1.name LIKE '%" . $params['search_name'] . "%' ";
+                $whereSQL2 .= " AND a2.name LIKE '%" . $params['search_name'] . "%' ";
             }
             $sql = "
                 SELECT 
@@ -472,12 +472,12 @@ class SysAclResources extends \DAL\DalSlim {
                     INNER JOIN sys_specific_definitions sd1x ON sd1x.main_group = 15 AND sd1x.first_group= a1.deleted AND sd1x.language_code = 'tr' AND sd1x.deleted = 0 AND sd1x.active = 0
                     INNER JOIN sys_specific_definitions sd11 ON sd11.main_group = 16 AND sd11.first_group= a1.active AND sd11.language_code = 'tr' AND sd11.deleted = 0 AND sd11.active = 0                             
                     INNER JOIN info_users u1 ON u1.id = a1.user_id 
-                    WHERE a1.deleted =0 " . $whereNameSQL1 . " ) AS undeleted_count, 
+                     " . $whereSQL1 . " ) AS undeleted_count, 
                     (SELECT COUNT(a2.id) FROM sys_acl_resources a2
                     INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_code = 'tr' AND sd2.deleted = 0 AND sd2.active = 0
                     INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group= a2.active AND sd12.language_code = 'tr' AND sd12.deleted = 0 AND sd12.active = 0                             
                     INNER JOIN info_users u2 ON u2.id = a2.user_id 			
-                    WHERE a2.deleted =1 " . $whereNameSQL2 . " ) AS deleted_count                        
+                    " . $whereSQL2 . " ) AS deleted_count                        
                 FROM sys_acl_resources a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
@@ -550,8 +550,12 @@ class SysAclResources extends \DAL\DalSlim {
             $statement = $pdo->prepare("
                 SELECT                    
                     a.id, 	
-                    a.name AS name ,
-                    a.active
+                    a.name AS name  ,
+                    CASE 
+                        (SELECT DISTINCT 1 state_type FROM sys_acl_resources WHERE parent = a.id AND deleted = 0)    
+                    WHEN 1 THEN 'closed'
+                    ELSE 'open'   
+                    END AS state_type  
                 FROM sys_acl_resources a       
                 WHERE                    
                     a.parent = " . $id . " AND 

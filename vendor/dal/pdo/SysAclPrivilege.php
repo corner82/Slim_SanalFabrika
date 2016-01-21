@@ -59,7 +59,8 @@ class SysAclPrivilege extends \DAL\DalSlim {
             //Prepare our UPDATE SQL statement. 
             $statement = $pdo->prepare(" 
                 UPDATE sys_acl_privilege
-                SET  deleted= 1, user_id =  " . intval($params['user_id']) . " 
+                SET  deleted= 1, active = 1, 
+                user_id =  " . intval($params['user_id']) . " 
                 WHERE id = :id");
             //Bind our value to the parameter :id.
             $statement->bindValue(':id', $id, \PDO::PARAM_INT);
@@ -140,11 +141,7 @@ class SysAclPrivilege extends \DAL\DalSlim {
     public function getAll() {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */
             $statement = $pdo->prepare("
-
                 SELECT 
                         a.id,                       
                         a.name AS name,
@@ -162,14 +159,10 @@ class SysAclPrivilege extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
                 INNER JOIN info_users u ON u.id = a.user_id    
                 WHERE a.deleted =0 
-                ORDER BY a.name  
-                
+                ORDER BY a.name                  
                                  ");
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -179,7 +172,49 @@ class SysAclPrivilege extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-
+    /**
+     * basic have records control  
+     * * returned result set example;
+     * for success result  
+     * usage     
+     * @author Okan CIRAN
+     * @ sys_acl_privilege tablosunda name sutununda daha önce oluşturulmuş mu? 
+     * @version v 1.0 21.01.2016
+     * @return array
+     * @throws \PDOException
+     */
+    public function haveRecords($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');    
+            $addSql = "";
+            if (isset($params['id'])) {
+                $addSql = " AND id != " . intval($params['id']) . " ";
+            }
+            $sql = " 
+           SELECT  
+                name as name , 
+                '" . $params['name'] . "' as value , 
+                name ='" . $params['name'] . "' as control,
+                concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
+            FROM sys_acl_privilege        
+            WHERE name = '" . $params['name'] . "'"
+                    . $addSql . " 
+               AND deleted =0   
+                               ";
+            $statement = $pdo->prepare($sql);   
+       //   echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]); 
+            
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
     /**
      * basic insert database example for PDO prepared
      * statements, table names are irrevelant and should be changed on specific 
@@ -214,29 +249,8 @@ class SysAclPrivilege extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $sql = " 
-            SELECT  
-                name as name , 
-                '" . $params['name'] . "' as value , 
-                name ='" . $params['name'] . "' as control,
-                concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
-            FROM sys_acl_privilege        
-            WHERE name = '" . $params['name'] . "'               
-                               ";
-            $statement = $pdo->prepare($sql);
-            //   print_r($params);
-            //   echo debugPDO($sql, $params);
-            $statement->execute();
-            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-
-
-            if (!isset($kontrol[0]['control'])) {
-                /**
-                 * table names and column names will be changed for specific use
-                 */
+            $kontrol = $this->haveRecords($params); 
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) { 
                 $sql = "
                 INSERT INTO sys_acl_privilege(
                         name, icon_class, parent, user_id, description)
@@ -246,14 +260,11 @@ class SysAclPrivilege extends \DAL\DalSlim {
                         :user_id,
                         :description                      
                                                 ";
-
                 $statement = $pdo->prepare($sql);
                 $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
                 $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);              
                 $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
-
-
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_acl_privilege_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -262,12 +273,11 @@ class SysAclPrivilege extends \DAL\DalSlim {
                 $pdo->commit();
 
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
-            } else {
-
-                $insertID = -1000;
-                $errorInfo = $kontrol[0]['message'];
-                return array("found" => true, "errorInfo" => $kontrol[0]['message'], "lastInsertId" => $insertID);
+            } else {  
+                $errorInfo = '23505';     // 23505 	unique_violation
                 $pdo->commit();
+                $result= $kontrol;  
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => ''); 
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -311,10 +321,8 @@ class SysAclPrivilege extends \DAL\DalSlim {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement.            
+             $kontrol = $this->haveRecords($params); 
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {                
             $statement = $pdo->prepare("
                 UPDATE sys_acl_privilege
                 SET   
@@ -327,7 +335,7 @@ class SysAclPrivilege extends \DAL\DalSlim {
             //Bind our value to the parameter :id.
             $statement->bindValue(':id', $id, \PDO::PARAM_INT);
             //Bind our :model parameter.
-            $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
+            $statement->bindValue(':name', $params['id'], \PDO::PARAM_INT);
             $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
             $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
             $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
@@ -340,6 +348,12 @@ class SysAclPrivilege extends \DAL\DalSlim {
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
             return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+            } else {        
+                $errorInfo = '23505'; // 23505 	unique_violation
+                $pdo->commit();
+                $result= $kontrol;            
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -372,9 +386,8 @@ class SysAclPrivilege extends \DAL\DalSlim {
             $sortArr = explode(",", $sort);
             if (count($sortArr) === 1)
                 $sort = trim($args['sort']);
-        } else {
-            //$sort = "id";
-            $sort = "r_date";
+        } else {         
+            $sort = "a.name";
         }
 
         if (isset($args['order']) && $args['order'] != "") {
@@ -387,12 +400,14 @@ class SysAclPrivilege extends \DAL\DalSlim {
             //$order = "desc";
             $order = "ASC";
         }
-
+        $whereSQL = '';
+        if (isset($args['search_name']) && $args['search_name'] != "") {
+            $whereSQL = " AND a.name LIKE '%" . $args['search_name'] . "%' ";            
+        }
 
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $sql = "
-                   
+            $sql = "                   
                 SELECT 
                         a.id,                       
                         a.name AS name,
@@ -409,16 +424,13 @@ class SysAclPrivilege extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
                 INNER JOIN info_users u ON u.id = a.user_id    
-                WHERE a.deleted =0                         
+                WHERE a.deleted =0 
+                " . $whereSQL . "
                 ORDER BY " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
                     . "OFFSET " . $pdo->quote($offset) . " ";
-            $statement = $pdo->prepare($sql);
-            /**
-             * For debug purposes PDO statement sql
-             * uses 'Panique' library located in vendor directory
-             */
+            $statement = $pdo->prepare($sql);    
             $parameters = array(
                 'sort' => $sort,
                 'order' => $order,
@@ -426,11 +438,9 @@ class SysAclPrivilege extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             //  echo debugPDO($sql, $parameters);
-
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -451,8 +461,16 @@ class SysAclPrivilege extends \DAL\DalSlim {
      */
     public function fillGridRowTotalCount($params = array()) {
         try {
-
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $whereSQL = '';
+            $whereSQL1 = ' WHERE a1.deleted =0';
+            $whereSQL2 = ' WHERE a2.deleted =1';
+            if (isset($params['search_name']) && $params['search_name'] != "") {
+                $whereSQL = " WHERE a.name LIKE '%" . $params['search_name'] . "%' ";
+                $whereSQL1 .= " AND a1.name LIKE '%" . $params['search_name'] . "%' ";
+                $whereSQL2 .= " AND a2.name LIKE '%" . $params['search_name'] . "%' ";
+              //  print_r('2<<<<< sql e gelen =' . $params['search_name'] . '>>>>>>>>>>2');
+            }
             $sql = "
                 SELECT 
                     COUNT(a.id) AS COUNT ,
@@ -460,22 +478,21 @@ class SysAclPrivilege extends \DAL\DalSlim {
                     INNER JOIN sys_specific_definitions sd1x ON sd1x.main_group = 15 AND sd1x.first_group= a1.deleted AND sd1x.language_code = 'tr' AND sd1x.deleted = 0 AND sd1x.active = 0
                     INNER JOIN sys_specific_definitions sd11 ON sd11.main_group = 16 AND sd11.first_group= a1.active AND sd11.language_code = 'tr' AND sd11.deleted = 0 AND sd11.active = 0                             
                     INNER JOIN info_users u1 ON u1.id = a1.user_id 
-                    WHERE a1.deleted =0) AS undeleted_count, 
+                    " . $whereNameSQL1 . ") AS undeleted_count, 
                     (SELECT COUNT(a2.id) FROM sys_acl_privilege a2
                     INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_code = 'tr' AND sd2.deleted = 0 AND sd2.active = 0
                     INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group= a2.active AND sd12.language_code = 'tr' AND sd12.deleted = 0 AND sd12.active = 0                             
                     INNER JOIN info_users u2 ON u2.id = a2.user_id 			
-                    WHERE a2.deleted =1) AS deleted_count                        
+                    " . $whereNameSQL2 . ") AS deleted_count                        
                 FROM sys_acl_privilege a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
                 INNER JOIN info_users u ON u.id = a.user_id 
-
+                " . $whereNameSQL . "
                     ";
             $statement = $pdo->prepare($sql);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -499,14 +516,7 @@ class SysAclPrivilege extends \DAL\DalSlim {
      */
     public function fillComboBoxFullPrivilege($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */
-            $id = 0;
-            if (isset($_GET['id']) && $_GET['id'] != "") {
-                $id = $_GET['id'];
-            }
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
             $statement = $pdo->prepare("
                 SELECT                    
                     a.id, 	
@@ -517,13 +527,8 @@ class SysAclPrivilege extends \DAL\DalSlim {
                     a.deleted = 0     
                 ORDER BY name                 
                                  ");
-
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
