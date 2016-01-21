@@ -35,7 +35,7 @@ class FilterJavascriptMethods implements \Zend\ServiceManager\FactoryInterface {
                                                "/<EMBED/i",
                                                "/(#)|(%23)/",
                                                "/(\{)|(%7b)/",
-                                               "/(=)|(%3d)/",
+                                               //"/(=)|(%3d)/",
                                                "/(!--)|(&#33;&#95;&#95;)/",
                                                "/fromCharCode/i",
                                                "/alert/i",

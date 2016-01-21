@@ -35,7 +35,7 @@ class FilterHtmlTagsCustomAdvanced implements \Zend\ServiceManager\FactoryInterf
                                                "/<EMBED/i",
                                                "/(#)|(%23)/",
                                                "/(\{)|(%7b)/",
-                                               "/(=)|(%3d)/",
+                                               //"/(=)|(%3d)/",
                                                "/(!--)|(&#33;&#95;&#95;)/",
                                                "/(<)[^A-Za-z0-9]*(img)/i",
                                                "/([^A-Za-z0-9](eval))|((eval)[^A-Za-z0-9]+)/i",
