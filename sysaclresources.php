@@ -238,7 +238,7 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
     $stripper->strip();
     
     $filterMessager = $app->getServiceManager()->get('filterMessager');
-    //print_r($filterMessager->getFilterMessage());
+    print_r($filterMessager->getFilterMessage());
     
    // $filteredValue = $stripper->offsetGet(array_search($_GET['url'], $_GET))->getFilterValue();
     $vName = urldecode(trim( $stripper->offsetGet(array_search($_GET['name'], $_GET))->getFilterValue()));
@@ -298,7 +298,7 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
   
     $validater->validate();
     $messager = $app->getServiceManager()->get('validatorMessager');  
-    //print_r( $messager->getValidationMessage());
+    print_r( $messager->getValidationMessage());
    
     
     
