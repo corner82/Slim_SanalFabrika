@@ -30,8 +30,8 @@ class FilterSQLReservedWords implements \Zend\ServiceManager\FactoryInterface {
                                             //"/\*\//",
                                             //"/\*/",
                                             "/@@/",
-                                            "/([^A-Za-z0-9])(@)([^A-Za-z0-9])*/"
-                                            ,"/nchar/i",
+                                            //"/([^A-Za-z0-9])(@)([A-Za-z0-9])*/",
+                                            "/nchar/i",
                                             //"/NCHAR/",
                                             "/nvarchar/i",
                                             //"/NVARCHAR/",

@@ -201,7 +201,7 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
                                                                                               \Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED,
                                                                                               \Services\Filter\FilterServiceNames::FILTER_ONLY_ALPHABETIC_ALLOWED,        
                                                                                                 )));
-    $stripper->offsetSet(array_search($_GET['name'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['name'], array(
+    $stripper->offsetSet('name', new \Utill\Strip\Chain\StripChainer($app, $_GET['name'], array(
                                                                                               \Services\Filter\FilterServiceNames::FILTER_DEFAULT,  
                                                                                               \Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED,  
                                                                                               \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_CUSTOM_ADVANCED,
@@ -218,11 +218,11 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
                                                                                               \Services\Filter\FilterServiceNames::FILTER_LOWER_CASE,
                                                                                               \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,        
     )));*/
-    $stripper->offsetSet(array_search($_GET['parent'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['parent'], array(
+    $stripper->offsetSet('parent', new \Utill\Strip\Chain\StripChainer($app, $_GET['parent'], array(
                                                                                         \Services\Filter\FilterServiceNames::FILTER_ONLY_NUMBER_ALLOWED,                                                                                             
     )));
-    $stripper->offsetGet(array_search($_GET['parent'], $_GET));    
-    $stripper->offsetSet('userID', new \Utill\Strip\Chain\StripChainer($app, $_GET['user_id'], array(
+    $stripper->offsetGet('parent');    
+    $stripper->offsetSet('user_ID', new \Utill\Strip\Chain\StripChainer($app, $_GET['user_id'], array(
                                                                                           \Services\Filter\FilterServiceNames::FILTER_ONLY_NUMBER_ALLOWED,                                                                                             
     )));
     /*$stripper->offsetSet(array_search($_GET['description'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['description'], array(
@@ -243,7 +243,7 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
    // $filteredValue = $stripper->offsetGet(array_search($_GET['url'], $_GET))->getFilterValue();
     $vName = urldecode(trim( $stripper->offsetGet(array_search($_GET['name'], $_GET))->getFilterValue()));
     $vParent = trim( $stripper->offsetGet(array_search($_GET['parent'], $_GET))->getFilterValue());
-    $vUserId = trim( $stripper->offsetGet('userID')->getFilterValue());
+    $vUserId = trim( $stripper->offsetGet('user_ID')->getFilterValue());
    // $vIconClass = urldecode(trim( $stripper->offsetGet(array_search($_GET['icon_class'], $_GET))->getFilterValue()));
 
    // $vDescription = urldecode(trim( $stripper->offsetGet(array_search($_GET['description'], $_GET))->getFilterValue()));
@@ -278,7 +278,7 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
  
      
     $validatorChainName = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet(array_search($_GET['name'], $_GET), 
+    $validater->offsetSet('name', 
             new \Utill\Validation\Chain\ZendValidationChainer($app, 
                                                               $vName, 
                                                               $validatorChainName->attach(
@@ -287,7 +287,7 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
                                                                               ->attach(new Zend\I18n\Validator\Alnum())    
                     ) );
   
-    $validater->offsetSet(array_search($_GET['parent'], $_GET), 
+    $validater->offsetSet('parent', 
         new \Utill\Validation\Chain\ZendValidationChainer($app, 
                                                           $vParent, 
                                                           $validatorChainName->attach(
