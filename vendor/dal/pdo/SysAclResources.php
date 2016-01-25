@@ -397,7 +397,7 @@ class SysAclResources extends \DAL\DalSlim {
         } else {
             $order = "ASC";
         }
-        
+  
         $whereSQL = '';
         if (isset($args['search_name']) && $args['search_name'] != "") {
             $whereSQL = " AND a.name LIKE '%" . $args['search_name'] . "%' ";
@@ -486,7 +486,7 @@ class SysAclResources extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
                 INNER JOIN info_users u ON u.id = a.user_id 
-                " . $whereNameSQL . "
+                " . $whereSQL . "
                     ";
             $statement = $pdo->prepare($sql);
             $statement->execute();
