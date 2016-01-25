@@ -55,10 +55,10 @@ class SysAclRrpMap extends \DAL\DalSlim {
             $pdo->beginTransaction();         
             $statement = $pdo->prepare(" 
                 UPDATE sys_acl_rrpmap
-                SET  deleted= 1 , 
+                SET  deleted= 1 , active = 1,
                     user_id =  " . intval($params['user_id']) . " 
                 WHERE id = :id");      
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);         
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);         
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
@@ -195,7 +195,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
                 $addSql = " AND id != " . intval($params['id']) . " ";
             }
             $sql = "             
-            SELECT  CONCAT( value , ' map ') , value AS name ,
+            SELECT  CONCAT(value , ' map ') , value AS name ,
             value = value AS control , 
             CONCAT(value , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message                             
             FROM (
@@ -206,11 +206,11 @@ class SysAclRrpMap extends \DAL\DalSlim {
                 INNER JOIN sys_acl_resources rs ON rs.id = a.resource_id AND rs.deleted = 0 AND rs.active = 0 
                 INNER JOIN sys_acl_privilege rp ON rp.id = a.privilege_id AND rp.deleted = 0 AND rp.active = 0  
                 WHERE a.deleted =0  
-                    AND a.role_id =  " . $params['role_id'] . "
-                    AND a.resource_id = " . $params['resource_id'] . "
-                    AND a.privilege_id = " . $params['privilege_id'] . "
+                    AND a.role_id =  " . intval($params['role_id']) . "
+                    AND a.resource_id = " . intval($params['resource_id']) . "
+                    AND a.privilege_id = " . intval($params['privilege_id']) . "
                        " . $addSql . "   
-                ) as ssd
+                ) AS ssd
                                    ";
             $statement = $pdo->prepare($sql);        
          //   echo debugPDO($sql, $params);
@@ -333,13 +333,8 @@ class SysAclRrpMap extends \DAL\DalSlim {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-             $kontrol = $this->haveRecords($params); 
-            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-
-                /**
-                 * table names and  column names will be changed for specific use
-                 */
-                //Prepare our UPDATE SQL statement.            
+            $kontrol = $this->haveRecords($params); 
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {          
                 $sql = "
                 UPDATE sys_acl_rrpmap
                 SET 
@@ -350,7 +345,6 @@ class SysAclRrpMap extends \DAL\DalSlim {
                     description= :description  
                 WHERE id = :id ";
                 //  echo debugPDO($sql, $params);
-
                 $statement = $pdo->prepare($sql);
                 //Bind our value to the parameter :id.         
                 $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
@@ -360,9 +354,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
                 $statement->bindValue(':privilege_id', $params['privilege_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
                 $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-
-                //  echo debugPDO($sql, $params);
-                //Execute our UPDATE statement.
+                //  echo debugPDO($sql, $params);          
                 $update = $statement->execute();
                 $affectedRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
@@ -423,10 +415,9 @@ class SysAclRrpMap extends \DAL\DalSlim {
             $order = "ASC";
         }
         
-         $whereNameSQL = '';
+         $whereSQL = '';
         if (isset($args['search_name']) && $args['search_name'] != "") {
-            $whereNameSQL = " AND name LIKE '%" . $args['search_name'] . "%' ";
-            //    print_r('2<<<<< sql e gelen ='.$args['search_name'].'>>>>>>>>>>2');
+            $whereSQL = " AND name LIKE '%" . $args['search_name'] . "%' "; 
         } 
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -479,16 +470,12 @@ class SysAclRrpMap extends \DAL\DalSlim {
                     INNER JOIN sys_acl_privilege rp ON rp.id = a.privilege_id AND rp.deleted = 0 AND rp.active = 0      
                     WHERE a.deleted =0 
                ) as asdd 
-                " . $whereNameSQL . "
+                " . $whereSQL . "
                ORDER BY    " . $sort . " "
                        . "" . $order . " "
                        . "LIMIT " . $pdo->quote($limit) . " "
                        . "OFFSET " . $pdo->quote($offset) . " ";
             $statement = $pdo->prepare($sql);
-            /**
-             * For debug purposes PDO statement sql
-             * uses 'Panique' library located in vendor directory
-             */
             $parameters = array(
                 'sort' => $sort,
                 'order' => $order,
@@ -496,11 +483,9 @@ class SysAclRrpMap extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             //  echo debugPDO($sql, $parameters);
-
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -521,21 +506,18 @@ class SysAclRrpMap extends \DAL\DalSlim {
      */
     public function fillGridRowTotalCount($params = array()) {
         try {
-
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            
-            $whereNameSQL = '';
-            $whereNameSQL1 = '';
-            $whereNameSQL2 = '';
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
+            $whereSQL = '';
+            $whereSQL1 = '';
+            $whereSQL2 = '';
             if (isset($params['search_name']) && $params['search_name'] != "") {
-                $whereNameSQL = " WHERE CONCAT( rr.name,' - ',  rs.name,' - ' ,  rp.name , ' map ') LIKE '%" . $params['search_name'] . "%' ";
-                $whereNameSQL1 = " AND CONCAT( rrx.name,' - ',  rsx.name,' - ' ,  rpx.name , ' map ') LIKE '%" . $params['search_name'] . "%' ";
-                $whereNameSQL2 = " AND CONCAT( rry.name,' - ',  rsy.name,' - ' ,  rpy.name , ' map ') LIKE '%" . $params['search_name'] . "%' ";        
-            }            
-            
+                $whereSQL = " WHERE CONCAT( rr.name,' - ',  rs.name,' - ' ,  rp.name , ' map ') LIKE '%" . $params['search_name'] . "%' ";
+                $whereSQL1 = " AND CONCAT( rrx.name,' - ',  rsx.name,' - ' ,  rpx.name , ' map ') LIKE '%" . $params['search_name'] . "%' ";
+                $whereSQL2 = " AND CONCAT( rry.name,' - ',  rsy.name,' - ' ,  rpy.name , ' map ') LIKE '%" . $params['search_name'] . "%' ";        
+            }                        
             $sql = "
                SELECT 
-                    COUNT(a.id) AS COUNT ,
+                    COUNT(a.id) AS COUNT,
                     (SELECT COUNT(a1x.id) FROM sys_acl_rrpmap a1x  
                     INNER JOIN sys_specific_definitions sdx ON sdx.main_group = 15 AND sdx.first_group= a1x.deleted AND sdx.language_code = 'tr' AND sdx.deleted = 0 AND sdx.active = 0
 		    INNER JOIN sys_specific_definitions sd1x ON sd1x.main_group = 16 AND sd1x.first_group= a1x.active AND sd1x.language_code = 'tr' AND sd1x.deleted = 0 AND sd1x.active = 0  
@@ -544,7 +526,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
 		    INNER JOIN sys_acl_resources rsx ON rsx.id = a1x.resource_id AND rsx.deleted = 0 AND rsx.active = 0 
 		    INNER JOIN sys_acl_privilege rpx ON rpx.id = a1x.privilege_id AND rpx.deleted = 0 AND rpx.active = 0 
                     WHERE a1x.deleted =0  
-                     " . $whereNameSQL1 . ") AS undeleted_count, 
+                     " . $whereSQL1 . ") AS undeleted_count, 
                     (SELECT COUNT(a2y.id) FROM sys_acl_rrpmap a2y
                     INNER JOIN sys_specific_definitions sdy ON sdy.main_group = 15 AND sdy.first_group= a2y.deleted AND sdy.language_code = 'tr' AND sdy.deleted = 0 AND sdy.active = 0
 		    INNER JOIN sys_specific_definitions sd1y ON sd1y.main_group = 16 AND sd1y.first_group= a2y.active AND sd1y.language_code = 'tr' AND sd1y.deleted = 0 AND sd1y.active = 0  
@@ -553,7 +535,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
 		    INNER JOIN sys_acl_resources rsy ON rsy.id = a2y.resource_id AND rsy.deleted = 0 AND rsy.active = 0 
 		    INNER JOIN sys_acl_privilege rpy ON rpy.id = a2y.privilege_id AND rpy.deleted = 0 AND rpy.active = 0 			
                     WHERE a2y.deleted =1  
-                     " . $whereNameSQL2 . " ) AS deleted_count                        
+                     " . $whereSQL2 . " ) AS deleted_count                        
                 FROM sys_acl_rrpmap a
 		INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
 		INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0  
@@ -561,7 +543,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
 		INNER JOIN sys_acl_roles rr ON rr.id = a.role_id AND rr.deleted = 0 AND rr.active = 0 
 		INNER JOIN sys_acl_resources rs ON rs.id = a.resource_id AND rs.deleted = 0 AND rs.active = 0 
 		INNER JOIN sys_acl_privilege rp ON rp.id = a.privilege_id AND rp.deleted = 0 AND rp.active = 0 
-                 " . $whereNameSQL . "    ";
+                 " . $whereSQL . "    ";
             $statement = $pdo->prepare($sql);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -590,21 +572,21 @@ class SysAclRrpMap extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');           
             $whereSQL = '';
             $roleId = 0;
-            if (isset($_GET['role_id']) && $_GET['role_id'] != "") {
-                $whereSQL = ' AND a.role_id = ' . $_GET['role_id'];
+            if (isset($params['role_id']) && $params['role_id'] != "") {
+                $whereSQL = ' AND a.role_id = ' . $params['role_id'];
             }
 
-            if (isset($_GET['resource_id']) && $_GET['resource_id'] != "") {
-                $whereSQL = $whereSQL . ' AND a.resource_id = ' . $_GET['resource_id'];
+            if (isset($params['resource_id']) && $params['resource_id'] != "") {
+                $whereSQL = $whereSQL . ' AND a.resource_id = ' . $params['resource_id'];
             }
 
-            if (isset($_GET['privilege_id']) && $_GET['privilege_id'] != "") {
-                $whereSQL = $whereSQL . ' AND a.privilege_id = ' . $_GET['privilege_id'];
+            if (isset($params['privilege_id']) && $params['privilege_id'] != "") {
+                $whereSQL = $whereSQL . ' AND a.privilege_id = ' . $params['privilege_id'];
             }
 
-            $whereNameSQL = '';
-            if (isset($_GET['name']) && $_GET['name'] != "") {
-                $whereNameSQL = ' WHERE name LIKE "%' . $_GET['name'] . '%" ';
+            $whereSQL = '';
+            if (isset($params['name']) && $params['name'] != "") {
+                $whereSQL = ' WHERE name LIKE "%' . $params['name'] . '%" ';
             }
 
             $statement = $pdo->prepare("
@@ -614,7 +596,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
                         a.id, 
                         CONCAT( rr.name,' - ',  rs.name,' - ' ,  rp.name , ' map ') AS name,		               
                         a.active ,
-                        a.active as state_type
+                        a.active AS state_type
                     FROM sys_acl_rrpmap a         
                     INNER JOIN sys_acl_roles rr ON rr.id = a.role_id AND rr.deleted = 0 AND rr.active = 0 
                     INNER JOIN sys_acl_resources rs ON rs.id = a.resource_id AND rs.deleted = 0 AND rs.active = 0 

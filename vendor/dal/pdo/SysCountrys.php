@@ -49,25 +49,19 @@ class SysCountrys extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function delete($id = null) {
+    public function delete($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement. 
             $statement = $pdo->prepare(" 
                 UPDATE sys_countrys
-                SET  deleted= 1
-                WHERE id = :id");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            //Execute our DELETE statement.
+                SET deleted= 1 , active = 1 ,
+                    user_id =  " . intval($params['user_id']) . " 
+                WHERE id = :id");   
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
@@ -140,9 +134,6 @@ class SysCountrys extends \DAL\DalSlim {
     public function getAll() {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */
             $statement = $pdo->prepare("
                 SELECT 
                     a.id,                   
@@ -158,7 +149,7 @@ class SysCountrys extends \DAL\DalSlim {
                     a.flag_icon_road,
                     a.country_code3,                  
                     a.user_id, 
-                      u.username,
+                    u.username,
                     a.priority                  
                 FROM sys_countrys a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND 
@@ -167,14 +158,10 @@ class SysCountrys extends \DAL\DalSlim {
 			sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0
 		INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.user_id  
-                ORDER BY a.priority asc, name
-                          ");            
-           
+                ORDER BY a.priority ASC, name
+                          ");   
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -185,6 +172,49 @@ class SysCountrys extends \DAL\DalSlim {
         }
     }
 
+        /**
+     * basic have records control  
+     * * returned result set example;
+     * for success result  
+     * usage     
+     * @author Okan CIRAN
+     * @ sys_countrys tablosunda name sutununda daha önce oluşturulmuş mu? 
+     * @version v 1.0 21.01.2016
+     * @return array
+     * @throws \PDOException
+     */
+    public function haveRecords($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');    
+            $addSql = "";
+            if (isset($params['id'])) {
+                $addSql = " AND id != " . intval($params['id']) . " ";
+            }
+            $sql = " 
+            SELECT  
+                name as name , 
+                '" . $params['name'] . "' AS value , 
+                name ='" . $params['name'] . "' AS control,
+                concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
+            FROM sys_countrys                
+            WHERE LOWER(name) = LOWER('" . $params['name'] . "')"
+                    . $addSql . " 
+               AND deleted =0   
+                               ";
+            $statement = $pdo->prepare($sql);  
+            //   echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);             
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
     /**
      * basic insert database example for PDO prepared
      * statements, table names are irrevelant and should be changed on specific 
@@ -217,31 +247,14 @@ class SysCountrys extends \DAL\DalSlim {
      */
     public function insert($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            
-             $sql = " 
-            SELECT  
-                name as name , 
-                '" . $params['name'] . "' as value , 
-                name ='" . $params['name'] . "' as control,
-                concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
-            FROM sys_countrys        
-            WHERE name = '" . $params['name'] . "'               
-                               ";
-            $statement = $pdo->prepare($sql);            
-            $statement->execute();
-            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);          
-
-            if (!isset($kontrol[0]['control'])) {  
-            
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');   
             $pdo->beginTransaction();
-            /**
-             * table names and column names will be changed for specific use
-             */
+            $kontrol = $this->haveRecords($params); 
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) { 
             $statement = $pdo->prepare("
                 INSERT INTO sys_countrys(
                         name, name_eng, language_code, language_parent_id, 
-                        user_id, flag_icon_road, country_code3, priority   )
+                        user_id, flag_icon_road, country_code3, priority)
                 VALUES (
                         :name,
                         :name_eng, 
@@ -251,7 +264,7 @@ class SysCountrys extends \DAL\DalSlim {
                         :flag_icon_road,                       
                         :country_code3,
                         :priority 
-                                                ");
+                                              )  ");
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
             $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
             $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
@@ -260,19 +273,18 @@ class SysCountrys extends \DAL\DalSlim {
             $statement->bindValue(':flag_icon_road', $params['flag_icon_road'], \PDO::PARAM_STR);
             $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
             $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);
-
             $result = $statement->execute();
-
             $insertID = $pdo->lastInsertId('sys_countrys_id_seq');
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
-
             return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
-             } else {           
-                $result  = $kontrol;           
+             } else {  
+                $errorInfo = '23505'; 
+                $pdo->commit();
+                $result= $kontrol;  
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');           
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -313,16 +325,13 @@ class SysCountrys extends \DAL\DalSlim {
      */
     public function update($id = null, $params = array()) {
         try {
-
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement.            
+            $kontrol = $this->haveRecords($params); 
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {            
             $statement = $pdo->prepare("
                 UPDATE sys_countrys
-                SET              
+                SET             
                     name = :name, 
                     name_eng = :name_eng, 
                     language_code = :language_code,                    
@@ -330,11 +339,10 @@ class SysCountrys extends \DAL\DalSlim {
                     user_id = :user_id,
                     flag_icon_road = :flag_icon_road,                       
                     country_code3 = :country_code3,
-                    priority = :priority 
-                WHERE id = :id");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            //Bind our :model parameter.
+                    priority = :priority ,
+                    active = :active
+                WHERE id = :id"); 
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
             $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
             $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
@@ -342,9 +350,8 @@ class SysCountrys extends \DAL\DalSlim {
             $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
             $statement->bindValue(':flag_icon_road', $params['flag_icon_road'], \PDO::PARAM_STR);
             $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
-            $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);
-        
-            //Execute our UPDATE statement.
+            $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);     
+            $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);  
             $update = $statement->execute(); 
             $affectedRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
@@ -352,6 +359,12 @@ class SysCountrys extends \DAL\DalSlim {
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
             return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+            } else {    
+                $errorInfo = '23505';  // 23505 unique_violation
+                $pdo->commit();
+                $result= $kontrol;            
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -384,22 +397,23 @@ class SysCountrys extends \DAL\DalSlim {
             $sortArr = explode(",", $sort);
             if (count($sortArr) === 1)
                 $sort = trim($args['sort']);
-        } else {
-            //$sort = "id";
-            $sort = "r_date";
+        } else {        
+            $sort = "a.priority ASC, name";
         }
 
         if (isset($args['order']) && $args['order'] != "") {
             $order = trim($args['order']);
-            $orderArr = explode(",", $order);
-            //print_r($orderArr);
+            $orderArr = explode(",", $order);   
             if (count($orderArr) === 1)
                 $order = trim($args['order']);
-        } else {
-            //$order = "desc";
+        } else {   
             $order = "ASC";
-        }
-
+        }        
+        
+        $whereSQL = '';
+        if (isset($args['search_name']) && $args['search_name'] != "") {
+            $whereSQL = " AND LOWER(COALESCE(NULLIF(a.name, ''), a.name_eng)) LIKE LOWER('%" . $args['search_name'] . "%') ";  
+        }  
 
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -426,16 +440,14 @@ class SysCountrys extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND 
 			sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0
 		INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
-		INNER JOIN info_users u ON u.id = a.user_id                     
+		INNER JOIN info_users u ON u.id = a.user_id    
+                WHERE a.deleted = 0
+                " . $whereSQL . "
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
                     . "OFFSET " . $pdo->quote($offset) . " ";
             $statement = $pdo->prepare($sql);
-            /**
-             * For debug purposes PDO statement sql
-             * uses 'Panique' library located in vendor directory
-             */
             $parameters = array(
                 'sort' => $sort,
                 'order' => $order,
@@ -447,7 +459,6 @@ class SysCountrys extends \DAL\DalSlim {
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -468,8 +479,15 @@ class SysCountrys extends \DAL\DalSlim {
      */
     public function fillGridRowTotalCount($params = array()) {
         try {
-
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $whereSQL = " WHERE a.language_code = '" . $params['language_code'] . "' ";
+            $whereSQL1 = " WHERE a1.language_code = '" . $params['language_code'] . "' AND a1.deleted =0 ";
+            $whereSQL2 = " WHERE a2.language_code = '" . $params['language_code'] . " AND a2.deleted = 1 ";
+            if (isset($params['search_name']) && $params['search_name'] != "") {
+                $whereSQL .= " AND LOWER(COALESCE(NULLIF(a.name, ''), a.name_eng)) LIKE LOWER('%" . $params['search_name'] . "%') ";
+                $whereSQL1 .= " AND LOWER(COALESCE(NULLIF(a1.name, ''), a1.name_eng)) LIKE LOWER('%" . $params['search_name'] . "%') ";
+                $whereSQL2 .= " AND LOWER(COALESCE(NULLIF(a2.name, ''), a2.name_eng)) LIKE LOWER('%" . $params['search_name'] . "%') ";
+            }
             $sql = "
                  SELECT 
 			COUNT(a.id) AS COUNT ,                  
@@ -479,27 +497,26 @@ class SysCountrys extends \DAL\DalSlim {
 			INNER JOIN sys_specific_definitions sd11 ON sd11.main_group = 16 AND sd11.first_group= a1.active AND 
 				sd11.language_code = a1.language_code AND sd11.deleted = 0 AND sd11.active = 0
 			INNER JOIN sys_language l1 ON l1.language_main_code = a1.language_code AND l1.deleted =0 
-			WHERE a1.language_code = :language_code AND a1.deleted =0) AS undeleted_count,
+			 " . $whereSQL1 . ") AS undeleted_count,
 			(SELECT COUNT(a2.id) AS COUNT FROM sys_countrys a2
 			INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND 
 				sd2.language_code = a2.language_code AND sd2.active =0 AND sd2.deleted = 0
 			INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group= a2.active AND 
 				sd12.language_code = a2.language_code AND sd12.deleted = 0 AND sd12.active = 0
 			INNER JOIN sys_language l2 ON l2.language_main_code = a2.language_code AND l2.deleted =0
-			WHERE a2.language_code = :language_code AND a2.deleted = 1 ) AS deleted_count 
+			 " . $whereSQL2 . " ) AS deleted_count 
                 FROM sys_countrys a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND 
 			sd.language_code = a.language_code AND sd.active =0 AND sd.deleted = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND 
 			sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0
 		INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 		 
-                WHERE a.language_code = :language_code
+                 " . $whereSQL . "
                     ";
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -521,25 +538,17 @@ class SysCountrys extends \DAL\DalSlim {
      public function fillComboBox($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */
             $statement = $pdo->prepare("
                 SELECT 
                     a.id,                     
                     COALESCE(NULLIF(a.name, ''), a.name_eng) AS name
                 FROM sys_countrys  a               
                 WHERE a.active =0 AND a.deleted = 0 AND a.language_code = :language_code  
-                ORDER BY a.priority, name  
-                
+                ORDER BY a.priority, name                  
                                  ");
               $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);  
               $statement->execute();
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);    
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -550,7 +559,7 @@ class SysCountrys extends \DAL\DalSlim {
         }
     }
     
-       /**
+    /**
      * basic insert database example for PDO prepared
      * statements, table names are irrevelant and should be changed on specific 
      * * returned result set example;
@@ -584,11 +593,7 @@ class SysCountrys extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            /**
-             * table names and column names will be changed for specific use
-             */
-            $statement = $pdo->prepare("
-                 
+            $statement = $pdo->prepare("                 
                     INSERT INTO sys_countrys(
                         name, name_eng, language_id, language_parent_id, 
                         user_id, flag_icon_road, country_code3,language_code) 
@@ -600,32 +605,27 @@ class SysCountrys extends \DAL\DalSlim {
                                 '' AS name, 
                                 c.name_eng, 
                                 l.id AS language_id, 
-                                (SELECT x.id FROM sys_countrys x WHERE x.id =:id AND x.deleted =0 AND x.active =0 AND x.language_parent_id =0) AS language_parent_id,    
+                                (SELECT x.id FROM sys_countrys x WHERE x.id =" . intval($params['user_id']) . "  AND x.deleted =0 AND x.active =0 AND x.language_parent_id =0) AS language_parent_id,    
                                 c.user_id, 		
                                 c.flag_icon_road, 
                                 l.country_code3,
                                 l.language_main_code
                             FROM sys_countrys c
                             LEFT JOIN sys_language l ON l.deleted =0 AND l.active =0 
-                            WHERE c.id = :id
+                            WHERE c.id = " . intval($params['id']) . " 
                     ) AS xy  
                     WHERE xy.language_main_code NOT IN 
                         (SELECT 
                             DISTINCT language_code 
                          FROM sys_countrys cx 
-                         WHERE (cx.language_parent_id =:id OR cx.id =:id) AND cx.deleted =0 AND cx.active =0)
-
-                                                ");
- 
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);   
-
+                         WHERE (cx.language_parent_id =" . intval($params['id']) . "  OR cx.id =" . intval($params['id']) . " ) AND cx.deleted =0 AND cx.active =0)
+                                                ");  
             $result = $statement->execute();
             $insertID = $pdo->lastInsertId('sys_countrys_id_seq');
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
-
             return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();

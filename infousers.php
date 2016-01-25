@@ -50,7 +50,7 @@ $app->add(new \Slim\Middleware\MiddlewareHMAC());
  *  * zeynel daÄŸlÄ±
  * @since 11-09-2014
  */
-$app->get("/fillGrid_infoUsers/", function () use ($app ) {
+$app->get("/fillGridRowTotalCount_infoUsers/", function () use ($app ) {
 
     
     $BLL = $app->getBLLManager()->get('infoUsersBLL'); 
@@ -63,8 +63,8 @@ $app->get("/fillGrid_infoUsers/", function () use ($app ) {
     
     
   
-    print_r('--****************get parent--' );  
-     $resTotalRowCount = $BLL->fillGridRowTotalCount(array('language_id'=>$_GET['language_id'])); 
+    //print_r('--****************get parent--' );  
+     $resTotalRowCount = $BLL->fillGridRowTotalCount(array('language_code'=>$_GET['language_code'])); 
     $resultArray = array();
     $resultArray['total'] = $resTotalRowCount[0]['count'];
 

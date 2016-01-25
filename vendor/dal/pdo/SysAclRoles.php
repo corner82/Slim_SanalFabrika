@@ -49,7 +49,7 @@ class SysAclRoles extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function delete($id = null, $params = array()) {
+    public function delete($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -63,8 +63,7 @@ class SysAclRoles extends \DAL\DalSlim {
                     user_id =  " . intval($params['user_id']) . " 
                 WHERE id = :id");
             //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             //Execute our DELETE statement.
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
@@ -224,9 +223,6 @@ class SysAclRoles extends \DAL\DalSlim {
             $pdo->beginTransaction();
             $kontrol = $this->haveRecords($params); 
             if (!\Utill\Dal\Helper::haveRecord($kontrol)) { 
-                /**
-                 * table names and column names will be changed for specific use
-                 */
                 $sql = "
                 INSERT INTO sys_acl_roles(
                         name, icon_class,  
@@ -239,7 +235,6 @@ class SysAclRoles extends \DAL\DalSlim {
                         :description,
                         :root
                                              )   ";
-
                 $statement = $pdo->prepare($sql);
                 $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
                 $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);                 
@@ -247,7 +242,6 @@ class SysAclRoles extends \DAL\DalSlim {
                 $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
                 $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':root', $params['root'], \PDO::PARAM_INT);
-
                // echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_acl_roles_id_seq');
@@ -291,11 +285,11 @@ class SysAclRoles extends \DAL\DalSlim {
             $sql = " 
             SELECT  
                 name as name , 
-                '" . $params['name'] . "' as value , 
-                name ='" . $params['name'] . "' as control,
-                concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
+                '" . $params['name'] . "' AS value , 
+                name ='" . $params['name'] . "' AS control,
+                concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
             FROM sys_acl_roles                
-            WHERE name = '" . $params['name'] . "'"
+            WHERE LOWER(name) = LOWER('" . $params['name'] . "')"
                     . $addSql . " 
                AND deleted =0   
                                ";
@@ -486,7 +480,7 @@ class SysAclRoles extends \DAL\DalSlim {
             if (count($sortArr) === 1)
                 $sort = trim($args['sort']);
         } else {
-            $sort = "a.id";
+            $sort = "a.name";
         }
 
         if (isset($args['order']) && $args['order'] != "") {
@@ -502,7 +496,7 @@ class SysAclRoles extends \DAL\DalSlim {
 
         $whereNameSQL = '';
         if (isset($args['search_name']) && $args['search_name'] != "") {
-            $whereNameSQL = " AND a.name LIKE '%" . $args['search_name'] . "%' ";
+            $whereNameSQL = " AND LOWER(a.name) LIKE LOWER('%" . $args['search_name'] . "%') ";
             //    print_r('2<<<<< sql e gelen ='.$args['search_name'].'>>>>>>>>>>2');
         } 
         

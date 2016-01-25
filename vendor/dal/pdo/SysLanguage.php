@@ -49,25 +49,18 @@ class SysLanguage extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function delete($id = null) {
+    public function delete($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement. 
             $statement = $pdo->prepare(" 
                 UPDATE sys_language
-                SET  deleted= 1
+                  SET deleted= 1 , active = 1 ,
+                      user_id =  " . intval($params['user_id']) . " 
                 WHERE id = :id");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            //Execute our DELETE statement.
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
@@ -140,9 +133,6 @@ class SysLanguage extends \DAL\DalSlim {
     public function getAll() {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */
             $statement = $pdo->prepare("
                   SELECT                    
                     a.id, 
@@ -174,14 +164,10 @@ class SysLanguage extends \DAL\DalSlim {
 			sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.user_id  
-                ORDER BY a.priority, language 
-                
+                ORDER BY a.priority, language                 
                                  ");
             $statement->execute();
-            $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
+            $result = $statement->fetcAll(\PDO::FETCH_ASSOC); 
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -236,11 +222,9 @@ class SysLanguage extends \DAL\DalSlim {
                                ";
             $statement = $pdo->prepare($sql);            
             $statement->execute();
-            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);          
+            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);         
 
             if (!isset($kontrol[0]['control'])) {  
-                
-         
             $pdo->beginTransaction();
             /**
              * table names and column names will be changed for specific use
@@ -426,19 +410,16 @@ class SysLanguage extends \DAL\DalSlim {
             $sortArr = explode(",", $sort);
             if (count($sortArr) === 1)
                 $sort = trim($args['sort']);
-        } else {
-            //$sort = "id";
-            $sort = "r_date";
+        } else { 
+            $sort = " a.priority, language";
         }
 
         if (isset($args['order']) && $args['order'] != "") {
             $order = trim($args['order']);
-            $orderArr = explode(",", $order);
-            //print_r($orderArr);
+            $orderArr = explode(",", $order);    
             if (count($orderArr) === 1)
                 $order = trim($args['order']);
-        } else {
-            //$order = "desc";
+        } else {     
             $order = "ASC";
         }        
 
@@ -481,11 +462,7 @@ class SysLanguage extends \DAL\DalSlim {
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
                     . "OFFSET " . $pdo->quote($offset) . " ";
-            $statement = $pdo->prepare($sql);
-            /**
-             * For debug purposes PDO statement sql
-             * uses 'Panique' library located in vendor directory
-             */
+            $statement = $pdo->prepare($sql); 
             $parameters = array(
                 'sort' => $sort,
                 'order' => $order,
@@ -518,10 +495,8 @@ class SysLanguage extends \DAL\DalSlim {
      */
     public function fillGridRowTotalCount($params = array()) {
         try {
-
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $sql = "
-             
+            $sql = "             
 	     SELECT                    
 			COUNT(a.id) AS COUNT , 
 			(SELECT COUNT(a1.id) FROM sys_language a1
@@ -553,7 +528,6 @@ class SysLanguage extends \DAL\DalSlim {
             $statement->bindValue(':language_id', $args['language_id'], \PDO::PARAM_INT);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -563,7 +537,7 @@ class SysLanguage extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-      /**
+    /**
      * user interface datagrid fill operation get row count for widget
      * @author Okan CIRAN
      * @ combobox ı doldurmak için sys_language tablosundan çekilen kayıtları döndürür   !!
@@ -572,12 +546,9 @@ class SysLanguage extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-     public function fillComboBox() {
+    public function fillComboBox() {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */
             $statement = $pdo->prepare("
                 SELECT                    
                     a.id, 	
@@ -587,15 +558,10 @@ class SysLanguage extends \DAL\DalSlim {
                 FROM sys_language  a       
                 WHERE  
                     a.deleted = 0 and a.active =0    
-                ORDER BY a.priority
-                
+                ORDER BY a.priority                
                                  ");
               $statement->execute();
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);                        
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
