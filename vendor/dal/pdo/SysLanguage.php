@@ -45,7 +45,7 @@ class SysLanguage extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_language tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  07.12.2015
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
@@ -57,7 +57,7 @@ class SysLanguage extends \DAL\DalSlim {
                 UPDATE sys_language
                   SET deleted= 1 , active = 1 ,
                       user_id =  " . intval($params['user_id']) . " 
-                WHERE id = :id");
+                WHERE id = " . intval($params['id']));
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
@@ -317,19 +317,15 @@ class SysLanguage extends \DAL\DalSlim {
      * @author Okan CIRAN
      * sys_language tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  07.12.2015
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function update($id = null, $params = array()) {
+    public function update($params = array()) {
         try {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement.            
+            $pdo->beginTransaction();          
             $statement = $pdo->prepare("
                 UPDATE sys_language
                 SET              
@@ -350,7 +346,7 @@ class SysLanguage extends \DAL\DalSlim {
                     priority  = :priority
                 WHERE id = :id");
             //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
+            $statement->bindValue(':id',  $params['id'], \PDO::PARAM_INT);
             //Bind our :model parameter.     
             $statement->bindValue(':country_name', $params['country_name'], \PDO::PARAM_STR);
             $statement->bindValue(':country_name_eng', $params['country_name_eng'], \PDO::PARAM_STR);

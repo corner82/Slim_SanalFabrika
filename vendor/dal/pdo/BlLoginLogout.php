@@ -45,29 +45,23 @@ class BlLoginLogout extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ info_users tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  30.12.2015
-     * @param type $id
+     * @param array | null $args
      * @return array
      * @throws \PDOException
      */
-    public function delete($id = null) {
+    public function delete($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement. 
             $statement = $pdo->prepare(" 
                 UPDATE info_users
-                SET deleted= 1
+                SET deleted= 1 , active = 1 ,
+                    user_id =  " . intval($params['user_id']) . " 
                 WHERE id = :id");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            //Execute our DELETE statement.
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
@@ -133,16 +127,14 @@ class BlLoginLogout extends \DAL\DalSlim {
      * usage 
      * @author Okan CIRAN
      * @ info_users tablosundaki tüm kayıtları getirir.  !!
-     * @version v 1.0  30.12.2015    
+     * @version v 1.0  30.12.2015  
+     * @param array | null $args  
      * @return array
      * @throws \PDOException
      */
-    public function getAll() {
+    public function getAll($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */
             $statement = $pdo->prepare("
                     SELECT 
                         a.id, 
@@ -185,14 +177,12 @@ class BlLoginLogout extends \DAL\DalSlim {
                     LEFT JOIN sys_specific_definitions sd4 ON sd4.main_group = 1 AND sd4.first_group= a.active AND sd4.language_code = a.language_code AND sd4.deleted = 0 AND sd4.active = 0
                     INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active =0 
                     INNER JOIN info_users u ON u.id = a.user_id  
+                    WHERE a.deleted =0 AND language_code = :language_code 
                     ORDER BY a.firm_name   
                           ");
-
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR); 
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -306,19 +296,15 @@ class BlLoginLogout extends \DAL\DalSlim {
      * @author Okan CIRAN
      * info_users tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  30.12.2015
-     * @param type $id
+     * @param array | null $args  
      * @return array
      * @throws \PDOException
      */
-    public function update($id = null, $params = array()) {
+    public function update($params = array()) {
         try {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement.            
+            $pdo->beginTransaction();           
             $statement = $pdo->prepare("
                 UPDATE info_users
                 SET              
@@ -331,9 +317,7 @@ class BlLoginLogout extends \DAL\DalSlim {
                     country_code3 = :country_code3,
                     priority = :priority 
                 WHERE id = :id");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            //Bind our :model parameter.
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
             $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
             $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
@@ -342,8 +326,6 @@ class BlLoginLogout extends \DAL\DalSlim {
             $statement->bindValue(':flag_icon_road', $params['flag_icon_road'], \PDO::PARAM_STR);
             $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
             $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);
-
-            //Execute our UPDATE statement.
             $update = $statement->execute();
             $affectedRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();

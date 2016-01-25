@@ -45,7 +45,7 @@ class SysCountrys extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_countrys tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  07.12.2015
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
@@ -128,10 +128,11 @@ class SysCountrys extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_countrys tablosundaki tüm kayıtları getirir.  !!
      * @version v 1.0  07.12.2015    
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function getAll() {
+    public function getAll($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $statement = $pdo->prepare("
@@ -158,8 +159,10 @@ class SysCountrys extends \DAL\DalSlim {
 			sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0
 		INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.user_id  
+                WHERE a.deleted =0 AND a.language_code = :language_code  
                 ORDER BY a.priority ASC, name
                           ");   
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);             
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -180,6 +183,7 @@ class SysCountrys extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_countrys tablosunda name sutununda daha önce oluşturulmuş mu? 
      * @version v 1.0 21.01.2016
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
@@ -242,6 +246,7 @@ class SysCountrys extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_countrys tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  08.12.2015
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
@@ -319,11 +324,11 @@ class SysCountrys extends \DAL\DalSlim {
      * @author Okan CIRAN
      * sys_countrys tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  07.12.2015
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function update($id = null, $params = array()) {
+    public function update($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();

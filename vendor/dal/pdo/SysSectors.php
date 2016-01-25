@@ -45,29 +45,23 @@ class SysSectors extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_sectors tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  07.12.2015
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function delete($id = null) {
+    public function delete($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement. 
+            $pdo->beginTransaction(); 
             $statement = $pdo->prepare(" 
                 UPDATE sys_sectors
-                SET  deleted= 1
+                SET  deleted= 1, active = 1, 
+                    user_id =  " . intval($params['user_id']) . " 
                 WHERE id = :id");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            //Execute our DELETE statement.
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
@@ -301,19 +295,15 @@ class SysSectors extends \DAL\DalSlim {
      * @author Okan CIRAN
      * sys_sectors tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  07.12.2015
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function update($id = null, $params = array()) {
+    public function update($params = array()) {
         try {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement.            
+            $pdo->beginTransaction();        
             $statement = $pdo->prepare("
                 UPDATE sys_sectors
                 SET              
@@ -325,9 +315,7 @@ class SysSectors extends \DAL\DalSlim {
                     description_eng = :description_eng,                       
                     user_id= :user_id  
                 WHERE id = :id");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            //Bind our :model parameter.
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
             $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
             $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);

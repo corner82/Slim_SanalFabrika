@@ -45,11 +45,11 @@ class SysAclRrpMap extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_acl_rrpmap tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  13-01-2016
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function delete($id = null, $params = array()) {
+    public function delete($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();         
@@ -127,11 +127,12 @@ class SysAclRrpMap extends \DAL\DalSlim {
      * usage 
      * @author Okan CIRAN
      * @ sys_acl_rrpmap tablosundaki tüm kayıtları getirir.  !!
-     * @version v 1.0  13-01-2016    
+     * @version v 1.0  13-01-2016  
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function getAll() {
+    public function getAll($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
             $statement = $pdo->prepare("
@@ -184,6 +185,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_acl_rrpmap tablosunda role_id, resource_id ve privilege_id aynı kayıtta daha önce oluşturulmuş mu? 
      * @version v 1.0 15.01.2016
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
@@ -252,6 +254,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_acl_rrpmap tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  13-01-2016
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
@@ -324,11 +327,11 @@ class SysAclRrpMap extends \DAL\DalSlim {
      * @author Okan CIRAN
      * sys_acl_rrpmap tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  13-01-2016
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function update($id = null, $params = array()) {
+    public function update($params = array()) {
         try {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -343,12 +346,9 @@ class SysAclRrpMap extends \DAL\DalSlim {
                     privilege_id =:privilege_id,  
                     user_id = :user_id,
                     description= :description  
-                WHERE id = :id ";
-                //  echo debugPDO($sql, $params);
-                $statement = $pdo->prepare($sql);
-                //Bind our value to the parameter :id.         
-                $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-                //Bind our :model parameter.                  
+                WHERE id = :id ";   
+                $statement = $pdo->prepare($sql); 
+                $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);              
                 $statement->bindValue(':role_id', $params['role_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':resource_id', $params['resource_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':privilege_id', $params['privilege_id'], \PDO::PARAM_INT);

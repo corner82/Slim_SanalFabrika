@@ -45,11 +45,11 @@ class SysAclResources extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_acl_resources tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  07.01.2016
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function delete($id = null, $params = array()) {
+    public function delete($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();       
@@ -128,10 +128,11 @@ class SysAclResources extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_acl_resources tablosundaki tüm kayıtları getirir.  !!
      * @version v 1.0  07.01.2016    
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function getAll() {
+    public function getAll($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $statement = $pdo->prepare("
@@ -152,9 +153,10 @@ class SysAclResources extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
                 INNER JOIN info_users u ON u.id = a.user_id    
-                WHERE a.deleted =0 
+                WHERE a.deleted =0 AND a.language_code = :language_code     
                 ORDER BY a.name                  
                                  ");
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);             
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);   
             $errorInfo = $statement->errorInfo();
@@ -194,6 +196,7 @@ class SysAclResources extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_acl_resources tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  07.01.2016
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
@@ -266,11 +269,11 @@ class SysAclResources extends \DAL\DalSlim {
      * @author Okan CIRAN
      * sys_acl_resources tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  07.01.2016
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function update($id = null, $params = array()) {
+    public function update($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -321,6 +324,7 @@ class SysAclResources extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_acl_roles tablosunda name sutununda daha önce oluşturulmuş mu? 
      * @version v 1.0 15.01.2016
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
@@ -536,7 +540,7 @@ class SysAclResources extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ combobox doldurmak için sys_acl_resources tablosundan tüm kayıtları döndürür !!
      * @version v 1.0  07.01.2016
-     * @param array | null $args
+     * @param array $params
      * @return array
      * @throws \PDOException
      */
@@ -544,8 +548,8 @@ class SysAclResources extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $id = 0;
-            if (isset($_GET['id']) && $_GET['id'] != "") {
-                $id = $_GET['id'];
+            if (isset($params['id']) && $params['id'] != "") {
+                $id = $params['id'];
             }
             $statement = $pdo->prepare("
                 SELECT                    

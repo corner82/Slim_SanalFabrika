@@ -33,32 +33,32 @@ class SysAclResources extends \BLL\BLLSlim{
     
     /**
      * Data update function
-     * @param integer $id
      * @param array $params
      * @return array
      */
-    public function update($id = null, $params = array()) {
+    public function update($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysAclResourcesPDO');
         return $DAL->update($id, $params);
     }
     
     /**
      * Data delete function
-     * @param integer $id
+     * @param array $params
      * @return array
      */
-    public function delete($id = null, $params = array()) {
+    public function delete( $params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysAclResourcesPDO');
-        return $DAL->delete($id, $params);
+        return $DAL->delete($params);
     }
 
     /**
      * get all data
+     * @param array $params
      * @return array
      */
-    public function getAll() {
+    public function getAll($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysAclResourcesPDO');
-        return $DAL->getAll();
+        return $DAL->getAll($params);
     }
     
     /**

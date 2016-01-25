@@ -34,32 +34,32 @@ class InfoFirmProfile extends \BLL\BLLSlim {
 
     /**
      * Data update function
-     * @param integer $id
      * @param array | null $params
      * @return array
      */
-    public function update($id = null, $params = array()) {
+    public function update($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
-        return $DAL->update($id, $params);
+        return $DAL->update($params);
     }
 
     /**
      * Data delete function
-     * @param integer $id
+    * @param array | null $params
      * @return array
      */
-    public function delete($id = null) {
+    public function delete($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
-        return $DAL->delete($id);
+        return $DAL->delete($params);
     }
 
     /**
      * get all data
+     * @param array | null $params
      * @return array
      */
-    public function getAll() {
+    public function getAll($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
-        return $DAL->getAll();
+        return $DAL->getAll($params);
     }
 
     /**
@@ -86,13 +86,12 @@ class InfoFirmProfile extends \BLL\BLLSlim {
 
     /**
      * Data delete action function
-     * @param integer $id
      * @param array | null $params
      * @return array
      */
-    public function deletedAct($id = null, $params = array()) {
+    public function deletedAct( $params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
-        return $DAL->deletedAct($id, $params);
+        return $DAL->deletedAct($params);
     }
 
     /**

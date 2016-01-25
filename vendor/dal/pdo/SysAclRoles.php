@@ -45,7 +45,7 @@ class SysAclRoles extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_acl_roles tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  07.01.2016
-     * @param type $id
+     * @param array $params
      * @return array
      * @throws \PDOException
      */
@@ -53,10 +53,6 @@ class SysAclRoles extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement. 
             $statement = $pdo->prepare(" 
                 UPDATE sys_acl_roles
                 SET  deleted= 1 , active = 1 ,
@@ -134,16 +130,14 @@ class SysAclRoles extends \DAL\DalSlim {
      * usage 
      * @author Okan CIRAN
      * @ sys_acl_roles tablosundaki tüm kayıtları getirir.  !!
-     * @version v 1.0  07.01.2016    
+     * @version v 1.0  07.01.2016  
+     * @param array $params
      * @return array
      * @throws \PDOException
      */
-    public function getAll() {
+    public function getAll($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */
             $statement = $pdo->prepare("
              SELECT 
                     a.id, 
@@ -167,10 +161,10 @@ class SysAclRoles extends \DAL\DalSlim {
             INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
             INNER JOIN info_users u ON u.id = a.user_id 
             LEFT JOIN sys_acl_roles sar ON a.root > 0 AND sar.id = a.root AND sar.active =0 AND sar.deleted =0 
-            WHERE a.deleted =0 
-            ORDER BY a.name 
-                
+            WHERE a.deleted =0 AND a.language_code = :language_code 
+            ORDER BY a.name                 
                                  ");
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR); 
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             /* while ($row = $statement->fetch()) {
@@ -213,6 +207,7 @@ class SysAclRoles extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_acl_roles tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  07.01.2016
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
@@ -271,6 +266,7 @@ class SysAclRoles extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_acl_roles tablosunda name sutununda daha önce oluşturulmuş mu? 
      * @version v 1.0 15.01.2016
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
@@ -335,36 +331,26 @@ class SysAclRoles extends \DAL\DalSlim {
      * @author Okan CIRAN
      * sys_acl_roles tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  07.01.2016
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function update($id = null, $params = array()) {
+    public function update($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');           
             $pdo->beginTransaction();
             //print_r($params);
             $kontrol = $this->haveRecords($params); 
-            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-            //if (!isset($kontrol ['resultSet'][0]['control'])) {                
-                $valuesSqlStartDate = '';
-                /**
-                 * table names and  column names will be changed for specific use
-                 */
-                //Prepare our UPDATE SQL statement.            
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {          
                 $sql = "
                 UPDATE sys_acl_roles
                 SET   
                     name = :name,                  
                     user_id = :user_id                    
-                WHERE id = " . $id;
+                WHERE id = " . intval($params['id'])   ;
                 $statement = $pdo->prepare($sql);
-                //Bind our :model parameter.                  
                 $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR); 
-                //$statement->bindValue(':active', $params['active'], \PDO::PARAM_INT); 
-                $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT); 
-                
-                //Execute our UPDATE statement.                
+                $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);                 
                 $update = $statement->execute();
                 $affectedRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
@@ -412,23 +398,19 @@ class SysAclRoles extends \DAL\DalSlim {
      * @author Okan CIRAN
      * sys_acl_roles tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  07.01.2016
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
     public function updateChild($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement.            
+            $pdo->beginTransaction();       
             $sql = " 
             UPDATE sys_acl_roles
                 SET                     
-                    active = :active,              
-                    user_id= :user_id
+                    active = " . intval($params['active']) . " ,              
+                    user_id= " . intval($params['user_id']) . " 
                 WHERE id IN (
                   SELECT id FROM sys_acl_roles P WHERE p.root = (
                                   SELECT DISTINCT COALESCE(NULLIF(root, 0),id) FROM sys_acl_roles WHERE deleted = 0 AND id=" . $params['id'] . " )
@@ -436,8 +418,6 @@ class SysAclRoles extends \DAL\DalSlim {
                   )
                 ";
             $statement = $pdo->prepare($sql);
-            $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
           //  echo debugPDO($sql, $params);
             //Execute our UPDATE statement.
             $update = $statement->execute();
@@ -620,7 +600,6 @@ class SysAclRoles extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ combobox doldurmak için sys_acl_roles tablosundan parent ı 0 olan kayıtları (Ana grup) döndürür !!
      * @version v 1.0  07.01.2016
-     * @param array | null $args
      * @return array
      * @throws \PDOException
      */

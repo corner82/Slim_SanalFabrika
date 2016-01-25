@@ -45,19 +45,20 @@ class InfoFirmProfile extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ info_firm_profile tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  06.01.2016
-     * @param type $id
+     * @param array | null $args
      * @return array
      * @throws \PDOException
      */
-    public function delete($id = null) {
+    public function delete($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $statement = $pdo->prepare(" 
                 UPDATE info_firm_profile
-                SET  deleted= 1, active = 1 
+                SET  deleted= 1, active = 1 , 
+                  user_id =  " . intval($params['user_id']) . " 
                 WHERE id = :id");
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT); 
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
@@ -126,16 +127,14 @@ class InfoFirmProfile extends \DAL\DalSlim {
      * usage 
      * @author Okan CIRAN
      * @ info_firm_profile tablosundaki tüm kayıtları getirir.  !!
-     * @version v 1.0  06.01.2016    
+     * @version v 1.0  06.01.2016   
+     * @param array | null $args
      * @return array
      * @throws \PDOException
      */
-    public function getAll() {
+    public function getAll($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */
             $statement = $pdo->prepare("
                     SELECT 
                         a.id, 
@@ -183,9 +182,10 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active =0 
                     INNER JOIN info_users u ON u.id = a.user_id  
                     LEFT JOIN info_users u1 ON u1.id = a.owner_user_id  
-                    WHERE deleted = 0 
+                    WHERE a.deleted = 0  AND a.language_code = :language_code  
                     ORDER BY a.firm_name   
                           ");
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR); 
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -206,6 +206,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ info_firm_profile tablosunda name sutununda daha önce oluşturulmuş mu? 
      * @version v 1.0 15.01.2016
+     * @param array | null $args
      * @return array
      * @throws \PDOException
      */
@@ -266,6 +267,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ info_firm_profile tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  06.01.2016
+     * @param array | null $args
      * @return array
      * @throws \PDOException
      */
@@ -374,11 +376,11 @@ class InfoFirmProfile extends \DAL\DalSlim {
      * @author Okan CIRAN
      * info_firm_profile tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  06.01.2016
-     * @param type $id
+     * @param array | null $args
      * @return array
      * @throws \PDOException
      */
-    public function update($id = null, $params = array()) {
+    public function update($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -386,7 +388,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
             if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                 $act_parent_id = intval($params['act_parent_id']);
                 if ($act_parent_id = 0) {
-                    $act_parent_id = intval($id);
+                    $act_parent_id = intval($params['id']);                    
                 }
                 $statement = $pdo->prepare("                                      
                     UPDATE info_firm_profile
@@ -399,11 +401,9 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         act_parent_id = :act_parent_id,
                         language_code = :language_code
                     WHERE id = :id                    
-                    ");
-                //Bind our value to the parameter :id.
+                    ");          
                 $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-                $statement->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);
-                //Bind our :model parameter.
+                $statement->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);          
                 $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
                 $statement->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
                 $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
@@ -933,50 +933,30 @@ class InfoFirmProfile extends \DAL\DalSlim {
      * @return array
      * @throws PDOException
      */
-    public function deletedAct($id = null, $params = array()) {
+    public function deletedAct( $params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-
             $act_parent_id = intval($params['act_parent_id']);
             if ($act_parent_id = 0) {
-                $act_parent_id = intval($id);
-            }
-            //  print_r('******* delete act_parent_id = '. $act_parent_id);
-
-
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement.
-            $statement = $pdo->prepare("
-                                      
+                $act_parent_id = intval($params['id']);
+            }  
+            $statement = $pdo->prepare("                                      
                     UPDATE info_firm_profile
                     SET                                                                
-                        c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) , 
-                        operation_type_id= :operation_type_id,                         
+                        c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                                           
                         active = 1,
                         deleted = 0
                         act_parent_id = :act_parent_id 
                     WHERE id = :id                    
-                    ");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
+                    ");    
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $statement->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);
-
-            //Bind our :model parameter.
-            $statement->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
-            $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
-
-            //Execute our UPDATE statement.
             $update = $statement->execute();
             $affectedRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
-
-
-            //    -----------------------------------------------------------------------------------  
             $statement_act_insert = $pdo->prepare(" 
                INSERT INTO info_firm_profile(
                         profile_public, 
@@ -1016,33 +996,27 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         1,
                         1
                                                 ");
-            $statement->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
-            $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':firm_name', $params['firm_name'], \PDO::PARAM_STR);
-            $statement->bindValue(':web_address', $params['web_address'], \PDO::PARAM_STR);
-            $statement->bindValue(':tax_office', $params['tax_office'], \PDO::PARAM_STR);
-            $statement->bindValue(':tax_no', $params['tax_no'], \PDO::PARAM_STR);
-            $statement->bindValue(':sgk_sicil_no', $params['sgk_sicil_no'], \PDO::PARAM_STR);
-            $statement->bindValue(':ownership_status_id', $params['ownership_status_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':foundation_year', $params['foundation_year'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
-            $statement->bindValue(':bagkur_sicil_no', $params['bagkur_sicil_no'], \PDO::PARAM_STR);
-            $statement->bindValue(':owner_user_id', $params['owner_user_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':firm_name_eng', $params['firm_name_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':firm_name_sort', $params['firm_name_sort'], \PDO::PARAM_STR);
-
+            $statement_act_insert->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
+            $statement_act_insert->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
+            $statement_act_insert->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
+            $statement_act_insert->bindValue(':firm_name', $params['firm_name'], \PDO::PARAM_STR);
+            $statement_act_insert->bindValue(':web_address', $params['web_address'], \PDO::PARAM_STR);
+            $statement_act_insert->bindValue(':tax_office', $params['tax_office'], \PDO::PARAM_STR);
+            $statement_act_insert->bindValue(':tax_no', $params['tax_no'], \PDO::PARAM_STR);
+            $statement_act_insert->bindValue(':sgk_sicil_no', $params['sgk_sicil_no'], \PDO::PARAM_STR);
+            $statement_act_insert->bindValue(':ownership_status_id', $params['ownership_status_id'], \PDO::PARAM_INT);
+            $statement_act_insert->bindValue(':foundation_year', $params['foundation_year'], \PDO::PARAM_INT);
+            $statement_act_insert->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+            $statement_act_insert->bindValue(':bagkur_sicil_no', $params['bagkur_sicil_no'], \PDO::PARAM_STR);
+            $statement_act_insert->bindValue(':owner_user_id', $params['owner_user_id'], \PDO::PARAM_INT);
+            $statement_act_insert->bindValue(':firm_name_eng', $params['firm_name_eng'], \PDO::PARAM_STR);
+            $statement_act_insert->bindValue(':firm_name_sort', $params['firm_name_sort'], \PDO::PARAM_STR);
             $insert_act_insert = $statement_act_insert->execute();
             $affectedRows = $statement_act_insert->rowCount();
-
             $errorInfo = $statement_act_insert->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
-            //------------------------------------------------------------------------------   
-
-
             $pdo->commit();
-
             return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();

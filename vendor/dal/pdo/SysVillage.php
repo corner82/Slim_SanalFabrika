@@ -45,25 +45,20 @@ class SysVillage extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_village tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  07.12.2015
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function delete($id = null) {
+    public function delete($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement. 
+            $pdo->beginTransaction(); 
             $statement = $pdo->prepare(" 
                 UPDATE sys_village
-                SET  deleted= 1
+                SET  deleted= 1, active = 1, 
+                    user_id =  " . intval($params['user_id']) . " 
                 WHERE id = :id");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            //Execute our DELETE statement.
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
@@ -311,19 +306,15 @@ class SysVillage extends \DAL\DalSlim {
      * @author Okan CIRAN
      * sys_village tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  07.12.2015
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function update($id = null, $params = array()) {
+    public function update($params = array()) {
         try {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement.            
+            $pdo->beginTransaction();         
             $statement = $pdo->prepare("
                UPDATE sys_village
                     SET 
@@ -342,9 +333,7 @@ class SysVillage extends \DAL\DalSlim {
                          status= :status, 
                          user_id= :user_id
                 WHERE id = :id");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            //Bind our :model parameter.
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $statement->bindValue(':ilceref', $params['ilceref'], \PDO::PARAM_INT);
             $statement->bindValue(':tapumahallead', $params['tapumahallead'], \PDO::PARAM_STR);
             $statement->bindValue(':kadastromahallead', $params['kadastromahallead'], \PDO::PARAM_STR);
@@ -358,11 +347,7 @@ class SysVillage extends \DAL\DalSlim {
             $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);                       
             $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
             $statement->bindValue(':status', $params['status'], \PDO::PARAM_INT);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);            
-            
-        
-        
-            //Execute our UPDATE statement.
+            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT); 
             $update = $statement->execute(); 
             $affectedRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();

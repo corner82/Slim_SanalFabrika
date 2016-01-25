@@ -45,29 +45,22 @@ class SysNavigationLeft extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_navigation_left tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  14.12.2015
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function delete($id = null) {
+    public function delete($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement. 
             $statement = $pdo->prepare(" 
                 UPDATE sys_navigation_left
-                SET  deleted= 1
-                WHERE id = :id");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            //Execute our DELETE statement.
+                SET  deleted= 1, active = 1, 
+                    user_id =  " . intval($params['user_id']) . " 
+                WHERE id = ". intval($params['id']));
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
@@ -339,19 +332,14 @@ class SysNavigationLeft extends \DAL\DalSlim {
      * @author Okan CIRAN
      * sys_navigation_left tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  14.12.2015
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function update($id = null, $params = array()) {
+    public function update($params = array()) {
         try {
-
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement.            
+            $pdo->beginTransaction();          
             $statement = $pdo->prepare("
                 UPDATE sys_navigation_left
                 SET              
@@ -374,8 +362,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     acl_type = :acl_type
                 WHERE id = :id");
             //Bind our value to the parameter :id.
-
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             //Bind our :model parameter.
             $statement->bindValue(':menu_name', $params['menu_name'], \PDO::PARAM_STR);
             $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);

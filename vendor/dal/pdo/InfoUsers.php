@@ -40,7 +40,7 @@ class InfoUsers extends \DAL\DalSlim {
       [errorInfo] => 42P01
       )
      * usage
-     * @param type $id
+     * @param array | null $args
      * @return array
      * @throws \PDOException
      */
@@ -122,10 +122,11 @@ class InfoUsers extends \DAL\DalSlim {
 
       )
      * usage
+     * @param array | null $args
      * @return type
      * @throws \PDOException
      */
-    public function getAll() {
+    public function getAll($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');    
             $statement = $pdo->prepare(" 
@@ -164,8 +165,10 @@ class InfoUsers extends \DAL\DalSlim {
                     INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_code = a.language_code AND sd3.deleted = 0 AND sd3.active = 0                    
                     INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active =0 
                     INNER JOIN info_users u ON u.id = a.user_id  
+                    WHERE a.deleted =0 AND a.language_code = :language_code   
                     ORDER BY a.name, a.surname
                 ");
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR); 
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -244,7 +247,7 @@ class InfoUsers extends \DAL\DalSlim {
       [errorInfo] => 42P01
       )
      * usage
-     * @param type $params
+     * @param array | null $args
      * @return array
      * @throws PDOException
      */
@@ -333,12 +336,12 @@ class InfoUsers extends \DAL\DalSlim {
       [errorInfo] => 42P01
       )
      * usage
-     * @param type $id
+     * @param array | null $args
      * @param type $params
      * @return array
      * @throws PDOException
      */
-    public function update(  $params = array()) {
+    public function update($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -353,7 +356,6 @@ class InfoUsers extends \DAL\DalSlim {
                     SET                         
                         f_check = :f_check,                         
                         c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) , 
-                        operation_type_id= :operation_type_id,                         
                         active = 1,                    
                         act_parent_id = :act_parent_id,                    
                         user_id = :user_id
@@ -362,7 +364,6 @@ class InfoUsers extends \DAL\DalSlim {
                 $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
                 $statement->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);              
                 $statement->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
-                $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);                
                 $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);                                
                 $update = $statement->execute();
                 $affectedRows = $statement->rowCount();

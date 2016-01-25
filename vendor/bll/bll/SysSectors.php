@@ -37,9 +37,9 @@ class SysSectors extends \BLL\BLLSlim{
      * @param array $params
      * @return array
      */
-    public function update($id = null, $params = array()) {
+    public function update($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysSectorsPDO');
-        return $DAL->update($id, $params);
+        return $DAL->update( $params);
     }
     
     /**
@@ -47,9 +47,9 @@ class SysSectors extends \BLL\BLLSlim{
      * @param integer $id
      * @return array
      */
-    public function delete($id = null) {
+    public function delete($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysSectorsPDO');
-        return $DAL->delete($id);
+        return $DAL->delete($params = array());
     }
 
     /**

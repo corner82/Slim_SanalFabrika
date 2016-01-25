@@ -43,7 +43,6 @@ class InfoUsers extends \BLL\BLLSlim{
     
     /**
      * Data update function
-     * @param integer $id
      * @param array | null $params
      * @return array
      */
@@ -54,7 +53,7 @@ class InfoUsers extends \BLL\BLLSlim{
     
     /**
      * Data delete function
-     * @param integer $id
+     * @param array | null $params
      * @return array
      */
     public function delete( $params = array()) {
@@ -64,11 +63,12 @@ class InfoUsers extends \BLL\BLLSlim{
 
     /**
      * get all data
+     * @param array | null $params
      * @return array
      */
-    public function getAll() {
+    public function getAll($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
-        return $DAL->getAll();
+        return $DAL->getAll($params);
     }
     
     /**
@@ -99,7 +99,7 @@ class InfoUsers extends \BLL\BLLSlim{
      * @param array | null $params
      * @return array
      */
-    public function deletedAct( $params = array()) {
+    public function deletedAct($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
         return $DAL->deletedAct($id, $params);
     }

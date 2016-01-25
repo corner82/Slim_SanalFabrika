@@ -45,11 +45,11 @@ class SysCity extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_city tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  18.12.2015
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function delete($id = null) {
+    public function delete($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -127,11 +127,12 @@ class SysCity extends \DAL\DalSlim {
      * usage 
      * @author Okan CIRAN
      * @ sys_city tablosundaki tüm kayıtları getirir.  !!
-     * @version v 1.0  18.12.2015    
+     * @version v 1.0  18.12.2015  
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function getAll() {
+    public function getAll($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $statement = $pdo->prepare("
@@ -157,9 +158,11 @@ class SysCity extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0
                 INNER JOIN sys_countrys c ON c.id = a.country_id AND c.language_code = a.language_code AND c.deleted = 0 AND c.active = 0 
                 INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
-		INNER JOIN info_users u ON u.id = a.user_id            
+		INNER JOIN info_users u ON u.id = a.user_id  
+                WHERE a.deleted =0 AND a.language_code = :language_code 
                 ORDER BY a.priority ASC, name                
-                                 ");   
+                                 "); 
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR); 
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);            
             $errorInfo = $statement->errorInfo();
@@ -279,19 +282,14 @@ class SysCity extends \DAL\DalSlim {
      * @author Okan CIRAN
      * sys_city tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  18.12.2015
-     * @param type $id
+     * @param type $params
      * @return array
      * @throws \PDOException
      */
-    public function update($id = null, $params = array()) {
+    public function update($params = array()) {
         try {
-
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
-            /**
-             * table names and  column names will be changed for specific use
-             */
-            //Prepare our UPDATE SQL statement.            
+            $pdo->beginTransaction();          
             $statement = $pdo->prepare("
                 UPDATE sys_city
                 SET    
@@ -305,9 +303,7 @@ class SysCity extends \DAL\DalSlim {
                     priority= :priority, 
                     city_id= :city_id                    
                 WHERE id = :id");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
-            //Bind our :model parameter.
+            $statement->bindValue(':id',  $params['id'], \PDO::PARAM_INT);
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
             $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
             $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
@@ -317,10 +313,6 @@ class SysCity extends \DAL\DalSlim {
             $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
             $statement->bindValue(':city_id', $params['city_id'], \PDO::PARAM_INT);
             $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
-
-
-
-            //Execute our UPDATE statement.
             $update = $statement->execute();
             $affectedRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
