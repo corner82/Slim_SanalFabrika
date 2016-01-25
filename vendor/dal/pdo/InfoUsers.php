@@ -44,17 +44,18 @@ class InfoUsers extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function delete($id = null) {
+    public function delete($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $statement = $pdo->prepare("
                     UPDATE info_users 
-                    SET deleted = 1 , active =1   
+                    SET deleted = 1, active =1,
+                    user_id = " . intval($params['user_id']) . "                     
                     WHERE id = :id
                     ");
             //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $id, \PDO::PARAM_INT);
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $update = $statement->execute();
             $affectedRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
@@ -140,9 +141,7 @@ class InfoUsers extends \DAL\DalSlim {
                         a.surname, 
                         a.username, 
                         a.password, 
-                        a.auth_email, 
-                        a.gender_id, 
-                        sd4.description AS gender,  
+                        a.auth_email,                   
                         a.language_code, 
                         COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,
                         sd2.description AS state_deleted, 
@@ -155,14 +154,14 @@ class InfoUsers extends \DAL\DalSlim {
                         a.auth_allow_id, 
                         sd.description AS auth_alow ,
                         a.cons_allow_id,
-                        sd1.description AS cons_allow 
+                        sd1.description AS cons_allow ,
+                        a.preferred_language
                     FROM info_users a    
                     INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_code = a.language_code
                     INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_code = a.language_code AND a.auth_allow_id = sd.first_group 
                     INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 14 AND  sd1.language_code = a.language_code AND a.cons_allow_id = sd1.first_group 
                     INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a.deleted AND sd2.language_code = a.language_code AND sd2.deleted =0 AND sd2.active =0 
-                    INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_code = a.language_code AND sd3.deleted = 0 AND sd3.active = 0
-                    INNER JOIN sys_specific_definitions sd4 ON sd4.main_group = 3 AND sd4.first_group= a.active AND sd4.language_code = a.language_code AND sd4.deleted = 0 AND sd4.active = 0
+                    INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_code = a.language_code AND sd3.deleted = 0 AND sd3.active = 0                    
                     INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active =0 
                     INNER JOIN info_users u ON u.id = a.user_id  
                     ORDER BY a.name, a.surname
@@ -199,11 +198,12 @@ class InfoUsers extends \DAL\DalSlim {
             $sql = " 
             SELECT  
                 name AS name , 
-                '" . $params['name'] . "' AS value , 
-                name ='" . $params['name'] . "' AS control,
+                '" . $params['username'] . "' AS value , 
+                name ='" . $params['username'] . "' AS control,
                 CONCAT(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message                             
             FROM info_users                
-            WHERE LOWER(name) = LOWER('" . $params['name'] . "')"
+            WHERE   
+                LOWER(auth_email) = LOWER('" . $params['auth_email'] . "') "                    
                     . $addSql . " 
                AND deleted =0   
                                ";
@@ -261,36 +261,35 @@ class InfoUsers extends \DAL\DalSlim {
                             surname, 
                             username, 
                             password, 
-                            auth_email,                            
-                            gender_id, 
+                            auth_email,
                             language_code,
                             user_id ,
                             cons_allow_id,
-                            operation_type_id)
-                VALUES (:profile_public,
+                            operation_type_id,
+                            preferred_language)
+                VALUES (  :profile_public,
                           :name, 
                           :surname,
                           :username,                      
                           :password, 
-                          :auth_email,                          
-                          :gender_id,
+                          :auth_email,  
                           :language_code,
                           :user_id,
                           :cons_allow_id,
-                          :operation_type_id                          
+                          :operation_type_id,
+                          :preferred_language
                     )");
                 $statement->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
                 $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
                 $statement->bindValue(':surname', $params['surname'], \PDO::PARAM_STR);
                 $statement->bindValue(':username', $params['username'], \PDO::PARAM_STR);
                 $statement->bindValue(':password', $params['password'], \PDO::PARAM_STR);
-                $statement->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);
-                $statement->bindValue(':gender_id', $params['gender_id'], \PDO::PARAM_INT);
+                $statement->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);                
                 $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
                 $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':cons_allow_id', $params['cons_allow_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
-
+                $statement->bindValue(':preferred_language', $params['preferred_language'], \PDO::PARAM_STR); 
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('info_users_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -298,9 +297,8 @@ class InfoUsers extends \DAL\DalSlim {
                     throw new \PDOException($errorInfo[0]);
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
-            } else {
-                // 23505  unique_violation
-                $errorInfo = '23505';
+            } else {              
+                $errorInfo = '23505';   // 23505  unique_violation
                 $pdo->commit();
                 $result = $kontrol;
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
@@ -340,7 +338,7 @@ class InfoUsers extends \DAL\DalSlim {
      * @return array
      * @throws PDOException
      */
-    public function update($id = null, $params = array()) {
+    public function update(  $params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -348,7 +346,7 @@ class InfoUsers extends \DAL\DalSlim {
             if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                 $act_parent_id = intval($params['act_parent_id']);
                 if ($act_parent_id = 0) {
-                    $act_parent_id = intval($id);
+                    $act_parent_id = intval($params['id']);
                 }              
                 $statement = $pdo->prepare("                                      
                     UPDATE info_users
@@ -356,21 +354,16 @@ class InfoUsers extends \DAL\DalSlim {
                         f_check = :f_check,                         
                         c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) , 
                         operation_type_id= :operation_type_id,                         
-                        active = 1,
-                        deleted = :deleted  
-                        act_parent_id = :act_parent_id,
-                        language_code = :language_code
+                        active = 1,                    
+                        act_parent_id = :act_parent_id,                    
+                        user_id = :user_id
                     WHERE id = :id                    
-                    ");
-                //Bind our value to the parameter :id.
+                   ");                
                 $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-                $statement->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);
-                //Bind our :model parameter.
-                $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
+                $statement->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);              
                 $statement->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
-                $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
-                $statement->bindValue(':deleted', $params['deleted'], \PDO::PARAM_INT);
-                //Execute our UPDATE statement.
+                $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);                
+                $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);                                
                 $update = $statement->execute();
                 $affectedRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
@@ -385,15 +378,15 @@ class InfoUsers extends \DAL\DalSlim {
                            operation_type_id, 
                            name, 
                            surname, 
-                           username, 
+                           username,
                            password, 
                            auth_email, 
-                           auth_allow_id, 
-                           gender_id, 
+                           auth_allow_id,                         
                            language_code,                           
                            user_id, 
                            act_parent_id,
-                           cons_allow_id)
+                           cons_allow_id,
+                           preferred_language)
                   VALUES (:profile_public, 
                           :f_check, 
                           :s_date, 
@@ -404,39 +397,37 @@ class InfoUsers extends \DAL\DalSlim {
                           :username, 
                           :password, 
                           :auth_email, 
-                          :auth_allow_id, 
-                          :gender_id, 
+                          :auth_allow_id,                       
                           :language_code,                        
                           :user_id, 
                           :act_parent_id,
-                          :cons_allow_id                          
+                          :cons_allow_id,
+                          :preferred_language
                     )");
                 $statement_act_insert->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
                 $statement_act_insert->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
                 $statement_act_insert->bindValue(':s_date', $params['s_date'], \PDO::PARAM_STR);
                 $statement_act_insert->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
                 $statement_act_insert->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':surname', $params['surname'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':username', $params['username'], \PDO::PARAM_STR);
+                $statement_act_insert->bindValue(':surname', $params['surname'], \PDO::PARAM_STR);    
+                $statement_act_insert->bindValue(':username', $params['username'], \PDO::PARAM_STR);                    
                 $statement_act_insert->bindValue(':password', $params['password'], \PDO::PARAM_STR);
                 $statement_act_insert->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':auth_allow_id', $params['auth_allow_id'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':gender_id', $params['gender_id'], \PDO::PARAM_INT);
+                $statement_act_insert->bindValue(':auth_allow_id', $params['auth_allow_id'], \PDO::PARAM_STR);                
                 $statement_act_insert->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
                 $statement_act_insert->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
                 $statement_act_insert->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);
                 $statement_act_insert->bindValue(':cons_allow_id', $params['cons_allow_id'], \PDO::PARAM_INT);
+                $statement_act_insert->bindValue(':preferred_language', $params['preferred_language'], \PDO::PARAM_STR);                
                 $insert_act_insert = $statement_act_insert->execute();
                 $affectedRows = $statement_act_insert->rowCount();
                 $errorInfo = $statement_act_insert->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
-                //------------------------------------------------------------------------------   
+                    throw new \PDOException($errorInfo[0]);  
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
-            } else {
-                // 23505 	unique_violation
-                $errorInfo = '23505'; // $kontrol ['resultSet'][0]['message'];  
+            } else {               
+                $errorInfo = '23505';  // 23505  unique_violation 
                 $pdo->commit();
                 $result = $kontrol;
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
@@ -455,7 +446,6 @@ class InfoUsers extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function fillGrid($args = array()) {
-
         if (isset($args['page']) && $args['page'] != "" && isset($args['rows']) && $args['rows'] != "") {
             $offset = ((intval($args['page']) - 1) * intval($args['rows']));
             $limit = intval($args['rows']);
@@ -463,7 +453,7 @@ class InfoUsers extends \DAL\DalSlim {
             $limit = 10;
             $offset = 0;
         }
-
+        
         $sortArr = array();
         $orderArr = array();
         if (isset($args['sort']) && $args['sort'] != "") {
@@ -471,8 +461,7 @@ class InfoUsers extends \DAL\DalSlim {
             $sortArr = explode(",", $sort);
             if (count($sortArr) === 1)
                 $sort = trim($args['sort']);
-        } else {
-            //$sort = "id";
+        } else {       
             $sort = "a.name";
         }
 
@@ -483,7 +472,6 @@ class InfoUsers extends \DAL\DalSlim {
             if (count($orderArr) === 1)
                 $order = trim($args['order']);
         } else {
-            //$order = "desc";
             $order = "ASC";
         }     
         
@@ -508,8 +496,6 @@ class InfoUsers extends \DAL\DalSlim {
                         a.username, 
                         a.password, 
                         a.auth_email, 
-                        a.gender_id, 
-                        sd4.description AS gender,  
                         a.language_code, 
                         COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,
                         sd2.description AS state_deleted, 
@@ -522,14 +508,14 @@ class InfoUsers extends \DAL\DalSlim {
                         a.auth_allow_id, 
                         sd.description AS auth_alow ,
                         a.cons_allow_id,
-                        sd1.description AS cons_allow 
+                        sd1.description AS cons_allow ,
+                        a.preferred_language
                     FROM info_users a    
                     INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_code = a.language_code
                     INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_code = a.language_code AND a.auth_allow_id = sd.first_group 
                     INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 14 AND  sd1.language_code = a.language_code AND a.cons_allow_id = sd1.first_group 
                     INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a.deleted AND sd2.language_code = a.language_code AND sd2.deleted =0 AND sd2.active =0 
-                    INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_code = a.language_code AND sd3.deleted = 0 AND sd3.active = 0
-                    INNER JOIN sys_specific_definitions sd4 ON sd4.main_group = 3 AND sd4.first_group= a.active AND sd4.language_code = a.language_code AND sd4.deleted = 0 AND sd4.active = 0
+                    INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_code = a.language_code AND sd3.deleted = 0 AND sd3.active = 0                    
                     INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active =0 
                     INNER JOIN info_users u ON u.id = a.user_id 
                     WHERE a.language_code = :language_code AND a.deleted = 0 
@@ -647,31 +633,26 @@ class InfoUsers extends \DAL\DalSlim {
      * @return array
      * @throws PDOException
      */
-    public function deletedAct($id = null, $params = array()) {
+    public function deletedAct(  $params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $act_parent_id = intval($params['act_parent_id']);
             if ($act_parent_id = 0) {
-                $act_parent_id = intval($id);
+                $act_parent_id = intval($params['id']);
             }
             $statement = $pdo->prepare("                                      
                     UPDATE info_users
                     SET                                                                
-                        c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) , 
-                        operation_type_id= :operation_type_id,                         
+                        c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                                              
                         active = 1,
                         deleted = 0
                         act_parent_id = :act_parent_id 
                     WHERE id = :id                    
-                    ");
-            //Bind our value to the parameter :id.
+                    ");     
             $statement->bindValue(':id',$params['id'], \PDO::PARAM_INT);
-            $statement->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);
-            //Bind our :model parameter.
-            $statement->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
-            $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
-            //Execute our UPDATE statement.
+            $statement->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);  
+            $statement->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);            
             $update = $statement->execute();
             $affectedRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
@@ -689,14 +670,14 @@ class InfoUsers extends \DAL\DalSlim {
                            username, 
                            password, 
                            auth_email, 
-                           auth_allow_id, 
-                           gender_id, 
+                           auth_allow_id,                        
                            language_code,                           
                            user_id, 
                            act_parent_id,
                            cons_allow_id,
                            active,
-                           deleted )
+                           deleted,
+                           preferred_language)
                   VALUES (:profile_public, 
                           :f_check, 
                           :s_date, 
@@ -707,14 +688,14 @@ class InfoUsers extends \DAL\DalSlim {
                           :username, 
                           :password, 
                           :auth_email, 
-                          :auth_allow_id, 
-                          :gender_id, 
+                          :auth_allow_id,                        
                           :language_code,                        
                           :user_id, 
                           :act_parent_id,
                           :cons_allow_id,
                           1,
-                          1                           
+                          1,
+                          :preferred_language
                     )");
             $statement_act_insert->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
             $statement_act_insert->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
@@ -725,12 +706,12 @@ class InfoUsers extends \DAL\DalSlim {
             $statement_act_insert->bindValue(':username', $params['username'], \PDO::PARAM_STR);
             $statement_act_insert->bindValue(':password', $params['password'], \PDO::PARAM_STR);
             $statement_act_insert->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);
-            $statement_act_insert->bindValue(':auth_allow_id', $params['auth_allow_id'], \PDO::PARAM_STR);
-            $statement_act_insert->bindValue(':gender_id', $params['gender_id'], \PDO::PARAM_INT);
+            $statement_act_insert->bindValue(':auth_allow_id', $params['auth_allow_id'], \PDO::PARAM_STR);            
             $statement_act_insert->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
             $statement_act_insert->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
             $statement_act_insert->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);
             $statement_act_insert->bindValue(':cons_allow_id', $params['cons_allow_id'], \PDO::PARAM_INT);
+            $statement_act_insert->bindValue(':preferred_language', $params['preferred_language'], \PDO::PARAM_STR);
             $insert_act_insert = $statement_act_insert->execute();
             $affectedRows = $statement_act_insert->rowCount();
             $errorInfo = $statement_act_insert->errorInfo();
