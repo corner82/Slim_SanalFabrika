@@ -127,10 +127,11 @@ class SysLanguage extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_language tablosundaki tüm kayıtları getirir.  !!
      * @version v 1.0  07.12.2015    
+     * @param array | null $params
      * @return array
      * @throws \PDOException
      */
-    public function getAll() {
+    public function getAll($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $statement = $pdo->prepare("

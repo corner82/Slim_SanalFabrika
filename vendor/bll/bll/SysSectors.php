@@ -56,9 +56,9 @@ class SysSectors extends \BLL\BLLSlim{
      * get all data
      * @return array
      */
-    public function getAll() {
+    public function getAll($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysSectorsPDO');
-        return $DAL->getAll();
+        return $DAL->getAll($params);
     }
     
     /**

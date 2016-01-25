@@ -56,7 +56,7 @@ class SysVillage extends \BLL\BLLSlim{
      * get all data
      * @return array
      */
-    public function getAll($params) {
+    public function getAll($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysVillagePDO');
         return $DAL->getAll($params);
     }

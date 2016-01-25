@@ -38,7 +38,7 @@ class SysCity extends \BLL\BLLSlim{
      */
     public function update($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysCityPDO');
-        return $DAL->update($id, $params);
+        return $DAL->update($params);
     }
     
     /**

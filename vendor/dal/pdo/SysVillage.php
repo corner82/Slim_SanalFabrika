@@ -132,14 +132,10 @@ class SysVillage extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function getAll() {
+    public function getAll($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */
-            $statement = $pdo->prepare("
-              
+            $statement = $pdo->prepare("              
                 SELECT 
                         a.id, 
                         a.ilceref, 
@@ -171,15 +167,12 @@ class SysVillage extends \DAL\DalSlim {
                 INNER JOIN sys_city ci ON ci.country_id = a.country_id AND ci.id = a.city_id AND ci.language_code = a.language_code AND ci.deleted =0 AND ci.active =0                
                 INNER JOIN sys_countrys c ON c.id = a.country_id AND c.language_code = a.language_code  AND c.deleted =0 AND c.active =0                 
                 INNER JOIN info_users u ON u.id = a.user_id  
-                ORDER BY country_name, city_name, borough_name, name 
-                
+                WHERE a.deleted =0 AND a.language_code = :language_code                    
+                ORDER BY country_name, city_name, borough_name, name                 
                                  ");
-         
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR); 
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);

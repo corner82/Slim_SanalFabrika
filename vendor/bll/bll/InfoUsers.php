@@ -95,13 +95,12 @@ class InfoUsers extends \BLL\BLLSlim{
     
      /**
      * Data delete action function
-     * @param integer $id
      * @param array | null $params
      * @return array
      */
     public function deletedAct($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
-        return $DAL->deletedAct($id, $params);
+        return $DAL->deletedAct($params);
     }
     
 

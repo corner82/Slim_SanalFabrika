@@ -38,7 +38,7 @@ class SysCountrys extends \BLL\BLLSlim{
      */
     public function update($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysCountrysPDO');
-        return $DAL->update($id, $params);
+        return $DAL->update($params);
     }
     
     /**

@@ -56,9 +56,9 @@ class SysLanguage extends \BLL\BLLSlim{
      * @param array  $params
      * @return array
      */
-    public function getAll( $params = array()) {
+    public function getAll($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysLanguagePDO');
-        return $DAL->getAll( $params = array());
+        return $DAL->getAll($params);
     }
     
     /**

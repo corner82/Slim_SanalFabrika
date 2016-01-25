@@ -38,7 +38,7 @@ class SysAclResources extends \BLL\BLLSlim{
      */
     public function update($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysAclResourcesPDO');
-        return $DAL->update($id, $params);
+        return $DAL->update($params);
     }
     
     /**

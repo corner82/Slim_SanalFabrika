@@ -131,12 +131,9 @@ class SysSectors extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function getAll() {
+    public function getAll($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
             $statement = $pdo->prepare("
             SELECT 
                     a.id, 
@@ -159,9 +156,10 @@ class SysSectors extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0                
                 INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.user_id 
-                ORDER BY a.name
-                
+                WHERE a.deleted =0 AND a.language_code = :language_code                    
+                ORDER BY a.name                
                                  ");
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);             
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
             /* while ($row = $statement->fetch()) {
