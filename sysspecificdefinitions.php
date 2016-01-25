@@ -57,7 +57,8 @@ $app->get("/fillMainDefinitions_sysSpecificDefinitions/", function () use ($app 
 
 
     $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL'); 
-    $resCombobox = $BLL->fillMainDefinitions();
+    $resCombobox = $BLL->fillMainDefinitions (array('language_code'=>$_GET['language_code']                                             
+                                                ));  
 
     $flows = array();
     foreach ($resCombobox as $flow) {
@@ -66,7 +67,7 @@ $app->get("/fillMainDefinitions_sysSpecificDefinitions/", function () use ($app 
             "text" => $flow["name"],
             "state" => 'open',
             "checked" => false,
-            "attributes" => array("notroot" => true),
+            "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }
 
@@ -86,7 +87,8 @@ $app->get("/fillFullDefinitions_sysSpecificDefinitions/", function () use ($app 
 
     $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL');
 
-    $resCombobox = $BLL->fillFullDefinitions();
+    $resCombobox = $BLL->fillFullDefinitions(array('language_code'=>$_GET['language_code']
+                                                ));  
 
     $flows = array();
     foreach ($resCombobox as $flow) {
@@ -118,7 +120,8 @@ $app->get("/fillCommunicationsTypes_sysSpecificDefinitions/", function () use ($
 
     $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL');
 
-    $resCombobox = $BLL->fillCommunicationsTypes();
+    $resCombobox = $BLL->fillCommunicationsTypes(array('language_code'=>$_GET['language_code']
+                                                ));  
 
     $flows = array();
     foreach ($resCombobox as $flow) {
@@ -128,7 +131,7 @@ $app->get("/fillCommunicationsTypes_sysSpecificDefinitions/", function () use ($
             "text" => $flow["name"],
             "state" => $flow["state_type"], //   'closed',
             "checked" => false,
-            "attributes" => array("notroot" => true, "active" => $flow["active"]),
+            "attributes" => array("notroot" => true , "active" => $flow["active"]),
         );
     }
 
@@ -149,7 +152,8 @@ $app->get("/fillBuildingType_sysSpecificDefinitions/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL');
 
-    $resCombobox = $BLL->fillBuildingType();
+    $resCombobox = $BLL->fillBuildingType(array('language_code'=>$_GET['language_code']                                      
+                                                ));  
 
     $flows = array();
     foreach ($resCombobox as $flow) {
@@ -180,7 +184,8 @@ $app->get("/fillOwnershipType_sysSpecificDefinitions/", function () use ($app ) 
 
     $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL');
 
-    $resCombobox = $BLL->fillOwnershipType();
+    $resCombobox = $BLL->fillOwnershipType(array('language_code'=>$_GET['language_code']                                           
+                                                ));  
 
     $flows = array();
     foreach ($resCombobox as $flow) {
@@ -212,7 +217,8 @@ $app->get("/fillPersonnelTypes_sysSpecificDefinitions/", function () use ($app )
 
     $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL');
 
-    $resCombobox = $BLL->fillPersonnelTypes();
+    $resCombobox = $BLL->fillPersonnelTypes(array('language_code'=>$_GET['language_code']
+                                                ));  
 
     $flows = array();
     foreach ($resCombobox as $flow) {
