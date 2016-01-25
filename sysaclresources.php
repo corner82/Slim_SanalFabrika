@@ -131,14 +131,14 @@ $app->get("/pkFillGrid_sysAclResources/", function () use ($app ) {
 
     $headerParams = $app->request()->headers();
     $pk = $headerParams['X-Public'];
-    //print_r($resDataMenu);
+   
 
 
     $resDataGrid = $BLL->fillGrid(array('page' => $_GET['page'],
         'rows' => $_GET['rows'],
         'sort' => $_GET['sort'],
         'order' => $_GET['order'],
-        'search_name' => $_GET['search_name'],
+        'search_name' => $_GET['searchname'],
         'pk' => $pk));
     //print_r($resDataGrid);
 
