@@ -53,7 +53,7 @@ class DalManagerConfig {
                 'sysAclResourcesPDO' => 'DAL\Factory\PDO\SysAclResourcesFactory',   
                 'sysAclPrivilegePDO' => 'DAL\Factory\PDO\SysAclPrivilegeFactory',   
                 'sysAclRrpMapPDO' => 'DAL\Factory\PDO\SysAclRrpMapFactory',  
-                'sysSpecificDefinitionsFactoryPDO' => 'DAL\Factory\PDO\SysSpecificDefinitionsFactory', 
+                'sysSpecificDefinitionsPDO' => 'DAL\Factory\PDO\SysSpecificDefinitionsFactory', 
                 
                  
                 
