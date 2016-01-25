@@ -13,9 +13,9 @@ namespace BLL;
  * CRUD operations intarefce for common usage
  */
 interface DalInterface {
-    public function getAll();
-    public function update($id = null);
-    public function delete ($id = null);
+    public function getAll($params = array());
+    public function update($params = array());
+    public function delete ($params = array());
     public function insert($params = array());
 }
 
