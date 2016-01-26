@@ -307,10 +307,10 @@ class InfoUsers extends \DAL\DalSlim {
                  /*    
                  * kullanıcının private key temp değeri alınacak..  
                  */
-                $PrivateKeyTemp = $this->getPrivateKeyTemp(array('id' => $insertID));
-                $PrivateKeyTempValue = $PrivateKeyTemp ['resultSet'][0]['sf_private_key_value_temp'];                  
+                $privateKeyTemp = $this->getPrivateKeyTemp(array('id' => $insertID));
+                $privateKeyTempValue = $privateKeyTemp ['resultSet'][0]['sf_private_key_value_temp'];                  
                 $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID , "privateKeyTemp" => $PrivateKeyTempValue);
+                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID , "privateKeyTemp" => $privateKeyTempValue);
             } else {              
                 $errorInfo = '23505';   // 23505  unique_violation
                 $pdo->commit();
