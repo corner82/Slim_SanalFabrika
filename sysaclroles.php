@@ -92,8 +92,12 @@ $app->get("/pkFillComboBoxFullRoles_sysAclRoles/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('sysAclRolesBLL');
 
-    $resCombobox = $BLL->fillComboBoxFullRoles();
-
+    
+    if (isset($_GET['id']) && $_GET['id'] != "") {
+    $resCombobox = $BLL->fillComboBoxFullRoles(array('id' => $_GET ["id"]));
+    }
+    else  $resCombobox = $BLL->fillComboBoxFullRoles();
+    
     $flows = array();
     foreach ($resCombobox as $flow) {
         $flows[] = array(
