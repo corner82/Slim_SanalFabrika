@@ -304,9 +304,13 @@ class InfoUsers extends \DAL\DalSlim {
                  * kullanıcı için gerekli olan private key temp ve value temp değerleri yaratılılacak.  
                  */
                 $this->setPrivateKey(array('id' => $insertID));
-                 
+                 /*    
+                 * kullanıcının private key temp değeri alınacak..  
+                 */
+                $PrivateKeyTemp = $this->getPrivateKeyTemp(array('id' => $insertID));
+                $PrivateKeyTempValue = $PrivateKeyTemp ['resultSet'][0]['sf_private_key_value_temp'];                  
                 $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID , "privateKeyTemp" => $PrivateKeyTempValue);
             } else {              
                 $errorInfo = '23505';   // 23505  unique_violation
                 $pdo->commit();
@@ -733,7 +737,7 @@ class InfoUsers extends \DAL\DalSlim {
         }
     }
 
-      /**   
+    /**   
      *       
      * parametre olarak gelen array deki 'id' li kaydın, info_users tablosundaki private key ve value değerlerini oluşturur  !!
      * @author Okan CIRAN
@@ -780,7 +784,37 @@ class InfoUsers extends \DAL\DalSlim {
         }
     }
 
-    
+    /**        
+     * parametre olarak gelen array deki 'id' li kaydın, info_users tablosundaki  private key temp değerini döndürür !!
+     * @author Okan CIRAN
+     * @version v 1.0  26.01.2016
+     * @param array $params 
+     * @return array
+     * @throws \PDOException
+     */
+    public function getPrivateKeyTemp($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');   
+            $sql = " 
+                SELECT 
+                    sf_private_key_value_temp 
+                FROM info_users 
+                WHERE 
+                    id = :id 
+                ";
+            $statement = $pdo->prepare($sql);
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);     
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
     
     
 }
