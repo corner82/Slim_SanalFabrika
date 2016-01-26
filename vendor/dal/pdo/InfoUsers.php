@@ -298,6 +298,13 @@ class InfoUsers extends \DAL\DalSlim {
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
+                 
+                /*
+                 * kullanıcı için gerekli olan private key ve value değerleri yaratılılacak.  
+                 * kullanıcı için gerekli olan private key temp ve value temp değerleri yaratılılacak.  
+                 */
+                $this->setPrivateKey(array('id' => $insertID));
+                 
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
             } else {              
@@ -726,4 +733,54 @@ class InfoUsers extends \DAL\DalSlim {
         }
     }
 
+      /**   
+     *       
+     * parametre olarak gelen array deki 'id' li kaydın, info_users tablosundaki private key ve value değerlerini oluşturur  !!
+     * @author Okan CIRAN
+     * @version v 1.0  26.01.2016
+     * @param array $params 
+     * @return array
+     * @throws \PDOException
+     */
+    public function setPrivateKey ($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            // $pdo->beginTransaction();           
+            $statement = $pdo->prepare("
+                UPDATE info_users
+                SET              
+                    sf_private_key = armor( pgp_sym_encrypt (username , oid, 'compress-algo=1, cipher-algo=bf')) ,
+                    sf_private_key_temp = armor( pgp_sym_encrypt (username , oid_temp, 'compress-algo=1, cipher-algo=bf'))
+                WHERE                   
+                    id = :id");
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);           
+            $update = $statement->execute();
+            $affectedRows = $statement->rowCount();
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);            
+            $statementValue = $pdo->prepare("
+                UPDATE info_users
+                SET              
+                    sf_private_key_value = substring(sf_private_key,40,length( trim( sf_private_key))-140)   ,
+                    sf_private_key_value_temp = substring(sf_private_key_temp,40,length( trim( sf_private_key_temp))-140)  
+                WHERE                     
+                    id = :id");
+            $statementValue->bindValue(':id', $params['id'], \PDO::PARAM_INT);           
+            $updateValue = $statementValue->execute();
+            $affectedRows = $statementValue->rowCount();
+            $errorInfo = $statementValue->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+           // $pdo->commit();
+            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+        } catch (\PDOException $e /* Exception $e */) {
+           // $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
+    
+    
 }
