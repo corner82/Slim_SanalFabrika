@@ -201,9 +201,9 @@ class InfoUsers extends \DAL\DalSlim {
             $sql = " 
             SELECT  
                 name AS name , 
-                '" . $params['username'] . "' AS value , 
-                name ='" . $params['username'] . "' AS control,
-                CONCAT(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message                             
+                '" . $params['auth_email'] . "' AS value , 
+                name ='" . $params['auth_email'] . "' AS control,
+                CONCAT(auth_email , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message                             
             FROM info_users                
             WHERE   
                 LOWER(auth_email) = LOWER('" . $params['auth_email'] . "') "                    
@@ -305,12 +305,16 @@ class InfoUsers extends \DAL\DalSlim {
                  */
                 $this->setPrivateKey(array('id' => $insertID));
                  /*    
-                 * kullanıcının private key temp değeri alınacak..  
+                 * kullanıcının public key temp değeri alınacak..  
                  */
-                $privateKeyTemp = $this->getPrivateKeyTemp(array('id' => $insertID));
-                $privateKeyTempValue = $privateKeyTemp ['resultSet'][0]['sf_private_key_value_temp'];                  
+                $publicKeyTemp = $this->getPublicKeyTemp(array('id' => $insertID));
+                if (!\Utill\Dal\Helper::haveRecord($publicKeyTemp)) {   
+                $publicKeyTempValue = $publicKeyTemp ['resultSet'][0]['pk_temp'];   
+                 } 
+                 else $publicKeyTempValue = NULL;                  
+                 
                 $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID , "privateKeyTemp" => $privateKeyTempValue);
+                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID , "publicKeyTemp" => $publicKeyTempValue);
             } else {              
                 $errorInfo = '23505';   // 23505  unique_violation
                 $pdo->commit();
@@ -785,19 +789,19 @@ class InfoUsers extends \DAL\DalSlim {
     }
 
     /**        
-     * parametre olarak gelen array deki 'id' li kaydın, info_users tablosundaki  private key temp değerini döndürür !!
+     * parametre olarak gelen array deki 'id' li kaydın, info_users tablosundaki  public key temp değerini döndürür !!
      * @author Okan CIRAN
      * @version v 1.0  26.01.2016
      * @param array $params 
      * @return array
      * @throws \PDOException
      */
-    public function getPrivateKeyTemp($params = array()) {
+    public function getPublicKeyTemp($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');   
             $sql = " 
                 SELECT 
-                    sf_private_key_value_temp 
+                    REPLACE(TRIM(SUBSTRING(crypt(sf_private_key_value_temp,gen_salt('xdes')),6,20)),'/','*') as pk_temp                  
                 FROM info_users 
                 WHERE 
                     id = :id 
