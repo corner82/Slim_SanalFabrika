@@ -217,10 +217,11 @@ class InfoUsers extends \DAL\DalSlim {
             WHERE   
                 LOWER(auth_email) = LOWER('" . $params['auth_email'] . "') "
                     . $addSql . " 
+               AND active =0         
                AND deleted =0   
                                ";
             $statement = $pdo->prepare($sql);
-            //   echo debugPDO($sql, $params);
+        //    echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -308,7 +309,7 @@ class InfoUsers extends \DAL\DalSlim {
                           :person_number
                     )";
 
-                print_r($params['personIdNumber']);
+               // print_r($params['personIdNumber']);
                 $statement = $pdo->prepare($sql);
                 $statement->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
                 $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
@@ -321,7 +322,7 @@ class InfoUsers extends \DAL\DalSlim {
                 $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':preferred_language', $params['preferred_language'], \PDO::PARAM_STR);
                 $statement->bindValue(':person_number', $params['personIdNumber'], \PDO::PARAM_STR);
-                echo debugPDO($sql, $params);
+             //  echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('info_users_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -359,11 +360,7 @@ class InfoUsers extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic insert database example for PDO prepared
-     * statements
-     * 
-     * usage 
+    /** 
      * Kullanıcı ilk kayıt ta "pk" sız olarak  cagırılacak servis.
      * Kullanıcıyı kaydeder. pk, pktemp, privatekey degerlerinin olusturur.  
      * @author Okan CIRAN
@@ -418,7 +415,7 @@ class InfoUsers extends \DAL\DalSlim {
                 //$statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':preferred_language', $params['preferred_language'], \PDO::PARAM_STR);
                 $statement->bindValue(':person_number', $params['personIdNumber'], \PDO::PARAM_STR);
-                echo debugPDO($sql, $params);
+               // echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('info_users_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -444,7 +441,7 @@ class InfoUsers extends \DAL\DalSlim {
                  */
                 $this->setNewUserRrpMap(array('id' => $insertID, 'user_id' => 0));
                 $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID, "publicKeyTemp" => $publicKeyTempValue);
+                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID, "pktemp" => $publicKeyTempValue);
             } else {
                 $errorInfo = '23505';   // 23505  unique_violation
                 $pdo->commit();
@@ -496,10 +493,31 @@ class InfoUsers extends \DAL\DalSlim {
 
                 $kontrol = $this->haveRecords($params);
                 if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                    $act_parent_id = intval($params['act_parent_id']);
-                    if ($act_parent_id = 0) {
+                    
+                    $addSql = "";
+                    $addSqlValue = "";
+                    $act_parent_id = intval($params['act_parent_id']);  
+                    if ($act_parent_id == 0) {
                         $act_parent_id = intval($params['id']);
-                    }
+                        $addSql .= " act_parent_id, ";
+                        $addSqlValue .= $act_parent_id.", ";
+                    }                    
+                  
+                    if (isset($params['f_check'])) {
+                        $addSql .= " f_check, ";
+                        $addSqlValue .= $params['f_check'].", ";
+                     }
+                     if (isset($params['auth_allow_id'])) {
+                        $addSql .= " auth_allow_id, ";
+                        $addSqlValue .= $params['auth_allow_id'].", ";
+                     }
+                    if (isset($params['cons_allow_id']) ) {
+                        $addSql .= " cons_allow_id, ";
+                        $addSqlValue .= $params['cons_allow_id'].", ";
+                     }
+                 
+                    
+                     
                     $statement = $pdo->prepare("                                      
                     UPDATE info_users
                     SET
@@ -515,59 +533,44 @@ class InfoUsers extends \DAL\DalSlim {
                     $errorInfo = $statement->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
-                    $statement_act_insert = $pdo->prepare(" 
+                    $sql = " 
                     INSERT INTO info_users(
-                           profile_public, 
-                           f_check, 
-                           s_date, 
-                           c_date, 
+                           profile_public,                            
                            operation_type_id, 
+                           ".$addSql."
                            name, 
                            surname, 
                            username,
                            password, 
-                           auth_email, 
-                           auth_allow_id,                         
+                           auth_email,                            
                            language_code,                           
-                           user_id, 
-                           act_parent_id,
-                           cons_allow_id,
-                           preferred_language,
-                           person_number)
-                    VALUES (:profile_public, 
-                          :f_check, 
-                          :s_date, 
-                          timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone), 
+                           user_id,                            
+                           preferred_language
+                           )
+                    VALUES (:profile_public,                           
                           :operation_type_id, 
+                          ".$addSqlValue."
                           :name, 
                           :surname, 
                           :username, 
                           :password, 
                           :auth_email, 
-                          :auth_allow_id,                       
                           :language_code,                        
-                          :user_id, 
-                          :act_parent_id,
-                          :cons_allow_id,
-                          :preferred_language,
-                          :person_number
-                    )");
-                    $statement_act_insert->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
-                    $statement_act_insert->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
-                    $statement_act_insert->bindValue(':s_date', $params['s_date'], \PDO::PARAM_STR);
+                          :user_id,                           
+                          :preferred_language                          
+                    )";
+                    $statement_act_insert = $pdo->prepare($sql);
+                    $statement_act_insert->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);                    
                     $statement_act_insert->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
                     $statement_act_insert->bindValue(':name', $params['name'], \PDO::PARAM_STR);
                     $statement_act_insert->bindValue(':surname', $params['surname'], \PDO::PARAM_STR);
                     $statement_act_insert->bindValue(':username', $params['username'], \PDO::PARAM_STR);
                     $statement_act_insert->bindValue(':password', $params['password'], \PDO::PARAM_STR);
-                    $statement_act_insert->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);
-                    $statement_act_insert->bindValue(':auth_allow_id', $params['auth_allow_id'], \PDO::PARAM_STR);
+                    $statement_act_insert->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);                    
                     $statement_act_insert->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
-                    $statement_act_insert->bindValue(':user_id', $userIdValue, \PDO::PARAM_INT);
-                    $statement_act_insert->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);
-                    $statement_act_insert->bindValue(':cons_allow_id', $params['cons_allow_id'], \PDO::PARAM_INT);
-                    $statement_act_insert->bindValue(':preferred_language', $params['preferred_language'], \PDO::PARAM_STR);
-                    $statement_act_insert->bindValue(':person_number', $params['personIdNumber'], \PDO::PARAM_STR);
+                    $statement_act_insert->bindValue(':user_id', $userIdValue, \PDO::PARAM_INT);                    
+                    $statement_act_insert->bindValue(':preferred_language', $params['preferred_language'], \PDO::PARAM_STR);                    
+                    echo debugPDO($sql, $params);
                     $insert_act_insert = $statement_act_insert->execute();
                     $affectedRows = $statement_act_insert->rowCount();
                     $errorInfo = $statement_act_insert->errorInfo();
