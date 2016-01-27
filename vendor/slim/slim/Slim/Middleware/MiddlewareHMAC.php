@@ -114,6 +114,11 @@ use PhpAmqpLib\Message\AMQPMessage;
             $this->evaluateExpireTime();
             $this->evaluateHash();
         }
+        if($this->app->isServicePkTempRequired ) {
+            $this->evaluateExpireTime();
+            $this->evaluateHashByTempKey();
+        }
+        
         $this->next->call();
     }
     
@@ -185,8 +190,8 @@ use PhpAmqpLib\Message\AMQPMessage;
          * @since 05/01/2016
          */
         $resultset = $BLLLogLogout->pkControl(array('pk'=>$this->getRequestHeaderData()['X-Public']));
-        print_r($resultset);
-        //$publicNotFoundForwarder = new \Utill\Forwarder\publicNotFoundForwarder();
+        //print_r($resultset);
+        $publicNotFoundForwarder = new \Utill\Forwarder\publicNotFoundForwarder();
         if(empty($resultset[0])) $publicNotFoundForwarder->redirect();
         
         
@@ -196,6 +201,47 @@ use PhpAmqpLib\Message\AMQPMessage;
         //print_r($hmacObj->getHash()); 
         
         if($this->hmacObj->getHash() != $this->getRequestHeaderData()['X-Hash'])  {
+            //print_r ('-----hash eşit değil----');
+            $this->publishMessage();
+            $hashNotMatchForwarder = new \Utill\Forwarder\hashNotMatchForwarder();
+            $hashNotMatchForwarder->redirect();
+            
+        } else {
+           //print_r ('-----hash eşit ----'); 
+        }
+    }
+    
+    /**
+     * get info to calculate HMAC security measures
+     * @author Mustafa Zeynel Dağlı
+     * @since 0.3 27/01/2016
+     */
+    private function evaluateHashByTempKey() {
+        $this->getHmacObj();
+        $this->hmacObj->setRequestParams($this->getAppRequestParams());
+        $this->hmacObj->setPublicKey($this->getRequestHeaderData()['X-Public-Temp']);
+        $this->hmacObj->setNonce($this->getRequestHeaderData()['X-Nonce']);
+        // bu private key kısmı veri tabanından alınır hale gelecek
+        $BLLLogLogout = $this->app->getBLLManager()->get('blLoginLogoutBLL');
+        
+        /**
+         * private key due to public key,
+         * if public key not found request redirected
+         * @author Mustafa Zeynel Dağlı
+         * @since 27/01/2016
+         */
+        $resultset = $BLLLogLogout->pkTempControl(array('pk'=>$this->getRequestHeaderData()['X-Public-Temp']));
+        //print_r($resultset);
+        $publicTempNotFoundForwarder = new \Utill\Forwarder\PublicTempNotFoundForwarder();
+        if(empty($resultset[0])) $publicTempNotFoundForwarder->redirect();
+        
+        
+        $this->hmacObj->setPrivateKey($resultset[0]['sf_private_key_value_temp']);
+        //$this->hmacObj->setPrivateKey('zze249c439ed7697df2a4b045d97d4b9b7e1854c3ff8dd668c779013653913572e');
+        $this->hmacObj->makeHmac();
+        //print_r($hmacObj->getHash()); 
+        
+        if($this->hmacObj->getHash() != $this->getRequestHeaderData()['X-Hash-Temp'])  {
             //print_r ('-----hash eşit değil----');
             $this->publishMessage();
             $hashNotMatchForwarder = new \Utill\Forwarder\hashNotMatchForwarder();
