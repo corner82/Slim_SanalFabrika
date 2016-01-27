@@ -257,22 +257,29 @@ use PhpAmqpLib\Message\AMQPMessage;
      * @author Okan Cıran
      */
     private function evaluateExpireTime() { 
-        $this->getHmacObj();
-        $encryptClass = $this->app->setEncryptClass();
-        $this->hmacObj->setTimeStamp($encryptClass->decrypt($this->getRequestHeaderData()['X-TimeStamp']));
-        $timeDiff = $this->hmacObj->timeStampDiff();
-        //print_r('---'.$timeDiff.'---');      
-        //print_r('zzz'.$this->getRequestHeaderData()['X-TimeStamp'].'zzz' );
-        //print_r('zzz'.$encryptClass->decrypt($this->getRequestHeaderData()['X-TimeStamp']).'zzz' );
+        if(isset($this->getRequestHeaderData()['X-TimeStamp'])) {
+            $this->getHmacObj();
+            $encryptClass = $this->app->setEncryptClass();
+            $this->hmacObj->setTimeStamp($encryptClass->decrypt($this->getRequestHeaderData()['X-TimeStamp']));
+            $timeDiff = $this->hmacObj->timeStampDiff();
+            //print_r('---'.$timeDiff.'---');      
+            //print_r('zzz'.$this->getRequestHeaderData()['X-TimeStamp'].'zzz' );
+            //print_r('zzz'.$encryptClass->decrypt($this->getRequestHeaderData()['X-TimeStamp']).'zzz' );
+
+            if($timeDiff > $this->requestExpireTime)  {
+                //print_r ('-----expire time exceeded----');
+                $hashNotMatchForwarder = new \Utill\Forwarder\timeExpiredForwarder();
+                $hashNotMatchForwarder->redirect();
+
+            } else {
+               //print_r ('-----expire time not exceeded----'); 
+            }
+            return null;
+        } 
+        //throw new Exception('Middleware evaluateExpireTime time stamp coul not find');
+        $timeStampNotFoundForwarder = new \Utill\Forwarder\TimeStampNotFoundForwarder();
+        $timeStampNotFoundForwarder->redirect();
         
-        if($timeDiff > $this->requestExpireTime)  {
-            //print_r ('-----expire time exceeded----');
-            $hashNotMatchForwarder = new \Utill\Forwarder\timeExpiredForwarder();
-            $hashNotMatchForwarder->redirect();
-            
-        } else {
-           //print_r ('-----expire time not exceeded----'); 
-        }  
     }
 
     public function getAppRequestParams() {
