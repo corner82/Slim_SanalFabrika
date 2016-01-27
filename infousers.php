@@ -50,13 +50,17 @@ $app->get("/pkFillGrid_infoUsers/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('infoUsersBLL');
 
-
+    $headerParams = $app->request()->headers();
+    $vPk = $headerParams['X-Public'];
+    $vPkTemp = $headerParams['X-Public-Temp'];
+    
     $resDataGrid = $BLL->fillGrid(array('page' => $_GET['page'],
         'rows' => $_GET['rows'],
         'sort' => $_GET['sort'],
         'order' => $_GET['order'],
         'search_name' => $vSearchName,
-        'pk' => $pk));
+        'pk' => $pk,
+        'pktemp' => $vPkTemp ));
 
     $resTotalRowCount = $BLL->fillGridRowTotalCount(array('search_name' => $vSearchName));
 
@@ -117,12 +121,12 @@ $app->get("/pkInsert_infoUsers/", function () use ($app ) {
     $fUsername = $_GET['username'];
     $fPassword = $_GET['password'];
     $fAuthEmail = $_GET['auth_email'];
-    $fLanguageCode = $_GET['language_code'];
-    $fUserId = $_GET['user_id'];
-    $fConsAllowId = $_GET['cons_allow_id'];
-    $fOperationTypeId = $_GET['operation_type_id'];
+    $fLanguageCode = $_GET['language_code'];   
+    $fConsAllowId = $_GET['cons_allow_id'];    
     $fPreferredLanguage = $_GET['preferred_language'];
-
+    $fpersonIdNumber = $_GET['personIdNumber'];
+    $foperationtypeid  = $_GET['operation_type_id'];
+ 
 
     $headerParams = $app->request()->headers();
     $vPk = $headerParams['X-Public'];
@@ -134,12 +138,66 @@ $app->get("/pkInsert_infoUsers/", function () use ($app ) {
         'username' => $fUsername, 
         'password' => $fPassword, 
         'auth_email' => $fAuthEmail, 
-        'language_code' => $fLanguageCode, 
-        'user_id' => $fUserId,  
-        'cons_allow_id' => $fConsAllowId ,  
-        'operation_type_id' => $fOperationTypeId,  
-        'preferred_language' => $fPreferredLanguage,         
+        'language_code' => $fLanguageCode,      
+        'cons_allow_id' => $fConsAllowId ,          
+        'preferred_language' => $fPreferredLanguage,
+        'personIdNumber' => $fpersonIdNumber,  
+        'operation_type_id' => $foperationtypeid, 
         'pk' => $vPk));
+
+    $app->response()->header("Content-Type", "application/json");
+
+    /* $app->contentType('application/json');
+      $app->halt(302, '{"error":"Something went wrong"}');
+      $app->stop(); */
+
+    $app->response()->body(json_encode($resDataInsert));
+}
+);
+
+/**
+ *  * Okan CIRAN
+ * @since 27-01-2016
+ */
+$app->get("/tempInsert_infoUsers/", function () use ($app ) {
+
+    $BLL = $app->getBLLManager()->get('infoUsersBLL');
+
+    $vProfilePublic = $_GET['profile_public'];
+    $vName = $_GET['name'];
+    $vSurname = $_GET['surname'];
+    $vUsername = $_GET['username'];
+    $vPassword = $_GET['password'];
+    $vAuthEmail = $_GET['auth_email'];
+    $vLanguageCode = $_GET['language_code']; 
+    $vPreferredLanguage = $_GET['preferred_language'];    
+    $vpersonIdNumber= $_GET['personIdNumber'];
+
+    //$headerParams = $app->request()->headers();
+   // $vPk = $headerParams['X-Public'];
+
+    $fProfilePublic = $vProfilePublic;
+    $fName = $vName;
+    $fSurname = $vSurname;
+    $fUsername = $vUsername;
+    $fPassword = $vPassword;
+    $fAuthEmail = $vAuthEmail;
+    $fLanguageCode = $vLanguageCode; 
+    $fPreferredLanguage = $vPreferredLanguage;    
+    $fpersonIdNumber= $vpersonIdNumber;    
+    
+    $resDataInsert = $BLL->insertTemp(array(    
+        'profile_public' => $fProfilePublic ,
+        'name' => $fName , 
+        'surname' => $fSurname , 
+        'username' => $fUsername, 
+        'password' => $fPassword, 
+        'auth_email' => $fAuthEmail, 
+        'language_code' => $fLanguageCode,              
+        'preferred_language' => $fPreferredLanguage, 
+        'personIdNumber' => $fpersonIdNumber
+       // 'pk' => $vPk
+            ));
 
     $app->response()->header("Content-Type", "application/json");
 
@@ -157,11 +215,11 @@ $app->get("/pkInsert_infoUsers/", function () use ($app ) {
  */
 $app->get("/pkUpdate_infoUsers/", function () use ($app ) {
 
-
     $BLL = $app->getBLLManager()->get('infoUsersBLL');
 
     $headerParams = $app->request()->headers();
     $pk = $headerParams['X-Public'];
+    $vPkTemp = $headerParams['X-Public-Temp'];
 
     $resDataUpdate = $BLL->update(array(
         'id' => $_GET['id'],
@@ -184,9 +242,10 @@ $app->get("/pkUpdate_infoUsers/", function () use ($app ) {
         'act_parent_id' => $_GET['act_parent_id'],
         'cons_allow_id' => $_GET['cons_allow_id'],
         'language_code' => $_GET['language_code'],
-        'preferred_language' => $_GET['preferred_language'],        
-        'pk' => $pk));
-
+        'preferred_language' => $_GET['preferred_language'],  
+        'personIdNumber' => $_GET['personIdNumber'],
+        'pk' => $pk,
+        'pktemp' => $vPkTemp));
  
     $app->response()->header("Content-Type", "application/json");
 
@@ -203,7 +262,6 @@ $app->get("/pkUpdate_infoUsers/", function () use ($app ) {
  * @since 25-01-2016
  */
 $app->get("/pkDeletedAct_infoUsers/", function () use ($app ) {
-
 
     $BLL = $app->getBLLManager()->get('infoUsersBLL');
 
@@ -231,12 +289,11 @@ $app->get("/pkDeletedAct_infoUsers/", function () use ($app ) {
         'act_parent_id' => $_GET['act_parent_id'],
         'cons_allow_id' => $_GET['cons_allow_id'],
         'language_code' => $_GET['language_code'],
-        'preferred_language' => $_GET['preferred_language'],        
+        'preferred_language' => $_GET['preferred_language'],    
+        'personIdNumber' => $_GET['personIdNumber'],
         'pk' => $pk));
-
  
     $app->response()->header("Content-Type", "application/json");
-
 
     /* $app->contentType('application/json');
       $app->halt(302, '{"error":"Something went wrong"}');
@@ -245,15 +302,39 @@ $app->get("/pkDeletedAct_infoUsers/", function () use ($app ) {
     $app->response()->body(json_encode($resDataUpdate));
 });
 
+
+/**
+ *  * Okan CIRAN
+ * @since 25-01-2016
+ */
+$app->get("/pkDelete_infoUsers/", function () use ($app ) {
+
+    $BLL = $app->getBLLManager()->get('infoUsersBLL');
+
+    $headerParams = $app->request()->headers();
+    $pk = $headerParams['X-Public'];     
+ 
+    $resDataUpdate = $BLL->delete(array(
+        'id' => $_GET['id'],         
+        'pk' => $pk));
+ 
+    $app->response()->header("Content-Type", "application/json");
+
+    /* $app->contentType('application/json');
+      $app->halt(302, '{"error":"Something went wrong"}');
+      $app->stop(); */
+
+    $app->response()->body(json_encode($resDataUpdate));
+});
+
+
 /**
  *  * Okan CIRAN
  * @since 25-01-2016
  */
 $app->get("/pkGetAll_infoUsers/", function () use ($app ) {
 
-
     $BLL = $app->getBLLManager()->get('infoUsersBLL');
-
 
     $resDataGrid = $BLL->getAll(array( 
         'pk' => $pk));
@@ -286,6 +367,7 @@ $app->get("/pkGetAll_infoUsers/", function () use ($app ) {
             "auth_allow_id" => $flow["auth_allow_id"],
             "auth_alow" => $flow["auth_alow"],
             "cons_allow_id" => $flow["cons_allow_id"],
+            "personIdNumber" => $_GET['personIdNumber'],
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }

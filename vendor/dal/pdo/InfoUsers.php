@@ -48,21 +48,30 @@ class InfoUsers extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $statement = $pdo->prepare("
+            $userId = $this->getUserId(array('pk' => $params['pk']));
+            if (!\Utill\Dal\Helper::haveRecord($userId)) {
+                $userIdValue = $userId ['resultSet'][0]['user_id'];
+                $statement = $pdo->prepare("
                     UPDATE info_users 
                     SET deleted = 1, active =1,
-                    user_id = " . intval($params['user_id']) . "                     
+                    user_id = " . $userIdValue . "                     
                     WHERE id = :id
                     ");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-            $update = $statement->execute();
-            $affectedRows = $statement->rowCount();
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                //Bind our value to the parameter :id.
+                $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
+                $update = $statement->execute();
+                $affectedRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+            } else {
+                $errorInfo = '23502';  /// 23502  not_null_violation
+                $pdo->commit();
+                //  $result = $kontrol;
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -128,7 +137,7 @@ class InfoUsers extends \DAL\DalSlim {
      */
     public function getAll($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');    
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $statement = $pdo->prepare(" 
                     SELECT 
                         a.id, 
@@ -168,7 +177,7 @@ class InfoUsers extends \DAL\DalSlim {
                     WHERE a.deleted =0 AND a.language_code = :language_code   
                     ORDER BY a.name, a.surname
                 ");
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR); 
+            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -193,7 +202,7 @@ class InfoUsers extends \DAL\DalSlim {
      */
     public function haveRecords($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');        
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $addSql = "";
             if (isset($params['id'])) {
                 $addSql = " AND id != " . intval($params['id']) . " ";
@@ -206,7 +215,7 @@ class InfoUsers extends \DAL\DalSlim {
                 CONCAT(auth_email , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message                             
             FROM info_users                
             WHERE   
-                LOWER(auth_email) = LOWER('" . $params['auth_email'] . "') "                    
+                LOWER(auth_email) = LOWER('" . $params['auth_email'] . "') "
                     . $addSql . " 
                AND deleted =0   
                                ";
@@ -257,7 +266,21 @@ class InfoUsers extends \DAL\DalSlim {
             $pdo->beginTransaction();
             $kontrol = $this->haveRecords($params);
             if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                $statement = $pdo->prepare(" 
+                /*
+                 * kullanıcının user_id değeri alınacak..  
+                 * eğer deger alınmıyorsa bu yeni kullanıcı kaydıdır. 
+                 * yeni kullanıcıysa $userIdValue = lastInsertId('info_users_id_seq') ataması bu yuzden yapıldı. 
+                 */
+                $userId = $this->getUserId(array('pk' => $params['pk']));
+                if (!\Utill\Dal\Helper::haveRecord($userId)) {
+                    $userIdValue = $userId ['resultSet'][0]['user_id'];
+                    $addSql = " " . $userIdValue;
+                } else {
+                    $addSql = " (SELECT last_value FROM info_users_id_seq) ";
+                    $userIdValue = 0;
+                }
+
+                $sql = " 
                 INSERT INTO info_users(
                             profile_public, 
                             name, 
@@ -269,7 +292,8 @@ class InfoUsers extends \DAL\DalSlim {
                             user_id ,
                             cons_allow_id,
                             operation_type_id,
-                            preferred_language)
+                            preferred_language,
+                            person_number)
                 VALUES (  :profile_public,
                           :name, 
                           :surname,
@@ -277,45 +301,151 @@ class InfoUsers extends \DAL\DalSlim {
                           :password, 
                           :auth_email,  
                           :language_code,
-                          :user_id,
+                          " . $addSql . ",                       
                           :cons_allow_id,
                           :operation_type_id,
-                          :preferred_language
-                    )");
+                          :preferred_language,
+                          :person_number
+                    )";
+
+                print_r($params['personIdNumber']);
+                $statement = $pdo->prepare($sql);
                 $statement->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
                 $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
                 $statement->bindValue(':surname', $params['surname'], \PDO::PARAM_STR);
                 $statement->bindValue(':username', $params['username'], \PDO::PARAM_STR);
                 $statement->bindValue(':password', $params['password'], \PDO::PARAM_STR);
-                $statement->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);                
+                $statement->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);
                 $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
-                $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':cons_allow_id', $params['cons_allow_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
-                $statement->bindValue(':preferred_language', $params['preferred_language'], \PDO::PARAM_STR); 
+                $statement->bindValue(':preferred_language', $params['preferred_language'], \PDO::PARAM_STR);
+                $statement->bindValue(':person_number', $params['personIdNumber'], \PDO::PARAM_STR);
+                echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('info_users_id_seq');
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
-                 
+
                 /*
                  * kullanıcı için gerekli olan private key ve value değerleri yaratılılacak.  
                  * kullanıcı için gerekli olan private key temp ve value temp değerleri yaratılılacak.  
                  */
                 $this->setPrivateKey(array('id' => $insertID));
-                 /*    
+                /*
                  * kullanıcının public key temp değeri alınacak..  
                  */
                 $publicKeyTemp = $this->getPublicKeyTemp(array('id' => $insertID));
-                if (!\Utill\Dal\Helper::haveRecord($publicKeyTemp)) {   
-                $publicKeyTempValue = $publicKeyTemp ['resultSet'][0]['pk_temp'];   
-                 } 
-                 else $publicKeyTempValue = NULL;                  
-                 
+                if (!\Utill\Dal\Helper::haveRecord($publicKeyTemp)) {
+                    $publicKeyTempValue = $publicKeyTemp ['resultSet'][0]['pk_temp'];
+                } else
+                    $publicKeyTempValue = NULL;
+                /*
+                 * kullanıcı new user role u verilerek act_users_rrpmap kayıt edilecek.   
+                 */
+                $this->setNewUserRrpMap(array('id' => $insertID, 'user_id' => $userIdValue));
                 $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID , "publicKeyTemp" => $publicKeyTempValue);
-            } else {              
+                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID, "publicKeyTemp" => $publicKeyTempValue);
+            } else {
+                $errorInfo = '23505';   // 23505  unique_violation
+                $pdo->commit();
+                $result = $kontrol;
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * basic insert database example for PDO prepared
+     * statements
+     * 
+     * usage 
+     * Kullanıcı ilk kayıt ta "pk" sız olarak  cagırılacak servis.
+     * Kullanıcıyı kaydeder. pk, pktemp, privatekey degerlerinin olusturur.  
+     * @author Okan CIRAN
+     * @version v 1.0 27.01.2016
+     * @param array | null $args
+     * @return array
+     * @throws PDOException
+     */
+    public function insertTemp($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $kontrol = $this->haveRecords($params);
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                $sql = " 
+                INSERT INTO info_users(
+                            profile_public, 
+                            name, 
+                            surname, 
+                            username, 
+                            password, 
+                            auth_email,
+                            language_code,
+                            user_id ,
+                            cons_allow_id,
+                            operation_type_id,
+                            preferred_language,
+                            person_number)
+                VALUES (  :profile_public,
+                          :name, 
+                          :surname,
+                          :username,                      
+                          :password, 
+                          :auth_email,  
+                          :language_code,
+                          (SELECT last_value FROM info_users_id_seq),
+                          0,
+                          1,
+                          :preferred_language,
+                          :person_number
+                    )";
+                $statement = $pdo->prepare($sql);
+                $statement->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
+                $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
+                $statement->bindValue(':surname', $params['surname'], \PDO::PARAM_STR);
+                $statement->bindValue(':username', $params['username'], \PDO::PARAM_STR);
+                $statement->bindValue(':password', $params['password'], \PDO::PARAM_STR);
+                $statement->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);
+                $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
+                //$statement->bindValue(':user_id', 0, \PDO::PARAM_INT);
+                //$statement->bindValue(':cons_allow_id', $params['cons_allow_id'], \PDO::PARAM_INT);
+                //$statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
+                $statement->bindValue(':preferred_language', $params['preferred_language'], \PDO::PARAM_STR);
+                $statement->bindValue(':person_number', $params['personIdNumber'], \PDO::PARAM_STR);
+                echo debugPDO($sql, $params);
+                $result = $statement->execute();
+                $insertID = $pdo->lastInsertId('info_users_id_seq');
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+
+                /*
+                 * kullanıcı için gerekli olan private key ve value değerleri yaratılılacak.  
+                 * kullanıcı için gerekli olan private key temp ve value temp değerleri yaratılılacak.  
+                 */
+                $this->setPrivateKey(array('id' => $insertID));
+                /*
+                 * kullanıcının public key temp değeri alınacak..  
+                 */
+                $publicKeyTemp = $this->getPublicKeyTemp(array('id' => $insertID));
+                if (!\Utill\Dal\Helper::haveRecord($publicKeyTemp)) {
+                    $publicKeyTempValue = $publicKeyTemp ['resultSet'][0]['pk_temp'];
+                } else
+                    $publicKeyTempValue = NULL;
+
+                /*
+                 * kullanıcı new user role u verilerek act_users_rrpmap kayıt edilecek.   
+                 */
+                $this->setNewUserRrpMap(array('id' => $insertID, 'user_id' => 0));
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID, "publicKeyTemp" => $publicKeyTempValue);
+            } else {
                 $errorInfo = '23505';   // 23505  unique_violation
                 $pdo->commit();
                 $result = $kontrol;
@@ -360,33 +490,33 @@ class InfoUsers extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $kontrol = $this->haveRecords($params);
-            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                $act_parent_id = intval($params['act_parent_id']);
-                if ($act_parent_id = 0) {
-                    $act_parent_id = intval($params['id']);
-                }              
-                $statement = $pdo->prepare("                                      
+            $userId = $this->getUserIdTemp(array('pk' => $params['pk'], 'pktemp' => $params['pktemp']));
+            if (!\Utill\Dal\Helper::haveRecord($userId)) {
+                $userIdValue = $userId ['resultSet'][0]['user_id'];
+
+                $kontrol = $this->haveRecords($params);
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                    $act_parent_id = intval($params['act_parent_id']);
+                    if ($act_parent_id = 0) {
+                        $act_parent_id = intval($params['id']);
+                    }
+                    $statement = $pdo->prepare("                                      
                     UPDATE info_users
-                    SET                         
-                        f_check = :f_check,                         
+                    SET
                         c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) , 
-                        active = 1,                    
-                        act_parent_id = :act_parent_id,                    
+                        active = 1,                                           
                         user_id = :user_id
                     WHERE id = :id                    
-                   ");                
-                $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-                $statement->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);              
-                $statement->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
-                $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);                                
-                $update = $statement->execute();
-                $affectedRows = $statement->rowCount();
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);                
-                $statement_act_insert = $pdo->prepare(" 
-                INSERT INTO info_users(
+                   ");
+                    $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
+                    $statement->bindValue(':user_id', $userIdValue, \PDO::PARAM_INT);
+                    $update = $statement->execute();
+                    $affectedRows = $statement->rowCount();
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $statement_act_insert = $pdo->prepare(" 
+                    INSERT INTO info_users(
                            profile_public, 
                            f_check, 
                            s_date, 
@@ -402,8 +532,9 @@ class InfoUsers extends \DAL\DalSlim {
                            user_id, 
                            act_parent_id,
                            cons_allow_id,
-                           preferred_language)
-                  VALUES (:profile_public, 
+                           preferred_language,
+                           person_number)
+                    VALUES (:profile_public, 
                           :f_check, 
                           :s_date, 
                           timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone), 
@@ -418,32 +549,40 @@ class InfoUsers extends \DAL\DalSlim {
                           :user_id, 
                           :act_parent_id,
                           :cons_allow_id,
-                          :preferred_language
+                          :preferred_language,
+                          :person_number
                     )");
-                $statement_act_insert->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
-                $statement_act_insert->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
-                $statement_act_insert->bindValue(':s_date', $params['s_date'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
-                $statement_act_insert->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':surname', $params['surname'], \PDO::PARAM_STR);    
-                $statement_act_insert->bindValue(':username', $params['username'], \PDO::PARAM_STR);                    
-                $statement_act_insert->bindValue(':password', $params['password'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':auth_allow_id', $params['auth_allow_id'], \PDO::PARAM_STR);                
-                $statement_act_insert->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
-                $statement_act_insert->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-                $statement_act_insert->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);
-                $statement_act_insert->bindValue(':cons_allow_id', $params['cons_allow_id'], \PDO::PARAM_INT);
-                $statement_act_insert->bindValue(':preferred_language', $params['preferred_language'], \PDO::PARAM_STR);                
-                $insert_act_insert = $statement_act_insert->execute();
-                $affectedRows = $statement_act_insert->rowCount();
-                $errorInfo = $statement_act_insert->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);  
-                $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
-            } else {               
-                $errorInfo = '23505';  // 23505  unique_violation 
+                    $statement_act_insert->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
+                    $statement_act_insert->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
+                    $statement_act_insert->bindValue(':s_date', $params['s_date'], \PDO::PARAM_STR);
+                    $statement_act_insert->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
+                    $statement_act_insert->bindValue(':name', $params['name'], \PDO::PARAM_STR);
+                    $statement_act_insert->bindValue(':surname', $params['surname'], \PDO::PARAM_STR);
+                    $statement_act_insert->bindValue(':username', $params['username'], \PDO::PARAM_STR);
+                    $statement_act_insert->bindValue(':password', $params['password'], \PDO::PARAM_STR);
+                    $statement_act_insert->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);
+                    $statement_act_insert->bindValue(':auth_allow_id', $params['auth_allow_id'], \PDO::PARAM_STR);
+                    $statement_act_insert->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
+                    $statement_act_insert->bindValue(':user_id', $userIdValue, \PDO::PARAM_INT);
+                    $statement_act_insert->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);
+                    $statement_act_insert->bindValue(':cons_allow_id', $params['cons_allow_id'], \PDO::PARAM_INT);
+                    $statement_act_insert->bindValue(':preferred_language', $params['preferred_language'], \PDO::PARAM_STR);
+                    $statement_act_insert->bindValue(':person_number', $params['personIdNumber'], \PDO::PARAM_STR);
+                    $insert_act_insert = $statement_act_insert->execute();
+                    $affectedRows = $statement_act_insert->rowCount();
+                    $errorInfo = $statement_act_insert->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                } else {
+                    $errorInfo = '23505';  // 23505  unique_violation 
+                    $pdo->commit();
+                    $result = $kontrol;
+                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                }
+            } else {
+                $errorInfo = '23502';  /// 23502 user_id not_null_violation
                 $pdo->commit();
                 $result = $kontrol;
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
@@ -469,7 +608,7 @@ class InfoUsers extends \DAL\DalSlim {
             $limit = 10;
             $offset = 0;
         }
-        
+
         $sortArr = array();
         $orderArr = array();
         if (isset($args['sort']) && $args['sort'] != "") {
@@ -477,7 +616,7 @@ class InfoUsers extends \DAL\DalSlim {
             $sortArr = explode(",", $sort);
             if (count($sortArr) === 1)
                 $sort = trim($args['sort']);
-        } else {       
+        } else {
             $sort = "a.name";
         }
 
@@ -489,13 +628,13 @@ class InfoUsers extends \DAL\DalSlim {
                 $order = trim($args['order']);
         } else {
             $order = "ASC";
-        }     
-        
+        }
+
         $whereNameSQL = '';
         if (isset($args['search_name']) && $args['search_name'] != "") {
-            $whereNameSQL = " AND a.name LIKE '%" . $args['search_name'] . "%' ";             
-        }        
-        
+            $whereNameSQL = " AND a.name LIKE '%" . $args['search_name'] . "%' ";
+        }
+
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "    
@@ -525,7 +664,8 @@ class InfoUsers extends \DAL\DalSlim {
                         sd.description AS auth_alow ,
                         a.cons_allow_id,
                         sd1.description AS cons_allow ,
-                        a.preferred_language
+                        a.preferred_language,
+                        a.person_number                        
                     FROM info_users a    
                     INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_code = a.language_code
                     INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_code = a.language_code AND a.auth_allow_id = sd.first_group 
@@ -540,10 +680,10 @@ class InfoUsers extends \DAL\DalSlim {
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
                     . "OFFSET " . $pdo->quote($offset) . " ";
-            $statement = $pdo->prepare($sql); 
+            $statement = $pdo->prepare($sql);
             $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_STR);
             $statement->execute();
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);          
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -553,6 +693,7 @@ class InfoUsers extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
+
     /**
      * user interface datagrid fill operation get row count for widget
      * @param array | null $params
@@ -568,7 +709,7 @@ class InfoUsers extends \DAL\DalSlim {
             if (isset($params['search_name']) && $params['search_name'] != "") {
                 $whereNameSQL = " AND a.name LIKE '%" . $params['search_name'] . "%' ";
                 $whereNameSQL1 = " AND a1.name LIKE '%" . $params['search_name'] . "%' ";
-                $whereNameSQL2 = " AND a2.name LIKE '%" . $params['search_name'] . "%' ";                
+                $whereNameSQL2 = " AND a2.name LIKE '%" . $params['search_name'] . "%' ";
             }
             $sql = "
                    SELECT 
@@ -649,32 +790,40 @@ class InfoUsers extends \DAL\DalSlim {
      * @return array
      * @throws PDOException
      */
-    public function deletedAct(  $params = array()) {
+    public function deletedAct($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $act_parent_id = intval($params['act_parent_id']);
-            if ($act_parent_id = 0) {
-                $act_parent_id = intval($params['id']);
-            }
-            $statement = $pdo->prepare("                                      
+
+            $userId = $this->getUserId(array('pk' => $params['pk']));
+            if (!\Utill\Dal\Helper::haveRecord($userId)) {
+                $userIdValue = $userId ['resultSet'][0]['user_id'];
+
+
+                $act_parent_id = intval($params['act_parent_id']);
+                if ($act_parent_id = 0) {
+                    $act_parent_id = intval($params['id']);
+                }
+                $statement = $pdo->prepare("                                      
                     UPDATE info_users
                     SET                                                                
                         c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                                              
                         active = 1,
-                        deleted = 0
-                        act_parent_id = :act_parent_id 
+                        deleted = 0,
+                        act_parent_id = :act_parent_id ,
+                        user_id = :user_id
                     WHERE id = :id                    
-                    ");     
-            $statement->bindValue(':id',$params['id'], \PDO::PARAM_INT);
-            $statement->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);  
-            $statement->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);            
-            $update = $statement->execute();
-            $affectedRows = $statement->rowCount();
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);            
-            $statement_act_insert = $pdo->prepare(" 
+                    ");
+                $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
+                $statement->bindValue(':user_id', $userIdValue, \PDO::PARAM_INT);
+                $statement->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);
+                $statement->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
+                $update = $statement->execute();
+                $affectedRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                $statement_act_insert = $pdo->prepare(" 
                 INSERT INTO info_users(
                            profile_public, 
                            f_check, 
@@ -693,7 +842,8 @@ class InfoUsers extends \DAL\DalSlim {
                            cons_allow_id,
                            active,
                            deleted,
-                           preferred_language)
+                           preferred_language,
+                           person_number)
                   VALUES (:profile_public, 
                           :f_check, 
                           :s_date, 
@@ -711,37 +861,44 @@ class InfoUsers extends \DAL\DalSlim {
                           :cons_allow_id,
                           1,
                           1,
-                          :preferred_language
+                          :preferred_language,
+                          person_number
                     )");
-            $statement_act_insert->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
-            $statement_act_insert->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
-            $statement_act_insert->bindValue(':s_date', $params['s_date'], \PDO::PARAM_STR);
-            $statement_act_insert->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
-            $statement_act_insert->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-            $statement_act_insert->bindValue(':surname', $params['surname'], \PDO::PARAM_STR);
-            $statement_act_insert->bindValue(':username', $params['username'], \PDO::PARAM_STR);
-            $statement_act_insert->bindValue(':password', $params['password'], \PDO::PARAM_STR);
-            $statement_act_insert->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);
-            $statement_act_insert->bindValue(':auth_allow_id', $params['auth_allow_id'], \PDO::PARAM_STR);            
-            $statement_act_insert->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
-            $statement_act_insert->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-            $statement_act_insert->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);
-            $statement_act_insert->bindValue(':cons_allow_id', $params['cons_allow_id'], \PDO::PARAM_INT);
-            $statement_act_insert->bindValue(':preferred_language', $params['preferred_language'], \PDO::PARAM_STR);
-            $insert_act_insert = $statement_act_insert->execute();
-            $affectedRows = $statement_act_insert->rowCount();
-            $errorInfo = $statement_act_insert->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                $statement_act_insert->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
+                $statement_act_insert->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
+                $statement_act_insert->bindValue(':s_date', $params['s_date'], \PDO::PARAM_STR);
+                $statement_act_insert->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
+                $statement_act_insert->bindValue(':name', $params['name'], \PDO::PARAM_STR);
+                $statement_act_insert->bindValue(':surname', $params['surname'], \PDO::PARAM_STR);
+                $statement_act_insert->bindValue(':username', $params['username'], \PDO::PARAM_STR);
+                $statement_act_insert->bindValue(':password', $params['password'], \PDO::PARAM_STR);
+                $statement_act_insert->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);
+                $statement_act_insert->bindValue(':auth_allow_id', $params['auth_allow_id'], \PDO::PARAM_STR);
+                $statement_act_insert->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+                $statement_act_insert->bindValue(':user_id', $userIdValue, \PDO::PARAM_INT);
+                $statement_act_insert->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);
+                $statement_act_insert->bindValue(':cons_allow_id', $params['cons_allow_id'], \PDO::PARAM_INT);
+                $statement_act_insert->bindValue(':preferred_language', $params['preferred_language'], \PDO::PARAM_STR);
+                $statement_act_insert->bindValue(':person_number', $params['personIdNumber'], \PDO::PARAM_STR);
+                $insert_act_insert = $statement_act_insert->execute();
+                $affectedRows = $statement_act_insert->rowCount();
+                $errorInfo = $statement_act_insert->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+            } else {
+                $errorInfo = '23502';  /// 23502  not_null_violation
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
-    /**   
+    /**
      *       
      * parametre olarak gelen array deki 'id' li kaydın, info_users tablosundaki private key ve value değerlerini oluşturur  !!
      * @author Okan CIRAN
@@ -750,7 +907,7 @@ class InfoUsers extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function setPrivateKey ($params = array()) {
+    public function setPrivateKey($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             // $pdo->beginTransaction();           
@@ -761,12 +918,12 @@ class InfoUsers extends \DAL\DalSlim {
                     sf_private_key_temp = armor( pgp_sym_encrypt (username , oid_temp, 'compress-algo=1, cipher-algo=bf'))
                 WHERE                   
                     id = :id");
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);           
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $update = $statement->execute();
             $affectedRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);            
+                throw new \PDOException($errorInfo[0]);
             $statementValue = $pdo->prepare("
                 UPDATE info_users
                 SET              
@@ -774,21 +931,21 @@ class InfoUsers extends \DAL\DalSlim {
                     sf_private_key_value_temp = substring(sf_private_key_temp,40,length( trim( sf_private_key_temp))-140)  
                 WHERE                     
                     id = :id");
-            $statementValue->bindValue(':id', $params['id'], \PDO::PARAM_INT);           
+            $statementValue->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $updateValue = $statementValue->execute();
             $affectedRows = $statementValue->rowCount();
             $errorInfo = $statementValue->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
-           // $pdo->commit();
+            // $pdo->commit();
             return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
         } catch (\PDOException $e /* Exception $e */) {
-           // $pdo->rollback();
+            // $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
-    /**        
+    /**
      * parametre olarak gelen array deki 'id' li kaydın, info_users tablosundaki  public key temp değerini döndürür !!
      * @author Okan CIRAN
      * @version v 1.0  26.01.2016
@@ -798,7 +955,7 @@ class InfoUsers extends \DAL\DalSlim {
      */
     public function getPublicKeyTemp($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');   
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = " 
                 SELECT 
                     REPLACE(TRIM(SUBSTRING(crypt(sf_private_key_value_temp,gen_salt('xdes')),6,20)),'/','*') as pk_temp                  
@@ -807,7 +964,70 @@ class InfoUsers extends \DAL\DalSlim {
                     id = :id 
                 ";
             $statement = $pdo->prepare($sql);
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);     
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * parametre olarak gelen array deki 'pk' nın, info_users tablosundaki user_id si değerini döndürür !!
+     * @author Okan CIRAN
+     * @version v 1.0  26.01.2016
+     * @param array $params 
+     * @return array
+     * @throws \PDOException
+     */
+    public function getUserId($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $sql = "  
+                 SELECT id as user_id FROM (
+                            SELECT id, 	
+                                CRYPT(sf_private_key_value,CONCAT('_J9..',REPLACE('" . $params['pk'] . "','*','/'))) = CONCAT('_J9..',REPLACE('" . $params['pk'] . "','*','/')) as pkey
+                            FROM info_users) AS logintable
+                        WHERE pkey = TRUE 
+                ";
+            $statement = $pdo->prepare($sql);
+            //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+      /**
+     * parametre olarak gelen array deki 'pk' yada 'pktemp' için info_users tablosundaki user_id si değerini döndürür !!
+     * @author Okan CIRAN
+     * @version v 1.0  27.01.2016
+     * @param array $params 
+     * @return array
+     * @throws \PDOException
+     */
+    public function getUserIdTemp($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $sql = "  
+                 SELECT id AS user_id FROM (
+                            SELECT id, 	
+                                CRYPT(sf_private_key_value,CONCAT('_J9..',REPLACE('" . $params['pk'] . "','*','/'))) = CONCAT('_J9..',REPLACE('" . $params['pk'] . "','*','/')) AS pkey,
+                                CRYPT(sf_private_key_value_Temp,CONCAT('_J9..',REPLACE('" . $params['pktemp'] . "','*','/'))) = CONCAT('_J9..',REPLACE('" . $params['pktemp'] . "','*','/')) AS pkeytemp                                    
+                            FROM info_users) AS logintable
+                        WHERE pkey = TRUE OR pkeytemp = TRUE 
+                ";
+            $statement = $pdo->prepare($sql);
+            //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -820,5 +1040,45 @@ class InfoUsers extends \DAL\DalSlim {
     }
 
     
-    
+    /**
+     *       
+     * parametre olarak gelen array deki 'id' li kaydın, act_users_rrpmap tablosunda "New User" rolu verilerek kaydı oluşturulur. !!
+     * insertTemp ve insert fonksiyonlarında kullanılacak.  
+     * @author Okan CIRAN
+     * @version v 1.0  27.01.2016
+     * @param array $params 
+     * @return array
+     * @throws \PDOException
+     */
+    public function setNewUserRrpMap($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            // $pdo->beginTransaction();           
+            $statement = $pdo->prepare("
+                INSERT INTO act_users_rrpmap(
+                    info_users_id, rrpmap_id, user_id)
+                VALUES (
+                    :id, 
+                    8,
+                    :user_id )
+                    ");
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
+            if ($params['user_id'] == 0)
+                $statement->bindValue(':user_id', $params['id'], \PDO::PARAM_INT);
+            else
+                $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
+            $update = $statement->execute();
+            $affectedRows = $statement->rowCount();
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+
+            //  $pdo->commit();
+            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+        } catch (\PDOException $e /* Exception $e */) {
+            //  $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
 }
