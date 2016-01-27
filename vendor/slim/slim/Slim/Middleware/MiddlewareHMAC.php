@@ -185,9 +185,9 @@ use PhpAmqpLib\Message\AMQPMessage;
          * @since 05/01/2016
          */
         $resultset = $BLLLogLogout->pkControl(array('pk'=>$this->getRequestHeaderData()['X-Public']));
-        //print_r($resultset);
-        $publicNotFoundForwarder = new \Utill\Forwarder\publicNotFoundForwarder();
-        //if(empty($resultset[0])) $publicNotFoundForwarder->redirect();
+        print_r($resultset);
+        //$publicNotFoundForwarder = new \Utill\Forwarder\publicNotFoundForwarder();
+        if(empty($resultset[0])) $publicNotFoundForwarder->redirect();
         
         
         $this->hmacObj->setPrivateKey($resultset[0]['sf_private_key_value']);

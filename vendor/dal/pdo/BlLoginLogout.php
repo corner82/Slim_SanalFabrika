@@ -338,6 +338,48 @@ class BlLoginLogout extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+    
+    /**
+     * 
+     * @author Okan CIRAN
+     * @ public key e ait bir private key li kullanıcı varsa True değeri döndürür.  !!
+     * @version v 1.0  31.12.2015
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function pkTempControl($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            
+            $sql = "              
+
+                        SELECT id,pkey,sf_private_key_value_temp FROM (
+                            SELECT id, 	
+                                CRYPT(sf_private_key_value_temp,CONCAT('_J9..',REPLACE('".$params['pktemp']."','*','/'))) = CONCAT('_J9..',REPLACE('".$params['pktemp']."','*','/')) as pkey,	                                
+                                sf_private_key_value_temp
+                            FROM info_users) AS logintable
+                        WHERE pkey = TRUE
+
+                    ";  
+            
+            
+            $statement = $pdo->prepare($sql);
+            //$statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
+            //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+
+
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
 
     /**
      * 
@@ -351,21 +393,7 @@ class BlLoginLogout extends \DAL\DalSlim {
     public function pkControl($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /*
-            $sql = "          
-                SELECT * FROM (
-                    SELECT id, sf_private_key_value = 
-                    Pgp_sym_decrypt( 
-                     DEARMOR(CONCAT( '-----BEGIN PGP MESSAGE-----
 
-                    ',:pk,'
-                    -----END PGP MESSAGE-----
-                    '))
-                    , 'Bahram Lotfi Sadigh', 'compress-algo=1, cipher-algo=bf') AS pkey
-                    FROM info_users) AS logintable
-                WHERE pkey = TRUE                
-                                 ";             
-             */
             $sql = "              
                     SELECT id,pkey,sf_private_key_value FROM (
                             SELECT id, 	

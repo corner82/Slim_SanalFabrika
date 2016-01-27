@@ -34,6 +34,14 @@ class SlimExtended extends Slim implements  \Utill\MQ\ImessagePublisher,
     public $isServicePkRequired = null;
     
     /**
+     * service pk required or not
+     * @var boolean
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3 27/01/2016
+     */
+    public $isServicePkTempRequired = null;
+    
+    /**
     * @var string
     */
     protected $publicHash;

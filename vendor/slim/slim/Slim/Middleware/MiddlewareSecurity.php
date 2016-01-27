@@ -26,12 +26,38 @@ use PhpAmqpLib\Message\AMQPMessage;
   * @since      1.6.0
   */
   class MiddlewareSecurity extends \Slim\Middleware\MiddlewareHMAC implements \Security\Forwarder\PrivateKeyNotFoundInterface,
+                                                                \Security\Forwarder\PrivateTempKeyNotFoundInterface,
                                                                 \Security\Forwarder\PublicKeyRequiredInterface,
                                                                 \Security\Forwarder\PublicKeyNotFoundInterface,
+                                                                \Security\Forwarder\PublicKeyTempNotFoundInterface,
+                                                                \Security\Forwarder\PublicKeyTempRequiredInterface,
                                                                 \Security\Forwarder\UserNotRegisteredInterface
 {
+      
+    /**
+     * service pk temp required or not
+     * @var mixed boolean | null
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3 27/01/2016
+     */
+    protected $isServicePkTempRequired = null;
+      
+    /**
+     * determines what will be done if private temp key not found
+     * @author Mustafa Zeynel Dağlı
+     * @var boolean
+     */
+     protected $privateKeyTempNotFoundRedirect = true;
+      
+    /**
+     * determine if public key not found
+     * @var boolean | null
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3 27/01/2016
+     */
+    protected $isPublicTempKeyNotFoundRedirect = true;
     
-      /**
+    /**
      * determine if private key not found
      * @var boolean | null
      * @author Mustafa Zeynel Dağlı
@@ -183,7 +209,7 @@ use PhpAmqpLib\Message\AMQPMessage;
                 return $this->app->isServicePkRequired ;
              }
              $this->app->isServicePkRequired = false;
-             $this->app->isServicePkRequired;
+             return $this->app->isServicePkRequired;
          } else {
              return $this->app->isServicePkRequired;
          }
@@ -195,38 +221,205 @@ use PhpAmqpLib\Message\AMQPMessage;
     public function call()
     {
         $this->servicePkRequired();
+        
+        /**
+         * determine if public key temp control to be done
+         * @author Mustafa Zeynel Dağlı
+         * @since 0.3 27/01/2016
+         * @todo after detail test code description block will be removed
+         */
+        $this->servicePkTempRequired();
+        
         $params = $this->getAppRequestParams();
         $requestHeaderParams = $this->getRequestHeaderData();
-        /**
-         * controlling public key if public key is necessary for this service and
-         * public key not found forwarder is in effect then making forward
-         * @since version 0.3 06/01/2016
-         */
-        if((!isset($requestHeaderParams['X-Public']) || $requestHeaderParams['X-Public']==null) && ($this->app->isServicePkRequired) ) {
-            $this->publicKeyNotFoundRedirect();
-        }
         
         /**
-         * getting public key if user registered    
+         * public  key processes wrapper
          * @author Mustafa Zeynel Dağlı
-         * @since 06/01/2016 version 0.3
+         * @since 0.3 27/01/2016
+         * @todo after detailed test code description block will be removed
          */
-        if(isset($requestHeaderParams['X-Public']) &&  $this->app->isServicePkRequired) {
-            $resultSet = $this->app->getBLLManager()->get('blLoginLogoutBLL')->pkIsThere(array('pk' => $requestHeaderParams['X-Public']));
-            //print_r($resultSet);
-            if(!isset($resultSet[0]['?column?'])) $this->userNotRegisteredRedirect();
-        }
+        $this->publicKeyProcessControler($requestHeaderParams);
         
         /**
-         * getting private key due to public key
+         * public  key temp processes wrapper
          * @author Mustafa Zeynel Dağlı
-         * @since 05/01/2016 version 0.3
+         * @since 0.3 27/01/2016
+         * @todo after detailed test code description block will be removed
          */
-        if(isset($requestHeaderParams['X-Public']) && $this->app->isServicePkRequired) { 
-            $resultSet = $this->app->getBLLManager()->get('blLoginLogoutBLL')->pkControl(array('pk'=>$requestHeaderParams['X-Public']));
-            //print_r($resultSet);
-            if($resultSet[0]['sf_private_key_value'] == null) $this->privateKeyNotFoundRedirect();
-        }
+        $this->publicKeyTempProcessControler($requestHeaderParams);
+        
         $this->next->call();
     }
+    
+    /**
+     * public key temp control processes has been wrapped
+     * @param array $params
+     * @return mixed array | null
+     */
+    private function publicKeyTempProcessControler($requestHeaderParams) {
+        if($this->app->isServicePkTempRequired) {
+            $resultSet;
+            /**
+            * controlling public key temp from request header
+            * public key temp not found forwarder is in effect then making forward
+            * @since version 0.3 27/01/2016
+            */
+           if((!isset($requestHeaderParams['X-Public-Temp']) || $requestHeaderParams['X-Public-Temp']==null)) {
+               $this->publicKeyTempNotFoundRedirect();
+           }
+           
+           /**
+            * getting private key due to public key
+            * @author Mustafa Zeynel Dağlı
+            * @since 05/01/2016 version 0.3
+            */
+           if(isset($requestHeaderParams['X-Public-Temp'])) { 
+               $resultSet = $this->app->getBLLManager()->get('blLoginLogoutBLL')->pkTempControl(array('pktemp'=>$requestHeaderParams['X-Public-Temp']));
+               //print_r($resultSet);
+               if($resultSet[0]['sf_private_key_value_temp'] == null) $this->privateKeyTempNotFoundRedirect();
+           }
+           return $resultSet;
+
+        } else {
+            return null;
+        }
+    }
+    
+    /**
+     * public key control processes has been wrapped
+     * @param array $requestHeaderParams
+     * @return mixed array | null
+     * @author Mustafa Zeynel Dağlı
+     * @since 0.3 27/01/2016
+     */
+    private function publicKeyProcessControler($requestHeaderParams) {
+        if($this->app->isServicePkRequired) {
+            /**
+            * controlling public key if public key is necessary for this service and
+            * public key not found forwarder is in effect then making forward
+            * @since version 0.3 06/01/2016
+            */
+           if((!isset($requestHeaderParams['X-Public']) || $requestHeaderParams['X-Public']==null)) {
+               $this->publicKeyNotFoundRedirect();
+           }
+
+           /**
+            * getting public key if user registered    
+            * @author Mustafa Zeynel Dağlı
+            * @since 06/01/2016 version 0.3
+            */
+           if(isset($requestHeaderParams['X-Public'])) {
+               $resultSet = $this->app->getBLLManager()->get('blLoginLogoutBLL')->pkIsThere(array('pk' => $requestHeaderParams['X-Public']));
+               //print_r($resultSet);
+               if(!isset($resultSet[0]['?column?'])) $this->userNotRegisteredRedirect();
+           }
+
+           /**
+            * getting private key due to public key
+            * @author Mustafa Zeynel Dağlı
+            * @since 05/01/2016 version 0.3
+            */
+           if(isset($requestHeaderParams['X-Public'])) { 
+               $resultSet = $this->app->getBLLManager()->get('blLoginLogoutBLL')->pkControl(array('pk'=>$requestHeaderParams['X-Public']));
+               //print_r($resultSet);
+               if($resultSet[0]['sf_private_key_value'] == null) $this->privateKeyNotFoundRedirect();
+           }
+           return $resultSet;
+        } else {
+            return null;
+        }
+        
+    }
+    
+    /**
+     * public key temp not found process is being evaluated here
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3
+     */
+    public function publicKeyTempNotFoundRedirect() {
+        if($this->isServicePkTempRequired && $this->isPublicTempKeyNotFoundRedirect) {
+             $forwarder = new \Utill\Forwarder\PublicTempNotFoundForwarder();
+             $forwarder->redirect();  
+         } else {
+             return true;
+         }
+    }
+
+    /**
+     * set variable for public key temp not found strategy
+     * @param type $boolean
+     * @author Mustafa Zeynel Dağlı
+     * @since 27/01/2016  
+     */
+    public function getPublicKeyTempNotFoundRedirect() {
+        return $this->isPublicTempKeyNotFoundRedirect;
+    }
+    
+    /**
+     * get variable for public key temp not found strategy
+     * @return boolean
+     * @author Mustafa Zeynel Dağlı
+     * @since 27/01/2016
+     */
+    public function setPublicKeyTempNotFoundRedirect($boolean = null) {
+        $this->isPublicTempKeyNotFoundRedirect = $boolean;
+    }
+    
+    /**
+     * public key temp not found process function, will be overridden by
+     * inherit classes
+     * @author Mustafa Zeynel Dağlı
+     * @since version 0.3 27/01/2016
+     */
+    public function privateKeyTempNotFoundRedirect() {
+        if($this->isServicePkTempRequired && $this->privateKeyTempNotFoundRedirect) {
+            $forwarder = new \Utill\Forwarder\PrivateTempNotFoundForwarder();
+            $forwarder->redirect();
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * get variable for private key temp not found strategy
+     * @return boolean
+     * @author Mustafa Zeynel Dağlı
+     * @since 27/01/2016
+     */
+    public function getPrivateKeyTempNotFoundRedirect() {
+        return $this->privateKeyTempNotFoundRedirect;
+    }
+
+    /**
+     * set variable for private key temp not found strategy
+     * @param type $boolean
+     * @author Mustafa Zeynel Dağlı
+     * @since 27/01/2016  
+     */
+    public function setPrivateKeyTempNotFoundRedirect($boolean = null) {
+        $this->privateKeyNotFoundRedirection = $boolean;
+    }
+
+    /**
+      * 
+      * @return boolean
+      * @author Mustafa Zeynel Dağlı
+      * @since version 0.3 27/01/2016
+      */
+    public function servicePkTempRequired() {
+         if($this->app->isServicePkTempRequired == null) {
+             $params = $this->getAppRequestParams();
+             //print_r($params);
+             if(substr(trim($params['url']),0,6) == 'pktemp') {
+                $this->app->isServicePkTempRequired = true;
+                return $this->app->isServicePkTempRequired ;
+             }
+             $this->app->isServicePkTempRequired = false;
+             return $this->app->isServicePkTempRequired;
+         } else {
+             return $this->app->isServicePkTempRequired;
+         }
+    }
+
 }

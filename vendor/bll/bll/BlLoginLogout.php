@@ -63,13 +63,26 @@ class BlLoginLogout extends \BLL\BLLSlim{
     
     
     /**
-     *  
-     * @param array | null $params
+     * get private key  from public key
+     * @param array$params
      * @return array
      */
     public function pkControl($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('blLoginLogoutPDO');
         $resultSet = $DAL->pkControl($params);  
+        return $resultSet['resultSet'];
+    }
+    
+    /**
+     * get private key temp from public temp key
+     * @param array$params
+     * @return array
+     * @author Mustafa Zeynel Dağlı
+     * @since 0.3 27/01/2016
+     */
+    public function pkTempControl($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('blLoginLogoutPDO');
+        $resultSet = $DAL->pkTempControl($params);  
         return $resultSet['resultSet'];
     }
 
