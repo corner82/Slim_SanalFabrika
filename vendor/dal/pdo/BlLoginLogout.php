@@ -414,7 +414,7 @@ class BlLoginLogout extends \DAL\DalSlim {
                 SELECT       
                      REPLACE(TRIM(SUBSTRING(crypt(sf_private_key_value,gen_salt('xdes')),6,20)),'/','*') AS public_key 
                 FROM info_users a              
-                INNER JOIN act_users_rrpmap usr ON usr.info_users_id = a.id AND usr.active = 0 AND usr.deleted = 0 
+                INNER JOIN act_users_rrpmap usr ON usr.info_users_id = a.root_id AND usr.active = 0 AND usr.deleted = 0 
 		INNER JOIN sys_acl_rrpmap sarmap ON sarmap.id = usr.rrpmap_id AND sarmap.active=0 AND sarmap.deleted =0 
                 INNER JOIN sys_acl_roles sar ON sar.id = sarmap.role_id AND sar.active=0 AND sar.deleted=0 
                 WHERE a.username = :username 
