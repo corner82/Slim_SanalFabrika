@@ -75,56 +75,6 @@ class BlLoginLogout extends \DAL\DalSlim {
     /**
      * basic select from database  example for PDO prepared
      * statements, table names are irrevelant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [resultSet] => Array
-      (
-      [0] => Array
-      (
-      [id] => 1
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [1] => Array
-      (
-      [id] => 4
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [2] => Array
-      (
-      [id] => 5
-      [name] => zeyn dag new
-      [international_code] => 25
-      [active] => 1
-      )
-
-      [3] => Array
-      (
-      [id] => 3
-      [name] => zeyn zeyn oldu şimdik
-      [international_code] => 12
-      [active] => 1
-      )
-
-      )
-
-      )
-     * usage 
      * @author Okan CIRAN
      * @ info_users tablosundaki tüm kayıtları getirir.  !!
      * @version v 1.0  30.12.2015  
@@ -196,27 +146,6 @@ class BlLoginLogout extends \DAL\DalSlim {
     /**
      * basic insert database example for PDO prepared
      * statements, table names are irrevelant and should be changed on specific 
-     * * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [lastInsertId] => 5
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage     
      * @author Okan CIRAN
      * @ info_users tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  30.12.2015
@@ -272,27 +201,6 @@ class BlLoginLogout extends \DAL\DalSlim {
     /**
      * basic update database example for PDO prepared
      * statements, table names are irrevelant and should be changed on specific
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage  
      * @author Okan CIRAN
      * info_users tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  30.12.2015
@@ -358,7 +266,7 @@ class BlLoginLogout extends \DAL\DalSlim {
                             SELECT id, 	
                                 CRYPT(sf_private_key_value_temp,CONCAT('_J9..',REPLACE('".$params['pktemp']."','*','/'))) = CONCAT('_J9..',REPLACE('".$params['pktemp']."','*','/')) as pkey,	                                
                                 sf_private_key_value_temp
-                            FROM info_users) AS logintable
+                            FROM info_users WHERE active=0 AND deleted=0) AS logintable
                         WHERE pkey = TRUE
 
                     ";  
@@ -399,7 +307,7 @@ class BlLoginLogout extends \DAL\DalSlim {
                             SELECT id, 	
                                 CRYPT(sf_private_key_value,CONCAT('_J9..',REPLACE('".$params['pk']."','*','/'))) = CONCAT('_J9..',REPLACE('".$params['pk']."','*','/')) as pkey,	                                
                                 sf_private_key_value
-                            FROM info_users) AS logintable
+                            FROM info_users WHERE active=0 AND deleted=0) AS logintable
                         WHERE pkey = TRUE
 
                     ";  
