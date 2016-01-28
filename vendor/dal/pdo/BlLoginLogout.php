@@ -56,7 +56,7 @@ class BlLoginLogout extends \DAL\DalSlim {
             $statement = $pdo->prepare(" 
                 UPDATE info_users
                 SET deleted= 1 , active = 1 ,
-                    user_id =  " . intval($params['user_id']) . " 
+                    op_user_id =  " . intval($params['user_id']) . " 
                 WHERE id = :id");
             $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $update = $statement->execute();
@@ -111,13 +111,14 @@ class BlLoginLogout extends \DAL\DalSlim {
                         sd3.description AS state_active,  
                         a.deleted,
 			sd2.description AS state_deleted, 
-                        a.user_id,
+                        a.op_user_id,
                         u.username,                    
                         a.auth_allow_id, 
                         sd.description AS auth_alow ,
                         a.cons_allow_id,
                         sd1.description AS cons_allow,
-                        a.language_parent_id
+                        a.language_parent_id,
+                        a.root_id
                     FROM info_users a    
                     INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_code = a.language_code  AND op.deleted =0 AND op.active =0
                     INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_code = a.language_code AND a.auth_allow_id = sd.first_group  AND sd.deleted =0 AND sd.active =0
@@ -126,7 +127,7 @@ class BlLoginLogout extends \DAL\DalSlim {
                     INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_code = a.language_code AND sd3.deleted = 0 AND sd3.active = 0
                     LEFT JOIN sys_specific_definitions sd4 ON sd4.main_group = 1 AND sd4.first_group= a.active AND sd4.language_code = a.language_code AND sd4.deleted = 0 AND sd4.active = 0
                     INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active =0 
-                    INNER JOIN info_users u ON u.id = a.user_id  
+                    INNER JOIN info_users u ON u.id = a.op_user_id  
                     WHERE a.deleted =0 AND language_code = :language_code 
                     ORDER BY a.firm_name   
                           ");
@@ -162,7 +163,7 @@ class BlLoginLogout extends \DAL\DalSlim {
             $statement = $pdo->prepare("
                 INSERT INTO info_users(
                         name, name_eng, language_code, language_parent_id, 
-                        user_id, flag_icon_road, country_code3, priority   )
+                        op_user_id, flag_icon_road, country_code3, priority   )
                 VALUES (
                         :name,
                         :name_eng, 
@@ -220,7 +221,7 @@ class BlLoginLogout extends \DAL\DalSlim {
                     name_eng = :name_eng, 
                     language_code = :language_code,                    
                     language_parent_id = :language_parent_id,
-                    user_id = :user_id,
+                    op_user_id = :user_id,
                     flag_icon_road = :flag_icon_road,                       
                     country_code3 = :country_code3,
                     priority = :priority 
@@ -258,27 +259,18 @@ class BlLoginLogout extends \DAL\DalSlim {
      */
     public function pkTempControl($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            
-            $sql = "              
-
-                        SELECT id,pkey,sf_private_key_value_temp FROM (
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
+            $sql = "     
+                        SELECT id,pkey,sf_private_key_value_temp ,root_id FROM (
                             SELECT id, 	
-                                CRYPT(sf_private_key_value_temp,CONCAT('_J9..',REPLACE('".$params['pktemp']."','*','/'))) = CONCAT('_J9..',REPLACE('".$params['pktemp']."','*','/')) as pkey,	                                
-                                sf_private_key_value_temp
+                                CRYPT(sf_private_key_value_temp,CONCAT('_J9..',REPLACE('".$params['pktemp']."','*','/'))) = CONCAT('_J9..',REPLACE('".$params['pktemp']."','*','/')) AS pkey,	                                
+                                sf_private_key_value_temp , root_id
                             FROM info_users WHERE active=0 AND deleted=0) AS logintable
                         WHERE pkey = TRUE
-
                     ";  
-            
-            
             $statement = $pdo->prepare($sql);
-            //$statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
-            //echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -301,25 +293,17 @@ class BlLoginLogout extends \DAL\DalSlim {
     public function pkControl($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-
             $sql = "              
                     SELECT id,pkey,sf_private_key_value FROM (
-                            SELECT id, 	
-                                CRYPT(sf_private_key_value,CONCAT('_J9..',REPLACE('".$params['pk']."','*','/'))) = CONCAT('_J9..',REPLACE('".$params['pk']."','*','/')) as pkey,	                                
+                            SELECT COALESCE(NULLIF(root_id, 0),id) AS id, 	
+                                CRYPT(sf_private_key_value,CONCAT('_J9..',REPLACE('".$params['pk']."','*','/'))) = CONCAT('_J9..',REPLACE('".$params['pk']."','*','/')) AS pkey,	                                
                                 sf_private_key_value
                             FROM info_users WHERE active=0 AND deleted=0) AS logintable
                         WHERE pkey = TRUE
-
-                    ";  
-            
-            
-            $statement = $pdo->prepare($sql);
-            //$statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
-            //echo debugPDO($sql, $params);
+                    "; 
+            $statement = $pdo->prepare($sql);            
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -345,6 +329,7 @@ class BlLoginLogout extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "          
                 SELECT 
+                    a.id,
                     a.name, 
                     a.surname, 
                     a.username, 
@@ -363,7 +348,8 @@ class BlLoginLogout extends \DAL\DalSlim {
                     (SELECT CAST(MIN(bz.parent) AS varchar(5))
                             FROM sys_acl_roles az 
                             LEFT JOIN sys_acl_roles bz ON bz.parent = az.id   
-                            WHERE az.id= sarmap.role_id),''), CAST(sar.parent AS varchar(5))) AS Menu_type  
+                            WHERE az.id= sarmap.role_id),''), CAST(sar.parent AS varchar(5))) AS Menu_type,
+                    root_id
                 FROM info_users a              
                 LEFT JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active =0 
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_code = COALESCE(NULLIF(l.language_main_code, ''), 'en') AND a.auth_allow_id = sd.first_group 
@@ -444,8 +430,6 @@ class BlLoginLogout extends \DAL\DalSlim {
             echo debugPDO($sql, $parameters);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -485,21 +469,30 @@ class BlLoginLogout extends \DAL\DalSlim {
                                  ";             
              */
             $sql = "    
-                    SELECT a.id, a.name, a.data, a.lifetime, a.c_date, a.modified, a.public_key, b.name AS u_name, b.surname AS u_surname, b.username,b.sf_private_key_value
+                    SELECT 
+                        a.id, 
+                        a.name, 
+                        a.data, 
+                        a.lifetime, 
+                        a.c_date, 
+                        a.modified, 
+                        a.public_key, 
+                        b.name AS u_name, 
+                        b.surname AS u_surname, 
+                        b.username,
+                        b.sf_private_key_value,
+                        b.root_id                        
                     FROM act_session a 
                     INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(a.public_key,'*','/'))
                         AND b.active = 0 AND b.deleted = 0
                     WHERE a.public_key = :public_key 
                     ";  
             
-            
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
             echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -527,10 +520,8 @@ class BlLoginLogout extends \DAL\DalSlim {
                     SELECT a.public_key =  '".$params['pk']."'
                     FROM act_session a                  
                     WHERE a.public_key =   '".$params['pk']."'
-                    ";           
-            
+                    ";                       
             $statement = $pdo->prepare($sql);            
-            //echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -563,12 +554,9 @@ class BlLoginLogout extends \DAL\DalSlim {
                                             INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(a.public_key,'*','/'))
                                                 AND b.active = 0 AND b.deleted = 0
                                             WHERE a.public_key = '".$params['pk']."'
-                        ),CONCAT('_J9..',REPLACE(ax.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(ax.public_key,'*','/'))
- 
-                    ";           
-            
-            $statement = $pdo->prepare($sql);            
-            //echo debugPDO($sql, $params);
+                        ),CONCAT('_J9..',REPLACE(ax.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(ax.public_key,'*','/')) 
+                    ";                       
+            $statement = $pdo->prepare($sql);                        
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
