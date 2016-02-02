@@ -638,7 +638,7 @@ $app->get("/fillUserCommunicationsTypes_infoUsersCommunications/", function () u
  * Okan CIRAN
  * @since 02-02-2016
  */
-$app->get("/pkTempFillGridSingular_infoUsersCommunications/", function () use ($app ) {
+$app->get("/pktempFillGridSingular_infoUsersCommunications/", function () use ($app ) {
 
 
     $BLL = $app->getBLLManager()->get('infoUsersCommunicationsBLL');
@@ -704,7 +704,7 @@ $app->get("/pkTempFillGridSingular_infoUsersCommunications/", function () use ($
  *  * Okan CIRAN
  * @since 02-02-2016
  */
-$app->get("/pkTempInsert_infoUsersCommunications/", function () use ($app ) {
+$app->get("/pktempInsert_infoUsersCommunications/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('infoUsersCommunicationsBLL');
     
@@ -802,7 +802,7 @@ $app->get("/pkTempInsert_infoUsersCommunications/", function () use ($app ) {
  *  * Okan CIRAN
  * @since 02-02-2016
  */
-$app->get("/pkTempUpdate_infoUsersCommunications/", function () use ($app ) {
+$app->get("/pktempUpdate_infoUsersCommunications/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('infoUsersCommunicationsBLL');
 
@@ -1009,7 +1009,7 @@ $app->get("/pkTempUpdate_infoUsersCommunications/", function () use ($app ) {
  *  * Okan CIRAN
  * @since 02-02-2016
  */
-$app->get("/pkTempDeletedAct_infoUsersCommunications/", function () use ($app ) {
+$app->get("/pktempDeletedAct_infoUsersCommunications/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('infoUsersCommunicationsBLL');
 
@@ -1052,7 +1052,7 @@ $app->get("/pkTempDeletedAct_infoUsersCommunications/", function () use ($app ) 
  *  * Okan CIRAN
  * @since 02-02-2016
  */
-$app->get("/pkTempFillUserCommunicationsTypes_infoUsersCommunications/", function () use ($app ) {
+$app->get("/pktempFillUserCommunicationsTypes_infoUsersCommunications/", function () use ($app ) {
 
 
     $BLL = $app->getBLLManager()->get('infoUsersCommunicationsBLL');
