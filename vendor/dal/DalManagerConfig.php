@@ -54,6 +54,7 @@ class DalManagerConfig {
                 'sysAclPrivilegePDO' => 'DAL\Factory\PDO\SysAclPrivilegeFactory',   
                 'sysAclRrpMapPDO' => 'DAL\Factory\PDO\SysAclRrpMapFactory',  
                 'sysSpecificDefinitionsPDO' => 'DAL\Factory\PDO\SysSpecificDefinitionsFactory', 
+                'infoUsersCommunicationsFactoryPDO' => 'DAL\Factory\PDO\InfoUsersCommunicationsFactory', 
                 
                  
                 

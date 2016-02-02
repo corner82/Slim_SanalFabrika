@@ -49,6 +49,7 @@ class BLLManagerConfig{
                  'sysAclPrivilegeBLL' => 'BLL\BLL\SysAclPrivilege',
                  'sysAclRrpMapBLL' => 'BLL\BLL\SysAclRrpMap',  
                  'sysSpecificDefinitionsBLL' => 'BLL\BLL\SysSpecificDefinitions',   
+                 'infoUsersCommunicationsBLL' => 'BLL\BLL\InfoUsersCommunications',   
                  
                  
                
