@@ -584,18 +584,10 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 $whereSql1 = " WHERE a1.deleted =0 AND a1.language_code = '" . $params['language_code'] . "' ";
                 $whereSql2 = " WHERE a2.deleted =1 AND a2.language_code = '" . $params['language_code'] . "' ";
 
-                if (isset($params['pk'])) {
-                    if ((isset($params['pk']) && $params['pk'] != "")) {
-                        $pk = $params['pk'];
-                    }
-                    $userId = InfoUsers::getUserIdTemp(array('pk' => $pk, 'pktemp' => $pk));
-                    if (!\Utill\Dal\Helper::haveRecord($userId)) {
-                        $userIdValue = $userId ['resultSet'][0]['user_id'];
-                        $whereSql .= " AND b.user_id = " . $userIdValue;
-                        $whereSql1 .= " AND b1.user_id = " . $userIdValue;
-                        $whereSql2 .= " AND b2.user_id = " . $userIdValue;
-                    }
-                }
+                $userIdValue = $userId ['resultSet'][0]['user_id'];
+                $whereSql .= " AND b.user_id = " . $userIdValue;
+                $whereSql1 .= " AND b1.user_id = " . $userIdValue;
+                $whereSql2 .= " AND b2.user_id = " . $userIdValue;
 
                 $sql = "
                 SELECT 
@@ -926,7 +918,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 
 
                 $statement = $pdo->prepare("                                      
-                    UPDATE info_users
+                    UPDATE info_users_communications
                     SET                                                                
                         c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                                              
                         active = 1

@@ -120,7 +120,7 @@ class InfoUsersCommunications extends \BLL\BLLSlim{
     }
     
     
-      /**
+    /**
      * Function to fill User Communications Types on user interface layer
      * @param array | null $params
      * @return array
@@ -141,7 +141,70 @@ class InfoUsersCommunications extends \BLL\BLLSlim{
         return $DAL->deletedAct($params);
     }
     
- 
     
+    
+    
+    /**
+     * Data insert function
+     * @param array | null $params
+     * @return array
+     */
+    public function insertTemp($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersCommunicationsPDO');
+        return $DAL->insertTemp($params);
+    }
+    
+    /**
+     * Data update function
+     * @param array | null $params
+     * @return array
+     */
+    public function updateTemp($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersCommunicationsPDO');
+        return $DAL->updateTemp($params);
+    }
+    
+    /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillGridSingularTemp ($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersCommunicationsPDO');
+        $resultSet = $DAL->fillGridSingularTemp($params);  
+        return $resultSet['resultSet'];
+    }    
+    
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillGridSingularRowTotalCountTemp($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersCommunicationsPDO');
+        $resultSet = $DAL->fillGridSingularRowTotalCountTemp($params);  
+        return $resultSet['resultSet'];
+    }    
+      
+    /**
+     * Function to fill User Communications Types on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillUserCommunicationsTypesTemp ($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersCommunicationsPDO');
+        $resultSet = $DAL->fillUserCommunicationsTypesTemp($params);  
+        return $resultSet['resultSet'];
+    }
+    
+    /**
+    * Data delete action function
+    * @param array | null $params
+    * @return array
+    */
+    public function deletedActTemp($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersCommunicationsPDO');
+        return $DAL->deletedActTemp($params);
+    }
 }
 
