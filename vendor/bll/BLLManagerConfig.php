@@ -50,6 +50,7 @@ class BLLManagerConfig{
                  'sysAclRrpMapBLL' => 'BLL\BLL\SysAclRrpMap',  
                  'sysSpecificDefinitionsBLL' => 'BLL\BLL\SysSpecificDefinitions',   
                  'infoUsersCommunicationsBLL' => 'BLL\BLL\InfoUsersCommunications',   
+                 'infoUsersAddressesBLL' => 'BLL\BLL\InfoUsersAddresses',   
                  
                  
                
