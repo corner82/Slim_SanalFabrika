@@ -676,7 +676,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
         }
     }
     
-        /**
+    /**
      * Fill function used for testing
      * user interface combobox fill operation   
      * @author Okan CIRAN
@@ -719,7 +719,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
         }
     }
 
-         /**
+    /**
      * Fill function used for testing
      * user interface combobox fill operation   
      * @author Okan CIRAN
@@ -762,7 +762,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
         }
     }
 
-             /**
+    /**
      * Fill function used for testing
      * user interface combobox fill operation   
      * @author Okan CIRAN
@@ -805,7 +805,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
         }
     }
     
-                 /**
+    /**
      * Fill function used for testing
      * user interface combobox fill operation   
      * @author Okan CIRAN
@@ -847,6 +847,50 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+    
+     /**
+     * Fill function used for testing
+     * user interface combobox fill operation   
+     * @author Okan CIRAN
+     * @ İletişim adresleri dropdown ya da tree ye doldurmak için sys_specific_definitions tablosundan kayıtları döndürür !!
+     * @version v 1.0  03.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException 
+     */
+    public function fillAddressTypes($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
+            $statement = $pdo->prepare("             
+            SELECT                    
+                    a.id, 	
+                   COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
+                    a.parent_id,
+                    a.active,
+                    CASE 
+                    (SELECT DISTINCT 1 state_type FROM sys_specific_definitions WHERE parent_id = a.id AND deleted = 0)    
+                     WHEN 1 THEN 'closed'
+                     ELSE 'open'   
+                     END AS state_type  
+                FROM sys_specific_definitions a       
+                WHERE     
+                    a.main_group = 17  AND  
+                    language_code = '" . $params['language_code'] . "' AND
+                    a.deleted = 0     
+                ORDER BY a.id, a.parent_id                                    
+                                 ");
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
     
     
     

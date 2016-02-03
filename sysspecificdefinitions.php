@@ -242,5 +242,34 @@ $app->get("/fillPersonnelTypes_sysSpecificDefinitions/", function () use ($app )
 });
 
 
+/**
+ *  * Okan CIRAN
+ * @since 25-01-2016
+ */
+$app->get("/fillAddressTypes_sysSpecificDefinitions/", function () use ($app ) {
+
+    $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL');
+
+    $resCombobox = $BLL->fillAddressTypes(array('language_code'=>$_GET['language_code']
+                                                ));  
+
+    $flows = array();
+    foreach ($resCombobox as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+            //"text" => strtolower($flow["name"]),
+            "text" => $flow["name"],
+            "state" => $flow["state_type"], //   'closed',
+            "checked" => false,
+            "attributes" => array("notroot" => true, "active" => $flow["active"]),
+        );
+    }
+
+    $app->response()->header("Content-Type", "application/json");
+
+    $app->response()->body(json_encode($flows));
+});
+
+
 
 $app->run();

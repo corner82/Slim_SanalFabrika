@@ -155,5 +155,19 @@ class SysSpecificDefinitions extends \BLL\BLLSlim {
         $resultSet = $DAL->fillPersonnelTypes($params);
         return $resultSet['resultSet'];
     }
+    /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillAddressTypes($params = array()) {
 
+        $DAL = $this->slimApp->getDALManager()->get('sysSpecificDefinitionsPDO');
+        $resultSet = $DAL->fillAddressTypes($params);
+        return $resultSet['resultSet'];
+    }
+    
+    
+    
+    
 }
