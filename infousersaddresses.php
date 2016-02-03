@@ -805,52 +805,11 @@ $app->get("/pktempInsert_infoUsersAddresses/", function () use ($app ) {
     $vBoroughId = $_GET['borough_id'];
     $vCityName = $_GET['city_name'];  
     $vDescription = $_GET['description'];   
-    $vDescriptionEng = $_GET['description_eng'];    
-    
-    $vActive =0; 
-    if (isset($_GET['active'])) {
-        $vActive = $_GET['active'];
-    }
-    $vOperationTypeId = 1;
-    if (isset($_GET['operation_type_id'])) {
-        $vOperationTypeId = $_GET['operation_type_id'];
-    }
-    $vUserId = NULL;
-    if (isset($_GET['user_id'])) {
-        $vUserId = $_GET['user_id'];
-    }      
-    $vConsAllowId = 0;
-    if (isset($_GET['cons_allow_id'])) {
-        $vConsAllowId = $_GET['cons_allow_id'];
-    }
-    $vActParentId = 0;
-    if (isset($_GET['act_parent_id'])) {
-        $vActParentId = $_GET['act_parent_id'];
-    }  
-    $vConsultantId = 0;
-    if (isset($_GET['consultant_id'])) {
-        $vConsultantId = $_GET['consultant_id'];
-    }
-    $vConsultantConfirmTypeId = 0;
-    if (isset($_GET['consultant_confirm_type_id'])) {
-        $vConsultantConfirmTypeId = $_GET['consultant_confirm_type_id'];
-    }
-    $vConfirmId = 0;
-    if (isset($_GET['confirm_id'])) {
-        $vConsultantConfirmTypeId = $_GET['confirm_id'];
-    } 
-
-    
-    $fUserId = $vUserId ; 
-    $fOperationTypeId = $vOperationTypeId;    
-    $fActive =$vActive;
-    $fActParentId =$vActParentId;
+    //$vDescriptionEng = $_GET['description_eng'];    
+     
+     
     $fLanguageCode = $vLanguageCode;
     $fProfilePublic = $vProfilePublic;  
-    $fConsAllowId = $vConsAllowId ; 
-    $fConsultantId = $vConsultantId;
-    $fConsultantConfirmTypeId = $vConsultantConfirmTypeId;
-    $fConfirmId = $vConfirmId ; 
     
     $fAddressTypeId = $vAddressTypeId;
     $fAddress1 =$vAddress1;
@@ -861,22 +820,14 @@ $app->get("/pktempInsert_infoUsersAddresses/", function () use ($app ) {
     $fBoroughId = $vBoroughId;
     $fCityName = $vCityName;  
     $fDescription = $vDescription;   
-    $fDescriptionEng = $vDescriptionEng;
+   // $fDescriptionEng = $vDescriptionEng;
     $fPkTemp = $vPkTemp ; 
     
     
     
     $resDataInsert = $BLL->insertTemp(array(  
-            'user_id' =>$fUserId , 
-            'operation_type_id' => $fOperationTypeId,
-            'active' => $fActive,        
-            'act_parent_id' => $fActParentId,
             'language_code' => $fLanguageCode,
-            'profile_public' => $fProfilePublic,              
-            'cons_allow_id' => $fConsAllowId,              
-            'consultant_id'  => $fConsultantId,
-            'consultant_confirm_type_id' => $fConsultantConfirmTypeId,
-            'confirm_id' =>  $fConfirmId,
+            'profile_public' => $fProfilePublic,  
             
             'address_type_id' => $fAddressTypeId , 
             'address1' => $fAddress1 , 
@@ -887,7 +838,7 @@ $app->get("/pktempInsert_infoUsersAddresses/", function () use ($app ) {
             'borough_id' => $fBoroughId ,
             'city_name' => $fCityName ,        
             'description' => $fDescription ,
-            'description_eng' => $fDescriptionEng , 
+           // 'description_eng' => $fDescriptionEng , 
         
             'pktemp' => $fPkTemp,        
             ));
@@ -927,41 +878,7 @@ $app->get("/pktempUpdate_infoUsersAddresses/", function () use ($app ) {
     $vCityName = $_GET['city_name'];  
     $vDescription = $_GET['description'];   
     $vDescriptionEng = $_GET['description_eng'];   
-    
      
-    
-    $vActive =0; 
-    if (isset($_GET['active'])) {
-        $vActive = $_GET['active'];
-    }
-    $vOperationTypeId = 1;
-    if (isset($_GET['operation_type_id'])) {
-        $vOperationTypeId = $_GET['operation_type_id'];
-    }
-    $vUserId = NULL;
-    if (isset($_GET['user_id'])) {
-        $vUserId = $_GET['user_id'];
-    }     
-    $vConsAllowId = 0;
-    if (isset($_GET['cons_allow_id'])) {
-        $vConsAllowId = $_GET['cons_allow_id'];
-    } 
-    $vActParentId = 0;
-    if (isset($_GET['act_parent_id'])) {
-        $vActParentId = $_GET['act_parent_id'];
-    }  
-    $vConsultantId = 0;
-    if (isset($_GET['consultant_id'])) {
-        $vConsultantId = $_GET['consultant_id'];
-    }     
-    $vConsultantConfirmTypeId = 0;
-    if (isset($_GET['consultant_confirm_type_id'])) {
-        $vConsultantConfirmTypeId = $_GET['consultant_confirm_type_id'];
-    }     
-    $vConfirmId = 0;
-    if (isset($_GET['confirm_id'])) {
-        $vConsultantConfirmTypeId = $_GET['confirm_id'];
-    }     
    
     $validater = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
     $validatorChainUrl = new Zend\Validator\ValidatorChain();
@@ -996,31 +913,7 @@ $app->get("/pktempUpdate_infoUsersAddresses/", function () use ($app ) {
                                                                           ->attach(new Zend\Validator\Digits()) 
                                                                                  
                 ) );
-        
-    $validatorChainOperationTypeId = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('operation_type_id', 
-    new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vOperationTypeId, 
-                                                          $validatorChainOperationTypeId->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                         // ,'max' => 2
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-                                                                                 
-                ) ); 
-  
-    $validatorChainActive = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('active', 
-    new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vActive, 
-                                                          $validatorChainActive->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                          ,'max' => 1
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-                                                                                 
-                ) ); 
-        
+         
     $validatorChainProfilePublic = new Zend\Validator\ValidatorChain();
     $validater->offsetSet('profile_public', 
     new \Utill\Validation\Chain\ZendValidationChainer($app, 
@@ -1031,49 +924,17 @@ $app->get("/pktempUpdate_infoUsersAddresses/", function () use ($app ) {
                                                                         )))
                                                                           ->attach(new Zend\Validator\Digits()) 
          ) ); 
-         
-        
-    $validatorChainConsAllowId = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('cons_allow_id', 
-    new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vConsAllowId, 
-                                                          $validatorChainConsAllowId->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                          ,'max' => 1
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-         ) ); 
-        
-     
-    $validatorChainActParentId = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('act_parent_id', 
-    new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vActParentId, 
-                                                          $validatorChainActParentId->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                          ,'max' => 1
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-         ) );  
-        
- 
-        
+      
     $validater->validate();
     $messager = $app->getServiceManager()->get('validatorMessager');  
     print_r( $messager->getValidationMessage());
     
       
     $fID = $vID;   
-    $fUserId = $vUserId ; 
-    $fOperationTypeId = $vOperationTypeId;    
-    $fActive =$vActive;
-    $fActParentId =$vActParentId;
+    
     $fLanguageCode = $vLanguageCode;
     $fProfilePublic = $vProfilePublic;
-    $fConsAllowId = $vConsAllowId ; 
-    $fConsultantId = $vConsultantId;
-    $fConsultantConfirmTypeId = $vConsultantConfirmTypeId;
-    $fConfirmId = $vConfirmId ; 
+   
     $fAddressTypeId = $vAddressTypeId;
     $fAddress1 =$vAddress1;
     $fAddress2 = $vAddress2;
@@ -1094,18 +955,9 @@ $app->get("/pktempUpdate_infoUsersAddresses/", function () use ($app ) {
      */
     
     $resDataUpdate = $BLL->updateTemp(array(
-        'id' =>$fID,  
-        'user_id' =>  $fUserId , 
-        'operation_type_id' => $fOperationTypeId,
-        'active' => $fActive,        
-        'act_parent_id' => $fActParentId,
+        'id' =>$fID,         
         'language_code' => $fLanguageCode,
-        'profile_public' => $fProfilePublic,              
-        'cons_allow_id' => $fConsAllowId,       
-        'consultant_id'  => $fConsultantId,
-        'consultant_confirm_type_id' => $fConsultantConfirmTypeId,
-        'confirm_id' =>  $fConfirmId,
-        
+        'profile_public' => $fProfilePublic, 
         'address_type_id' => $fAddressTypeId , 
         'address1' => $fAddress1 , 
         'address2' => $fAddress2 ,

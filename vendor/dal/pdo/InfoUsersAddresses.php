@@ -187,7 +187,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                                 borough_id, 
                                 city_name, 
                                 description, 
-                                description_eng
+                                description_eng,
                                 profile_public,
                                 history_parent_id
                                 )                        
@@ -203,7 +203,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                                 :borough_id, 
                                 :city_name, 
                                 :description, 
-                                :description_eng
+                                :description_eng,
                                 :profile_public,
                                 (SELECT last_value FROM info_users_addresses_id_seq)
                                                 ");
@@ -1108,39 +1108,11 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                     $userId = $opUserIdValue;
                 }
                 $addSqlValue .= " " . $userId . ",";
-
-
-                if ((isset($params['active']) && $params['active'] != "")) {
-                    $addSqlValue .= " " . intval($params['active']) . ",";
-                    $addSql .= " active,  ";
-                }
-
-                $addSql .= " operation_type_id,  ";
-                if ((isset($params['operation_type_id']) && $params['operation_type_id'] != "")) {
-                    $addSqlValue .= " " . intval($params['operation_type_id']) . ",";
-                } ELSE {
-                    $addSqlValue .= " 1,";
-                }
-                
-                
-                if ((isset($params['consultant_id']) && $params['consultant_id'] != "")) {
-                    $addSqlValue .= " " . intval($params['consultant_id']) . ",";
-                    $addSql .= " consultant_id,  ";
-                    if ((isset($params['consultant_confirm_type_id']) && $params['consultant_confirm_type_id'] != "")) {
-                        $addSqlValue .= " " . intval($params['consultant_confirm_type_id']) . ",";
-                        $addSql .= " consultant_confirm_type_id,  ";
-                    }
-
-                    if ((isset($params['confirm_id']) && $params['confirm_id'] != "")) {
-                        $addSqlValue .= " " . intval($params['confirm_id']) . ",";
-                        $addSql .= " confirm_id,  ";
-                    }
-                }
-
-
+ 
                 $statement = $pdo->prepare("
                         INSERT INTO info_users_addresses (                           
-                                " . $addSql . "                              
+                                " . $addSql . " 
+                                operation_type_id,     
                                 language_code,                         
                                 address_type_id, 
                                 address1, 
@@ -1150,13 +1122,13 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                                 city_id, 
                                 borough_id, 
                                 city_name, 
-                                description, 
-                                description_eng
+                                description,                                 
                                 profile_public,
                                 history_parent_id
                                 )                        
                         VALUES (
-                                " . $addSqlValue . "                                                                       
+                                " . $addSqlValue . " 
+                                1,    
                                 :language_code,                         
                                 :address_type_id, 
                                 :address1, 
@@ -1166,8 +1138,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                                 :city_id, 
                                 :borough_id, 
                                 :city_name, 
-                                :description, 
-                                :description_eng
+                                :description,                                 
                                 :profile_public,
                                 (SELECT last_value FROM info_users_addresses_id_seq)
                                                 ");
@@ -1181,7 +1152,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $statement->bindValue(':city_id', $params['city_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':borough_id', $params['borough_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
-                $statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
+                //$statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
                 $statement->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('info_users_addresses_id_seq');
@@ -1230,21 +1201,6 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
-
-            
-                if ((isset($params['consultant_id']) && $params['consultant_id'] != "")) {
-                    $addSqlValue .= " " . intval($params['consultant_id']) . ",";
-                    $addSql .= " consultant_id,  ";
-                    if ((isset($params['consultant_confirm_type_id']) && $params['consultant_confirm_type_id'] != "")) {
-                        $addSqlValue .= " " . intval($params['consultant_confirm_type_id']) . ",";
-                        $addSql .= " consultant_confirm_type_id,  ";
-                    }
-
-                    if ((isset($params['confirm_id']) && $params['confirm_id'] != "")) {
-                        $addSqlValue .= " " . intval($params['confirm_id']) . ",";
-                        $addSql .= " confirm_id,  ";
-                    }
-                }
                 
                 $addSql .= " user_id,  ";
                 if ((isset($params['user_id']) && $params['user_id'] != "")) {
@@ -1268,13 +1224,8 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                         city_id, 
                         borough_id, 
                         city_name, 
-                        description, 
-                        description_eng                                          
+                        description,                                                           
                         profile_public, 
-                        f_check, 
-                        consultant_id,
-                        consultant_confirm_type_id, 
-                        confirm_id, 
                         act_parent_id, 
                         language_parent_id,
                         " . $addSql . "                           
@@ -1283,7 +1234,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 SELECT                 
                     " . intval($params['active']) . " AS active,   
                     " . intval($userIdValue) . " AS op_user_id,  
-                    " . intval($params['operation_type_id']) . " AS operation_type_id,
+                    2 AS operation_type_id,
                     '" . $params['language_code'] . "' AS language_code,
                     " . intval($params['address_type_id']) . " AS address_type_id,    
                     '" . $params['address1'] . "' AS address1,
@@ -1293,13 +1244,8 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                     " . intval($params['city_id']) . " AS city_id, 
                     " . intval($params['borough_id']) . " AS borough_id, 
                     '" . $params['city_name'] . "' AS city_name, 
-                    '" . $params['description'] . "' AS description,
-                    '" . $params['description_eng'] . "' AS description_eng,
+                    '" . $params['description'] . "' AS description,                    
                     profile_public, 
-                    f_check,                
-                    consultant_id, 
-                    consultant_confirm_type_id, 
-                    confirm_id, 
                     act_parent_id, 
                     language_parent_id,
                      " . $addSqlValue . " 
