@@ -97,17 +97,15 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                     a.description_eng                    
                 FROM info_users_addresses  a
                 inner join info_users_detail b on b.root_id = a.user_id and b.active = 0 and b.deleted = 0  
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
-                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0                                
-                INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                                
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.op_user_id 
-		INNER JOIN sys_specific_definitions as sd7 on sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_code = a.language_code 
-		INNER JOIN sys_specific_definitions as sd8 on sd8.main_group =17 AND sd8.first_group = a.address_type_id AND sd8.deleted = 0 AND sd8.active = 0 AND sd8.language_code = a.language_code 
-		INNER JOIN sys_operation_types op on op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_code = a.language_code               
-                WHERE a.deleted =0 AND a.language_code = :language_code
+		INNER JOIN sys_specific_definitions as sd7 on sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_id = a.language_id 
+		INNER JOIN sys_specific_definitions as sd8 on sd8.main_group =17 AND sd8.first_group = a.address_type_id AND sd8.deleted = 0 AND sd8.active = 0 AND sd8.language_id = a.language_id 
+		INNER JOIN sys_operation_types op on op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_id = a.language_id                               
                 ORDER BY concat(b.name, b.surname) , sd8.description                
-                                 "); 
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+                                 ");   
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -172,12 +170,18 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                         $addSql .= " confirm_id,  ";
                     }
                 }
-
+                
+                $languageIdValue =647;
+                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
 
                 $statement = $pdo->prepare("
                         INSERT INTO info_users_addresses (                           
                                 " . $addSql . "                              
-                                language_code,                         
+                                language_code,   
+                                language_id, 
                                 address_type_id, 
                                 address1, 
                                 address2, 
@@ -193,7 +197,8 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                                 )                        
                         VALUES (
                                 " . $addSqlValue . "                                                                       
-                                :language_code,                         
+                                :language_code,   
+                                ".intval($languageIdValue)."
                                 :address_type_id, 
                                 :address1, 
                                 :address2, 
@@ -336,12 +341,20 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 }
                 $addSqlValue .= " " . $userId . ",";
  
+                $languageIdValue =647;
+                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+                
+                
                 $statementInsert = $pdo->prepare("
                 INSERT INTO info_users_addresses (                                          
                         active, 
                         op_user_id, 
                         operation_type_id, 
-                        language_code,                         
+                        language_code,   
+                        language_id,
                         address_type_id, 
                         address1, 
                         address2, 
@@ -367,6 +380,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                     " . intval($userIdValue) . " AS op_user_id,  
                     " . intval($params['operation_type_id']) . " AS operation_type_id,
                     '" . $params['language_code'] . "' AS language_code,
+                    ".  intval($languageIdValue)."    
                     " . intval($params['address_type_id']) . " AS address_type_id,    
                     '" . $params['address1'] . "' AS address1,
                     '" . $params['address2'] . "' AS address2,
@@ -438,7 +452,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             if (count($sortArr) === 1)
                 $sort = trim($args['sort']);
         } else {
-            $sort = "concat(b.name, b.surname) , sd8.description";
+            $sort = "CONCAT(b.name, b.surname) , sd8.description";
         }
 
         if (isset($args['order']) && $args['order'] != "") {
@@ -450,8 +464,16 @@ class InfoUsersAddresses extends \DAL\DalSlim {
         } else {
             $order = "ASC";
         }
-
+        
         $whereSql = '';
+        $languageIdValue =647;
+        $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+        if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+        $languageIdValue = $languageId ['resultSet'][0]['id'];         
+        }
+        $whereSql = " AND a.language_id =   ".  intval($languageIdValue);
+
+       
         if (isset($args['search_name']) && $args['search_name'] != "") {
             $whereSql = " AND LOWER(( TRIM(concat(b.name ,' ', b.surname)))) LIKE '%" . $args['search_name'] . "%' ";
         }
@@ -494,14 +516,14 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                     a.description_eng                    
                 FROM info_users_addresses  a
                 INNER JOIN info_users_detail b ON b.root_id = a.user_id AND b.active = 0 AND b.deleted = 0  
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
-                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0                                
-                INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                                
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.op_user_id 
-		INNER JOIN sys_specific_definitions as sd7 on sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_code = a.language_code 
-		INNER JOIN sys_specific_definitions as sd8 on sd8.main_group =17 AND sd8.first_group = a.address_type_id AND sd8.deleted = 0 AND sd8.active = 0 AND sd8.language_code = a.language_code 
-		INNER JOIN sys_operation_types op on op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_code = a.language_code               
-                WHERE a.deleted =0 AND a.language_code = :language_code                 
+		INNER JOIN sys_specific_definitions AS sd7 on sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_id = a.language_id 
+		INNER JOIN sys_specific_definitions AS sd8 on sd8.main_group =17 AND sd8.first_group = a.address_type_id AND sd8.deleted = 0 AND sd8.active = 0 AND sd8.language_id = a.language_id 
+		INNER JOIN sys_operation_types op ON op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_id = a.language_id               
+                WHERE a.deleted =0                 
             
                 " . $whereSql . "
                 ORDER BY    " . $sort . " "
@@ -515,8 +537,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 'limit' => $pdo->quote($limit),
                 'offset' => $pdo->quote($offset),
             );
-            //  echo debugPDO($sql, $parameters);
-            $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_STR);
+            //  echo debugPDO($sql, $parameters);            
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -545,11 +566,19 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $userId = InfoUsers::getUserId(array('pk' => $args['pk']));
             if (!\Utill\Dal\Helper::haveRecord($userId)) {
                 $whereSql = " AND a.user_id = " . $userId ['resultSet'][0]['user_id'];
+                 
+                $languageIdValue =647;
+                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];         
+                }
+                $whereSql .= " AND a.language_id = ".  intval($languageIdValue);                
+                
                 $sql = "
                  SELECT 
                     a.id,  
                     b.root_id as user_id,
-		    b.name AS name ,
+		    b.name AS name,
 		    b.surname AS surname,        
                     a.deleted, 
 		    sd.description AS state_deleted,                 
@@ -582,14 +611,14 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                     a.description_eng                    
                 FROM info_users_addresses  a  
                 INNER JOIN info_users_detail b ON b.root_id = a.user_id AND b.active = 0 AND b.deleted = 0  
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
-                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0                                
-                INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                                
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.op_user_id 
-		INNER JOIN sys_specific_definitions as sd7 on sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_code = a.language_code 
-		INNER JOIN sys_specific_definitions as sd8 on sd8.main_group =17 AND sd8.first_group = a.address_type_id AND sd8.deleted = 0 AND sd8.active = 0 AND sd8.language_code = a.language_code 
-		INNER JOIN sys_operation_types op on op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_code = a.language_code                               
-                WHERE a.deleted =0 AND a.active =0 AND a.language_code = :language_code 
+		INNER JOIN sys_specific_definitions AS sd7 ON sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_id = a.language_id 
+		INNER JOIN sys_specific_definitions AS sd8 ON sd8.main_group =17 AND sd8.first_group = a.address_type_id AND sd8.deleted = 0 AND sd8.active = 0 AND sd8.language_id = a.language_id 
+		INNER JOIN sys_operation_types op ON op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_id = a.language_id                               
+                WHERE a.deleted =0 AND a.active =0 
                 " . $whereSql . "
                 ORDER BY sd6.first_group 
                 ";
@@ -628,9 +657,15 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $userId = InfoUsers::getUserId(array('pk' => $args['pk']));
             if (!\Utill\Dal\Helper::haveRecord($userId)) {
-                $whereSql = " WHERE a.language_code = '" . $params['language_code'] . "'";
-                $whereSql1 = " WHERE a1.deleted =0 AND a1.language_code = '" . $params['language_code'] . "' ";
-                $whereSql2 = " WHERE a2.deleted =1 AND a2.language_code = '" . $params['language_code'] . "' ";
+                $languageIdValue =647;
+                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];         
+                }
+                
+                $whereSql = " WHERE a.language_id = ".  intval($languageIdValue);  
+                $whereSql1 = " WHERE a1.deleted =0 AND a1.language_id = ".  intval($languageIdValue);  
+                $whereSql2 = " WHERE a2.deleted =1 AND a2.language_id = ".  intval($languageIdValue);  
 
                
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
@@ -645,34 +680,34 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                         (SELECT COUNT(a1.id)  
                         FROM info_users_addresses  a1
                         INNER JOIN info_users_detail b1 on b1.root_id = a1.user_id and b1.active = 0 and b1.deleted = 0  
-			INNER JOIN sys_specific_definitions sdx ON sdx.main_group = 15 AND sdx.first_group= a1.deleted AND sdx.language_code = a1.language_code AND sdx.deleted = 0 AND sdx.active = 0
-			INNER JOIN sys_specific_definitions sd1x ON sd1x.main_group = 16 AND sd1x.first_group= a1.active AND sd1x.language_code = a1.language_code AND sd1x.deleted = 0 AND sd1x.active = 0                                
-			INNER JOIN sys_language lx ON lx.language_main_code = a1.language_code AND lx.deleted =0 AND lx.active = 0 
+			INNER JOIN sys_specific_definitions sdx ON sdx.main_group = 15 AND sdx.first_group= a1.deleted AND sdx.language_id = a1.language_id AND sdx.deleted = 0 AND sdx.active = 0
+			INNER JOIN sys_specific_definitions sd1x ON sd1x.main_group = 16 AND sd1x.first_group= a1.active AND sd1x.language_id = a1.language_id AND sd1x.deleted = 0 AND sd1x.active = 0                                
+			INNER JOIN sys_language lx ON lx.id = a1.language_id AND lx.deleted =0 AND lx.active = 0 
 			INNER JOIN info_users ux ON ux.id = a1.op_user_id 
-			INNER JOIN sys_specific_definitions AS sd7x ON sd7x.main_group =14 AND sd7x.first_group = a1.consultant_confirm_type_id AND sd7x.deleted = 0 AND sd7x.active = 0 AND sd7x.language_code = a1.language_code 
-                        INNER JOIN sys_specific_definitions AS sd8x ON sd8x.main_group =17 AND sd8x.first_group = a1.address_type_id AND sd8x.deleted = 0 AND sd8x.active = 0 AND sd8x.language_code = a1.language_code 
-			INNER JOIN sys_operation_types opx ON opx.id = b1.operation_type_id AND opx.deleted = 0 AND opx.active = 0 AND opx.language_code = a1.language_code
+			INNER JOIN sys_specific_definitions AS sd7x ON sd7x.main_group =14 AND sd7x.first_group = a1.consultant_confirm_type_id AND sd7x.deleted = 0 AND sd7x.active = 0 AND sd7x.language_id = a1.language_id 
+                        INNER JOIN sys_specific_definitions AS sd8x ON sd8x.main_group =17 AND sd8x.first_group = a1.address_type_id AND sd8x.deleted = 0 AND sd8x.active = 0 AND sd8x.language_id = a1.language_id 
+			INNER JOIN sys_operation_types opx ON opx.id = b1.operation_type_id AND opx.deleted = 0 AND opx.active = 0 AND opx.language_id = a1.language_id
                            " . $whereSql1 . ") AS undeleted_count, 		
                         (SELECT COUNT(a2.id)  
                         FROM info_users_addresses  a2
 			INNER JOIN info_users_detail b2 on b2.root_id = a2.user_id and b2.active = 0 and b2.deleted = 0  
-			INNER JOIN sys_specific_definitions sdy ON sdy.main_group = 15 AND sdy.first_group= a2.deleted AND sdy.language_code = a2.language_code AND sdy.deleted = 0 AND sdy.active = 0
-			INNER JOIN sys_specific_definitions sd1y ON sd1y.main_group = 16 AND sd1y.first_group= a2.active AND sd1y.language_code = a2.language_code AND sd1y.deleted = 0 AND sd1y.active = 0                                
-			INNER JOIN sys_language ly ON ly.language_main_code = a2.language_code AND ly.deleted =0 AND ly.active = 0 
+			INNER JOIN sys_specific_definitions sdy ON sdy.main_group = 15 AND sdy.first_group= a2.deleted AND sdy.language_id = a2.language_id AND sdy.deleted = 0 AND sdy.active = 0
+			INNER JOIN sys_specific_definitions sd1y ON sd1y.main_group = 16 AND sd1y.first_group= a2.active AND sd1y.language_id = a2.language_id AND sd1y.deleted = 0 AND sd1y.active = 0                                
+			INNER JOIN sys_language ly ON ly.id = a2.language_id AND ly.deleted =0 AND ly.active = 0 
 			INNER JOIN info_users uy ON uy.id = a2.op_user_id 
-			INNER JOIN sys_specific_definitions AS sd7y ON sd7y.main_group =14 AND sd7y.first_group = a2.consultant_confirm_type_id AND sd7y.deleted = 0 AND sd7y.active = 0 AND sd7y.language_code = a2.language_code 
-                        INNER JOIN sys_specific_definitions AS sd8y ON sd8y.main_group =17 AND sd8y.first_group = a2.address_type_id AND sd8y.deleted = 0 AND sd8y.active = 0 AND sd8y.language_code = a2.language_code 
-			INNER JOIN sys_operation_types opy ON opy.id = b2.operation_type_id AND opy.deleted = 0 AND opy.active = 0 AND opy.language_code = a2.language_code
+			INNER JOIN sys_specific_definitions AS sd7y ON sd7y.main_group =14 AND sd7y.first_group = a2.consultant_confirm_type_id AND sd7y.deleted = 0 AND sd7y.active = 0 AND sd7y.language_id = a2.language_id 
+                        INNER JOIN sys_specific_definitions AS sd8y ON sd8y.main_group =17 AND sd8y.first_group = a2.address_type_id AND sd8y.deleted = 0 AND sd8y.active = 0 AND sd8y.language_id = a2.language_id 
+			INNER JOIN sys_operation_types opy ON opy.id = b2.operation_type_id AND opy.deleted = 0 AND opy.active = 0 AND opy.language_id = a2.language_id
                          " . $whereSql2 . " )  AS deleted_count   		  
                     FROM info_users_addresses  a
                     INNER JOIN info_users_detail b on b.root_id = a.user_id and b.active = 0 and b.deleted = 0  
-                    INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
-                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0                                
-                    INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
+                    INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                                
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
                     INNER JOIN info_users u ON u.id = a.op_user_id 
-                    INNER JOIN sys_specific_definitions AS sd7 ON sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_code = a.language_code 
-                    INNER JOIN sys_operation_types op ON op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_code = a.language_code               
-                    INNER JOIN sys_specific_definitions AS sd8 ON sd8.main_group =17 AND sd8.first_group = a.address_type_id AND sd8.deleted = 0 AND sd8.active = 0 AND sd8.language_code = a.language_code 
+                    INNER JOIN sys_specific_definitions AS sd7 ON sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_id = a.language_id 
+                    INNER JOIN sys_operation_types op ON op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_id = a.language_id               
+                    INNER JOIN sys_specific_definitions AS sd8 ON sd8.main_group =17 AND sd8.first_group = a.address_type_id AND sd8.deleted = 0 AND sd8.active = 0 AND sd8.language_id = a.language_id 
                     
                     " . $whereSql . "
                     ";
@@ -706,10 +741,16 @@ class InfoUsersAddresses extends \DAL\DalSlim {
      */
     public function fillGridRowTotalCount($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $whereSql = " WHERE a.language_code = '" . $params['language_code'] . "'";
-            $whereSql1 = " WHERE a1.deleted =0 AND a1.language_code = '" . $params['language_code'] . "' ";
-            $whereSql2 = " WHERE a2.deleted =1 AND a2.language_code = '" . $params['language_code'] . "' ";
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
+            $languageIdValue =647;
+            $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+            if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+            $languageIdValue = $languageId ['resultSet'][0]['id'];         
+            }
+             
+            $whereSql = " WHERE a.language_id = ".  intval($languageIdValue);  
+            $whereSql1 = " WHERE a1.deleted =0 AND a1.language_id = ".  intval($languageIdValue);  
+            $whereSql2 = " WHERE a2.deleted =1 AND a2.language_id = ".  intval($languageIdValue);  
             if (isset($params['search_name']) && $params['search_name'] != "") {
                 $whereSql .= " AND LOWER(( TRIM(concat(b.name ,' ', b.surname)))) LIKE '%" . $params['search_name'] . "%' ";
                 $whereSql1 .= " AND LOWER(( TRIM(concat(b1.name ,' ', b1.surname)))) LIKE '%" . $params['search_name'] . "%' ";
@@ -722,34 +763,34 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                         (SELECT COUNT(a1.id)  
                         FROM info_users_addresses  a1
                         INNER JOIN info_users_detail b1 on b1.root_id = a1.user_id and b1.active = 0 and b1.deleted = 0  
-			INNER JOIN sys_specific_definitions sdx ON sdx.main_group = 15 AND sdx.first_group= a1.deleted AND sdx.language_code = a1.language_code AND sdx.deleted = 0 AND sdx.active = 0
-			INNER JOIN sys_specific_definitions sd1x ON sd1x.main_group = 16 AND sd1x.first_group= a1.active AND sd1x.language_code = a1.language_code AND sd1x.deleted = 0 AND sd1x.active = 0                                
-			INNER JOIN sys_language lx ON lx.language_main_code = a1.language_code AND lx.deleted =0 AND lx.active = 0 
+			INNER JOIN sys_specific_definitions sdx ON sdx.main_group = 15 AND sdx.first_group= a1.deleted AND sdx.language_id = a1.language_id AND sdx.deleted = 0 AND sdx.active = 0
+			INNER JOIN sys_specific_definitions sd1x ON sd1x.main_group = 16 AND sd1x.first_group= a1.active AND sd1x.language_id = a1.language_id AND sd1x.deleted = 0 AND sd1x.active = 0                                
+			INNER JOIN sys_language lx ON lx.id = a1.language_id AND lx.deleted =0 AND lx.active = 0 
 			INNER JOIN info_users ux ON ux.id = a1.op_user_id 
-			INNER JOIN sys_specific_definitions as sd7x on sd7x.main_group =14 AND sd7x.first_group = a1.consultant_confirm_type_id AND sd7x.deleted = 0 AND sd7x.active = 0 AND sd7x.language_code = a1.language_code 
-                        INNER JOIN sys_specific_definitions as sd8x on sd8x.main_group =17 AND sd8x.first_group = a1.address_type_id AND sd8x.deleted = 0 AND sd8x.active = 0 AND sd8x.language_code = a1.language_code 
-			INNER JOIN sys_operation_types opx on opx.id = b1.operation_type_id AND opx.deleted = 0 AND opx.active = 0 AND opx.language_code = a1.language_code
+			INNER JOIN sys_specific_definitions as sd7x on sd7x.main_group =14 AND sd7x.first_group = a1.consultant_confirm_type_id AND sd7x.deleted = 0 AND sd7x.active = 0 AND sd7x.language_id = a1.language_id 
+                        INNER JOIN sys_specific_definitions as sd8x on sd8x.main_group =17 AND sd8x.first_group = a1.address_type_id AND sd8x.deleted = 0 AND sd8x.active = 0 AND sd8x.language_id = a1.language_id 
+			INNER JOIN sys_operation_types opx on opx.id = b1.operation_type_id AND opx.deleted = 0 AND opx.active = 0 AND opx.language_id = a1.language_id
                            " . $whereSql1 . ") AS undeleted_count, 		
                         (SELECT COUNT(a2.id)  
                         FROM info_users_addresses  a2
 			INNER JOIN info_users_detail b2 on b2.root_id = a2.user_id and b2.active = 0 and b2.deleted = 0  
-			INNER JOIN sys_specific_definitions sdy ON sdy.main_group = 15 AND sdy.first_group= a2.deleted AND sdy.language_code = a2.language_code AND sdy.deleted = 0 AND sdy.active = 0
-			INNER JOIN sys_specific_definitions sd1y ON sd1y.main_group = 16 AND sd1y.first_group= a2.active AND sd1y.language_code = a2.language_code AND sd1y.deleted = 0 AND sd1y.active = 0                                
-			INNER JOIN sys_language ly ON ly.language_main_code = a2.language_code AND ly.deleted =0 AND ly.active = 0 
+			INNER JOIN sys_specific_definitions sdy ON sdy.main_group = 15 AND sdy.first_group= a2.deleted AND sdy.language_id = a2.language_id AND sdy.deleted = 0 AND sdy.active = 0
+			INNER JOIN sys_specific_definitions sd1y ON sd1y.main_group = 16 AND sd1y.first_group= a2.active AND sd1y.language_id = a2.language_id AND sd1y.deleted = 0 AND sd1y.active = 0                                
+			INNER JOIN sys_language ly ON ly.id = a2.language_id AND ly.deleted =0 AND ly.active = 0 
 			INNER JOIN info_users uy ON uy.id = a2.op_user_id 
-			INNER JOIN sys_specific_definitions as sd7y on sd7y.main_group =14 AND sd7y.first_group = a2.consultant_confirm_type_id AND sd7y.deleted = 0 AND sd7y.active = 0 AND sd7y.language_code = a2.language_code 
-                        INNER JOIN sys_specific_definitions as sd8y on sd8y.main_group =17 AND sd8y.first_group = a2.address_type_id AND sd8y.deleted = 0 AND sd8y.active = 0 AND sd8y.language_code = a2.language_code 
-			INNER JOIN sys_operation_types opy on opy.id = b2.operation_type_id AND opy.deleted = 0 AND opy.active = 0 AND opy.language_code = a2.language_code
+			INNER JOIN sys_specific_definitions as sd7y on sd7y.main_group =14 AND sd7y.first_group = a2.consultant_confirm_type_id AND sd7y.deleted = 0 AND sd7y.active = 0 AND sd7y.language_id = a2.language_id 
+                        INNER JOIN sys_specific_definitions as sd8y on sd8y.main_group =17 AND sd8y.first_group = a2.address_type_id AND sd8y.deleted = 0 AND sd8y.active = 0 AND sd8y.language_id = a2.language_id 
+			INNER JOIN sys_operation_types opy on opy.id = b2.operation_type_id AND opy.deleted = 0 AND opy.active = 0 AND opy.language_id = a2.language_id
                          " . $whereSql2 . " )  AS deleted_count   		  
                     FROM info_users_addresses  a
                     INNER JOIN info_users_detail b on b.root_id = a.user_id and b.active = 0 and b.deleted = 0  
-                    INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
-                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0                                
-                    INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
+                    INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                                
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
                     INNER JOIN info_users u ON u.id = a.op_user_id 
-                    INNER JOIN sys_specific_definitions as sd7 on sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_code = a.language_code 
-                    INNER JOIN sys_operation_types op on op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_code = a.language_code               
-                    INNER JOIN sys_specific_definitions as sd8 on sd8.main_group =17 AND sd8.first_group = a.address_type_id AND sd8.deleted = 0 AND sd8.active = 0 AND sd8.language_code = a.language_code 
+                    INNER JOIN sys_specific_definitions as sd7 on sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_id = a.language_id 
+                    INNER JOIN sys_operation_types op on op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_id = a.language_id               
+                    INNER JOIN sys_specific_definitions as sd8 on sd8.main_group =17 AND sd8.first_group = a.address_type_id AND sd8.deleted = 0 AND sd8.active = 0 AND sd8.language_id = a.language_id 
                
                     " . $whereSql . "
                     ";
@@ -781,19 +822,26 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (!\Utill\Dal\Helper::haveRecord($userId)) {
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
+                
+                $languageIdValue =647;
+                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];         
+                }
+ 
                 $statement = $pdo->prepare("
                 SELECT                
                     a.id ,	
                     sd8.description AS name                                 
                 FROM info_users_addresses a       
-                INNER JOIN sys_specific_definitions sd8 ON sd8.main_group = 5 AND sd8.first_group= a.address_type_id AND sd8.language_code = a.language_code AND sd8.deleted = 0 AND sd8.active = 0                     
+                INNER JOIN sys_specific_definitions sd8 ON sd8.main_group = 5 AND sd8.first_group= a.address_type_id AND sd8.language_id = a.language_id AND sd8.deleted = 0 AND sd8.active = 0                     
                 WHERE 
                     a.active =0 AND a.deleted = 0 AND 
-                    a.language_code = :language_code AND 
+                    a.language_id = :language_id AND 
                     a.user_id = :user_id                    
                 ORDER BY name                
                                  ");
-                $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+                $statement->bindValue(':language_id',  $languageIdValue , \PDO::PARAM_INT);
                 $statement->bindValue(':user_id', $userIdValue, \PDO::PARAM_STR);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -964,6 +1012,13 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             if (!\Utill\Dal\Helper::haveRecord($userId)) {
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
 
+                $languageIdValue =647;
+                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];         
+                }
+               
+                
                 $addSql = "";
                 $addSqlValue = "";
                 if (isset($params['act_parent_id'])) {
@@ -1003,7 +1058,8 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                         op_user_id, 
                         " . $addSql . "
                         
-                        language_code,                         
+                        language_code,  
+                        language_id,
                         address_type_id, 
                         address1, 
                         address2, 
@@ -1025,8 +1081,8 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                         consultant_id,
                         consultant_confirm_type_id,
                         confirm_id
-                        )    
-                        
+                        )            
+                
                     SELECT
                         user_id,
                         1 AS active,  
@@ -1034,7 +1090,8 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                         " . intval($userIdValue) . " AS op_user_id,  
                         " . $addSqlValue . " 
                             
-                        language_code,                         
+                        language_code, 
+                        " . intval($languageIdValue) . "
                         address_type_id, 
                         address1, 
                         address2, 
@@ -1108,12 +1165,20 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                     $userId = $opUserIdValue;
                 }
                 $addSqlValue .= " " . $userId . ",";
+                
+                $languageIdValue =647;
+                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];         
+                }
+                
  
                 $statement = $pdo->prepare("
                         INSERT INTO info_users_addresses (                           
                                 " . $addSql . " 
                                 operation_type_id,     
-                                language_code,                         
+                                language_code,   
+                                language_id,
                                 address_type_id, 
                                 address1, 
                                 address2, 
@@ -1129,7 +1194,8 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                         VALUES (
                                 " . $addSqlValue . " 
                                 1,    
-                                :language_code,                         
+                                :language_code,   
+                                ".  intval($languageIdValue)." 
                                 :address_type_id, 
                                 :address1, 
                                 :address2, 
@@ -1209,13 +1275,20 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                     $userId = $opUserIdValue;
                 }
                 $addSqlValue .= " " . $userId . ",";
- 
+                
+                $languageIdValue =647;
+                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];         
+                }
+                
                 $statementInsert = $pdo->prepare("
                 INSERT INTO info_users_addresses (                                          
                         active, 
                         op_user_id, 
                         operation_type_id, 
-                        language_code,                         
+                        language_code, 
+                        language_id,
                         address_type_id, 
                         address1, 
                         address2, 
@@ -1236,6 +1309,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                     " . intval($userIdValue) . " AS op_user_id,  
                     2 AS operation_type_id,
                     '" . $params['language_code'] . "' AS language_code,
+                    " . intval($languageIdValue) . " AS language_id,   
                     " . intval($params['address_type_id']) . " AS address_type_id,    
                     '" . $params['address1'] . "' AS address1,
                     '" . $params['address2'] . "' AS address2,
@@ -1291,6 +1365,15 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $userId = InfoUsers::getUserIdTemp(array('pktemp' => $args['pktemp']));
             if (!\Utill\Dal\Helper::haveRecord($userId)) {
                 $whereSql = " AND a.user_id = " . $userId ['resultSet'][0]['user_id'];
+                
+                $languageIdValue =647;
+                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];         
+                }
+                $whereSql .= " AND a.language_id = ".  intval($languageIdValue); 
+                
+                
                 $sql = "
                  SELECT 
                     a.id,  
@@ -1335,13 +1418,12 @@ class InfoUsersAddresses extends \DAL\DalSlim {
 		INNER JOIN sys_specific_definitions as sd7 on sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_code = a.language_code 
 		INNER JOIN sys_specific_definitions as sd8 on sd8.main_group =17 AND sd8.first_group = a.address_type_id AND sd8.deleted = 0 AND sd8.active = 0 AND sd8.language_code = a.language_code 
 		INNER JOIN sys_operation_types op on op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_code = a.language_code                               
-                WHERE a.deleted =0 AND a.active =0 AND a.language_code = :language_code 
+                WHERE a.deleted =0 AND a.active =0  
                 " . $whereSql . "
                 ORDER BY sd6.first_group 
                 ";
                 $statement = $pdo->prepare($sql);
-                //  echo debugPDO($sql, $parameters);
-                $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_STR);
+                //  echo debugPDO($sql, $parameters);                 
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -1374,9 +1456,14 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $userId = InfoUsers::getUserIdTemp(array('pktemp' => $params['pktemp']));
             if (!\Utill\Dal\Helper::haveRecord($userId)) {
-                $whereSql = " WHERE a.language_code = '" . $params['language_code'] . "'";
-                $whereSql1 = " WHERE a1.deleted =0 AND a1.language_code = '" . $params['language_code'] . "' ";
-                $whereSql2 = " WHERE a2.deleted =1 AND a2.language_code = '" . $params['language_code'] . "' ";
+                $languageIdValue =647;
+                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];         
+                } 
+                $whereSql = " WHERE a.language_id = ".  intval($languageIdValue); 
+                $whereSql1 = " WHERE a1.deleted =0 AND a1.language_id = ".  intval($languageIdValue); 
+                $whereSql2 = " WHERE a2.deleted =1 AND a2.language_id = ".  intval($languageIdValue); 
     
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
                 $whereSql .= " AND b.user_id = " . $userIdValue;
@@ -1384,40 +1471,39 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $whereSql2 .= " AND b2.user_id = " . $userIdValue;
                
                 $sql = "                              
-                    SELECT 
+                   SELECT 
                         COUNT(a.id) AS COUNT ,  
                         (SELECT COUNT(a1.id)  
                         FROM info_users_addresses  a1
                         INNER JOIN info_users_detail b1 on b1.root_id = a1.user_id and b1.active = 0 and b1.deleted = 0  
-			INNER JOIN sys_specific_definitions sdx ON sdx.main_group = 15 AND sdx.first_group= a1.deleted AND sdx.language_code = a1.language_code AND sdx.deleted = 0 AND sdx.active = 0
-			INNER JOIN sys_specific_definitions sd1x ON sd1x.main_group = 16 AND sd1x.first_group= a1.active AND sd1x.language_code = a1.language_code AND sd1x.deleted = 0 AND sd1x.active = 0                                
-			INNER JOIN sys_language lx ON lx.language_main_code = a1.language_code AND lx.deleted =0 AND lx.active = 0 
+			INNER JOIN sys_specific_definitions sdx ON sdx.main_group = 15 AND sdx.first_group= a1.deleted AND sdx.language_id = a1.language_id AND sdx.deleted = 0 AND sdx.active = 0
+			INNER JOIN sys_specific_definitions sd1x ON sd1x.main_group = 16 AND sd1x.first_group= a1.active AND sd1x.language_id = a1.language_id AND sd1x.deleted = 0 AND sd1x.active = 0                                
+			INNER JOIN sys_language lx ON lx.id = a1.language_id AND lx.deleted =0 AND lx.active = 0 
 			INNER JOIN info_users ux ON ux.id = a1.op_user_id 
-			INNER JOIN sys_specific_definitions AS sd7x ON sd7x.main_group =14 AND sd7x.first_group = a1.consultant_confirm_type_id AND sd7x.deleted = 0 AND sd7x.active = 0 AND sd7x.language_code = a1.language_code 
-                        INNER JOIN sys_specific_definitions AS sd8x ON sd8x.main_group =17 AND sd8x.first_group = a1.address_type_id AND sd8x.deleted = 0 AND sd8x.active = 0 AND sd8x.language_code = a1.language_code 
-			INNER JOIN sys_operation_types opx ON opx.id = b1.operation_type_id AND opx.deleted = 0 AND opx.active = 0 AND opx.language_code = a1.language_code
+			INNER JOIN sys_specific_definitions AS sd7x ON sd7x.main_group =14 AND sd7x.first_group = a1.consultant_confirm_type_id AND sd7x.deleted = 0 AND sd7x.active = 0 AND sd7x.language_id = a1.language_id 
+                        INNER JOIN sys_specific_definitions AS sd8x ON sd8x.main_group =17 AND sd8x.first_group = a1.address_type_id AND sd8x.deleted = 0 AND sd8x.active = 0 AND sd8x.language_id = a1.language_id 
+			INNER JOIN sys_operation_types opx ON opx.id = b1.operation_type_id AND opx.deleted = 0 AND opx.active = 0 AND opx.language_id = a1.language_id
                            " . $whereSql1 . ") AS undeleted_count, 		
                         (SELECT COUNT(a2.id)  
                         FROM info_users_addresses  a2
 			INNER JOIN info_users_detail b2 on b2.root_id = a2.user_id and b2.active = 0 and b2.deleted = 0  
-			INNER JOIN sys_specific_definitions sdy ON sdy.main_group = 15 AND sdy.first_group= a2.deleted AND sdy.language_code = a2.language_code AND sdy.deleted = 0 AND sdy.active = 0
-			INNER JOIN sys_specific_definitions sd1y ON sd1y.main_group = 16 AND sd1y.first_group= a2.active AND sd1y.language_code = a2.language_code AND sd1y.deleted = 0 AND sd1y.active = 0                                
-			INNER JOIN sys_language ly ON ly.language_main_code = a2.language_code AND ly.deleted =0 AND ly.active = 0 
+			INNER JOIN sys_specific_definitions sdy ON sdy.main_group = 15 AND sdy.first_group= a2.deleted AND sdy.language_id = a2.language_id AND sdy.deleted = 0 AND sdy.active = 0
+			INNER JOIN sys_specific_definitions sd1y ON sd1y.main_group = 16 AND sd1y.first_group= a2.active AND sd1y.language_id = a2.language_id AND sd1y.deleted = 0 AND sd1y.active = 0                                
+			INNER JOIN sys_language ly ON ly.id = a2.language_id AND ly.deleted =0 AND ly.active = 0 
 			INNER JOIN info_users uy ON uy.id = a2.op_user_id 
-			INNER JOIN sys_specific_definitions AS sd7y ON sd7y.main_group =14 AND sd7y.first_group = a2.consultant_confirm_type_id AND sd7y.deleted = 0 AND sd7y.active = 0 AND sd7y.language_code = a2.language_code 
-                        INNER JOIN sys_specific_definitions AS sd8y ON sd8y.main_group =17 AND sd8y.first_group = a2.address_type_id AND sd8y.deleted = 0 AND sd8y.active = 0 AND sd8y.language_code = a2.language_code 
-			INNER JOIN sys_operation_types opy ON opy.id = b2.operation_type_id AND opy.deleted = 0 AND opy.active = 0 AND opy.language_code = a2.language_code
+			INNER JOIN sys_specific_definitions AS sd7y ON sd7y.main_group =14 AND sd7y.first_group = a2.consultant_confirm_type_id AND sd7y.deleted = 0 AND sd7y.active = 0 AND sd7y.language_id = a2.language_id 
+                        INNER JOIN sys_specific_definitions AS sd8y ON sd8y.main_group =17 AND sd8y.first_group = a2.address_type_id AND sd8y.deleted = 0 AND sd8y.active = 0 AND sd8y.language_id = a2.language_id 
+			INNER JOIN sys_operation_types opy ON opy.id = b2.operation_type_id AND opy.deleted = 0 AND opy.active = 0 AND opy.language_id = a2.language_id
                          " . $whereSql2 . " )  AS deleted_count   		  
                     FROM info_users_addresses  a
                     INNER JOIN info_users_detail b on b.root_id = a.user_id and b.active = 0 and b.deleted = 0  
-                    INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
-                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0                                
-                    INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
+                    INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                                
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
                     INNER JOIN info_users u ON u.id = a.op_user_id 
-                    INNER JOIN sys_specific_definitions AS sd7 ON sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_code = a.language_code 
-                    INNER JOIN sys_operation_types op ON op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_code = a.language_code               
-                    INNER JOIN sys_specific_definitions AS sd8 ON sd8.main_group =17 AND sd8.first_group = a.address_type_id AND sd8.deleted = 0 AND sd8.active = 0 AND sd8.language_code = a.language_code 
-                    WHERE a.deleted =0 AND a.language_code = :language_code  
+                    INNER JOIN sys_specific_definitions AS sd7 ON sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_id = a.language_id 
+                    INNER JOIN sys_operation_types op ON op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_id = a.language_id               
+                    INNER JOIN sys_specific_definitions AS sd8 ON sd8.main_group =17 AND sd8.first_group = a.address_type_id AND sd8.deleted = 0 AND sd8.active = 0 AND sd8.language_id = a.language_id                    
                     " . $whereSql . "
                     ";
                 $statement = $pdo->prepare($sql);
@@ -1453,6 +1539,13 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $userId = InfoUsers::getUserIdTemp(array('pktemp' => $params['pktemp']));
             if (!\Utill\Dal\Helper::haveRecord($userId)) {
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
+                
+                $languageIdValue =647;
+                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];         
+                }
+             
                 $statement = $pdo->prepare("
                 SELECT                
                     a.id ,	
@@ -1461,11 +1554,11 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd8 ON sd8.main_group = 5 AND sd8.first_group= a.address_type_id AND sd8.language_code = a.language_code AND sd8.deleted = 0 AND sd8.active = 0                     
                 WHERE 
                     a.active =0 AND a.deleted = 0 AND 
-                    a.language_code = :language_code AND 
+                    a.language_id = :language_id AND 
                     a.user_id = :user_id                    
                 ORDER BY name                
                                  ");
-                $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+                $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
                 $statement->bindValue(':user_id', $userIdValue, \PDO::PARAM_STR);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -1512,15 +1605,21 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                         $act_parent_id = intval($params['id']);
                     }
                     $addSqlValue .= intval($act_parent_id) . ", ";
-                }
-               
+                } 
                 
                 if (isset($params['operation_type_id'])) {                    
                     $addSql .= " operation_type_id, ";                 
                     $addSqlValue .= intval($params['operation_type_id']) . ", ";
                 }
+                  
+                $languageIdValue =647;
+                $addSql .= " language_id, ";  
+                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];         
+                }                
+                $addSqlValue .= intval($languageIdValue) . ", ";
                 
-
                 $statement = $pdo->prepare("                                      
                     UPDATE info_users_addresses
                     SET                                                                
