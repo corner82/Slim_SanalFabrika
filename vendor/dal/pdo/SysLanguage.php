@@ -569,6 +569,36 @@ class SysLanguage extends \DAL\DalSlim {
         }
     }
     
+     /**     
+     * @author Okan CIRAN
+     * @ sys_language tablosundan id degerini getirir.  !!
+     * @version v 1.0  03.02.2016    
+     * @param array | null $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function getLanguageId($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $statement = $pdo->prepare("
+                SELECT                    
+                    a.id        
+                FROM sys_language a                                
+                where a.deleted =0 AND a.active = 0 AND 
+                a.language_main_code = '" . $params['language_code'] . "'               
+                LIMIT 1                ");
+            $statement->execute();
+            $result = $statement->fetcAll(\PDO::FETCH_ASSOC); 
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
     
 
 }
