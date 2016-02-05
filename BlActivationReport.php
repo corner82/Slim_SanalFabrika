@@ -62,23 +62,8 @@ $app->get("/pkGetConsultantOperation_blActivationReport/", function () use ($app
   
     $resDataMenu = $BLL->getConsultantOperation(array('pk'=>$vPk));
   
-    $menus = array();
-    foreach ($resDataMenu as $menu){
-        $menus[]  = array(
-            "adet" => $menu["adet"],
-            "aciklama" => $menu["aciklama"],
-            "operation_type_id" => $menu["operation_type_id"],
-            
-            
-        );
-    }
-    
     $app->response()->header("Content-Type", "application/json");
- 
-    
-   
-    
-  $app->response()->body(json_encode($menus));
+    $app->response()->body($resDataMenu);
   
 });
  

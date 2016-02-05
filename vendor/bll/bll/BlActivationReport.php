@@ -70,7 +70,7 @@ class BlActivationReport extends \BLL\BLLSlim{
     public function getConsultantOperation($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('blActivationReportPDO');
         $resultSet = $DAL->getConsultantOperation($params);  
-        return $resultSet['resultSet'];
+        return $resultSet;
     }
     
     

@@ -185,7 +185,8 @@ class BlActivationReport extends \DAL\DalSlim {
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
-            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            return json_encode($result);
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
