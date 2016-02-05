@@ -235,12 +235,10 @@ use PhpAmqpLib\Message\AMQPMessage;
         $publicTempNotFoundForwarder = new \Utill\Forwarder\PublicTempNotFoundForwarder();
         if(empty($resultset[0])) $publicTempNotFoundForwarder->redirect();
         
-        
         $this->hmacObj->setPrivateKey($resultset[0]['sf_private_key_value_temp']);
         //$this->hmacObj->setPrivateKey('zze249c439ed7697df2a4b045d97d4b9b7e1854c3ff8dd668c779013653913572e');
         $this->hmacObj->makeHmac();
-        //print_r($hmacObj->getHash()); 
-        
+
         if($this->hmacObj->getHash() != $this->getRequestHeaderData()['X-Hash-Temp'])  {
             //print_r ('-----hash eşit değil----');
             $this->publishMessage();
