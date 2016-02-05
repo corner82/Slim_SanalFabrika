@@ -230,7 +230,7 @@ use PhpAmqpLib\Message\AMQPMessage;
          * @author Mustafa Zeynel Dağlı
          * @since 27/01/2016
          */
-        $resultset = $BLLLogLogout->pkTempControl(array('pk'=>$this->getRequestHeaderData()['X-Public-Temp']));
+        $resultset = $BLLLogLogout->pkTempControl(array('pktemp'=>$this->getRequestHeaderData()['X-Public-Temp']));
         //print_r($resultset);
         $publicTempNotFoundForwarder = new \Utill\Forwarder\PublicTempNotFoundForwarder();
         if(empty($resultset[0])) $publicTempNotFoundForwarder->redirect();
