@@ -788,7 +788,7 @@ $app->get("/pktempFillGridSingular_infoUsersAddresses/", function () use ($app )
 $app->get("/pktempInsert_infoUsersAddresses/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('infoUsersAddressesBLL');
-    
+   
     $headerParams = $app->request()->headers();
     $vPkTemp = $headerParams['X-Public-Temp'];
     
@@ -822,8 +822,7 @@ $app->get("/pktempInsert_infoUsersAddresses/", function () use ($app ) {
    // $fDescriptionEng = $vDescriptionEng;
     $fPkTemp = $vPkTemp ; 
     
-    
-    
+     
     $resDataInsert = $BLL->insertTemp(array(  
             'language_code' => $fLanguageCode,
             'profile_public' => $fProfilePublic,  

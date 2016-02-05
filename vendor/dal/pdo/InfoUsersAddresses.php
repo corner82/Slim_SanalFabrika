@@ -172,7 +172,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 }
                 
                 $languageIdValue =647;
-                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (!\Utill\Dal\Helper::haveRecord($languageId)) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];
                 }
@@ -342,7 +342,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $addSqlValue .= " " . $userId . ",";
  
                 $languageIdValue =647;
-                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (!\Utill\Dal\Helper::haveRecord($languageId)) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];
                 }
@@ -443,7 +443,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $limit = 10;
             $offset = 0;
         }
-
+        $whereSql = '';
         $sortArr = array();
         $orderArr = array();
         if (isset($args['sort']) && $args['sort'] != "") {
@@ -465,13 +465,13 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $order = "ASC";
         }
         
-        $whereSql = '';
+      
         $languageIdValue =647;
-        $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+        $languageId = SysLanguage::getLanguageId(array('language_code' => $args['language_code']));
         if (!\Utill\Dal\Helper::haveRecord($languageId)) {
         $languageIdValue = $languageId ['resultSet'][0]['id'];         
         }
-        $whereSql = " AND a.language_id =   ".  intval($languageIdValue);
+        $whereSql .= " AND a.language_id =   ".  intval($languageIdValue);
 
        
         if (isset($args['search_name']) && $args['search_name'] != "") {
@@ -568,7 +568,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $whereSql = " AND a.user_id = " . $userId ['resultSet'][0]['user_id'];
                  
                 $languageIdValue =647;
-                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (!\Utill\Dal\Helper::haveRecord($languageId)) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];         
                 }
@@ -658,7 +658,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $userId = InfoUsers::getUserId(array('pk' => $args['pk']));
             if (!\Utill\Dal\Helper::haveRecord($userId)) {
                 $languageIdValue =647;
-                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (!\Utill\Dal\Helper::haveRecord($languageId)) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];         
                 }
@@ -743,7 +743,8 @@ class InfoUsersAddresses extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
             $languageIdValue =647;
-            $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+            
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
             if (!\Utill\Dal\Helper::haveRecord($languageId)) {
             $languageIdValue = $languageId ['resultSet'][0]['id'];         
             }
@@ -821,14 +822,12 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (!\Utill\Dal\Helper::haveRecord($userId)) {
-                $userIdValue = $userId ['resultSet'][0]['user_id'];
-                
+                $userIdValue = $userId ['resultSet'][0]['user_id'];                
                 $languageIdValue =647;
-                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (!\Utill\Dal\Helper::haveRecord($languageId)) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];         
-                }
- 
+                } 
                 $statement = $pdo->prepare("
                 SELECT                
                     a.id ,	
@@ -1013,7 +1012,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
 
                 $languageIdValue =647;
-                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (!\Utill\Dal\Helper::haveRecord($languageId)) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];         
                 }
@@ -1151,7 +1150,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
     public function insertTemp($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
+            $pdo->beginTransaction();                
             $opUserId = InfoUsers::getUserIdTemp(array('pktemp' => $params['pktemp']));
             if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
@@ -1167,13 +1166,12 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $addSqlValue .= " " . $userId . ",";
                 
                 $languageIdValue =647;
-                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (!\Utill\Dal\Helper::haveRecord($languageId)) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];         
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];         
                 }
                 
- 
-                $statement = $pdo->prepare("
+                $sql = "                
                         INSERT INTO info_users_addresses (                           
                                 " . $addSql . " 
                                 operation_type_id,     
@@ -1195,7 +1193,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                                 " . $addSqlValue . " 
                                 1,    
                                 :language_code,   
-                                ".  intval($languageIdValue)." 
+                                ".  intval($languageIdValue).", 
                                 :address_type_id, 
                                 :address1, 
                                 :address2, 
@@ -1207,8 +1205,8 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                                 :description,                                 
                                 :profile_public,
                                 (SELECT last_value FROM info_users_addresses_id_seq)
-                                                ");
-
+                                           )     ";                
+                $statement = $pdo->prepare($sql);
                 $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
                 $statement->bindValue(':address_type_id', $params['address_type_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':address1', $params['address1'], \PDO::PARAM_STR);
@@ -1220,7 +1218,8 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
                 //$statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
                 $statement->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
-                $result = $statement->execute();
+                echo debugPDO($sql, $params);              
+                $result = $statement->execute();   
                 $insertID = $pdo->lastInsertId('info_users_addresses_id_seq');
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
@@ -1277,7 +1276,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $addSqlValue .= " " . $userId . ",";
                 
                 $languageIdValue =647;
-                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (!\Utill\Dal\Helper::haveRecord($languageId)) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];         
                 }
@@ -1367,7 +1366,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $whereSql = " AND a.user_id = " . $userId ['resultSet'][0]['user_id'];
                 
                 $languageIdValue =647;
-                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (!\Utill\Dal\Helper::haveRecord($languageId)) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];         
                 }
@@ -1457,7 +1456,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $userId = InfoUsers::getUserIdTemp(array('pktemp' => $params['pktemp']));
             if (!\Utill\Dal\Helper::haveRecord($userId)) {
                 $languageIdValue =647;
-                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (!\Utill\Dal\Helper::haveRecord($languageId)) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];         
                 } 
@@ -1541,7 +1540,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
                 
                 $languageIdValue =647;
-                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (!\Utill\Dal\Helper::haveRecord($languageId)) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];         
                 }
@@ -1551,7 +1550,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                     a.id ,	
                     sd8.description AS name                                 
                 FROM info_users_addresses a       
-                INNER JOIN sys_specific_definitions sd8 ON sd8.main_group = 5 AND sd8.first_group= a.address_type_id AND sd8.language_code = a.language_code AND sd8.deleted = 0 AND sd8.active = 0                     
+                INNER JOIN sys_specific_definitions sd8 ON sd8.main_group = 5 AND sd8.first_group= a.address_type_id AND sd8.language_id = a.language_id AND sd8.deleted = 0 AND sd8.active = 0                     
                 WHERE 
                     a.active =0 AND a.deleted = 0 AND 
                     a.language_id = :language_id AND 
@@ -1614,7 +1613,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                   
                 $languageIdValue =647;
                 $addSql .= " language_id, ";  
-                $languageId = InfoUsers::getLanguageId(array('language_code' => $params['language_code']));
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (!\Utill\Dal\Helper::haveRecord($languageId)) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];         
                 }                

@@ -148,7 +148,7 @@ class InfoUsersAddresses extends \BLL\BLLSlim{
      * @return array
      */
     public function insertTemp($params = array()) {
-        $DAL = $this->slimApp->getDALManager()->get('infoUsersAddressesPDO');
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersAddressesPDO');    
         return $DAL->insertTemp($params);
     } 
     
