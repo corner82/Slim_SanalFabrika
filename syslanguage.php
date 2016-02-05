@@ -57,15 +57,10 @@ $app->get("/fillComboBox_syslanguage/", function () use ($app ) {
     //$filterHtmlAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
   //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
     //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
- 
   
-  //  print_r('--****************get parent--' .$_GET['country_id'] );  
     $resCombobox = $BLL->fillComboBox ();  
  
-    //print_r($resDataMenu);
-   
- 
-        
+      
  
     $menus = array();
     foreach ($resCombobox as $menu){
@@ -80,10 +75,6 @@ $app->get("/fillComboBox_syslanguage/", function () use ($app ) {
     $app->response()->header("Content-Type", "application/json");
     
   
-    
-    /*$app->contentType('application/json');
-    $app->halt(302, '{"error":"Something went wrong"}');
-    $app->stop();*/
     
   $app->response()->body(json_encode($menus));
   

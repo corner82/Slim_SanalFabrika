@@ -582,10 +582,11 @@ class SysLanguage extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $statement = $pdo->prepare("
                 SELECT                    
-                    a.id        
+                    a.id   ,
+                    a.language_main_code ='" . $params['language_code'] . "'  as control
                 FROM sys_language a                                
                 where a.deleted =0 AND a.active = 0 AND 
-                a.language_main_code = '" . $params['language_code'] . "'               
+                    a.language_main_code = '" . $params['language_code'] . "'               
                 LIMIT 1                ");
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
@@ -594,7 +595,7 @@ class SysLanguage extends \DAL\DalSlim {
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+            
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
