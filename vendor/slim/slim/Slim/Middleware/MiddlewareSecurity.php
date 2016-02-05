@@ -204,7 +204,8 @@ use PhpAmqpLib\Message\AMQPMessage;
         if($this->app->isServicePkRequired == null) {
              $params = $this->getAppRequestParams();
              //print_r($params);
-             if(substr(trim($params['url']),0,2) == 'pk') {
+             if(substr(trim($params['url']),0,2) == 'pk' && 
+                     substr(trim($params['url']),0,6) != 'pktemp') {
                 $this->app->isServicePkRequired = true;
                 return $this->app->isServicePkRequired ;
              }
