@@ -199,7 +199,218 @@ class BlActivationReport extends \DAL\DalSlim {
         }
     }
  
+     
+    /**
+     * 
+     * @author Okan CIRAN
+     * @ Aktif firma sayısını döndürür  !!
+     * @version v 1.0  05.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getAllFirmCount($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');  
+            $sql = "     
+                SELECT 
+                    COUNT(id) AS adet ,
+                    'Firma Sayısı' AS aciklama
+                FROM info_firm_profile 
+                WHERE deleted =0 AND active =0                
+                    ";  
+            $statement = $pdo->prepare($sql);
+            $statement->execute();       
+            $result = $statement->fetchAll(\PDO::FETCH_CLASS);        
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            return json_encode($result);         
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+     /**
+     * 
+     * @author Okan CIRAN
+     * @ Aktif firma sayısını döndürür  !!
+     * @version v 1.0  05.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getConsultantFirmCount($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');             
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));            
+            if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId['resultSet'][0]['user_id'];
+                
+            $sql = "     
+                SELECT 
+                    COUNT(id) AS adet ,
+                    'Firma Sayısı' AS aciklama
+                FROM info_firm_profile 
+                WHERE deleted =0 AND active =0 AND                 
+                     consultant_id = ".intval($opUserIdValue)."
+                
+                    ";  
+            $statement = $pdo->prepare($sql);
+              echo debugPDO($sql, $params);
+            $statement->execute();       
+            $result = $statement->fetchAll(\PDO::FETCH_CLASS);        
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            return json_encode($result);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
  
-   
+      /**
+     * 
+     * @author Okan CIRAN
+     * @ Aktif firma sayısını döndürür  !!
+     * @version v 1.0  05.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getConsultantUpDashBoardCount($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');             
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));            
+            if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId['resultSet'][0]['user_id'];
+                
+            $sql = "  
+                SELECT ids,aciklama,adet FROM  (
+                        SELECT 1 as ids,
+                           'Toplam Firma Sayısı' AS aciklama,
+                            COUNT(id) AS adet                     
+                        FROM info_firm_profile 
+                        WHERE deleted =0 AND active =0  
+                    UNION 
+                        SELECT 2 AS ids,
+                           'Onaylanmış Firma Sayısı' AS aciklama,
+                            COUNT(id) AS adet                     
+                        FROM info_firm_profile 
+                        WHERE deleted =0 AND active =0 AND
+                              cons_allow_id = 1
+                    UNION 
+                        SELECT 3 as ids,
+                           'Danışmanın Firma Sayısı' as aciklama,
+                            count(a.id) AS adet                   
+                        FROM info_firm_profile a                                    
+                        INNER JOIN info_users u ON u.id = a.consultant_id      
+                        INNER JOIN sys_acl_roles acl ON acl.id = u.role_id  
+                        WHERE 
+                            a.consultant_id = ".intval($opUserIdValue)."
+                        GROUP BY a.consultant_id 
+                    UNION 
+                        SELECT 4 AS ids,
+                           'Danışman Onayı Bekleyen Firma' as aciklama,
+                            count(a.id) AS adet                   
+                        FROM info_firm_profile a                                    
+                        INNER JOIN info_users u ON u.id = a.consultant_id      
+                        INNER JOIN sys_acl_roles acl ON acl.id = u.role_id  
+                        WHERE 
+                            a.consultant_id =".intval($opUserIdValue)." AND
+                            a.cons_allow_id in (0,1,4)
+                        GROUP BY a.consultant_id 
+                           ) AS ttemp
+                ORDER BY ids 
+                
+                    ";  
+            $statement = $pdo->prepare($sql);
+            //  echo debugPDO($sql, $params);
+            $statement->execute();       
+            $result = $statement->fetchAll(\PDO::FETCH_CLASS);        
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            return json_encode($result);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+     /**
+     * 
+     * @author Okan CIRAN
+     * @ Danışmanın onay bekleyen firmalarının bilgilerini döndürür  !!
+     * @version v 1.0  05.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    
+    public function getConsWaitingForConfirm($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');             
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));            
+            if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId['resultSet'][0]['user_id'];
+                
+            $sql = "  
+                 
+                SELECT aciklama ,   
+                    CAST(SUBSTRING(sure FROM 1 FOR POSITION(' ' IN sure )-1 ) AS integer) AS sure
+                FROM (
+                    SELECT a.id,	   
+                       a.firm_name AS aciklama,
+                       CAST(CURRENT_TIMESTAMP - a.s_date AS VARCHAR(20)) AS sure
+                    FROM info_firm_profile a                 
+                    INNER JOIN info_users u ON u.id = a.consultant_id                     
+                    WHERE 
+                        a.consultant_id = 1001 AND 
+                        a.cons_allow_id IN (0,1,4)
+                    ) AS asdasd
+                ORDER BY sure DESC
+                LIMIT 6
+  
+                    ";  
+            $statement = $pdo->prepare($sql);
+            //  echo debugPDO($sql, $params);
+            $statement->execute();       
+            $result = $statement->fetchAll(\PDO::FETCH_CLASS);        
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            return json_encode($result);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+ 
    
 }

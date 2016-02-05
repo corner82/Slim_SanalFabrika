@@ -63,7 +63,7 @@ class BlActivationReport extends \BLL\BLLSlim{
     
     
     /**
-     * get private key  from public key
+     *  
      * @param array$params
      * @return array
      */
@@ -73,7 +73,50 @@ class BlActivationReport extends \BLL\BLLSlim{
         return $resultSet;
     }
     
+       /**
+     * 
+     * @param array$params
+     * @return array
+     */
+    public function getAllFirmCount($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('blActivationReportPDO');
+        $resultSet = $DAL->getAllFirmCount($params);  
+        return $resultSet;
+    }
     
+     /**
+     *  
+     * @param array$params
+     * @return array
+     */
+    public function getConsultantFirmCount($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('blActivationReportPDO');
+        $resultSet = $DAL->getConsultantFirmCount($params);  
+        return $resultSet;
+    }
+    
+        
+     /**
+     *  
+     * @param array$params
+     * @return array
+     */
+    public function getConsultantUpDashBoardCount($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('blActivationReportPDO');
+        $resultSet = $DAL->getConsultantUpDashBoardCount($params);  
+        return $resultSet;
+    }
+    
+     /**
+     *  
+     * @param array$params
+     * @return array
+     */
+    public function getConsWaitingForConfirm($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('blActivationReportPDO');
+        $resultSet = $DAL->getConsWaitingForConfirm($params);  
+        return $resultSet;
+    }
     
     
     

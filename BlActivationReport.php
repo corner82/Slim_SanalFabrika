@@ -40,12 +40,7 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
 
 
 
-    
-
-
-
-
-
+ 
 
 
 /**
@@ -67,5 +62,92 @@ $app->get("/pkGetConsultantOperation_blActivationReport/", function () use ($app
   
 });
  
+
+/**
+ *  * OKAN CIRAN
+ * @since 05-02-2016
+ */
+$app->get("/pkGetConsultantFirmCount_blActivationReport/", function () use ($app ) {
+
+    
+    $BLL = $app->getBLLManager()->get('blActivationReportBLL'); 
+  
+    $headerParams = $app->request()->headers();
+    $vPk = $headerParams['X-Public'];
+  
+    $resDataMenu = $BLL->getConsultantFirmCount(array('pk'=>$vPk));
+  
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body($resDataMenu);
+  
+});
+ 
+
+/**
+ *  * OKAN CIRAN
+ * @since 05-02-2016
+ */
+$app->get("/getAllFirmCount_blActivationReport/", function () use ($app ) {
+
+    
+    $BLL = $app->getBLLManager()->get('blActivationReportBLL'); 
+  
+    $headerParams = $app->request()->headers();
+    $vPk = $headerParams['X-Public'];
+  
+    $resDataMenu = $BLL->getAllFirmCount(array('pk'=>$vPk));
+  
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body($resDataMenu);
+  
+});
+ 
+
+
+/**
+ *  * OKAN CIRAN
+ * @since 05-02-2016
+ */
+$app->get("/pkGetConsultantUpDashBoardCount_blActivationReport/", function () use ($app ) {
+
+    
+    $BLL = $app->getBLLManager()->get('blActivationReportBLL'); 
+  
+    $headerParams = $app->request()->headers();
+    $vPk = $headerParams['X-Public'];
+  
+    $resDataMenu = $BLL->getConsultantUpDashBoardCount(array('pk'=>$vPk));
+  
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body($resDataMenu);
+  
+});
+ 
+
+/**
+ *  * OKAN CIRAN
+ * @since 05-02-2016
+ */
+$app->get("/pkGetConsWaitingForConfirm_blActivationReport/", function () use ($app ) {
+
+    
+    $BLL = $app->getBLLManager()->get('blActivationReportBLL'); 
+  
+    $headerParams = $app->request()->headers();
+    $vPk = $headerParams['X-Public'];
+  
+    $resDataMenu = $BLL->getConsWaitingForConfirm(array('pk'=>$vPk));
+  
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body($resDataMenu);
+  
+});
+ 
+
+
+
+
+
+
 
 $app->run();

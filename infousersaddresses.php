@@ -213,7 +213,6 @@ $app->get("/pkInsert_infoUsersAddresses/", function () use ($app ) {
     $vProfilePublic = $_GET['profile_public'];    
     $vLanguageCode = $_GET['language_code'];
     
-    
     $vAddressTypeId = $_GET['address_type_id'];
     $vAddress1 = $_GET['address1'];
     $vAddress2 = $_GET['address2'];
@@ -671,7 +670,7 @@ $app->get("/pkGetAll_infoUsersAddresses/", function () use ($app ) {
  *  * Okan CIRAN
  * @since 01-02-2016
  */
-$app->get("/fillUserAddressesTypes_infoUsersAddresses/", function () use ($app ) {
+$app->get("/pkFillUserAddressesTypes_infoUsersAddresses/", function () use ($app ) {
 
 
     $BLL = $app->getBLLManager()->get('infoUsersAddressesBLL');
