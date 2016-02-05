@@ -51,6 +51,7 @@ class BLLManagerConfig{
                  'sysSpecificDefinitionsBLL' => 'BLL\BLL\SysSpecificDefinitions',   
                  'infoUsersCommunicationsBLL' => 'BLL\BLL\InfoUsersCommunications',   
                  'infoUsersAddressesBLL' => 'BLL\BLL\InfoUsersAddresses',   
+                 'blActivationReportBLL' => 'BLL\BLL\BlActivationReport',
                  
                  
                
