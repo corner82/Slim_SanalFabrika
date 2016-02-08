@@ -57,6 +57,7 @@ class DalManagerConfig {
                 'infoUsersCommunicationsPDO' => 'DAL\Factory\PDO\InfoUsersCommunicationsFactory', 
                 'infoUsersAddressesPDO' => 'DAL\Factory\PDO\InfoUsersAddressesFactory', 
                 'blActivationReportPDO' => 'DAL\Factory\PDO\BlActivationReportFactory', 
+                'sysOsbConsultantsPDO' => 'DAL\Factory\PDO\SysOsbConsultantsFactory', 
                 
                  
                 
