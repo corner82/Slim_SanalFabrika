@@ -639,12 +639,12 @@ class SysOsbConsultants extends \DAL\DalSlim {
         if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
             $offset = ((intval($params['page']) - 1) * intval($params['rows']));
             $limit = intval($params['rows']);
+    
         } else {
             $limit = 10;
             $offset = 0;
         }
-         $limit = 10;
-            $offset = 0;
+         
 
         $sortArr = array();
         $orderArr = array();
@@ -670,15 +670,9 @@ class SysOsbConsultants extends \DAL\DalSlim {
         if (isset($params['search_name']) && $params['search_name'] != "") {
             $whereNameSQL = " AND LOWER(fp.firm_name) LIKE LOWER('%" . $params['search_name'] . "%') ";
         }
-
-        try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
-            if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
-                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $sql = "
-                SELECT 
-                    fp.id, 
+        
+        /*
+                 fp.id, 
                     fp.s_date, 
                     fp.c_date, 
                     fp.firm_name AS company_name,
@@ -686,7 +680,21 @@ class SysOsbConsultants extends \DAL\DalSlim {
                     op.operation_name,
                     (SELECT communications_no FROM info_users_communications WHERE user_id = fp.op_user_id AND communications_type_id = 2 AND active = 0 AND deleted =0  limit 1 ) as cep,	
                     (SELECT communications_no FROM info_users_communications WHERE user_id = fp.op_user_id AND communications_type_id = 3 AND active = 0 AND deleted =0  limit 1 ) as istel 	                    
-		FROM sys_osb_consultants a                                
+         */
+        
+        
+        
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $sql = "
+                SELECT                    
+                    fp.s_date,                     
+                    fp.firm_name AS company_name,
+                    fpu.username AS username                   
+                    FROM sys_osb_consultants a                                
                 INNER JOIN info_users u1 ON u1.id = a.user_id AND u1.role_id = 2  AND u1.active = 0 AND u1.deleted = 0                 
 		INNER JOIN info_firm_profile fp ON fp.consultant_id = u1.id AND fp.deleted = 0   
 		INNER JOIN info_users fpu ON fpu.id = fp.op_user_id  		
@@ -698,7 +706,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                         . "LIMIT " . $pdo->quote($limit) . " "
                         . "OFFSET " . $pdo->quote($offset) . " ";
                 $statement = $pdo->prepare($sql);
-                  echo debugPDO($sql, $params);
+                echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();

@@ -60,7 +60,7 @@ $app->get("/pkGetConsPendingFirmProfile_sysOsbConsultants/", function () use ($a
 
     $headerParams = $app->request()->headers();
     $pk = $headerParams['X-Public'];
-  //  print_r('123123');
+  //  print_r('123123'); 
     $resDataGrid = $BLL->getConsPendingFirmProfile(array('page' => $_GET['page'],
         'rows' => $_GET['rows'],
         'sort' => $_GET['sort'],
@@ -68,19 +68,19 @@ $app->get("/pkGetConsPendingFirmProfile_sysOsbConsultants/", function () use ($a
         'pk' => $pk));    
  
     $resTotalRowCount = $BLL->getConsPendingFirmProfilertc(array('pk' => $pk));
-    print_r($resTotalRowCount);
+     print_r($resDataGrid);
     $flows = array();
     foreach ($resDataGrid as $flow) {
         $flows[] = array(
-            "id" => $flow["id"],
-            "s_date" => $flow["s_date"],
-            "c_date" => $flow["c_date"],
+//            "id" => $flow["id"],
+ 
+  //          "c_date" => $flow["c_date"],
             "company_name" => $flow["company_name"],
             "username" => $flow["username"],
-            "operation_name" => $flow["operation_name"],
-            "cep" => $flow["cep"],
-            "istel" => $flow["istel"],
-            
+  //          "operation_name" => $flow["operation_name"],
+  //          "cep" => $flow["cep"],
+  //          "istel" => $flow["istel"],  
+             "s_date" => $flow["s_date"],
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }
@@ -96,6 +96,9 @@ $app->get("/pkGetConsPendingFirmProfile_sysOsbConsultants/", function () use ($a
       $app->stop(); */
 
     $app->response()->body(json_encode($resultArray));
+  
+    
+    
 });
  
  
