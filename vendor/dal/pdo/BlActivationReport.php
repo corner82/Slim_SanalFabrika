@@ -305,10 +305,11 @@ class BlActivationReport extends \DAL\DalSlim {
                     UNION 
                         SELECT 2 AS ids,
                            'Onaylanmış Firma Sayısı' AS aciklama,
-                            COUNT(id) AS adet                     
+                            COUNT(a.id) AS adet                     
                         FROM info_firm_profile 
-                        WHERE deleted =0 AND active =0 AND
-                              cons_allow_id = 1
+                        INNER JOIN sys_operation_types op ON op.parent_id = 2 AND a.operation_type_id = op.id AND op.active = 0 AND op.deleted =0
+                        WHERE a.deleted =0 AND a.active =0 AND
+                              a.operation_type_id = 5
                     UNION 
                         SELECT 3 as ids,
                            'Danışmanın Firma Sayısı' as aciklama,
@@ -316,7 +317,7 @@ class BlActivationReport extends \DAL\DalSlim {
                         FROM info_firm_profile a                                    
                         INNER JOIN info_users u ON u.id = a.consultant_id      
                         INNER JOIN sys_acl_roles acl ON acl.id = u.role_id  
-                        WHERE 
+                        WHERE a.active = 0 AND a.deleted = 0 AND 
                             a.consultant_id = ".intval($opUserIdValue)."
                         GROUP BY a.consultant_id 
                     UNION 
@@ -326,9 +327,9 @@ class BlActivationReport extends \DAL\DalSlim {
                         FROM info_firm_profile a                                    
                         INNER JOIN info_users u ON u.id = a.consultant_id      
                         INNER JOIN sys_acl_roles acl ON acl.id = u.role_id  
+                        INNER JOIN sys_operation_types op ON op.parent_id = 1 AND a.operation_type_id = op.id AND op.active = 0 AND op.deleted =0
                         WHERE 
-                            a.consultant_id =".intval($opUserIdValue)." AND
-                            a.cons_allow_id in (0,1,4)
+                            a.consultant_id =".intval($opUserIdValue)."                         
                         GROUP BY a.consultant_id 
                            ) AS ttemp
                 ORDER BY ids 
@@ -381,10 +382,10 @@ class BlActivationReport extends \DAL\DalSlim {
                        a.firm_name AS aciklama,
                        CAST(CURRENT_TIMESTAMP - a.s_date AS VARCHAR(20)) AS sure
                     FROM info_firm_profile a                 
-                    INNER JOIN info_users u ON u.id = a.consultant_id                     
+                    INNER JOIN info_users u ON u.id = a.consultant_id   
+                    INNER JOIN sys_operation_types op ON op.parent_id = 1 AND a.operation_type_id = op.id AND op.active = 0 AND op.deleted =0
                     WHERE 
-                        a.consultant_id = 1001 AND 
-                        a.cons_allow_id IN (0,1,4)
+                        a.consultant_id = ".intval($opUserIdValue)." 
                     ) AS asdasd
                 ORDER BY sure DESC
                 LIMIT 6
