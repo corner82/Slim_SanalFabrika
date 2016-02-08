@@ -609,7 +609,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
             $statement = $pdo->prepare("
             SELECT      
-		a.id ,              
+		 a.first_group as id,              
                 COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
 		a.active               
             FROM sys_specific_definitions a       
@@ -648,7 +648,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             }
             $statement = $pdo->prepare("             
             SELECT                    
-                    a.id, 	
+                    a.first_group as id, 	
                    COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
                     a.parent_id,
                     a.active,
@@ -691,7 +691,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
             $statement = $pdo->prepare("             
             SELECT                    
-                    a.id, 	
+                     a.first_group as id, 	
                    COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
                     a.parent_id,
                     a.active,
@@ -734,7 +734,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
             $statement = $pdo->prepare("             
             SELECT                    
-                    a.id, 	
+                   a.first_group as id,  	
                    COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
                     a.parent_id,
                     a.active,
@@ -777,7 +777,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
             $statement = $pdo->prepare("             
             SELECT                    
-                    a.id, 	
+                    a.first_group as id, 	
                    COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
                     a.parent_id,
                     a.active,
@@ -820,7 +820,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
             $statement = $pdo->prepare("             
             SELECT                    
-                    a.id, 	
+                    a.first_group as id, 	
                    COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
                     a.parent_id,
                     a.active,
@@ -863,7 +863,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
             $statement = $pdo->prepare("             
             SELECT                    
-                    a.id, 	
+                   a.first_group as id, 	
                    COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
                     a.parent_id,
                     a.active,
