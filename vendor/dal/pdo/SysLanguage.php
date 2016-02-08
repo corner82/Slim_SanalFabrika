@@ -580,14 +580,16 @@ class SysLanguage extends \DAL\DalSlim {
     public function getLanguageId($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $statement = $pdo->prepare("
+            $sql = "     
                 SELECT                    
                     a.id   ,
                     a.language_main_code ='" . $params['language_code'] . "'  as control
                 FROM sys_language a                                
                 where a.deleted =0 AND a.active = 0 AND 
                     a.language_main_code = '" . $params['language_code'] . "'               
-                LIMIT 1                ");
+                LIMIT 1                ";
+           //  echo debugPDO($sql, $params);   
+            $statement = $pdo->prepare($sql);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
             $errorInfo = $statement->errorInfo();
