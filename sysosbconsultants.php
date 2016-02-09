@@ -115,10 +115,59 @@ $app->get("/pkGetConsPendingFirmProfile_sysOsbConsultants/", function () use ($a
       $app->stop(); */
 
     $app->response()->body(json_encode($resultArray));
+
+});
+
+
+/**
+ * getting user details for consultant confirmation process
+ * @author Mustafa Zeynel Dağlı
+ * @since 09/02/2016
+ */
+$app->get("/pkGetConsConfirmationProcessDetails_sysOsbConsultants/", function () use ($app ) {
+
+    $BLL = $app->getBLLManager()->get('sysOsbConsultantsBLL');
+
+    $headerParams = $app->request()->headers();
+
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkGetConsConfirmationProcessDetails_sysOsbConsultants" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+    $profileID;
+    if(isset($_GET['profile_id'])) $profileID = $_GET['profile_id'];
+
+    $result = $BLL->getConsConfirmationProcessDetails(array('profile_id' => $profileID,
+                                                         'pk' => $pk));    
+    //print_r($resDataGrid['$result']);
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array(
+//            "id" => $flow["id"],
+ 
+  //          "c_date" => $flow["c_date"],
+            "firm_name" => $flow["firm_name"],
+            "id" => $flow["id"],
+  //          "operation_name" => $flow["operation_name"],
+  //          "cep" => $flow["cep"],
+  //          "istel" => $flow["istel"],  
+            "profile_public" => $flow["profile_public"],
+            "adresbilgileri" => $flow["adresbilgileri"],
+
+            
+        );
+    }
+
+    $app->response()->header("Content-Type", "application/json");
+
+    /* $app->contentType('application/json');
+      $app->halt(302, '{"error":"Something went wrong"}');
+      $app->stop(); */
+
+    $app->response()->body(json_encode($flows));
   
     
     
 });
+
  
  
 

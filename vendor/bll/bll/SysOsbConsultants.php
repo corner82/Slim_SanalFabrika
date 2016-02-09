@@ -105,5 +105,15 @@ class SysOsbConsultants extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('sysOsbConsultantsPDO');
         return $DAL->getConsPendingFirmProfilertc($params);
     }
+    
+    /**
+     * get consultant confirmation process details
+     * @param array $params
+     * @return array
+     */
+    public function getConsConfirmationProcessDetails($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysOsbConsultantsPDO');
+        return $DAL->getConsConfirmationProcessDetails($params);
+    }
 
 }
