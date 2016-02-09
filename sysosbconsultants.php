@@ -63,14 +63,15 @@ $app->get("/pkGetConsPendingFirmProfile_sysOsbConsultants/", function () use ($a
   //  print_r('123123'); 
     $resDataGrid = $BLL->getConsPendingFirmProfile(array('page' => $_GET['page'],
         'rows' => $_GET['rows'],
-        'sort' => $_GET['sort'],
-        'order' => $_GET['order'],     
+        //'sort' => $_GET['sort'],
+        //'order' => $_GET['order'],     
         'pk' => $pk));    
  
     $resTotalRowCount = $BLL->getConsPendingFirmProfilertc(array('pk' => $pk));
-     print_r($resDataGrid);
+    //print_r($resTotalRowCount);
+    //print_r($resDataGrid['resultSet']);
     $flows = array();
-    foreach ($resDataGrid as $flow) {
+    foreach ($resDataGrid['resultSet'] as $flow) {
         $flows[] = array(
 //            "id" => $flow["id"],
  
@@ -81,14 +82,14 @@ $app->get("/pkGetConsPendingFirmProfile_sysOsbConsultants/", function () use ($a
   //          "cep" => $flow["cep"],
   //          "istel" => $flow["istel"],  
              "s_date" => $flow["s_date"],
-            "attributes" => array("notroot" => true, "active" => $flow["active"]),
+            
         );
     }
 
     $app->response()->header("Content-Type", "application/json");
 
     $resultArray = array();
-    $resultArray['total'] = $resTotalRowCount[0]['COUNT'];
+    $resultArray['total'] = $resTotalRowCount['resultSet'][0]['count'];
     $resultArray['rows'] = $flows;
 
     /* $app->contentType('application/json');
