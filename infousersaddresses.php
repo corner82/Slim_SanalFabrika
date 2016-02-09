@@ -102,7 +102,9 @@ $app->get("/pkFillGridSingular_infoUsersAddresses/", function () use ($app ) {
             "city_name" => $flow["city_name"],       
             "description" => $flow["description"],
             "description_eng" => $flow["description_eng"],
-            
+            "tr_country_name" => $flow["tr_country_name"],  
+            "tr_city_name" => $flow["tr_city_name"],  
+            "tr_borough_name" => $flow["tr_borough_name"],  
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }
@@ -182,7 +184,9 @@ $app->get("/pkFillGrid_infoUsersAddresses/", function () use ($app ) {
             "city_name" => $flow["city_name"],       
             "description" => $flow["description"],
             "description_eng" => $flow["description_eng"],
-            
+            "tr_country_name" => $flow["tr_country_name"],  
+            "tr_city_name" => $flow["tr_city_name"],  
+            "tr_borough_name" => $flow["tr_borough_name"],  
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }
@@ -648,7 +652,9 @@ $app->get("/pkGetAll_infoUsersAddresses/", function () use ($app ) {
             "city_name" => $flow["city_name"],       
             "description" => $flow["description"],
             "description_eng" => $flow["description_eng"],
-            
+            "tr_country_name" => $flow["tr_country_name"],  
+            "tr_city_name" => $flow["tr_city_name"],  
+            "tr_borough_name" => $flow["tr_borough_name"],  
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }
@@ -760,7 +766,12 @@ $app->get("/pktempFillGridSingular_infoUsersAddresses/", function () use ($app )
             "country_id" => $flow["country_id"],  
             "city_id" => $flow["city_id"],  
             "borough_id" => $flow["borough_id"],  
-            "city_name" => $flow["city_name"],       
+            "city_name" => $flow["city_name"],     
+             
+            "tr_country_name" => $flow["tr_country_name"],  
+            "tr_city_name" => $flow["tr_city_name"],  
+            "tr_borough_name" => $flow["tr_borough_name"],  
+            
             "description" => $flow["description"],
             "description_eng" => $flow["description_eng"],
             
@@ -769,7 +780,7 @@ $app->get("/pktempFillGridSingular_infoUsersAddresses/", function () use ($app )
     }
 
     $app->response()->header("Content-Type", "application/json");
-
+   // print_r($resTotalRowCount);
     $resultArray = array();
     $resultArray['total'] = $resTotalRowCount[0]['count'];
     $resultArray['rows'] = $flows;
@@ -791,6 +802,7 @@ $app->get("/pktempInsert_infoUsersAddresses/", function () use ($app ) {
    
     $headerParams = $app->request()->headers();
     $vPkTemp = $headerParams['X-Public-Temp'];
+   // print_r($vPkTemp);
     
     $vProfilePublic = $_GET['profile_public'];    
     $vLanguageCode = $_GET['language_code'];
@@ -826,7 +838,6 @@ $app->get("/pktempInsert_infoUsersAddresses/", function () use ($app ) {
     $resDataInsert = $BLL->insertTemp(array(  
             'language_code' => $fLanguageCode,
             'profile_public' => $fProfilePublic,  
-            
             'address_type_id' => $fAddressTypeId , 
             'address1' => $fAddress1 , 
             'address2' => $fAddress2 ,
@@ -840,6 +851,7 @@ $app->get("/pktempInsert_infoUsersAddresses/", function () use ($app ) {
         
             'pktemp' => $fPkTemp,        
             ));
+
 
     $app->response()->header("Content-Type", "application/json");
 
@@ -1029,16 +1041,19 @@ $app->get("/pktempDeletedAct_infoUsersAddresses/", function () use ($app ) {
  */
 $app->get("/pktempFillUserAddressesTypes_infoUsersAddresses/", function () use ($app ) {
 
-
+ 
     $BLL = $app->getBLLManager()->get('infoUsersAddressesBLL');
  
     $headerParams = $app->request()->headers();
     $vPkTemp = $headerParams['X-Public-Temp'];   
     $vLanguageCode =$_GET['language_code'] ; 
-    
+    //print_r($vPkTemp) ;
+   
     $resCombobox = $BLL->fillUserAddressesTypesTemp(array('pktemp' => $vPkTemp , 
                                                         'language_code' => $vLanguageCode ));
 
+  //  print_r('123123123123');
+  // print_r($resCombobox);
     $flows = array();
     foreach ($resCombobox as $flow) {
         $flows[] = array(

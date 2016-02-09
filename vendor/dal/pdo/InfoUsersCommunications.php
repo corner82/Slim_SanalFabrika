@@ -91,17 +91,16 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                     a.confirm_id
                 FROM info_users_communications  a
                 inner join info_users_detail b on b.root_id = a.user_id and b.active = 0 and b.deleted = 0  
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
-                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0                
-                INNER JOIN sys_specific_definitions sd6 ON sd6.main_group = 5 AND sd6.first_group= a.communications_type_id AND sd6.language_code = a.language_code AND sd6.deleted = 0 AND sd6.active = 0
-                INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                
+                INNER JOIN sys_specific_definitions sd6 ON sd6.main_group = 5 AND sd6.first_group= a.communications_type_id AND sd6.language_id = a.language_id AND sd6.deleted = 0 AND sd6.active = 0
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.op_user_id 
-		INNER JOIN sys_specific_definitions as sd7 on sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_code = a.language_code 
-		INNER JOIN sys_operation_types op on op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_code = a.language_code               
-                WHERE a.deleted =0 AND a.language_code = :language_code                   
+		INNER JOIN sys_specific_definitions as sd7 on sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_id = a.language_id 
+		INNER JOIN sys_operation_types op on op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_id = a.language_id                            
                 ORDER BY sd6.first_group              
                                  "); 
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+           
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -114,6 +113,41 @@ class InfoUsersCommunications extends \DAL\DalSlim {
         }
     }
 
+    
+     /**
+     * @author Okan CIRAN
+     * @ info_users_communications tablosundan parametre olarak  gelen id kaydını aktifliğini 1 = pasif yapar. !!
+     * @version v 1.0  09.02.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function makePassive($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            //$pdo->beginTransaction();
+            $statement = $pdo->prepare(" 
+                UPDATE info_users_communications
+                SET                         
+                    c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                     
+                    active = 1                    
+                WHERE id = :id");
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
+            $update = $statement->execute();
+            $afterRows = $statement->rowCount();
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            //$pdo->commit();
+            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+        } catch (\PDOException $e /* Exception $e */) {
+            //$pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
+    
     /**
      * @author Okan CIRAN
      * @ info_users_communications tablosuna yeni bir kayıt oluşturur.  !!
@@ -129,8 +163,8 @@ class InfoUsersCommunications extends \DAL\DalSlim {
             if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $addSql = " op_user_id, ";
-                $addSqlValue = " " . $opUserIdValue . ",";
-
+                $addSqlValue = " " . $opUserIdValue . ",";               
+                
                 $addSql .= " user_id,  ";
                 if ((isset($params['user_id']) && $params['user_id'] != "")) {
                     $userId = $params['user_id'];
@@ -139,7 +173,15 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 }
                 $addSqlValue .= " " . $userId . ",";
 
-
+                $languageIdValue =647;
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+                 $addSql .= " language_id,  ";
+                 $addSqlValue .= " " . intval($languageIdValue) . ",";
+                
+                
                 if ((isset($params['active']) && $params['active'] != "")) {
                     $addSqlValue .= " " . intval($params['active']) . ",";
                     $addSql .= " active,  ";
@@ -166,8 +208,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                         $addSql .= " confirm_id,  ";
                     }
                 }
-
-
+ 
                 $statement = $pdo->prepare("
                         INSERT INTO info_users_communications (                           
                                 " . $addSql . "                              
@@ -177,7 +218,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                                 description, 
                                 description_eng,
                                 profile_public,
-                                history_parent_id
+                                act_parent_id
                                 )                        
                         VALUES (
                                 " . $addSqlValue . "                                                                       
@@ -277,19 +318,8 @@ class InfoUsersCommunications extends \DAL\DalSlim {
             $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (!\Utill\Dal\Helper::haveRecord($userId)) {
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
-                $statement = $pdo->prepare("
-                UPDATE info_users_communications
-                SET                         
-                    c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                     
-                    active = 1                    
-                WHERE id = :id");
-                $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-                $update = $statement->execute();
-                $affectedRows = $statement->rowCount();
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
-
+              
+                $this->makePassive(array('id' => $params['id']));
             
                 if ((isset($params['consultant_id']) && $params['consultant_id'] != "")) {
                     $addSqlValue .= " " . intval($params['consultant_id']) . ",";
@@ -312,6 +342,15 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                     $userId = $opUserIdValue;
                 }
                 $addSqlValue .= " " . $userId . ",";
+                
+                $languageIdValue =647;
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+                 $addSql .= " language_id,  ";
+                 $addSqlValue .= " " . intval($languageIdValue) . ",";
+                
  
                 $statementInsert = $pdo->prepare("
                 INSERT INTO info_users_communications (                                          
@@ -331,7 +370,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                         act_parent_id, 
                         language_parent_id,
                         " . $addSql . "                           
-                        history_parent_id                      
+                        act_parent_id                     
                         )  
                 SELECT                 
                     " . intval($params['active']) . " AS active,   
@@ -350,7 +389,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                     act_parent_id, 
                     language_parent_id,
                      " . $addSqlValue . " 
-                    history_parent_id
+                    act_parent_id
                 FROM info_users_communications 
                 WHERE id  =" . intval($params['id']) . " 
                  
@@ -394,7 +433,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
             $limit = 10;
             $offset = 0;
         }
-
+        $whereSql = '';
         $sortArr = array();
         $orderArr = array();
         if (isset($args['sort']) && $args['sort'] != "") {
@@ -415,10 +454,18 @@ class InfoUsersCommunications extends \DAL\DalSlim {
         } else {
             $order = "ASC";
         }
+       
+        $languageIdValue =647;
+        $languageId = SysLanguage::getLanguageId(array('language_code' => $args['language_code']));
+        if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+            $languageIdValue = $languageId ['resultSet'][0]['id'];
+        }
+        $whereSql .= " AND a.language_id =  " . intval($languageIdValue);
+        
 
-        $whereSql = '';
+   
         if (isset($args['search_name']) && $args['search_name'] != "") {
-            $whereSql = " AND LOWER(( TRIM(concat(b.name ,' ', b.surname)))) LIKE '%" . $args['search_name'] . "%' ";
+            $whereSql .= " AND LOWER(( TRIM(concat(b.name ,' ', b.surname)))) LIKE '%" . $args['search_name'] . "%' ";
         }
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -453,14 +500,14 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                     a.confirm_id
                 FROM info_users_communications  a
                 inner join info_users_detail b on b.root_id = a.user_id and b.active = 0 and b.deleted = 0  
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
-                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0                
-                INNER JOIN sys_specific_definitions sd6 ON sd6.main_group = 5 AND sd6.first_group= a.communications_type_id AND sd6.language_code = a.language_code AND sd6.deleted = 0 AND sd6.active = 0
-                INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                
+                INNER JOIN sys_specific_definitions sd6 ON sd6.main_group = 5 AND sd6.first_group= a.communications_type_id AND sd6.language_id = a.language_id AND sd6.deleted = 0 AND sd6.active = 0
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.op_user_id 
-		INNER JOIN sys_specific_definitions as sd7 on sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_code = a.language_code 
-		INNER JOIN sys_operation_types op on op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_code = a.language_code              
-                WHERE a.deleted =0 AND a.language_code = :language_code 
+		INNER JOIN sys_specific_definitions as sd7 on sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_id = a.language_id 
+		INNER JOIN sys_operation_types op on op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_id = a.language_id              
+                WHERE a.deleted =0  
                 " . $whereSql . "
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
@@ -472,9 +519,9 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 'order' => $order,
                 'limit' => $pdo->quote($limit),
                 'offset' => $pdo->quote($offset),
-            );
+            ); 
             //  echo debugPDO($sql, $parameters);
-            $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_STR);
+           
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -503,6 +550,14 @@ class InfoUsersCommunications extends \DAL\DalSlim {
             $userId = InfoUsers::getUserId(array('pk' => $args['pk']));
             if (!\Utill\Dal\Helper::haveRecord($userId)) {
                 $whereSql = " AND b.user_id = " . $userId ['resultSet'][0]['user_id'];
+                
+            $languageIdValue =647;
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $args['language_code']));
+            if (!\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            }
+            $whereSql .= " AND a.language_id =  " . intval($languageIdValue);
+              
                 $sql = "
                  SELECT 
                     a.id,  
@@ -534,20 +589,19 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                     a.confirm_id
                 FROM info_users_communications  a
                 inner join info_users_detail b on b.root_id = a.user_id and b.active = 0 and b.deleted = 0  
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
-                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0                
-                INNER JOIN sys_specific_definitions sd6 ON sd6.main_group = 5 AND sd6.first_group= a.communications_type_id AND sd6.language_code = a.language_code AND sd6.deleted = 0 AND sd6.active = 0
-                INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                
+                INNER JOIN sys_specific_definitions sd6 ON sd6.main_group = 5 AND sd6.first_group= a.communications_type_id AND sd6.language_id = a.language_id AND sd6.deleted = 0 AND sd6.active = 0
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.op_user_id 
-		INNER JOIN sys_specific_definitions as sd7 on sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_code = a.language_code 
-		INNER JOIN sys_operation_types op on op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_code = a.language_code              
-                WHERE a.deleted =0 AND a.active =0 AND a.language_code = :language_code 
+		INNER JOIN sys_specific_definitions as sd7 on sd7.main_group =14 AND sd7.first_group = a.consultant_confirm_type_id AND sd7.deleted = 0 AND sd7.active = 0 AND sd7.language_id = a.language_id 
+		INNER JOIN sys_operation_types op on op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_id = a.language_id              
+                WHERE a.deleted =0 AND a.active =0  
                 " . $whereSql . "
                 ORDER BY sd6.first_group 
                 ";
                 $statement = $pdo->prepare($sql);
-                //  echo debugPDO($sql, $parameters);
-                $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_STR);
+                //  echo debugPDO($sql, $parameters);               
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -916,20 +970,8 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                     $addSqlValue .= intval($params['operation_type_id']) . ", ";
                 }
                 
-
-                $statement = $pdo->prepare("                                      
-                    UPDATE info_users_communications
-                    SET                                                                
-                        c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                                              
-                        active = 1
-                    WHERE id = :id                    
-                    ");
-                $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-                $update = $statement->execute();
-                $affectedRows = $statement->rowCount();
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
+                $this->makePassive(array('id' => $params['id']));
+                
                 $statementInsert = $pdo->prepare(" 
                     INSERT INTO info_users_communications (
                         user_id,                        
@@ -952,7 +994,8 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                         history_parent_id,
                         consultant_id,
                         consultant_confirm_type_id,
-                        confirm_id
+                        confirm_id,
+                        act_parent_id
                         )    
                         
                     SELECT
@@ -975,7 +1018,8 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                         history_parent_id,
                         consultant_id,
                         consultant_confirm_type_id,
-                        confirm_id
+                        confirm_id,
+                        act_parent_id
                     FROM info_users_communications 
                     WHERE id  =" . intval($params['id']) . "    
                     )");
@@ -1099,18 +1143,8 @@ class InfoUsersCommunications extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserIdTemp(array('pktemp' => $params['pktemp']));
             if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $statement = $pdo->prepare("
-                UPDATE info_users_communications
-                SET                         
-                    c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                     
-                    active = 1                    
-                WHERE id = :id");
-                $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-                $update = $statement->execute();
-                $affectedRows = $statement->rowCount();
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
+               
+                $this->makePassive(array('id' => $params['id']));
 
                 $statementInsert = $pdo->prepare("
                 INSERT INTO info_users_communications (
@@ -1408,19 +1442,8 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 }
                 $addSqlValue .= intval($operationTypeId) . ", ";
 
-                $statement = $pdo->prepare("                                      
-                    UPDATE info_users
-                    SET                                                                
-                        c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                                              
-                        active = 1
-                    WHERE id = :id                    
-                    ");
-                $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-                $update = $statement->execute();
-                $affectedRows = $statement->rowCount();
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
+                $this->makePassive(array('id' => $params['id']));
+                 
                 $statementInsert = $pdo->prepare(" 
                     INSERT INTO info_users_communications (
                         user_id,                        
