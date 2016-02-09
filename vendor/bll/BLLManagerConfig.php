@@ -52,9 +52,8 @@ class BLLManagerConfig{
                  'infoUsersCommunicationsBLL' => 'BLL\BLL\InfoUsersCommunications',   
                  'infoUsersAddressesBLL' => 'BLL\BLL\InfoUsersAddresses',   
                  'blActivationReportBLL' => 'BLL\BLL\BlActivationReport',
-                 'sysOsbConsultantsBLL' => 'BLL\BLL\SysOsbConsultants',
-                 
-                 
+                 'sysOsbConsultantsBLL' => 'BLL\BLL\SysOsbConsultants',                 
+                 'sysOsbBLL' => 'BLL\BLL\SysOsb',
                
             
                    
