@@ -722,15 +722,19 @@ $app->get("/pktempFillGridSingular_infoUsersAddresses/", function () use ($app )
 
     $headerParams = $app->request()->headers();
     $vPkTemp = $headerParams['X-Public-Temp'];
-    $vLanguageCode =$_GET['language_code'] ; 
+    $vLanguageCode =$_GET['language_code'] ;
+    $tableType =$_GET['table_type'] ;
     
     $fPkTemp = $vPkTemp ; 
     
     $resDataGrid = $BLL->fillGridSingularTemp(array('pktemp' => $fPkTemp,
-                                                    'language_code' => $vLanguageCode ));
+                                                    'language_code' => $vLanguageCode,
+                                                    'table_type' => $tableType
+                                                    ));
 
     $resTotalRowCount = $BLL->fillGridSingularRowTotalCountTemp(array('pktemp' => $fPkTemp,
-                                                                    'language_code' => $vLanguageCode ));
+                                                                    'language_code' => $vLanguageCode,
+                                                                    'table_type' => $tableType));
 
     $flows = array();
     foreach ($resDataGrid as $flow) {
@@ -788,8 +792,12 @@ $app->get("/pktempFillGridSingular_infoUsersAddresses/", function () use ($app )
     /* $app->contentType('application/json');
       $app->halt(302, '{"error":"Something went wrong"}');
       $app->stop(); */
-
-    $app->response()->body(json_encode($resultArray));
+    
+    if($tableType == 'bootstrap'){
+        $app->response()->body(json_encode($flows));
+    }else if($tableType == 'easyui'){
+        $app->response()->body(json_encode($resultArray));
+    }
 });
 
 /**x

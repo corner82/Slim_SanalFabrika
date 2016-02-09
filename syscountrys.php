@@ -60,9 +60,6 @@ $app->get("/fillComboBox_syscountrys/", function () use ($app ) {
     $resCombobox = $BLL->fillComboBox(array('language_code'=>$_GET['language_code']));
     //print_r($resDataMenu);
    
-       
-        
- 
     $menus = array();
     foreach ($resCombobox as $menu){
         $menus[]  = array(
