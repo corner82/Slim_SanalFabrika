@@ -59,13 +59,30 @@ $app->get("/pkGetConsPendingFirmProfile_sysOsbConsultants/", function () use ($a
     $BLL = $app->getBLLManager()->get('sysOsbConsultantsBLL');
 
     $headerParams = $app->request()->headers();
+    $sort = null;
+    if(isset($_GET['sort'])) $sort = $_GET['sort'];
+    
+    $order = null;
+    if(isset($_GET['order'])) $order = $_GET['order'];
+    
+    $rows = 10;
+    if(isset($_GET['rows'])) $rows = $_GET['rows'];
+    
+    $page = 1;
+    if(isset($_GET['page'])) $page = $_GET['page'];
+    
+    $filterRules = null;
+    if(isset($_GET['filterRules'])) $filterRules = $_GET['filterRules'];
+    
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkGetConsPendingFirmProfile_sysOsbConsultants" end point, X-Public variable not found');
     $pk = $headerParams['X-Public'];
-  //  print_r('123123'); 
-    $resDataGrid = $BLL->getConsPendingFirmProfile(array('page' => $_GET['page'],
-        'rows' => $_GET['rows'],
-        //'sort' => $_GET['sort'],
-        //'order' => $_GET['order'],     
-        'pk' => $pk));    
+
+    $resDataGrid = $BLL->getConsPendingFirmProfile(array('page' => $page,
+        'rows' => $rows,
+        'sort' => $sort,
+        'order' => $order,     
+        'pk' => $pk,
+        'filterRules' => $filterRules));    
  
     $resTotalRowCount = $BLL->getConsPendingFirmProfilertc(array('pk' => $pk));
     //print_r($resTotalRowCount);
@@ -81,7 +98,8 @@ $app->get("/pkGetConsPendingFirmProfile_sysOsbConsultants/", function () use ($a
   //          "operation_name" => $flow["operation_name"],
   //          "cep" => $flow["cep"],
   //          "istel" => $flow["istel"],  
-             "s_date" => $flow["s_date"],
+            "s_date" => $flow["s_date"],
+            "id" => $flow["id"],
             
         );
     }

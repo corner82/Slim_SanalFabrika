@@ -666,11 +666,43 @@ class SysOsbConsultants extends \DAL\DalSlim {
             $order = "ASC";
         }
 
-        $whereNameSQL = '';
-        if (isset($params['search_name']) && $params['search_name'] != "") {
-            $whereNameSQL = " AND LOWER(fp.firm_name) LIKE LOWER('%" . $params['search_name'] . "%') ";
+        // sql query dynamic for filter operations
+        $sorguStr=null;
+        if(isset($params['filterRules'])) {
+            $filterRules = trim($params['filterRules']);
+            //print_r(json_decode($filterRules));
+            $jsonFilter = json_decode($filterRules, true);
+            //print_r($jsonFilter[0]->field);
+            $sorguExpression = null;
+            foreach ($jsonFilter as $std) {
+                if($std['value']!=null) {
+                    switch (trim($std['field'])) {
+                    case 'username':
+                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\' ';
+                        $sorguStr.=' AND fpu.username'.$sorguExpression.' ';
+                        break;
+                    case 'company_name':
+                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\'  ';
+                        $sorguStr.=' AND fp.firm_name'.$sorguExpression.' ';
+
+                        break;
+                    case 's_date':
+                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\'  ';
+                        $sorguStr.='AND  to_char(fp.s_date, \'DD/MM/YYYY\')'.$sorguExpression.' ';
+
+                        break;
+                    default:
+                        break;
+                    }
+                }  
+            }
+        } else {
+            $sorguStr=null;
+            $filterRules = "";
         }
         
+      $sorguStr = rtrim($sorguStr,"AND ");
+      //if($sorguStr!="") $sorguStr = "WHERE ".$sorguStr;  
         /*
                  fp.id, 
                     fp.s_date, 
@@ -682,26 +714,25 @@ class SysOsbConsultants extends \DAL\DalSlim {
                     (SELECT communications_no FROM info_users_communications WHERE user_id = fp.op_user_id AND communications_type_id = 3 AND active = 0 AND deleted =0  limit 1 ) as istel 	                    
          */
         
-        
-        
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $sql = "
-                SELECT                    
+                SELECT
+                    fp.id as id,
                     fp.s_date,                     
-                    fp.firm_name AS company_name,
+                    fp.firm_name AS company_name,   
                     fpu.username AS username                   
                     FROM sys_osb_consultants a                                
                 INNER JOIN info_users u1 ON u1.id = a.user_id AND u1.role_id = 2  AND u1.active = 0 AND u1.deleted = 0                 
 		INNER JOIN info_firm_profile fp ON fp.consultant_id = u1.id AND fp.deleted = 0   
 		INNER JOIN info_users fpu ON fpu.id = fp.op_user_id  		
-                INNER JOIN sys_operation_types op ON op.parent_id = 1 AND fp.operation_type_id = op.id AND op.active = 0 AND op.deleted =0                
+                /*INNER JOIN sys_operation_types op ON op.parent_id = 1 AND fp.operation_type_id = op.id AND op.active = 0 AND op.deleted =0  */              
                 WHERE a.user_id =" . intval($opUserIdValue) . "                                                
-                " . $whereNameSQL . "
-                ORDER BY    " . $sort . " "
+                " . $sorguStr . "
+                ORDER BY    " . $sort . " "  
                         . "" . $order . " "
                         . "LIMIT " . $pdo->quote($limit) . " "
                         . "OFFSET " . $pdo->quote($offset) . " ";
@@ -743,9 +774,42 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $whereSQL = " WHERE a.user_id = " . intval($opUserIdValue);
 
-                if (isset($params['search_name']) && $params['search_name'] != "") {
-                    $whereSQL .= " AND LOWER(fp.firm_name) LIKE LOWER('%" . $params['search_name'] . "%') ";
-                }
+                 // sql query dynamic for filter operations
+        $sorguStr=null;
+        if(isset($params['filterRules'])) {
+            $filterRules = trim($params['filterRules']);
+            //print_r(json_decode($filterRules));
+            $jsonFilter = json_decode($filterRules, true);
+            //print_r($jsonFilter[0]->field);
+            $sorguExpression = null;
+            foreach ($jsonFilter as $std) {
+                if($std['value']!=null) {
+                    switch (trim($std['field'])) {
+                    case 'username':
+                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\' ';
+                        $sorguStr.=' AND fpu.username'.$sorguExpression.' ';
+                        break;
+                    case 'company_name':
+                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\'  ';
+                        $sorguStr.=' AND fp.firm_name'.$sorguExpression.' ';
+
+                        break;
+                    case 's_date':
+                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\'  ';
+                        $sorguStr.='AND  to_char(fp.s_date, \'DD/MM/YYYY\')'.$sorguExpression.' ';
+
+                        break;
+                    default:
+                        break;
+                    }
+                }  
+            }
+        } else {
+            $sorguStr=null;
+            $filterRules = "";
+        }
+
+          $sorguStr = rtrim($sorguStr,"AND ");
                 $sql = "
                SELECT  
                     COUNT(a.id) AS COUNT                           		  
@@ -754,7 +818,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
 		INNER JOIN info_firm_profile fp ON fp.consultant_id = u1.id AND fp.deleted = 0   
 		INNER JOIN info_users fpu ON fpu.id = fp.op_user_id  		
 		INNER JOIN sys_operation_types op ON op.parent_id = 1 AND fp.operation_type_id = op.id AND op.active = 0 AND op.deleted =0                 		  
-                " . $whereSQL . "                
+                " . $sorguStr . "                
 
                     ";
                 $statement = $pdo->prepare($sql);
