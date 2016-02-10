@@ -91,10 +91,12 @@ $app->get("/pkFillGridSingular_infoUsersCommunications/", function () use ($app 
             "confirm_id" => $flow["confirm_id"],  
             "operation_type_id" => $flow["operation_type_id"],              
             "operation_name" => $flow["operation_name"],
+            "default_communication_id" => $flow["default_communication_id"],
             
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }
+  
 
     $app->response()->header("Content-Type", "application/json");
 
@@ -160,12 +162,13 @@ $app->get("/pkFillGrid_infoUsersCommunications/", function () use ($app ) {
             "confirm_id" => $flow["confirm_id"],  
             "operation_type_id" => $flow["operation_type_id"],              
             "operation_name" => $flow["operation_name"],
+            "default_communication_id" => $flow["default_communication_id"],
             
             
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }
-
+ 
     $app->response()->header("Content-Type", "application/json");
 
     $resultArray = array();
@@ -194,8 +197,10 @@ $app->get("/pkInsert_infoUsersCommunications/", function () use ($app ) {
     $vCommunicationsTypeId = $_GET['communications_type_id'];
     $vCommunicationsNo = $_GET['communications_no'];
     $vDescription = $_GET['description'];   
-    $vDescriptionEng = $_GET['description_eng'];    
+    $vDescriptionEng = $_GET['description_eng'];   
+    $vDefaultCommunicationId = $_GET['default_communication_id'];   
     
+   
     $vActive =0; 
     if (isset($_GET['active'])) {
         $vActive = $_GET['active'];
@@ -245,6 +250,7 @@ $app->get("/pkInsert_infoUsersCommunications/", function () use ($app ) {
     $fConsultantId = $vConsultantId;
     $fConsultantConfirmTypeId = $vConsultantConfirmTypeId;
     $fConfirmId = $vConfirmId ; 
+    $fDefaultCommunicationId = $vDefaultCommunicationId ; 
     $fpk = $vPk ; 
      
     
@@ -263,6 +269,7 @@ $app->get("/pkInsert_infoUsersCommunications/", function () use ($app ) {
             'consultant_id'  => $fConsultantId,
             'consultant_confirm_type_id' => $fConsultantConfirmTypeId,
             'confirm_id' =>  $fConfirmId,
+            'default_communication_id' =>    $fDefaultCommunicationId,
             'pk' => $fpk,        
             ));
 
@@ -293,9 +300,8 @@ $app->get("/pkUpdate_infoUsersCommunications/", function () use ($app ) {
     $vCommunicationsNo = $_GET['communications_no'];
     $vDescription = $_GET['description'];   
     $vDescriptionEng = $_GET['description_eng'];    
-    
-    
-    
+    $vDefaultCommunicationId = $_GET['default_communication_id'];   
+     
     
     $vActive =0; 
     if (isset($_GET['active'])) {
@@ -449,6 +455,7 @@ $app->get("/pkUpdate_infoUsersCommunications/", function () use ($app ) {
     $fConsultantId = $vConsultantId;
     $fConsultantConfirmTypeId = $vConsultantConfirmTypeId;
     $fConfirmId = $vConfirmId ; 
+    $fDefaultCommunicationId = $vDefaultCommunicationId ;                    
     $fpk = $vpk ; 
     
   
@@ -473,6 +480,7 @@ $app->get("/pkUpdate_infoUsersCommunications/", function () use ($app ) {
         'consultant_id'  => $fConsultantId,
         'consultant_confirm_type_id' => $fConsultantConfirmTypeId,
         'confirm_id' =>  $fConfirmId,
+        'default_communication_id' => $fDefaultCommunicationId,
         'pk' => $fpk,
          ));
     
@@ -575,6 +583,9 @@ $app->get("/pkGetAll_infoUsersCommunications/", function () use ($app ) {
             "confirm_id" => $flow["confirm_id"],  
             "operation_type_id" => $flow["operation_type_id"],              
             "operation_name" => $flow["operation_name"], 
+            "default_communication_id" => $flow["default_communication_id"], 
+            "default_communication" => $flow["default_communication"],             
+   
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }
@@ -682,6 +693,9 @@ $app->get("/pktempFillGridSingular_infoUsersCommunications/", function () use ($
             "confirm_id" => $flow["confirm_id"],  
             "operation_type_id" => $flow["operation_type_id"],              
             "operation_name" => $flow["operation_name"],
+            "default_communication_id" => $flow["default_communication_id"],
+            "default_communication" => $flow["default_communication"],
+
             
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
@@ -716,8 +730,10 @@ $app->get("/pktempInsert_infoUsersCommunications/", function () use ($app ) {
     $vCommunicationsTypeId = $_GET['communications_type_id'];
     $vCommunicationsNo = $_GET['communications_no'];
     $vDescription = $_GET['description'];   
-    $vDescriptionEng = $_GET['description_eng'];    
+    $vDescriptionEng = $_GET['description_eng'];  
+    $vDefaultCommunicationId = $_GET['default_communication_id'];  
     
+     
     $vActive =0; 
     if (isset($_GET['active'])) {
         $vActive = $_GET['active'];
@@ -766,6 +782,7 @@ $app->get("/pktempInsert_infoUsersCommunications/", function () use ($app ) {
     $fConsultantId = $vConsultantId;
     $fConsultantConfirmTypeId = $vConsultantConfirmTypeId;
     $fConfirmId = $vConfirmId ; 
+    $fDefaultCommunicationId = $vDefaultCommunicationId  ; 
     $fPkTemp = $vPkTemp ; 
     
     
@@ -785,6 +802,7 @@ $app->get("/pktempInsert_infoUsersCommunications/", function () use ($app ) {
             'consultant_id'  => $fConsultantId,
             'consultant_confirm_type_id' => $fConsultantConfirmTypeId,
             'confirm_id' =>  $fConfirmId,
+            'default_communication_id' => $fDefaultCommunicationId,
             'pktemp' => $fPkTemp,        
             ));
 
@@ -815,9 +833,10 @@ $app->get("/pktempUpdate_infoUsersCommunications/", function () use ($app ) {
     $vCommunicationsTypeId = $_GET['communications_type_id'];
     $vCommunicationsNo = $_GET['communications_no'];
     $vDescription = $_GET['description'];   
-    $vDescriptionEng = $_GET['description_eng'];    
+    $vDescriptionEng = $_GET['description_eng'];   
+    $vDefaultCommunicationId = $_GET['default_communication_id'];   
     
-     
+      
     
     $vActive =0; 
     if (isset($_GET['active'])) {
@@ -967,6 +986,7 @@ $app->get("/pktempUpdate_infoUsersCommunications/", function () use ($app ) {
     $fConsultantId = $vConsultantId;
     $fConsultantConfirmTypeId = $vConsultantConfirmTypeId;
     $fConfirmId = $vConfirmId ; 
+    $fDefaultCommunicationId = $vDefaultCommunicationId ; 
     $fPkTemp = $vPkTemp ; 
     
   
@@ -991,6 +1011,7 @@ $app->get("/pktempUpdate_infoUsersCommunications/", function () use ($app ) {
         'consultant_id'  => $fConsultantId,
         'consultant_confirm_type_id' => $fConsultantConfirmTypeId,
         'confirm_id' =>  $fConfirmId,
+        'default_communication_id' => $fDefaultCommunicationId,
         'pktemp' => $fPkTemp,
          ));
     
@@ -1082,8 +1103,6 @@ $app->get("/pktempFillUserCommunicationsTypes_infoUsersCommunications/", functio
 
     $app->response()->body(json_encode($flows));
 });
-
-
 
 
 
