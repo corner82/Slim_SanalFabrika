@@ -65,14 +65,14 @@ $app->get("/pkFillConsultantOperationsDropDown_sysOperationTypes/", function () 
                                                           ); 
     }
  
-    $menus = array();
+    $menus = array( "text" => "Lütfen Bir Operasyon Tipi Seçiniz",  "value" => -1, "selected"=> true,   );
     foreach ($resCombobox as $menu){
         $menus[]  = array(
             "text" => $menu["name"],
             "value" => $menu["id"],           
             "selected"=> false,
-            "description"=> "",
-            "imageSrc"=>" " 
+            "description"=> $menu["name"],
+           "imageSrc"=>""
        
         );
     }
