@@ -720,24 +720,23 @@ class SysOsbConsultants extends \DAL\DalSlim {
             if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $sql = "
-                SELECT
-                    fp.id as id,
-                    fp.s_date,                     
-                    fp.firm_name AS company_name,   
-                    fpu.username AS username                   
-                    FROM sys_osb_consultants a                                
-                INNER JOIN info_users u1 ON u1.id = a.user_id AND u1.role_id = 2  AND u1.active = 0 AND u1.deleted = 0                 
-		INNER JOIN info_firm_profile fp ON fp.consultant_id = u1.id AND fp.deleted = 0   
-		INNER JOIN info_users fpu ON fpu.id = fp.op_user_id  		
-                /*INNER JOIN sys_operation_types op ON op.parent_id = 1 AND fp.operation_type_id = op.id AND op.active = 0 AND op.deleted =0  */              
-                WHERE a.user_id =" . intval($opUserIdValue) . "                                                
+                SELECT 
+                    fp.id AS id, 
+                    fpu.s_date, 
+                    fp.firm_name AS company_name, 
+                    fpu.username AS username 
+                FROM sys_osb_consultants a   
+                INNER JOIN info_firm_profile fp ON fp.consultant_id = a.user_id AND fp.deleted = 0 
+                INNER JOIN info_users fpu ON fpu.id = fp.op_user_id    
+                WHERE fpu.auth_allow_id = 0 AND 
+                     a.user_id =" . intval($opUserIdValue) . "                                                
                 " . $sorguStr . "
                 ORDER BY    " . $sort . " "  
                         . "" . $order . " "
                         . "LIMIT " . $pdo->quote($limit) . " "
                         . "OFFSET " . $pdo->quote($offset) . " ";
                 $statement = $pdo->prepare($sql);
-                //echo debugPDO($sql, $params);
+         // echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -855,60 +854,64 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 //$opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 //$whereSQL = " WHERE a.user_id = " . intval($opUserIdValue);
 
-                $sql = " SELECT 
-                        a.id as id, 
-                        a.profile_public as profile_public, 
-                        a.firm_name as firm_name, 
-                        a.web_address,                     
-                        a.tax_office, 
-                        a.tax_no, 
-                        a.sgk_sicil_no,
-                        a.bagkur_sicil_no,
-                        a.ownership_status_id,
-                        sd4.description AS owner_ship,
-                        a.foundation_year,                        
-                        a.language_code, 
-                        COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,   
-                        a.op_user_id,
-                        u.username,                         
-                        a.firm_name_eng, 
-                        a.firm_name_sort,
-                        a.country_id, 
-                        co.name AS countryname ,  
-                        REPLACE(REPLACE (REPLACE( CAST( (SELECT ARRAY(
-                        SELECT Concat (sd8x.description ,':',    
-                    'Adres : ', ax.address1,ax.address2, 
-                    'Posta Kodu = ',ax.postal_code,                  
-                    cox.name ,' ',
-                    ctx.name ,' ',
-                    box.name ,' ',
-                    ax.city_name ,'--' )                    
-                FROM info_users_addresses  ax                                                                      
-                INNER JOIN sys_specific_definitions AS sd8x ON sd8x.main_group =17 AND sd8x.first_group = ax.address_type_id AND sd8x.deleted = 0 AND sd8x.active = 0 AND sd8x.language_id = ax.language_id         
-                LEFT JOIN sys_countrys cox on co.id = ax.country_id AND cox.deleted = 0 AND cox.active = 0 AND cox.language_code = ax.language_code                               
-                LEFT JOIN sys_city ctx on ctx.id = ax.city_id AND ctx.deleted = 0 AND ctx.active = 0 AND ctx.language_code = ax.language_code                               
-                LEFT JOIN sys_borough box on box.id = ax.borough_id AND box.deleted = 0 AND box.active = 0 AND box.language_code = ax.language_code                 
-                WHERE ax.deleted =0 AND ax.active =0 
-                AND ax.user_id  =  a.op_user_id
-                        ))as text),'\"',''),'{',''),'}','') As adresbilgileri,
-                          REPLACE(REPLACE (REPLACE( CAST( (SELECT ARRAY(
+                $sql = " 
+                    
                 SELECT  
-                    CONCAT(sd6y.description  ,' : ',ay.communications_no )                  
-                FROM info_users_communications ay       
-                INNER JOIN sys_specific_definitions sd6y ON sd6y.main_group = 5 AND sd6y.first_group= ay.communications_type_id AND sd6y.language_code = ay.language_code AND sd6y.deleted = 0 AND sd6y.active = 0                     
-                WHERE 
-                    ay.active =0 AND ay.deleted = 0 AND                   
-                    ay.user_id =   a.op_user_id
-            ))as text),'\"',''),'{',''),'}','') As iletisimbilgileri
-
+                        a.id,                                                         
+                        a.username,     
+                        ff.firm_name, 
+                        ff.sgk_sicil_no ,
+                        COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_code,  
+                       (
+                        SELECT Concat (ax.address1,ax.address2, 
+				    'Posta Kodu = ',ax.postal_code,                  
+				    cox.name ,' ',
+				    ctx.name ,' ',
+				    box.name ,' ',
+				    ax.city_name  )                    
+				FROM info_users_addresses  ax                                                  									
+				LEFT JOIN sys_countrys cox on cox.id = ax.country_id AND cox.deleted = 0 AND cox.active = 0 AND cox.language_code = ax.language_code                               
+				LEFT JOIN sys_city ctx on ctx.id = ax.city_id AND ctx.deleted = 0 AND ctx.active = 0 AND ctx.language_code = ax.language_code                               
+				LEFT JOIN sys_borough box on box.id = ax.borough_id AND box.deleted = 0 AND box.active = 0 AND box.language_code = ax.language_code                 
+				WHERE ax.deleted =0 AND ax.active =0 AND ax.address_type_id = 1 
+				AND ax.user_id  =  a.id limit 1 
+                        )                  
+                        As iletisimadresi,
+			(
+                        SELECT Concat (ax.address1,ax.address2, 
+				    'Posta Kodu = ',ax.postal_code,                  
+				    cox.name ,' ',
+				    ctx.name ,' ',
+				    box.name ,' ',
+				    ax.city_name   )                    
+				FROM info_users_addresses  ax                                                  									
+				LEFT JOIN sys_countrys cox on cox.id = ax.country_id AND cox.deleted = 0 AND cox.active = 0 AND cox.language_code = ax.language_code                               
+				LEFT JOIN sys_city ctx on ctx.id = ax.city_id AND ctx.deleted = 0 AND ctx.active = 0 AND ctx.language_code = ax.language_code                               
+				LEFT JOIN sys_borough box on box.id = ax.borough_id AND box.deleted = 0 AND box.active = 0 AND box.language_code = ax.language_code                 
+				WHERE ax.deleted =0 AND ax.active =0 AND ax.address_type_id = 2 
+				AND ax.user_id  =  a.id limit 1 
+                        ) AS faturaadresi,
                         
-                    FROM info_firm_profile a    
-                    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_code = a.language_code  AND op.deleted =0 AND op.active =0
-                    LEFT JOIN sys_specific_definitions sd4 ON sd4.main_group = 1 AND sd4.first_group= a.active AND sd4.language_code = a.language_code AND sd4.deleted = 0 AND sd4.active = 0
-                    INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active =0 
-                    INNER JOIN info_users u ON u.id = a.op_user_id                      
-                    LEFT JOIN sys_countrys co on co.id = a.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_code = a.language_code                               
-                    WHERE a.id =:profile_id           
+                        (SELECT  
+			        ay.communications_no
+				FROM info_users_communications ay       				
+				WHERE 
+				    ay.active =0 AND ay.deleted = 0 AND ay.default_communication_id = 1 AND                   
+				    ay.user_id =   a.id limit 1 
+			 ) As irtibattel,
+
+			 (SELECT  
+			        ay.communications_no
+				FROM info_users_communications ay       				
+				WHERE 
+				    ay.active =0 AND ay.deleted = 0 AND ay.communications_type_id = 2 AND                   
+				    ay.user_id =   a.id limit 1 
+			 ) As irtibatcep,
+			a.s_date                        
+                    FROM info_users a                  
+                    LEFT JOIN info_firm_profile ff ON ff.op_user_id = a.id AND ff.active = 0 AND ff.deleted =0 
+                    INNER JOIN sys_language l ON l.id =  a.language_id AND l.language_id = 647    
+                    WHERE ff.id =:profile_id           
 
                     ";
                 $statement = $pdo->prepare($sql);

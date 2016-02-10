@@ -141,16 +141,18 @@ $app->get("/pkGetConsConfirmationProcessDetails_sysOsbConsultants/", function ()
     $flows = array();
     foreach ($result['resultSet'] as $flow) {
         $flows[] = array(
-//            "id" => $flow["id"],
+
  
-  //          "c_date" => $flow["c_date"],
-            "firm_name" => $flow["firm_name"],
             "id" => $flow["id"],
-  //          "operation_name" => $flow["operation_name"],
-  //          "cep" => $flow["cep"],
-  //          "istel" => $flow["istel"],  
-            "profile_public" => $flow["profile_public"],
-            "adresbilgileri" => $flow["adresbilgileri"],
+            "firmname" => $flow["firm_name"],
+            "username" => $flow["username"],   
+            "sgkno" => $flow["sgk_sicil_no"],
+            "languagecode" => $flow["language_code"],
+            "iletisimadresi" => $flow["iletisimadresi"],
+            "faturaadresi" => $flow["faturaadresi"],
+            "irtibattel" => $flow["irtibattel"],
+            "irtibatcep" => $flow["irtibatcep"],
+            "sdate" => $flow["s_date"],
 
             
         );
