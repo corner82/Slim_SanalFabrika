@@ -54,6 +54,7 @@ class BLLManagerConfig{
                  'blActivationReportBLL' => 'BLL\BLL\BlActivationReport',
                  'sysOsbConsultantsBLL' => 'BLL\BLL\SysOsbConsultants',                 
                  'sysOsbBLL' => 'BLL\BLL\SysOsb',
+                 'sysOperationTypesBLL' => 'BLL\BLL\SysOperationTypes',
                
             
                    
