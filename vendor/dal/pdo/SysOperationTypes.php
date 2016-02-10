@@ -34,7 +34,7 @@ class SysOperationTypes extends \DAL\DalSlim {
                 UPDATE sys_operation_types
                 SET  deleted= 1, active = 1, 
                     op_user_id =  " . intval($params['user_id']) . " 
-                WHERE id = :id");
+                WHERE base_id = :id");
             $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
@@ -72,7 +72,8 @@ class SysOperationTypes extends \DAL\DalSlim {
 		    COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,               
                     a.language_parent_id,                     
                     a.op_user_id,
-                    u.username    
+                    u.username ,
+                    a.base_id
                 FROM sys_operation_types  a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                
@@ -120,7 +121,8 @@ class SysOperationTypes extends \DAL\DalSlim {
                          language_id, 
                          op_user_id, 
                          language_parent_id, 
-                         language_code)
+                         language_code,
+                         base_id)
                 VALUES (
                         :parent_id,
                         :operation_name, 
@@ -128,13 +130,16 @@ class SysOperationTypes extends \DAL\DalSlim {
                         :language_id,
                         :op_user_id,
                         :language_parent_id,                       
-                        :language_code  
+                        :language_code ,
+                        :base_id
+                        
                                                 ");
                 $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':operation_name', $params['operation_name'], \PDO::PARAM_STR);
                 $statement->bindValue(':operation_name_eng', $params['operation_name_eng'], \PDO::PARAM_STR);
                 $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
                 $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
+                $statement->bindValue(':base_id', $params['base_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
                 $result = $statement->execute();
@@ -186,7 +191,7 @@ class SysOperationTypes extends \DAL\DalSlim {
                      op_user_id = :op_user_id,
                      language_parent_id = :language_parent_id,                       
                      language_code = :language_code  
-                WHERE id = :id");
+                WHERE base_id = :id");
             $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);
             $statement->bindValue(':operation_name', $params['operation_name'], \PDO::PARAM_STR);
@@ -274,13 +279,14 @@ class SysOperationTypes extends \DAL\DalSlim {
 		    COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,               
                     a.language_parent_id,                     
                     a.op_user_id,
-                    u.username    
+                    u.username,
+                    a.base_id
                 FROM sys_operation_types  a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.op_user_id   
-                WHERE a.language_code = :language_id
+                WHERE a.language_id = :language_id
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -367,7 +373,7 @@ class SysOperationTypes extends \DAL\DalSlim {
              
             $sql = "
                 SELECT                    
-                    a.id, 	
+                    base_id as id, 	
                     COALESCE(NULLIF(a.operation_name, ''), a.operation_name_eng) AS name                                 
                 FROM sys_operation_types a       
                 WHERE 
