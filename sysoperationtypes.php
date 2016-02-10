@@ -47,34 +47,41 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
  *  * Okan CIRAN
  * @since 10-02-2016
  */
-$app->get("/fillConsultantOperations_sysOperationTypes/", function () use ($app ) {
+$app->get("/pkFillConsultantOperationsDropDown_sysOperationTypes/", function () use ($app ) {
  
     $BLL = $app->getBLLManager()->get('sysOperationTypesBLL');  
     
+    $headerParams = $app->request()->headers();
+    $vPk = $headerParams['X-Public'];
+    $fPk =$vPk ; 
     
   
     if (isset($_GET['main_group'])) {
     $resCombobox = $BLL->fillConsultantOperations (array('language_code'=>$_GET['language_code'],
-                                                          'main_group'=>$_GET['main_group'])  ); 
+                                                          'main_group'=>$_GET['main_group'],
+                                                          'pk' => $fPk )  ); 
     } else {
-        $resCombobox = $BLL->fillConsultantOperations (array('language_code'=>$_GET['language_code']) 
+        $resCombobox = $BLL->fillConsultantOperations (array('language_code'=>$_GET['language_code'],  'pk' => $fPk) 
                                                           ); 
     }
  
     $menus = array();
     foreach ($resCombobox as $menu){
         $menus[]  = array(
-            "id" => $menu["id"],
-            "name" => $menu["name"],
+            "text" => $menu["name"],
+            "value" => $menu["id"],           
+            "selected"=> false,
+            "description"=> "",
+            "imageSrc"=>" " 
        
         );
     }
- 
+     
     $app->response()->header("Content-Type", "application/json");
     
   
     
-  $app->response()->body(json_encode($menus));
+    $app->response()->body(json_encode($menus));
   
 });
 
