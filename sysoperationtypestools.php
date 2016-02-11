@@ -50,13 +50,14 @@ $app->get("/pkFillConsultantOperationsToolsDropDown_sysOperationTypesTools/", fu
     $component_type = 'ddslick';
     if(isset($_GET['component_type'])) $component_type = strtolower(trim($_GET['component_type']));
     
+    
     $language_code = 'tr';
-    if(iiset($_GET['language_code'])) $language_code = $_GET['language_code'];
+    if(isset($_GET['language_code'])) $language_code = $_GET['language_code'];
   
     $main_group = 0;
     if(isset($_GET['main_group'])) $main_group = $_GET['main_group'];
     
-    $resCombobox = $BLL->fillConsultantOperations (array('language_code'=> $language_code,
+    $resCombobox = $BLL->fillConsultantOperationsTools (array('language_code'=> $language_code,
                                                           'main_group'=> $main_group,
                                                           'pk' => $pk)  );
  
@@ -69,7 +70,7 @@ $app->get("/pkFillConsultantOperationsToolsDropDown_sysOperationTypesTools/", fu
                 "text" => $menu["name"],
                 "value" => $menu["id"],           
                 "selected"=> false,
-                "description"=> $menu["name"],
+                "description"=> $menu["name_eng"],
                "imageSrc"=>""
 
             );
@@ -80,7 +81,7 @@ $app->get("/pkFillConsultantOperationsToolsDropDown_sysOperationTypesTools/", fu
                 "text" => $menu["name"],
                 "value" => $menu["id"],           
                 "selected"=> false,
-                "description"=> $menu["name"],
+                "description"=> $menu["name_eng"],
                "imageSrc"=>""
 
             );

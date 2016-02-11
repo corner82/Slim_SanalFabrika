@@ -106,7 +106,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-
+                    
     /**
      * @author Okan CIRAN
      * @ sys_osb_consultants tablosuna yeni bir kayıt oluşturur.  !!
@@ -136,7 +136,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
 
                 $sql = "
                 INSERT INTO sys_osb_consultants(
-                        osb_id, country_id, active, user_id, language_id, 
+                        osb_id, country_id, active, op_user_id, language_id, 
                         language_code, op_user_id )
                 VALUES (
                         :osb_id, 
@@ -196,11 +196,11 @@ class SysOsbConsultants extends \DAL\DalSlim {
             SELECT  
                 CONCAT(u.name,' ',u.surname) AS name , 
                 '" . $params['user_id'] . "' AS value , 
-                a.user_id =" . intval($params['user_id']) . " AS control,
+                a.op_user_id =" . intval($params['user_id']) . " AS control,
                 CONCAT(u.name,' ',u.surname, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
             FROM sys_osb_consultants  a              
-            INNER JOIN info_users_detail u ON u.root_id = a.user_id AND u.active = 0 AND u.deleted = 0                 
-            WHERE a.user_id = " . intval($params['user_id']) . "
+            INNER JOIN info_users_detail u ON u.root_id = a.op_user_id AND u.active = 0 AND u.deleted = 0                 
+            WHERE a.op_user_id = " . intval($params['user_id']) . "
                    " . $addSql . " 
                AND a.deleted =0    
                                ";
@@ -441,13 +441,17 @@ class SysOsbConsultants extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function fillOsbConsultantList() {
+    public function fillOsbConsultantList($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $osbId = 5; // ostim
-            if (isset($params['osb_id']) && $params['osb_id'] != "") {
-                $osbId = $params['osb_id'];
-            }
+                    
+             if (isset($params['osb_id']) && $params['osb_id'] != "") { 
+                 $whereSql = " AND a.osb_id = ".  intval($params['osb_id'])." AND  " ; 
+             }
+             else {
+                 $whereSql = "  AND a.osb_id = 5  " ;  // osbId = 5 ostim
+             } 
+                    
             $statement = $pdo->prepare("
               SELECT                    
                     a.id, 	
@@ -457,7 +461,8 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 FROM sys_osb_consultants  a                
                 INNER JOIN info_users_detail u ON u.root_id = a.user_id AND u.active = 0 AND u.deleted = 0                 
                 INNER JOIN sys_osb osb ON osb.id = a.osb_id                 
-                WHERE a.deleted =0 AND a.active = 0 AND osb.id = " . intval($osbId) . " 
+                WHERE a.deleted =0 AND a.active = 0
+                " . $whereSql . " 
                 ORDER BY name              
                                ");
             $statement->execute();
@@ -688,7 +693,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                         break;
                     case 's_date':
                         $sorguExpression = ' ILIKE \'%'.$std['value'].'%\'  ';
-                        $sorguStr.='AND  to_char(fp.s_date, \'DD/MM/YYYY\')'.$sorguExpression.' ';
+                        $sorguStr.='AND  TO_CHAR(fp.s_date, \'DD/MM/YYYY\')'.$sorguExpression.' ';
 
                         break;
                     default:
@@ -702,17 +707,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
         }
         
       $sorguStr = rtrim($sorguStr,"AND ");
-      //if($sorguStr!="") $sorguStr = "WHERE ".$sorguStr;  
-        /*
-                 fp.id, 
-                    fp.s_date, 
-                    fp.c_date, 
-                    fp.firm_name AS company_name,
-                    fpu.username AS username,
-                    op.operation_name,
-                    (SELECT communications_no FROM info_users_communications WHERE user_id = fp.op_user_id AND communications_type_id = 2 AND active = 0 AND deleted =0  limit 1 ) as cep,	
-                    (SELECT communications_no FROM info_users_communications WHERE user_id = fp.op_user_id AND communications_type_id = 3 AND active = 0 AND deleted =0  limit 1 ) as istel 	                    
-         */
+      //if($sorguStr!="") $sorguStr = "WHERE ".$sorguStr;          
         
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -726,7 +721,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                     fp.firm_name AS company_name, 
                     fpu.username AS username 
                 FROM sys_osb_consultants a   
-                INNER JOIN info_firm_profile fp ON fp.consultant_id = a.user_id AND fp.deleted = 0 
+                LEFT JOIN info_firm_profile fp ON fp.consultant_id = a.user_id AND fp.deleted = 0 
                 INNER JOIN info_users fpu ON fpu.id = fp.op_user_id    
                 WHERE fpu.auth_allow_id = 0 AND 
                      a.user_id =" . intval($opUserIdValue) . "                                                
@@ -795,7 +790,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                         break;
                     case 's_date':
                         $sorguExpression = ' ILIKE \'%'.$std['value'].'%\'  ';
-                        $sorguStr.='AND  to_char(fp.s_date, \'DD/MM/YYYY\')'.$sorguExpression.' ';
+                        $sorguStr.='AND TO_CHAR(fp.s_date, \'DD/MM/YYYY\')'.$sorguExpression.' ';
 
                         break;
                     default:
@@ -813,10 +808,8 @@ class SysOsbConsultants extends \DAL\DalSlim {
                SELECT  
                     COUNT(a.id) AS COUNT                           		  
 		FROM sys_osb_consultants a                                
-		INNER JOIN info_users u1 ON u1.id = a.user_id AND u1.role_id = 2  AND u1.active = 0 AND u1.deleted = 0                 
-		INNER JOIN info_firm_profile fp ON fp.consultant_id = u1.id AND fp.deleted = 0   
-		INNER JOIN info_users fpu ON fpu.id = fp.op_user_id  		
-		INNER JOIN sys_operation_types op ON op.parent_id = 1 AND fp.operation_type_id = op.id AND op.active = 0 AND op.deleted =0                 		  
+		LEFT JOIN info_firm_profile fp ON fp.consultant_id = a.user_id AND fp.deleted = 0 
+                INNER JOIN info_users fpu ON fpu.id = fp.op_user_id  
                 " . $sorguStr . "                
 
                     ";
@@ -934,6 +927,226 @@ class SysOsbConsultants extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
+    
+ 
+    
+      /**
+     * parametre olarak gelen array deki 'id' li kaydın update ini yapar  !!
+     * @author Okan CIRAN
+     * @version v 1.0  10.02.2016     
+     * @param array | null $args
+     * @param type $params
+     * @return array
+     * @throws PDOException
+     */
+    public function setUserDetailOperationsTypeCons($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+          
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                    
+                $addSql = " op_user_id, ";
+                $addSqlValue = intval($opUserIdValue) . ", ";
+
+                if (isset($params['operation_type_id'])) {
+                    $addSql .= " operation_type_id, ";
+                    $addSqlValue .= intval($params['operation_type_id']) . ", ";
+                }  
+                if (isset($params['cons_allow_id'])) {
+                    $addSql .= " cons_allow_id, ";
+                    $addSqlValue .= intval($params['cons_allow_id']) . ", ";
+                }   
+                    
+                
+                /*
+                 *  parametre olarak gelen array deki 'id' li kaydın, info_users_details tablosundaki 
+                 * active = 0 ve deleted = 0 olan kaydın active alanını 1 yapar  !!
+                 */
+                InfoUsers::setUserDetailsDisables(array('id' => $params['id']));
+ 
+                $sql = " 
+                    INSERT INTO info_users_detail(
+                           profile_public, 
+                           f_check,
+                           " . $addSql . "                      
+                           name, 
+                           surname,                            
+                           act_parent_id,                            
+                           language_code, 
+                           root_id,                            
+                           language_id, 
+                           password,
+                           auth_allow_id,
+                           auth_email
+                            ) 
+                           SELECT 
+                                profile_public, 
+                                f_check, 
+                                " . $addSqlValue . "
+                                name, 
+                                surname,                            
+                                act_parent_id,                            
+                                language_code, 
+                                root_id,                            
+                                language_id, 
+                                password,
+                                auth_allow_id,
+                                auth_email
+                            FROM info_users_detail 
+                            WHERE root_id  =" . intval($params['id']) . " 
+                                AND active =0 AND deleted =0
+
+ 
+                    ";
+                    $statementActInsert = $pdo->prepare($sql);
+                    //   echo debugPDO($sql, $params);
+                    $insertAct = $statementActInsert->execute();
+                    $insertID = $pdo->lastInsertId('info_users_detail_id_seq');
+                    $errorInfo = $statementActInsert->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo,  "newId" => $insertID);
+                    
+            } else {
+                $errorInfo = '23502';  /// 23502 user_id not_null_violation
+                $pdo->commit();
+                $result = $kontrol;
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
+    
+     /**
+     * @author Okan CIRAN
+     * @ Gridi doldurmak için consultant ların yaptığı operasyon kayıtlarını döndürür !!
+     * @version v 1.0  08.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getConsOpDetailedReviewForUser($params = array()) {
+        if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+            $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+            $limit = intval($params['rows']);
+    
+        } else {
+            $limit = 10;
+            $offset = 0;
+        }
+         
+
+        $sortArr = array();
+        $orderArr = array();
+        if (isset($params['sort']) && $params['sort'] != "") {
+            $sort = trim($params['sort']);
+            $sortArr = explode(",", $sort);
+            if (count($sortArr) === 1)
+                $sort = trim($params['sort']);
+        } else {
+            $sort = "fp.s_date ASC, fp.c_date";
+        }
+
+        if (isset($params['order']) && $params['order'] != "") {
+            $order = trim($params['order']);
+            $orderArr = explode(",", $order);
+            if (count($orderArr) === 1)
+                $order = trim($params['order']);
+        } else {
+            $order = "ASC";
+        }
+
+        // sql query dynamic for filter operations
+        $sorguStr=null;
+        if(isset($params['filterRules'])) {
+            $filterRules = trim($params['filterRules']);
+            //print_r(json_decode($filterRules));
+            $jsonFilter = json_decode($filterRules, true);
+            //print_r($jsonFilter[0]->field);
+            $sorguExpression = null;
+            foreach ($jsonFilter as $std) {
+                if($std['value']!=null) {
+                    switch (trim($std['field'])) {
+                    case 'operation_type_id':
+                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\' ';
+                        $sorguStr.=' AND fpu.username'.$sorguExpression.' ';
+                        break;
+                    case 'company_name':
+                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\'  ';
+                        $sorguStr.=' AND fp.firm_name'.$sorguExpression.' ';
+
+                        break;
+                    case 's_date':
+                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\'  ';
+                        $sorguStr.='AND TO_CHAR(fp.s_date, \'DD/MM/YYYY\')'.$sorguExpression.' ';
+
+                        break;
+                    default:
+                        break;
+                    }
+                }  
+            }
+        } else {
+            $sorguStr=null;
+            $filterRules = "";
+        }
+        
+      $sorguStr = rtrim($sorguStr,"AND ");
+      //if($sorguStr!="") $sorguStr = "WHERE ".$sorguStr;          
+        
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $sql = "
+                SELECT 
+                    fp.id AS id, 
+                    fpu.s_date, 
+                    fp.firm_name AS company_name, 
+                    fpu.username AS username 
+                FROM sys_osb_consultants a   
+                LEFT JOIN info_firm_profile fp ON fp.consultant_id = a.user_id AND fp.deleted = 0 
+                INNER JOIN info_users fpu ON fpu.id = fp.op_user_id    
+                WHERE fpu.auth_allow_id = 0 AND 
+                
+                     a.user_id =" . intval($opUserIdValue) . "                                                
+                " . $sorguStr . "
+                ORDER BY    " . $sort . " "  
+                        . "" . $order . " "
+                        . "LIMIT " . $pdo->quote($limit) . " "
+                        . "OFFSET " . $pdo->quote($offset) . " ";
+                $statement = $pdo->prepare($sql);
+         // echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+ 
+    
+    
 
 }
 

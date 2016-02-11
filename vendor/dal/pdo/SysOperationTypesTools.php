@@ -50,9 +50,9 @@ class SysOperationTypesTools extends \DAL\DalSlim {
     }
 
     /**
-     * @author Okan CIRAN
+     * @author Mustafa Zeynel DAĞLI
      * @ sys_operation_types tablosundaki tüm kayıtları getirir.  !!
-     * @version v 1.0  10.02.2016    
+     * @version v 1.0  11.02.2016    
      * @return array
      * @throws \PDOException
      */
@@ -95,9 +95,9 @@ class SysOperationTypesTools extends \DAL\DalSlim {
     }
 
     /**
-     * @author Okan CIRAN
+     * @author Mustafa Zeynel DAĞLI
      * @ sys_operation_types tablosuna yeni bir kayıt oluşturur.  !!
-     * @version v 1.0  10.02.2016
+     * @version v 1.0  11.02.2016
      * @return array
      * @throws \PDOException
      * @author Mustafa Zeynel Dağlı
@@ -374,18 +374,20 @@ class SysOperationTypesTools extends \DAL\DalSlim {
                  $whereSql = "  a.main_group = ".  intval($params['main_group'])." AND  " ; 
              }
              else {
-                 $whereSql = "  a.main_group in (1,2) AND  " ; 
+                 //$whereSql = "  a.main_group in (1,2) AND  " ; 
+                 $whereSql = "  " ; 
              } 
                  
              
             $sql = "
-                SELECT                    
-                    base_id as id, 	
-                    COALESCE(NULLIF(a.operation_name, ''), a.operation_name_eng) AS name                                 
-                FROM sys_operation_types a       
+                 SELECT                    
+                    base_id AS id, 	
+                    COALESCE(NULLIF(a.role_name, ''), a.role_name_eng) AS name,
+                    role_name_eng AS name_eng                                 
+                FROM sys_operations_types_tools a       
                 WHERE 
                     a.active =0 AND a.deleted = 0 AND 
-                    a.parent_id = 2 AND  
+                    a.parent_id = 0 AND  
                     ".$whereSql."
                     a.language_id = :language_id
                 ORDER BY name

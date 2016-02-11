@@ -374,7 +374,8 @@ class SysOperationTypes extends \DAL\DalSlim {
             $sql = "
                 SELECT                    
                     base_id as id, 	
-                    COALESCE(NULLIF(a.operation_name, ''), a.operation_name_eng) AS name                                 
+                    COALESCE(NULLIF(a.operation_name, ''), a.operation_name_eng) AS name,
+                    a.operation_name_eng as name_eng
                 FROM sys_operation_types a       
                 WHERE 
                     a.active =0 AND a.deleted = 0 AND 

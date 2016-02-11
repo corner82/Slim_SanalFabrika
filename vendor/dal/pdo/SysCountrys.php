@@ -18,30 +18,7 @@ namespace DAL\PDO;
  */
 class SysCountrys extends \DAL\DalSlim {
 
-    /**
-     * basic delete from database  example for PDO prepared
-     * statements, table names are irrelevant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage
+    /**    
      * @author Okan CIRAN
      * @ sys_countrys tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  07.12.2015
@@ -546,7 +523,8 @@ class SysCountrys extends \DAL\DalSlim {
             $statement = $pdo->prepare("
                 SELECT 
                     a.id,                     
-                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name
+                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name,
+                    a.name_eng 
                 FROM sys_countrys  a               
                 WHERE a.active =0 AND a.deleted = 0 AND a.language_code = :language_code  
                 ORDER BY a.priority, name                  
@@ -564,30 +542,7 @@ class SysCountrys extends \DAL\DalSlim {
         }
     }
     
-    /**
-     * basic insert database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [lastInsertId] => 5
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage     
+    /**          
      * @author Okan CIRAN
      * @ sys_countrys tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  08.12.2015

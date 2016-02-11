@@ -46,37 +46,58 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
  * @since 11-09-2014
  */
 $app->get("/fillComboBox_syscountrys/", function () use ($app ) {
-
     
     $BLL = $app->getBLLManager()->get('sysCountrysBLL'); 
- 
-    // Filters are called from service manager
-    //$filterHtmlAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
-  //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
-    //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
- 
   
-    //print_r('--****************get parent--' );  
-    $resCombobox = $BLL->fillComboBox(array('language_code'=>$_GET['language_code']));
-    //print_r($resDataMenu);
-   
-    $menus = array();
-    foreach ($resCombobox as $menu){
-        $menus[]  = array(
-            "id" => $menu["id"],
-            "name" => $menu["name"],
-        );
+    $componentType =$_GET['component_type'] ;
+    $resCombobox = $BLL->fillComboBox(array('language_code' => $_GET['language_code']));
+
+    
+    if ($componentType == 'bootstrap') {
+        $menus = array();
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "name" => $menu["name"],
+                "name_eng" =>$menu["name_eng"],
+            );
+        }
+    } else if ($componentType == 'ddslick') {
+        $menus = array();
+        $menus[] = array("text" => "Lütfen Bir Ülke Seçiniz", "value" => -1, "selected" => true,);
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" => $menu["id"],
+                "selected" => false,
+                "description" => $menu["name_eng"],
+                "imageSrc" => ""
+            );
+        }
     }
+ 
+
+    $app->response()->header("Content-Type", "application/json");
+   /*
+   if($tableType == 'bootstrap'){
+        $app->response()->body(json_encode($flows));
+    }else if($tableType == 'easyui'){
+        $app->response()->body(json_encode($resultArray));
+    }
+    */
+    
+    
+  //$app->response()->body(json_encode($menus));
+
     
     $app->response()->header("Content-Type", "application/json");
     
-  
-    
-    /*$app->contentType('application/json');
-    $app->halt(302, '{"error":"Something went wrong"}');
-    $app->stop();*/
-    
-  $app->response()->body(json_encode($menus));
+   if($componentType == 'ddslick'){
+        $app->response()->body(json_encode($menus));
+    }else if($componentType == 'bootstrap'){
+        $app->response()->body(json_encode($resCombobox));
+    }
+   
   
 });
 

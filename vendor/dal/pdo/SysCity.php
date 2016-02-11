@@ -499,7 +499,8 @@ class SysCity extends \DAL\DalSlim {
             $sql = "
                SELECT 
                     a.city_id AS id,
-                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name 
+                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name,
+                     a.name_eng
                 FROM sys_city a                 
                 WHERE a.language_code =  '".$params['language_code']."' AND a.active = 0 AND a.deleted = 0 
                 AND country_id =  ".intval($params['country_id'])." 

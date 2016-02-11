@@ -683,7 +683,7 @@ $app->get("/pkFillUserAddressesTypes_infoUsersAddresses/", function () use ($app
     $headerParams = $app->request()->headers();
     $vPk = $headerParams['X-Public'];
     $fPk =$vPk ; 
-    
+    $componentType =$_GET['component_type'] ;
     $vLanguageCode =$_GET['language_code'] ; 
     
     $resCombobox = $BLL->fillUserAddressesTypes(array('pk' => $fPk , 
@@ -692,20 +692,47 @@ $app->get("/pkFillUserAddressesTypes_infoUsersAddresses/", function () use ($app
     $flows = array();
     foreach ($resCombobox as $flow) {
         $flows[] = array(
-            "id" => $flow["id"],
-            //"text" => strtolower($flow["name"]),
+            "id" => $flow["id"],       
             "text" => $flow["name"],
             "state" => 'open',
             "checked" => false,
             "attributes" => array("notroot" => true,   ),
         );
     }
+    
+     if ($componentType == 'bootstrap') {
+        $menus = array();
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],       
+                "text" => $menu["name"],
+                "state" => 'open',
+                "checked" => false,
+                "attributes" => array("notroot" => true,   ),
+            );
+        }
+    } else if ($componentType == 'ddslick') {
+        $menus = array();
+        $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" => $menu["id"],
+                "selected" => false,
+                "description" => $menu["name"],
+                "imageSrc" => ""
+            );
+        }
+    }
+    
+    
+    
+    
+    
 
     $app->response()->header("Content-Type", "application/json");
 
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
+ 
 
     $app->response()->body(json_encode($flows));
 });

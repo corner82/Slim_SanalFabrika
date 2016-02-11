@@ -51,39 +51,47 @@ $app->get("/fillComboBox_syscity/", function () use ($app ) {
 
     
     $BLL = $app->getBLLManager()->get('sysCityBLL'); 
- 
-    // Filters are called from service manager
-    //$filterHtmlAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
-  //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
-    //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
- 
-  
-  //  print_r('--****************get parent--' .$_GET['country_id'] );  
-    $resCombobox = $BLL->fillComboBox (array('country_id'=>$_GET['country_id'],
-                                             'language_code'=>$_GET['language_code']));  
- 
-    //print_r($resDataMenu);
-   
- 
-        
- 
-    $menus = array();
-    foreach ($resCombobox as $menu){
-        $menus[]  = array(
-            "id" => $menu["id"],
-            "name" => $menu["name"],
-        );
+    
+    $languageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $languageCode = strtolower(trim($_GET['language_code']));
     }
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+
+    $resCombobox = $BLL->fillComboBox (array('country_id'=>$_GET['country_id'],
+                                             'language_code'=>$languageCode));  
+ 
+ 
+       $menus = array();
+    if ($componentType == 'bootstrap') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "name" => $menu["name"],
+               
+            );
+        }
+    } else if ($componentType == 'ddslick') {
+        $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" => $menu["id"],
+                "selected" => false,
+                "description" => $menu["name_eng"],
+                "imageSrc" => ""
+            );
+        }
+    }
+    
     
     $app->response()->header("Content-Type", "application/json");
     
-  
-    
-    /*$app->contentType('application/json');
-    $app->halt(302, '{"error":"Something went wrong"}');
-    $app->stop();*/
-    
-  $app->response()->body(json_encode($menus));
+ 
+    $app->response()->body(json_encode($menus));
   
 });
 

@@ -18,30 +18,7 @@ namespace DAL\PDO;
  */
 class SysBorough extends \DAL\DalSlim {
 
-    /**
-     * basic delete from database  example for PDO prepared
-     * statements, table names are irrelevant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage
+    /**   
      * @author Okan CIRAN
      * @ sys_borough tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  07.12.2015
@@ -72,59 +49,7 @@ class SysBorough extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic select from database  example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [resultSet] => Array
-      (
-      [0] => Array
-      (
-      [id] => 1
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [1] => Array
-      (
-      [id] => 4
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [2] => Array
-      (
-      [id] => 5
-      [name] => zeyn dag new
-      [international_code] => 25
-      [active] => 1
-      )
-
-      [3] => Array
-      (
-      [id] => 3
-      [name] => zeyn zeyn oldu şimdik
-      [international_code] => 12
-      [active] => 1
-      )
-
-      )
-
-      )
-     * usage 
+    /** 
      * @author Okan CIRAN
      * @ sys_borough tablosundaki tüm kayıtları getirir.  !!
      * @version v 1.0  07.12.2015  
@@ -184,10 +109,7 @@ class SysBorough extends \DAL\DalSlim {
                                  ");
          
             $statement->execute();
-            $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
+            $result = $statement->fetcAll(\PDO::FETCH_ASSOC); 
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -198,11 +120,7 @@ class SysBorough extends \DAL\DalSlim {
         }
     }
 
-        /**
-     * basic have records control  
-     * * returned result set example;
-     * for success result  
-     * usage     
+        /**    
      * @author Okan CIRAN
      * @ sys_borough tablosunda name sutununda daha önce oluşturulmuş mu? 
      * @version v 1.0 21.01.2016
@@ -241,30 +159,7 @@ class SysBorough extends \DAL\DalSlim {
         }
     }
     
-    /**
-     * basic insert database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [lastInsertId] => 5
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage     
+    /** 
      * @author Okan CIRAN
      * @ sys_borough tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  08.12.2015
@@ -319,30 +214,7 @@ class SysBorough extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic update database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage  
+    /**   
      * @author Okan CIRAN
      * sys_borough tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  07.12.2015
@@ -587,7 +459,8 @@ class SysBorough extends \DAL\DalSlim {
             $sql = "
                SELECT 
                     a.id AS id,                                         
-                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name 
+                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name ,
+                    a.name_eng
                 FROM sys_borough a                
                 WHERE a.language_code = :language_code 
                 AND a.country_id = :country_id 
@@ -613,30 +486,7 @@ class SysBorough extends \DAL\DalSlim {
         }
     }
 
-     /**
-     * basic insert database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [lastInsertId] => 5
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage     
+     /**     
      * @author Okan CIRAN
      * @ sys_borough tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  29.12.2015

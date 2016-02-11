@@ -52,25 +52,42 @@ $app->get("/fillComboBox_sysborough/", function () use ($app ) {
     
     $BLL = $app->getBLLManager()->get('sysBoroughBLL'); 
  
-   
-  
-  //  print_r('--****************get parent--' .$_GET['country_id'] );  
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+ 
     $resCombobox = $BLL->fillComboBox (array('country_id'=>$_GET['country_id'],
-                                             'language_code'=>$_GET['language_code'],
+                                             'language_code'=>$vLanguageCode,
                                              'city_id'=>$_GET['city_id']   
                                                 ));  
  
-    //print_r($resDataMenu);
-   
+  
  
-        
- 
-    $menus = array();
-    foreach ($resCombobox as $menu){
-        $menus[]  = array(
-            "id" => $menu["id"],
-            "name" => $menu["name"],
-        );
+       $menus = array();
+    if ($componentType == 'bootstrap') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "name" => $menu["name"],
+               
+            );
+        }
+    } else if ($componentType == 'ddslick') {
+        $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" => $menu["id"],
+                "selected" => false,
+                "description" => $menu["name_eng"],
+                "imageSrc" => ""
+            );
+        }
     }
     
     $app->response()->header("Content-Type", "application/json");
