@@ -52,31 +52,51 @@ $app->get("/fillComboBox_syslanguage/", function () use ($app ) {
 
     
     $BLL = $app->getBLLManager()->get('sysLanguageBLL'); 
- 
-    // Filters are called from service manager
-    //$filterHtmlAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
-  //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
-    //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
-  
+    
+    $componentType = 'ddslick'; 
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type'] ));
+    }
+   
     $resCombobox = $BLL->fillComboBox ();  
  
-      
- 
-    $menus = array();
-    foreach ($resCombobox as $menu){
-        $menus[]  = array(
-            "id" => $menu["id"],
-            "language" => $menu["language"],
-            "language_eng" => $menu["language_eng"],
-            "language_main_code" => $menu["language_main_code"],
-        );
+   
+    if ($componentType == 'bootstrap') {
+        $menus = array();
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "language" => $menu["language"],
+                "language_eng" => $menu["language_eng"],
+                "language_main_code" => $menu["language_main_code"],
+            );
+        }
+    } else if ($componentType == 'ddslick') {
+        $menus = array();
+        $menus[] = array("text" => "Lütfen Bir Dil Seçiniz", "value" => -1, "selected" => true,);
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["language"],
+                "value" => $menu["id"],
+                "selected" => false,
+                "description" => $menu["language_eng"],
+                "imageSrc" => ""
+            );
+        }
     }
- 
+
+
     $app->response()->header("Content-Type", "application/json");
     
+   if($componentType == 'ddslick'){
+        $app->response()->body(json_encode($menus));
+    }else if($componentType == 'bootstrap'){
+        $app->response()->body(json_encode($resCombobox));
+    }
+  
   
     
-  $app->response()->body(json_encode($menus));
+  //$app->response()->body(json_encode($menus));
   
 });
 
