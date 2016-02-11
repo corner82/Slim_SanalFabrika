@@ -91,9 +91,9 @@ class SysOperationTypesTools extends \BLL\BLLSlim {
      * @param array | null $params
      * @return array
      */
-    public function fillConsultantOperations($params = array()) {
+    public function fillConsultantOperationsTools($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysOperationTypesToolsPDO');
-        $resultSet = $DAL->fillConsultantOperations($params);  
+        $resultSet = $DAL->fillConsultantOperationsTools($params);  
         return $resultSet['resultSet'];
     }
     
