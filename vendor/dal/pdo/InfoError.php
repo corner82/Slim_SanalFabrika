@@ -117,7 +117,7 @@ class InfoError extends \DAL\DalSlim {
             $statement->bindValue(':error_info', $params['error_info'], \PDO::PARAM_STR);
             $statement->bindValue(':service_name', $params['service_name'], \PDO::PARAM_STR);
             $statement->bindValue(':page_name', $params['page_name'], \PDO::PARAM_STR);
-            echo debugPDO($sql, $params);
+         //   echo debugPDO($sql, $params);
             $result = $statement->execute();
             $insertID = $pdo->lastInsertId('info_error_id_seq');
             $errorInfo = $statement->errorInfo();

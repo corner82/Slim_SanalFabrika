@@ -104,19 +104,36 @@ $app->get("/pkInsert_infoError/", function () use ($app ) {
 
 
     $BLL = $app->getBLLManager()->get('InfoErrorBLL');
-
-           
-                                
-    $vServiceName = $_GET['service_name'];
     
-    $vUrl = $_GET['url_full'];
-    
-    $vErrorCode = $_GET['error_code'];
-    $vErrorInfo = $_GET['error_info'];    
-    $vPageName = $_GET['page_name'];
-
     $headerParams = $app->request()->headers();
-    $vPk = $headerParams['X-Public'];
+
+    $vPk = '';
+    if (isset($headerParams['X-Public'])) {
+        $vPk = strtolower(trim($headerParams['X-Public']));
+    }
+    $vServiceName = '';
+    if (isset($_GET['service_name'])) {
+        $vServiceName = strtolower(trim($_GET['service_name']));
+    }
+    $vUrl = '';
+    if (isset($_GET['url_full'])) {
+        $vUrl = strtolower(trim($_GET['url_full']));
+    }
+    $vErrorCode = '';
+    if (isset($_GET['error_code'])) {
+        $vErrorCode = strtolower(trim($_GET['error_code']));
+    }
+
+    $vErrorInfo = '';
+    if (isset($_GET['error_info'])) {
+        $vErrorInfo = strtolower(trim($_GET['error_info']));
+    }
+
+    $vPageName = '';
+    if (isset($_GET['page_name'])) {
+        $vPageName = strtolower(trim($_GET['page_name']));
+    }
+
 
 
     $resDataInsert = $BLL->insert(array(
@@ -132,31 +149,7 @@ $app->get("/pkInsert_infoError/", function () use ($app ) {
  
     $app->response()->body(json_encode($resDataInsert));
 });
-/**
- *  * Okan CIRAN
- * @since 11-02-2016
- */
-$app->get("/pkUpdate_infoError/", function () use ($app ) {
-
-
-    $BLL = $app->getBLLManager()->get('infoErrorBLL');
-
-    $headerParams = $app->request()->headers();
-    $pk = $headerParams['X-Public'];
-
-    $resDataUpdate = $BLL->update($_GET['id'], array('name' => $_GET['name'],
-        'active' => $_GET['active'],
-        'user_id' => $_GET['user_id'],
-        'id' => $_GET['id'],
-        'pk' => $pk));
-
-
-    $app->response()->header("Content-Type", "application/json");
-
-
-
-    $app->response()->body(json_encode($resDataUpdate));
-});
+ 
 
  
 /**
@@ -167,36 +160,26 @@ $app->get("/pkGetAll_infoError/", function () use ($app ) {
 
 
     $BLL = $app->getBLLManager()->get('infoErrorBLL');
-
-    $headerParams = $app->request()->headers();
-    $pk = $headerParams['X-Public'];
-
+ 
     $resDataGrid = $BLL->getAll();
 
     $resTotalRowCount = $BLL->fillGridRowTotalCount();
 
     $flows = array();
     foreach ($resDataGrid as $flow) {
+       
         $flows[] = array(
             "id" => $flow["id"],
-            "name" => $flow["name"],
-            "icon_class" => $flow["icon_class"],
-            "create_date" => $flow["create_date"],
-            "icon_class" => $flow["icon_class"],
-            "create_date" => $flow["create_date"],
-            "start_date" => $flow["start_date"],
-            "end_date" => $flow["end_date"],
-            "parent" => $flow["parent"],
-            "deleted" => $flow["deleted"],
-            "state_deleted" => $flow["state_deleted"],
-            "active" => $flow["active"],
-            "state_active" => $flow["state_active"],
-            "description" => $flow["description"],
-            "user_id" => $flow["user_id"],
-            "username" => $flow["username"],
-            "root_parent" => $flow["root_parent"],
-            "root" => $flow["root"],
-            "attributes" => array("notroot" => true, "active" => $flow["active"]),
+            "s_date" => $flow["s_date"],
+            "pk" => $flow["pk"],
+            "url" => $flow["url"],
+            "error_code" => $flow["error_code"],
+            "error_info" => $flow["error_info"],
+            "service_name" => $flow["service_name"],
+            "page_name" => $flow["page_name"],
+            
+            
+            "attributes" => array("notroot" => true, ),
         );
     }
 
@@ -210,27 +193,5 @@ $app->get("/pkGetAll_infoError/", function () use ($app ) {
     $app->response()->body(json_encode($resultArray));
 });
 
-/**
- *  * Okan CIRAN
- * @since 11-02-2016
- */
-$app->get("/pkDelete_infoError/", function () use ($app ) {
-
-
-    $BLL = $app->getBLLManager()->get('infoErrorBLL');
-
-
-    $headerParams = $app->request()->headers();
-    $pk = $headerParams['X-Public'];
-
-    $resDataUpdate = $BLL->delete($_GET['id'], array(
-        'user_id' => $_GET['user_id'],
-        'pk' => $pk));
-
-
-    $app->response()->header("Content-Type", "application/json");
-
-    $app->response()->body(json_encode($resDataUpdate));
-});
-
+ 
 $app->run();
