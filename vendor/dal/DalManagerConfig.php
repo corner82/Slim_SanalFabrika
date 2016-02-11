@@ -59,7 +59,8 @@ class DalManagerConfig {
                 'blActivationReportPDO' => 'DAL\Factory\PDO\BlActivationReportFactory', 
                 'sysOsbConsultantsPDO' => 'DAL\Factory\PDO\SysOsbConsultantsFactory', 
                 'sysOsbPDO' => 'DAL\Factory\PDO\SysOsbFactory', 
-                'sysOperationTypesPDO' => 'DAL\Factory\PDO\SysOperationTypesFactory', 
+                'sysOperationTypesPDO' => 'DAL\Factory\PDO\SysOperationTypesFactory',
+                'sysOperationTypesToolsPDO' => 'DAL\Factory\PDO\SysOperationTypesToolsFactory', 
                 
                  
             

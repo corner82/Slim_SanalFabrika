@@ -55,6 +55,7 @@ class BLLManagerConfig{
                  'sysOsbConsultantsBLL' => 'BLL\BLL\SysOsbConsultants',                 
                  'sysOsbBLL' => 'BLL\BLL\SysOsb',
                  'sysOperationTypesBLL' => 'BLL\BLL\SysOperationTypes',
+                 'sysOperationTypesToolsBLL' => 'BLL\BLL\SysOperationTypesTools',
                
             
                    
