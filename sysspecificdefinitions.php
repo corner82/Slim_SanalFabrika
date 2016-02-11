@@ -56,28 +56,50 @@ $pdo = new PDO('pgsql:dbname=ecoman_01_10;host=88.249.18.205;user=postgres;passw
 $app->get("/fillMainDefinitions_sysSpecificDefinitions/", function () use ($app ) {
 
 
-    $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL'); 
-    $resCombobox = $BLL->fillMainDefinitions (array('language_code'=>$_GET['language_code']                                             
-                                                ));  
+    $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL');
 
-    $flows = array();
-    foreach ($resCombobox as $flow) {
-        $flows[] = array(
-            "id" => $flow["id"],
-            "text" => $flow["name"],
-            "state" => 'open',
-            "checked" => false,
-            "attributes" => array("notroot" => true, "active" => $flow["active"]),
-        );
+    $languageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $languageCode = strtolower(trim($_GET['language_code']));
+    }
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
     }
 
+
+    $resCombobox = $BLL->fillMainDefinitions(array('language_code' => $languageCode
+    ));
+
+
+    $menus = array();
+    $menus[] = array( "text" => "Lütfen Bir Operasyon Tipi Seçiniz",  "value" => -1, "selected"=> true,) ;
+    if ($componentType == 'bootstrap') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "text" => $menu["name"],
+                "state" => $menu["state_type"], //   'closed',
+                "checked" => false,
+                "attributes" => array("notroot" => true, "active" => $menu["active"]),
+            );
+        }
+    } else if ($componentType == 'ddslick') {        
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" => $menu["id"],
+                "selected" => false,
+                "description" => $menu["name_eng"],
+                "imageSrc" => ""
+            );
+        }
+    }
+ 
     $app->response()->header("Content-Type", "application/json");
+ 
 
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
-    $app->response()->body(json_encode($flows));
+    $app->response()->body(json_encode($menus));
 });
 /**
  *  * Okan CIRAN
@@ -87,28 +109,42 @@ $app->get("/fillFullDefinitions_sysSpecificDefinitions/", function () use ($app 
 
     $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL');
 
-    $resCombobox = $BLL->fillFullDefinitions(array('language_code'=>$_GET['language_code']
-                                                ));  
+    $languageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $languageCode = strtolower(trim($_GET['language_code']));
+    }
+   
+    $resCombobox = $BLL->fillFullDefinitions(array('language_code' => $languageCode
+    ));
 
-    $flows = array();
-    foreach ($resCombobox as $flow) {
-        $flows[] = array(
-            "id" => $flow["id"],
-            //"text" => strtolower($flow["name"]),
-            "text" => $flow["name"],
-            "state" => $flow["state_type"], //   'closed',
-            "checked" => false,
-            "attributes" => array("notroot" => true, "active" => $flow["active"]),
-        );
+    
+    $menus = array();
+    $menus[] = array( "text" => "Lütfen Bir Operasyon Tipi Seçiniz",  "value" => -1, "selected"=> true,) ;
+    if ($componentType == 'bootstrap') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "text" => $menu["name"],
+                "state" => $menu["state_type"], //   'closed',
+                "checked" => false,
+                "attributes" => array("notroot" => true, "active" => $menu["active"]),
+            );
+        }
+    } else if ($componentType == 'ddslick') {        
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" => $menu["id"],
+                "selected" => false,
+                "description" => $menu["name_eng"],
+                "imageSrc" => ""
+            );
+        }
     }
 
     $app->response()->header("Content-Type", "application/json");
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
-    $app->response()->body(json_encode($flows));
+  
+    $app->response()->body(json_encode($menus));
 });
 
 
@@ -120,28 +156,48 @@ $app->get("/fillCommunicationsTypes_sysSpecificDefinitions/", function () use ($
 
     $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL');
 
-    $resCombobox = $BLL->fillCommunicationsTypes(array('language_code'=>$_GET['language_code']
-                                                ));  
-
-    $flows = array();
-    foreach ($resCombobox as $flow) {
-        $flows[] = array(
-            "id" => $flow["id"],
-            //"text" => strtolower($flow["name"]),
-            "text" => $flow["name"],
-            "state" => $flow["state_type"], //   'closed',
-            "checked" => false,
-            "attributes" => array("notroot" => true , "active" => $flow["active"]),
-        );
+    $languageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $languageCode = strtolower(trim($_GET['language_code']));
+    }
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+ 
+    $resCombobox = $BLL->fillCommunicationsTypes(array('language_code' => $languageCode
+    ));
+    $menus = array();
+    $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+ 
+    if ($componentType == 'bootstrap') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "text" => $menu["name"],
+                "state" => $menu["state_type"], //   'closed',
+                "checked" => false,
+                "attributes" => array("notroot" => true, "active" => $menu["active"]),
+            );
+        }
+    } else if ($componentType == 'ddslick') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" => $menu["id"],
+                "selected" => false,
+                "description" => $menu["name_eng"],
+                "imageSrc" => ""
+            );
+        }
     }
 
     $app->response()->header("Content-Type", "application/json");
 
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
 
-    $app->response()->body(json_encode($flows));
+    $app->response()->body(json_encode($menus));
+
+    //$app->response()->body(json_encode($flows));
 });
 
 /**
@@ -152,28 +208,47 @@ $app->get("/fillBuildingType_sysSpecificDefinitions/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL');
 
-    $resCombobox = $BLL->fillBuildingType(array('language_code'=>$_GET['language_code']                                      
-                                                ));  
+    $languageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $languageCode = strtolower(trim($_GET['language_code']));
+    }
 
-    $flows = array();
-    foreach ($resCombobox as $flow) {
-        $flows[] = array(
-            "id" => $flow["id"],
-            //"text" => strtolower($flow["name"]),
-            "text" => $flow["name"],
-            "state" => $flow["state_type"], //   'closed',
-            "checked" => false,
-            "attributes" => array("notroot" => true, "active" => $flow["active"]),
-        );
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+
+    $resCombobox = $BLL->fillBuildingType(array('language_code' => $languageCode
+    ));
+
+        $menus = array();
+        $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+    if ($componentType == 'bootstrap') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "text" => $menu["name"],
+                "state" => $menu["state_type"], //   'closed',
+                "checked" => false,
+                "attributes" => array("notroot" => true, "active" => $menu["active"]),
+            );
+        }
+    } else if ($componentType == 'ddslick') {     
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" => $menu["id"],
+                "selected" => false,
+                "description" => $menu["name_eng"],
+                "imageSrc" => ""
+            );
+        }
     }
 
     $app->response()->header("Content-Type", "application/json");
+ 
 
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
-    $app->response()->body(json_encode($flows));
+    $app->response()->body(json_encode($menus));
 });
 
 /**
@@ -184,28 +259,44 @@ $app->get("/fillOwnershipType_sysSpecificDefinitions/", function () use ($app ) 
 
     $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL');
 
-    $resCombobox = $BLL->fillOwnershipType(array('language_code'=>$_GET['language_code']                                           
-                                                ));  
-
-    $flows = array();
-    foreach ($resCombobox as $flow) {
-        $flows[] = array(
-            "id" => $flow["id"],
-            //"text" => strtolower($flow["name"]),
-            "text" => $flow["name"],
-            "state" => $flow["state_type"], //   'closed',
-            "checked" => false,
-            "attributes" => array("notroot" => true, "active" => $flow["active"]),
-        );
+    $languageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $languageCode = strtolower(trim($_GET['language_code']));
+    }
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
     }
 
+    $resCombobox = $BLL->fillOwnershipType(array('language_code' => $languageCode
+    ));
+
+        $menus = array();
+        $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+    if ($componentType == 'bootstrap') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "text" => $menu["name"],
+                "state" => $menu["state_type"], //   'closed',
+                "checked" => false,
+                "attributes" => array("notroot" => true, "active" => $menu["active"]),
+            );
+        }
+    } else if ($componentType == 'ddslick') {       
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" => $menu["id"],
+                "selected" => false,
+                "description" => $menu["name_eng"],
+                "imageSrc" => ""
+            );
+        }
+    }
     $app->response()->header("Content-Type", "application/json");
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
-    $app->response()->body(json_encode($flows));
+ 
+    $app->response()->body(json_encode($menus));
 });
 
 
@@ -217,28 +308,45 @@ $app->get("/fillPersonnelTypes_sysSpecificDefinitions/", function () use ($app )
 
     $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL');
 
-    $resCombobox = $BLL->fillPersonnelTypes(array('language_code'=>$_GET['language_code']
-                                                ));  
+    $languageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $languageCode = strtolower(trim($_GET['language_code']));
+    }
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
 
-    $flows = array();
-    foreach ($resCombobox as $flow) {
-        $flows[] = array(
-            "id" => $flow["id"],
-            //"text" => strtolower($flow["name"]),
-            "text" => $flow["name"],
-            "state" => $flow["state_type"], //   'closed',
-            "checked" => false,
-            "attributes" => array("notroot" => true, "active" => $flow["active"]),
-        );
+    $resCombobox = $BLL->fillPersonnelTypes(array('language_code' => $languageCode
+    ));
+
+        $menus = array();
+        $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+    if ($componentType == 'bootstrap') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "text" => $menu["name"],
+                "state" => $menu["state_type"], //   'closed',
+                "checked" => false,
+                "attributes" => array("notroot" => true, "active" => $menu["active"]),
+            );
+        }
+    } else if ($componentType == 'ddslick') {      
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" => $menu["id"],
+                "selected" => false,
+                "description" => $menu["name_eng"],
+                "imageSrc" => ""
+            );
+        }
     }
 
     $app->response()->header("Content-Type", "application/json");
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
-    $app->response()->body(json_encode($flows));
+ 
+    $app->response()->body(json_encode($menus));
 });
 
 
@@ -250,24 +358,45 @@ $app->get("/fillAddressTypes_sysSpecificDefinitions/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL');
 
-    $resCombobox = $BLL->fillAddressTypes(array('language_code'=>$_GET['language_code']
-                                                ));  
+    $languageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $languageCode = strtolower(trim($_GET['language_code']));
+    }
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
 
-    $flows = array();
-    foreach ($resCombobox as $flow) {
-        $flows[] = array(
-            "id" => $flow["id"],
-            //"text" => strtolower($flow["name"]),
-            "text" => $flow["name"],
-            "state" => $flow["state_type"], //   'closed',
-            "checked" => false,
-            "attributes" => array("notroot" => true, "active" => $flow["active"]),
-        );
+    $resCombobox = $BLL->fillAddressTypes(array('language_code' => $languageCode
+    ));
+
+        $menus = array();
+        $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+    if ($componentType == 'bootstrap') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "text" => $menu["name"],
+                "state" => $menu["state_type"], //   'closed',
+                "checked" => false,
+                "attributes" => array("notroot" => true, "active" => $menu["active"]),
+            );
+        }
+    } else if ($componentType == 'ddslick') {       
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" => $menu["id"],
+                "selected" => false,
+                "description" => $menu["name_eng"],
+                "imageSrc" => ""
+            );
+        }
     }
 
     $app->response()->header("Content-Type", "application/json");
 
-    $app->response()->body(json_encode($flows));
+    $app->response()->body(json_encode($menus));
 });
 
 

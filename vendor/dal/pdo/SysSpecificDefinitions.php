@@ -18,30 +18,7 @@ namespace DAL\PDO;
  */
 class SysSpecificDefinitions extends \DAL\DalSlim {
 
-    /**
-     * basic delete from database  example for PDO prepared
-     * statements, table names are irrelevant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage
+    /**    
      * @author Okan CIRAN
      * @ sys_specific_definitions tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  25.01.2016
@@ -73,59 +50,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic select from database  example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [resultSet] => Array
-      (
-      [0] => Array
-      (
-      [id] => 1
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [1] => Array
-      (
-      [id] => 4
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [2] => Array
-      (
-      [id] => 5
-      [name] => zeyn dag new
-      [international_code] => 25
-      [active] => 1
-      )
-
-      [3] => Array
-      (
-      [id] => 3
-      [name] => zeyn zeyn oldu şimdik
-      [international_code] => 12
-      [active] => 1
-      )
-
-      )
-
-      )
-     * usage 
+    /**     
      * @author Okan CIRAN
      * @ sys_specific_definitions tablosundaki tüm kayıtları getirir.  !!
      * @version v 1.0  25.01.2016    
@@ -173,30 +98,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic insert database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [lastInsertId] => 5
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage     
+    /**    
      * @author Okan CIRAN
      * @ sys_specific_definitions tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  25.01.2016
@@ -250,11 +152,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic have records control  
-     * * returned result set example;
-     * for success result  
-     * usage     
+    /**    
      * @author Okan CIRAN
      * @ sys_specific_definitions tablosunda name sutununda daha önce oluşturulmuş mu? 
      * @version v 1.0 15.01.2016
@@ -295,30 +193,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic update database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage  
+    /**   
      * @author Okan CIRAN
      * sys_specific_definitions tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  25.01.2016
@@ -364,30 +239,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic update database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage  
+    /**    
      * @author Okan CIRAN
      * sys_specific_definitions tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  25.01.2016
@@ -610,7 +462,8 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             $statement = $pdo->prepare("
             SELECT      
 		 a.first_group as id,              
-                COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
+                COALESCE(NULLIF(a.description, ''), a.description_eng) AS name, 
+                a.description_eng as name_eng,
 		a.active               
             FROM sys_specific_definitions a       
             WHERE a.main_group  =0 AND 
@@ -649,7 +502,8 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             $statement = $pdo->prepare("             
             SELECT                    
                     a.first_group as id, 	
-                   COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
+                   COALESCE(NULLIF(a.description, ''), a.description_eng) AS name, 
+                    a.description_eng as name_eng,
                     a.parent_id,
                     a.active,
                     CASE 
@@ -692,7 +546,8 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             $statement = $pdo->prepare("             
             SELECT                    
                      a.first_group as id, 	
-                   COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
+                   COALESCE(NULLIF(a.description, ''), a.description_eng) AS name, 
+                    a.description_eng as name_eng,
                     a.parent_id,
                     a.active,
                     CASE 
@@ -736,6 +591,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             SELECT                    
                    a.first_group as id,  	
                    COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
+                    a.description_eng as name_eng,
                     a.parent_id,
                     a.active,
                     CASE 
@@ -778,7 +634,8 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             $statement = $pdo->prepare("             
             SELECT                    
                     a.first_group as id, 	
-                   COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
+                    COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
+                    a.description_eng as name_eng,
                     a.parent_id,
                     a.active,
                     CASE 
@@ -821,7 +678,8 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             $statement = $pdo->prepare("             
             SELECT                    
                     a.first_group as id, 	
-                   COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
+                    COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
+                    a.description_eng as name_eng,
                     a.parent_id,
                     a.active,
                     CASE 
@@ -863,8 +721,9 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
             $statement = $pdo->prepare("             
             SELECT                    
-                   a.first_group as id, 	
-                   COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
+                    a.first_group as id, 	
+                    COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
+                    a.description_eng as name_eng,
                     a.parent_id,
                     a.active,
                     CASE 
