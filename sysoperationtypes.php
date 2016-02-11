@@ -72,8 +72,8 @@ $app->get("/pkFillConsultantOperationsDropDown_sysOperationTypes/", function () 
             "text" => $menu["name"],
             "value" => $menu["id"],           
             "selected"=> false,
-            "description"=> $menu["name"],
-           "imageSrc"=>""
+            "description"=> $menu["name_eng"],
+            "imageSrc"=>""
        
         );
     }
