@@ -40,6 +40,15 @@ class InfoUsers extends \BLL\BLLSlim{
         $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
         return $DAL->insertTemp($params);
     }
+        /**
+     * Data update function
+     * @param array | null $params
+     * @return array
+     */
+    public function updateTemp($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
+        return $DAL->updateTemp($params);
+    }
     
       /**
      * Check Data function

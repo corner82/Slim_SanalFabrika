@@ -40,7 +40,7 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
 
 
 
- 
+
 /**
  *  * Okan CIRAN
  * @since 25-01-2016
@@ -53,14 +53,14 @@ $app->get("/pkFillGrid_infoUsers/", function () use ($app ) {
     $headerParams = $app->request()->headers();
     $vPk = $headerParams['X-Public'];
     $vPkTemp = $headerParams['X-Public-Temp'];
-    
+
     $resDataGrid = $BLL->fillGrid(array('page' => $_GET['page'],
         'rows' => $_GET['rows'],
         'sort' => $_GET['sort'],
         'order' => $_GET['order'],
         'search_name' => $vSearchName,
         'pk' => $pk,
-        'pktemp' => $vPkTemp ));
+        'pktemp' => $vPkTemp));
 
     $resTotalRowCount = $BLL->fillGridRowTotalCount(array('search_name' => $vSearchName));
 
@@ -121,35 +121,33 @@ $app->get("/pkInsert_infoUsers/", function () use ($app ) {
     $fUsername = $_GET['username'];
     $fPassword = $_GET['password'];
     $fAuthEmail = $_GET['auth_email'];
-    $fLanguageCode = $_GET['language_code'];   
-    $fConsAllowId = $_GET['cons_allow_id'];    
+    $fLanguageCode = $_GET['language_code'];
+    $fConsAllowId = $_GET['cons_allow_id'];
     $fPreferredLanguage = $_GET['preferred_language'];
     $fpersonIdNumber = $_GET['personIdNumber'];
-    $foperationtypeid  = $_GET['operation_type_id'];
- 
+    $foperationtypeid = $_GET['operation_type_id'];
+
 
     $headerParams = $app->request()->headers();
     $vPk = $headerParams['X-Public'];
 
-    $resDataInsert = $BLL->insert(array(    
-        'profile_public' => $fProfilePublic ,
-        'name' => $fName , 
-        'surname' => $fSurname , 
-        'username' => $fUsername, 
-        'password' => $fPassword, 
-        'auth_email' => $fAuthEmail, 
-        'language_code' => $fLanguageCode,      
-        'cons_allow_id' => $fConsAllowId ,          
+    $resDataInsert = $BLL->insert(array(
+        'profile_public' => $fProfilePublic,
+        'name' => $fName,
+        'surname' => $fSurname,
+        'username' => $fUsername,
+        'password' => $fPassword,
+        'auth_email' => $fAuthEmail,
+        'language_code' => $fLanguageCode,
+        'cons_allow_id' => $fConsAllowId,
         'preferred_language' => $fPreferredLanguage,
-        'personIdNumber' => $fpersonIdNumber,  
-        'operation_type_id' => $foperationtypeid, 
+        'personIdNumber' => $fpersonIdNumber,
+        'operation_type_id' => $foperationtypeid,
         'pk' => $vPk));
 
     $app->response()->header("Content-Type", "application/json");
 
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
+
 
     $app->response()->body(json_encode($resDataInsert));
 }
@@ -169,12 +167,19 @@ $app->get("/tempInsert_infoUsers/", function () use ($app ) {
     $vUsername = $_GET['username'];
     $vPassword = $_GET['password'];
     $vAuthEmail = $_GET['auth_email'];
-    $vLanguageCode = $_GET['language_code']; 
-    $vPreferredLanguage = $_GET['preferred_language'];    
-    $vpersonIdNumber= $_GET['personIdNumber'];
 
-    //$headerParams = $app->request()->headers();
-   // $vPk = $headerParams['X-Public'];
+  
+    
+    $headerParams = $app->request()->headers();
+
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }
+    $vPreferredLanguage = 647;
+    if (isset($_GET['preferred_language'])) {
+        $vPreferredLanguage =  trim($_GET['preferred_language'] );
+    }
 
     $fProfilePublic = $vProfilePublic;
     $fName = $vName;
@@ -182,23 +187,80 @@ $app->get("/tempInsert_infoUsers/", function () use ($app ) {
     $fUsername = $vUsername;
     $fPassword = $vPassword;
     $fAuthEmail = $vAuthEmail;
-    $fLanguageCode = $vLanguageCode; 
-    $fPreferredLanguage = $vPreferredLanguage;    
-    $fpersonIdNumber= $vpersonIdNumber;    
+    $fLanguageCode = $vLanguageCode;
+    $fPreferredLanguage = $vPreferredLanguage;
+ 
+    $resDataInsert = $BLL->insertTemp(array(
+        'profile_public' => $fProfilePublic,
+        'name' => $fName,
+        'surname' => $fSurname,
+        'username' => $fUsername,
+        'password' => $fPassword,
+        'auth_email' => $fAuthEmail,
+        'language_code' => $fLanguageCode,
+        'preferred_language' => $fPreferredLanguage,
+    ));
     
-    $resDataInsert = $BLL->insertTemp(array(    
-        'profile_public' => $fProfilePublic ,
-        'name' => $fName , 
-        'surname' => $fSurname , 
-        'username' => $fUsername, 
-        'password' => $fPassword, 
-        'auth_email' => $fAuthEmail, 
-        'language_code' => $fLanguageCode,              
-        'preferred_language' => $fPreferredLanguage, 
-        'personIdNumber' => $fpersonIdNumber
-       // 'pk' => $vPk
-            ));
+    $app->response()->header("Content-Type", "application/json");
 
+    /* $app->contentType('application/json');
+      $app->halt(302, '{"error":"Something went wrong"}');
+      $app->stop(); */
+
+    $app->response()->body(json_encode($resDataInsert));
+}
+);
+
+
+/**
+ *  * Okan CIRAN
+ * @since 27-01-2016
+ */
+$app->get("/pktempUpdate_infoUsers/", function () use ($app ) {
+
+    $BLL = $app->getBLLManager()->get('infoUsersBLL');
+
+    $vProfilePublic = $_GET['profile_public'];
+    $vName = $_GET['name'];
+    $vSurname = $_GET['surname'];
+    $vUsername = $_GET['username'];
+    $vPassword = $_GET['password'];
+    $vAuthEmail = $_GET['auth_email'];
+
+    $headerParams = $app->request()->headers();
+    $vPkTemp = $headerParams['X-Public-Temp'];    
+    
+
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }
+    $vPreferredLanguage = 647;
+    if (isset($_GET['preferred_language'])) {
+        $vPreferredLanguage =  trim($_GET['preferred_language'] );
+    }
+
+    $fProfilePublic = $vProfilePublic;
+    $fName = $vName;
+    $fSurname = $vSurname;
+    $fUsername = $vUsername;
+    $fPassword = $vPassword;
+    $fAuthEmail = $vAuthEmail;
+    $fLanguageCode = $vLanguageCode;
+    $fPreferredLanguage = $vPreferredLanguage;
+ 
+    $resDataInsert = $BLL->UpdateTemp(array(
+        'profile_public' => $fProfilePublic,
+        'name' => $fName,
+        'surname' => $fSurname,
+        'username' => $fUsername,
+        'password' => $fPassword,
+        'auth_email' => $fAuthEmail,
+        'language_code' => $fLanguageCode,
+        'preferred_language' => $fPreferredLanguage,
+        'pktemp' => $vPkTemp
+    ));
+    
     $app->response()->header("Content-Type", "application/json");
 
     /* $app->contentType('application/json');
@@ -220,265 +282,222 @@ $app->get("/pkUpdate_infoUsers/", function () use ($app ) {
     $headerParams = $app->request()->headers();
     $vpk = $headerParams['X-Public'];
     $vPkTemp = $headerParams['X-Public-Temp'];
-   
-    $vFCheck = 0; 
+
+    $vFCheck = 0;
     if (isset($_GET['f_check'])) {
-    $vFCheck =  $_GET ["f_check"] ;
+        $vFCheck = $_GET ["f_check"];
     }
-    $vAuthAllowId = 0; 
+    $vAuthAllowId = 0;
     if (isset($_GET['auth_allow_id'])) {
-    $vFCheck =  $_GET ["auth_allow_id"] ;
-    }    
-    $vConsAllowId = 0; 
+        $vFCheck = $_GET ["auth_allow_id"];
+    }
+    $vConsAllowId = 0;
     if (isset($_GET['cons_allow_id'])) {
-    $vConsAllowId =  $_GET ["cons_allow_id"] ;
+        $vConsAllowId = $_GET ["cons_allow_id"];
     }
-    $vActParentId = 0; 
+    $vActParentId = 0;
     if (isset($_GET['act_parent_id'])) {
-    $vActParentId =  $_GET ["act_parent_id"] ;
+        $vActParentId = $_GET ["act_parent_id"];
     }
-    
-    $vID = $_GET['id'];    
-    $vOperationTypeId = $_GET['operation_type_id'];    
-    $vActive = $_GET['active'];    
-    $vLanguageCode = $_GET['language_code'];
+
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }
+    $vPreferredLanguage = 647;
+    if (isset($_GET['preferred_language'])) {
+        $vPreferredLanguage = strtolower(trim($_GET['preferred_language']));
+    }
+
+
+
+    $vID = $_GET['id'];
+    $vOperationTypeId = $_GET['operation_type_id'];
+    $vActive = $_GET['active'];
     $vProfilePublic = $_GET['profile_public'];
-    $vName = $_GET['name'] ; 
-    $vSurname  = $_GET['surname'] ; 
-    $vUsername = $_GET['username'];        
+    $vName = $_GET['name'];
+    $vSurname = $_GET['surname'];
+    $vUsername = $_GET['username'];
     $vPassword = $_GET['password'];
     $vAuthEmail = $_GET['auth_email'];
-    $vPreferredLanguage = $_GET['preferred_language'];   
-   
-    
-    $validater = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
+
+
+
+    $validater = $app->getServiceManager()->get('validationChainerServiceForZendChainer');
     $validatorChainUrl = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet(array_search($_GET['url'], $_GET), 
-            new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                              $_GET['url'], 
-                                                              $validatorChainUrl->attach(
-                                                                        new Zend\Validator\StringLength(array('min' => 6,
-                                                                                                              'max' => 50)))
-                                                                              // ->attach(new Zend\I18n\Validator\Alnum())    
-                    ) );
- 
-     
+    $validater->offsetSet(array_search($_GET['url'], $_GET), new \Utill\Validation\Chain\ZendValidationChainer($app, $_GET['url'], $validatorChainUrl->attach(
+                    new Zend\Validator\StringLength(array('min' => 6,
+                'max' => 50)))
+            // ->attach(new Zend\I18n\Validator\Alnum())    
+    ));
+
+
     $validatorChainName = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('name', 
-            new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                              $vName, 
-                                                              $validatorChainName->attach(
-                                                                        new Zend\Validator\StringLength(array('min' => 2,
-                                                                                                              'max' => 80)))
-                                                                              ->attach(new Zend\I18n\Validator\Alpha())    
-                    ) );
+    $validater->offsetSet('name', new \Utill\Validation\Chain\ZendValidationChainer($app, $vName, $validatorChainName->attach(
+                            new Zend\Validator\StringLength(array('min' => 2,
+                        'max' => 80)))
+                    ->attach(new Zend\I18n\Validator\Alpha())
+    ));
     $validatorChainSurname = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('surname', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vSurname, 
-                                                          $validatorChainSurname->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 2,
-                                                                                                          'max' => 80)))
-                                                                          ->attach(new Zend\I18n\Validator\Alpha())    
-                ) );
-  
-      $validatorChainUsername = new Zend\Validator\ValidatorChain();
-      $validater->offsetSet('username', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vUsername, 
-                                                          $validatorChainUsername->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 6,
-                                                                                                          'max' => 35)))
-                                                                       //   ->attach(new Zend\I18n\Validator\Alnum())    
-                ) );
-    
-        $validatorChainPassword = new Zend\Validator\ValidatorChain();
-        $validater->offsetSet('password', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vPassword, 
-                                                          $validatorChainPassword->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 8,
-                                                                                                          'max' => 20)))
-                                                                          ->attach(new Zend\I18n\Validator\Alnum())    
-                ) );
-        $validatorChainAuthEmail = new Zend\Validator\ValidatorChain();
-        $validater->offsetSet('auth_email', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vAuthEmail, 
-                                                          $validatorChainAuthEmail->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 8,
-                                                                                                          'max' => 20)))
-                                                                          //->attach(new Zend\I18n\Validator\Alnum()) 
-                                                                          ->attach(new Zend\Validator\EmailAddress())       
-                ) );
-        
-        $validatorChainPreferredLanguage = new Zend\Validator\ValidatorChain();
-        $validater->offsetSet('preferred_language', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vPreferredLanguage, 
-                                                          $validatorChainPreferredLanguage->attach(
-                                                                    new Zend\Validator\StringLength(array(//'min' => 8,
-                                                                                                          'max' => 2)))
-                                                                          ->attach(new Zend\I18n\Validator\Alpha()) 
-                                                                                 
-                ) );
-        
-        $validatorChainLanguageCode = new Zend\Validator\ValidatorChain();
-        $validater->offsetSet('language_code', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vLanguageCode, 
-                                                          $validatorChainLanguageCode->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 2,
-                                                                                                          'max' => 2)))
-                                                                          ->attach(new Zend\I18n\Validator\Alpha()) 
-                                                                                 
-                ) );
-        
-        $validatorChainId = new Zend\Validator\ValidatorChain();
-        $validater->offsetSet('id', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vID, 
-                                                          $validatorChainId->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                         // ,'max' => 2
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-                                                                                 
-                ) );
-        
-        $validatorChainOperationTypeId = new Zend\Validator\ValidatorChain();
-        $validater->offsetSet('operation_type_id', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vOperationTypeId, 
-                                                          $validatorChainOperationTypeId->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                         // ,'max' => 2
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-                                                                                 
-                ) ); 
-  
-        $validatorChainActive = new Zend\Validator\ValidatorChain();
-        $validater->offsetSet('active', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vActive, 
-                                                          $validatorChainActive->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                          ,'max' => 1
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-                                                                                 
-                ) ); 
-        
-        $validatorChainProfilePublic = new Zend\Validator\ValidatorChain();
-        $validater->offsetSet('profile_public', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vProfilePublic, 
-                                                          $validatorChainProfilePublic->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                          ,'max' => 1
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-         ) ); 
-        
-        $validatorChainFCheck = new Zend\Validator\ValidatorChain();
-        $validater->offsetSet('f_check', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vFCheck, 
-                                                          $validatorChainFCheck->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                          ,'max' => 1
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-         ) ); 
-        
- 
-        $validatorChainAuthAllowId = new Zend\Validator\ValidatorChain();
-        $validater->offsetSet('auth_allow_id', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vAuthAllowId, 
-                                                          $validatorChainAuthAllowId->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                          ,'max' => 1
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-         ) ); 
-        
-        $validatorChainConsAllowId = new Zend\Validator\ValidatorChain();
-        $validater->offsetSet('cons_allow_id', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vConsAllowId, 
-                                                          $validatorChainConsAllowId->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                          ,'max' => 1
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-         ) ); 
-        
-     
-        $validatorChainActParentId = new Zend\Validator\ValidatorChain();
-        $validater->offsetSet('act_parent_id', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vActParentId, 
-                                                          $validatorChainActParentId->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                          ,'max' => 1
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-         ) );  
-        
- 
-        
+    $validater->offsetSet('surname', new \Utill\Validation\Chain\ZendValidationChainer($app, $vSurname, $validatorChainSurname->attach(
+                            new Zend\Validator\StringLength(array('min' => 2,
+                        'max' => 80)))
+                    ->attach(new Zend\I18n\Validator\Alpha())
+    ));
+
+    $validatorChainUsername = new Zend\Validator\ValidatorChain();
+    $validater->offsetSet('username', new \Utill\Validation\Chain\ZendValidationChainer($app, $vUsername, $validatorChainUsername->attach(
+                    new Zend\Validator\StringLength(array('min' => 6,
+                'max' => 35)))
+            //   ->attach(new Zend\I18n\Validator\Alnum())    
+    ));
+
+    $validatorChainPassword = new Zend\Validator\ValidatorChain();
+    $validater->offsetSet('password', new \Utill\Validation\Chain\ZendValidationChainer($app, $vPassword, $validatorChainPassword->attach(
+                            new Zend\Validator\StringLength(array('min' => 8,
+                        'max' => 20)))
+                    ->attach(new Zend\I18n\Validator\Alnum())
+    ));
+    $validatorChainAuthEmail = new Zend\Validator\ValidatorChain();
+    $validater->offsetSet('auth_email', new \Utill\Validation\Chain\ZendValidationChainer($app, $vAuthEmail, $validatorChainAuthEmail->attach(
+                            new Zend\Validator\StringLength(array('min' => 8,
+                        'max' => 20)))
+                    //->attach(new Zend\I18n\Validator\Alnum()) 
+                    ->attach(new Zend\Validator\EmailAddress())
+    ));
+
+    $validatorChainPreferredLanguage = new Zend\Validator\ValidatorChain();
+    $validater->offsetSet('preferred_language', new \Utill\Validation\Chain\ZendValidationChainer($app, $vPreferredLanguage, $validatorChainPreferredLanguage->attach(
+                            new Zend\Validator\StringLength(array(//'min' => 8,
+                        'max' => 2)))
+                    ->attach(new Zend\I18n\Validator\Alpha())
+    ));
+
+    $validatorChainLanguageCode = new Zend\Validator\ValidatorChain();
+    $validater->offsetSet('language_code', new \Utill\Validation\Chain\ZendValidationChainer($app, $vLanguageCode, $validatorChainLanguageCode->attach(
+                            new Zend\Validator\StringLength(array('min' => 2,
+                        'max' => 2)))
+                    ->attach(new Zend\I18n\Validator\Alpha())
+    ));
+
+    $validatorChainId = new Zend\Validator\ValidatorChain();
+    $validater->offsetSet('id', new \Utill\Validation\Chain\ZendValidationChainer($app, $vID, $validatorChainId->attach(
+                            new Zend\Validator\StringLength(array('min' => 1
+                            // ,'max' => 2
+                    )))
+                    ->attach(new Zend\Validator\Digits())
+    ));
+
+    $validatorChainOperationTypeId = new Zend\Validator\ValidatorChain();
+    $validater->offsetSet('operation_type_id', new \Utill\Validation\Chain\ZendValidationChainer($app, $vOperationTypeId, $validatorChainOperationTypeId->attach(
+                            new Zend\Validator\StringLength(array('min' => 1
+                            // ,'max' => 2
+                    )))
+                    ->attach(new Zend\Validator\Digits())
+    ));
+
+    $validatorChainActive = new Zend\Validator\ValidatorChain();
+    $validater->offsetSet('active', new \Utill\Validation\Chain\ZendValidationChainer($app, $vActive, $validatorChainActive->attach(
+                            new Zend\Validator\StringLength(array('min' => 1
+                        , 'max' => 1
+                    )))
+                    ->attach(new Zend\Validator\Digits())
+    ));
+
+    $validatorChainProfilePublic = new Zend\Validator\ValidatorChain();
+    $validater->offsetSet('profile_public', new \Utill\Validation\Chain\ZendValidationChainer($app, $vProfilePublic, $validatorChainProfilePublic->attach(
+                            new Zend\Validator\StringLength(array('min' => 1
+                        , 'max' => 1
+                    )))
+                    ->attach(new Zend\Validator\Digits())
+    ));
+
+    $validatorChainFCheck = new Zend\Validator\ValidatorChain();
+    $validater->offsetSet('f_check', new \Utill\Validation\Chain\ZendValidationChainer($app, $vFCheck, $validatorChainFCheck->attach(
+                            new Zend\Validator\StringLength(array('min' => 1
+                        , 'max' => 1
+                    )))
+                    ->attach(new Zend\Validator\Digits())
+    ));
+
+
+    $validatorChainAuthAllowId = new Zend\Validator\ValidatorChain();
+    $validater->offsetSet('auth_allow_id', new \Utill\Validation\Chain\ZendValidationChainer($app, $vAuthAllowId, $validatorChainAuthAllowId->attach(
+                            new Zend\Validator\StringLength(array('min' => 1
+                        , 'max' => 1
+                    )))
+                    ->attach(new Zend\Validator\Digits())
+    ));
+
+    $validatorChainConsAllowId = new Zend\Validator\ValidatorChain();
+    $validater->offsetSet('cons_allow_id', new \Utill\Validation\Chain\ZendValidationChainer($app, $vConsAllowId, $validatorChainConsAllowId->attach(
+                            new Zend\Validator\StringLength(array('min' => 1
+                        , 'max' => 1
+                    )))
+                    ->attach(new Zend\Validator\Digits())
+    ));
+
+
+    $validatorChainActParentId = new Zend\Validator\ValidatorChain();
+    $validater->offsetSet('act_parent_id', new \Utill\Validation\Chain\ZendValidationChainer($app, $vActParentId, $validatorChainActParentId->attach(
+                            new Zend\Validator\StringLength(array('min' => 1
+                        , 'max' => 1
+                    )))
+                    ->attach(new Zend\Validator\Digits())
+    ));
+
+
+
     $validater->validate();
-    $messager = $app->getServiceManager()->get('validatorMessager');  
-    print_r( $messager->getValidationMessage());
-    
-    
-    
-    
-     
-    
-    $fID = $vID;    
-    $fOperationTypeId = $vOperationTypeId;    
-    $fActive =$vActive;
-    $fActParentId =$vActParentId;
+    $messager = $app->getServiceManager()->get('validatorMessager');
+    print_r($messager->getValidationMessage());
+
+
+
+
+
+
+    $fID = $vID;
+    $fOperationTypeId = $vOperationTypeId;
+    $fActive = $vActive;
+    $fActParentId = $vActParentId;
     $fLanguageCode = $vLanguageCode;
     $fProfilePublic = $vProfilePublic;
-    $fName = $vName ; 
-    $fSurname  =$vSurname; 
-    $fUsername = $vUsername;        
-    $fPassword =$vPassword ;
-    $fAuthEmail =$vAuthEmail ;
-    $fPreferredLanguage =$vPreferredLanguage;   
-    $fFCheck = $vFCheck ; 
-    $fAuthAllowId = $vAuthAllowId ; 
-    $fConsAllowId = $vConsAllowId ; 
-    $fpk = $vpk ; 
-    $fPkTemp = $vPkTemp ; 
-    
+    $fName = $vName;
+    $fSurname = $vSurname;
+    $fUsername = $vUsername;
+    $fPassword = $vPassword;
+    $fAuthEmail = $vAuthEmail;
+    $fPreferredLanguage = $vPreferredLanguage;
+    $fFCheck = $vFCheck;
+    $fAuthAllowId = $vAuthAllowId;
+    $fConsAllowId = $vConsAllowId;
+    $fpk = $vpk;
+    $fPkTemp = $vPkTemp;
+
     /*
      * filtre işlemleri
      */
-    
+
     $resDataUpdate = $BLL->update(array(
-        'id' =>$fID,
+        'id' => $fID,
         'f_check' => $fFCheck,
         'operation_type_id' => $fOperationTypeId,
-        'active' => $fActive,        
+        'active' => $fActive,
         'act_parent_id' => $fActParentId,
         'language_code' => $fLanguageCode,
-        'profile_public' => $fProfilePublic,   
-        'name' =>$fName,
+        'profile_public' => $fProfilePublic,
+        'name' => $fName,
         'surname' => $fSurname,
-        'username' => $fUsername,        
+        'username' => $fUsername,
         'password' => $fPassword,
         'auth_email' => $fAuthEmail,
-        'auth_allow_id' => $fAuthAllowId,        
-        'cons_allow_id' => $fConsAllowId,    
-        'preferred_language' => $fPreferredLanguage,     
+        'auth_allow_id' => $fAuthAllowId,
+        'cons_allow_id' => $fConsAllowId,
+        'preferred_language' => $fPreferredLanguage,
         'pk' => $fpk,
         'pktemp' => $vPkTemp));
- 
+
     $app->response()->header("Content-Type", "application/json");
 
 
@@ -502,34 +521,10 @@ $app->get("/pkDeletedAct_infoUsers/", function () use ($app ) {
 
     $resDataUpdate = $BLL->deletedAct(array(
         'id' => $_GET['id'],
-        'f_check' => $_GET['f_check'],
         'operation_type_id' => $_GET['operation_type_id'],
-        'active' => $_GET['active'],
-        'deleted' => $_GET['deleted'],
-        'act_parent_id' => $_GET['act_parent_id'],
-        'language_code' => $_GET['language_code'],
-        'profile_public' => $_GET['profile_public'],
-        'c_date' => $_GET['c_date'],
-        'operation_type_id' => $_GET['operation_type_id'],
-        'name' => $_GET['name'],
-        'surname' => $_GET['surname'],
-        'username' => $_GET['username'],        
-        'password' => $_GET['password'],
-        'auth_email' => $_GET['auth_email'],
-        'auth_allow_id' => $_GET['auth_allow_id'],
-        'user_id' => $_GET['user_id'],
-        'act_parent_id' => $_GET['act_parent_id'],
-        'cons_allow_id' => $_GET['cons_allow_id'],
-        'language_code' => $_GET['language_code'],
-        'preferred_language' => $_GET['preferred_language'],    
-        'personIdNumber' => $_GET['personIdNumber'],
         'pk' => $pk));
- 
-    $app->response()->header("Content-Type", "application/json");
 
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
+    $app->response()->header("Content-Type", "application/json");
 
     $app->response()->body(json_encode($resDataUpdate));
 });
@@ -544,12 +539,12 @@ $app->get("/pkDelete_infoUsers/", function () use ($app ) {
     $BLL = $app->getBLLManager()->get('infoUsersBLL');
 
     $headerParams = $app->request()->headers();
-    $pk = $headerParams['X-Public'];     
- 
+    $pk = $headerParams['X-Public'];
+
     $resDataUpdate = $BLL->delete(array(
-        'id' => $_GET['id'],         
+        'id' => $_GET['id'],
         'pk' => $pk));
- 
+
     $app->response()->header("Content-Type", "application/json");
 
     /* $app->contentType('application/json');
@@ -568,7 +563,7 @@ $app->get("/pkGetAll_infoUsers/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('infoUsersBLL');
 
-    $resDataGrid = $BLL->getAll(array( 
+    $resDataGrid = $BLL->getAll(array(
         'pk' => $pk));
 
     $resTotalRowCount = $BLL->fillGridRowTotalCount(array('search_name' => $vSearchName));
