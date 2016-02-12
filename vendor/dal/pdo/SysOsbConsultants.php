@@ -106,7 +106,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-                    
+
     /**
      * @author Okan CIRAN
      * @ sys_osb_consultants tablosuna yeni bir kayıt oluşturur.  !!
@@ -444,14 +444,13 @@ class SysOsbConsultants extends \DAL\DalSlim {
     public function fillOsbConsultantList($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-                    
-             if (isset($params['osb_id']) && $params['osb_id'] != "") { 
-                 $whereSql = " AND a.osb_id = ".  intval($params['osb_id'])." AND  " ; 
-             }
-             else {
-                 $whereSql = "  AND a.osb_id = 5  " ;  // osbId = 5 ostim
-             } 
-                    
+
+            if (isset($params['osb_id']) && $params['osb_id'] != "") {
+                $whereSql = " AND a.osb_id = " . intval($params['osb_id']) . " AND  ";
+            } else {
+                $whereSql = "  AND a.osb_id = 5  ";  // osbId = 5 ostim
+            }
+
             $statement = $pdo->prepare("
               SELECT                    
                     a.id, 	
@@ -510,7 +509,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+            // $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -644,12 +643,11 @@ class SysOsbConsultants extends \DAL\DalSlim {
         if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
             $offset = ((intval($params['page']) - 1) * intval($params['rows']));
             $limit = intval($params['rows']);
-    
         } else {
             $limit = 10;
             $offset = 0;
         }
-         
+
 
         $sortArr = array();
         $orderArr = array();
@@ -672,43 +670,43 @@ class SysOsbConsultants extends \DAL\DalSlim {
         }
 
         // sql query dynamic for filter operations
-        $sorguStr=null;
-        if(isset($params['filterRules'])) {
+        $sorguStr = null;
+        if (isset($params['filterRules'])) {
             $filterRules = trim($params['filterRules']);
             //print_r(json_decode($filterRules));
             $jsonFilter = json_decode($filterRules, true);
             //print_r($jsonFilter[0]->field);
             $sorguExpression = null;
             foreach ($jsonFilter as $std) {
-                if($std['value']!=null) {
+                if ($std['value'] != null) {
                     switch (trim($std['field'])) {
-                    case 'username':
-                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\' ';
-                        $sorguStr.=' AND fpu.username'.$sorguExpression.' ';
-                        break;
-                    case 'company_name':
-                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\'  ';
-                        $sorguStr.=' AND fp.firm_name'.$sorguExpression.' ';
+                        case 'username':
+                            $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                            $sorguStr.=' AND fpu.username' . $sorguExpression . ' ';
+                            break;
+                        case 'company_name':
+                            $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                            $sorguStr.=' AND fp.firm_name' . $sorguExpression . ' ';
 
-                        break;
-                    case 's_date':
-                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\'  ';
-                        $sorguStr.='AND  TO_CHAR(fp.s_date, \'DD/MM/YYYY\')'.$sorguExpression.' ';
+                            break;
+                        case 's_date':
+                            $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                            $sorguStr.='AND  TO_CHAR(fp.s_date, \'DD/MM/YYYY\')' . $sorguExpression . ' ';
 
-                        break;
-                    default:
-                        break;
+                            break;
+                        default:
+                            break;
                     }
-                }  
+                }
             }
         } else {
-            $sorguStr=null;
+            $sorguStr = null;
             $filterRules = "";
         }
-        
-      $sorguStr = rtrim($sorguStr,"AND ");
-      //if($sorguStr!="") $sorguStr = "WHERE ".$sorguStr;          
-        
+
+        $sorguStr = rtrim($sorguStr, "AND ");
+        //if($sorguStr!="") $sorguStr = "WHERE ".$sorguStr;          
+
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
@@ -726,12 +724,12 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 WHERE fpu.auth_allow_id = 0 AND 
                      a.user_id =" . intval($opUserIdValue) . "                                                
                 " . $sorguStr . "
-                ORDER BY    " . $sort . " "  
+                ORDER BY    " . $sort . " "
                         . "" . $order . " "
                         . "LIMIT " . $pdo->quote($limit) . " "
                         . "OFFSET " . $pdo->quote($offset) . " ";
                 $statement = $pdo->prepare($sql);
-         // echo debugPDO($sql, $params);
+                // echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -768,42 +766,42 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $whereSQL = " WHERE a.user_id = " . intval($opUserIdValue);
 
-                 // sql query dynamic for filter operations
-        $sorguStr=null;
-        if(isset($params['filterRules'])) {
-            $filterRules = trim($params['filterRules']);
-            //print_r(json_decode($filterRules));
-            $jsonFilter = json_decode($filterRules, true);
-            //print_r($jsonFilter[0]->field);
-            $sorguExpression = null;
-            foreach ($jsonFilter as $std) {
-                if($std['value']!=null) {
-                    switch (trim($std['field'])) {
-                    case 'username':
-                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\' ';
-                        $sorguStr.=' AND fpu.username'.$sorguExpression.' ';
-                        break;
-                    case 'company_name':
-                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\'  ';
-                        $sorguStr.=' AND fp.firm_name'.$sorguExpression.' ';
+                // sql query dynamic for filter operations
+                $sorguStr = null;
+                if (isset($params['filterRules'])) {
+                    $filterRules = trim($params['filterRules']);
+                    //print_r(json_decode($filterRules));
+                    $jsonFilter = json_decode($filterRules, true);
+                    //print_r($jsonFilter[0]->field);
+                    $sorguExpression = null;
+                    foreach ($jsonFilter as $std) {
+                        if ($std['value'] != null) {
+                            switch (trim($std['field'])) {
+                                case 'username':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                    $sorguStr.=' AND fpu.username' . $sorguExpression . ' ';
+                                    break;
+                                case 'company_name':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                    $sorguStr.=' AND fp.firm_name' . $sorguExpression . ' ';
 
-                        break;
-                    case 's_date':
-                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\'  ';
-                        $sorguStr.='AND TO_CHAR(fp.s_date, \'DD/MM/YYYY\')'.$sorguExpression.' ';
+                                    break;
+                                case 's_date':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                    $sorguStr.='AND TO_CHAR(fp.s_date, \'DD/MM/YYYY\')' . $sorguExpression . ' ';
 
-                        break;
-                    default:
-                        break;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
                     }
-                }  
-            }
-        } else {
-            $sorguStr=null;
-            $filterRules = "";
-        }
+                } else {
+                    $sorguStr = null;
+                    $filterRules = "";
+                }
 
-          $sorguStr = rtrim($sorguStr,"AND ");
+                $sorguStr = rtrim($sorguStr, "AND ");
                 $sql = "
                SELECT  
                     COUNT(a.id) AS COUNT                           		  
@@ -814,7 +812,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
 
                     ";
                 $statement = $pdo->prepare($sql);
-              //   echo debugPDO($sql, $params);
+                //   echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -824,7 +822,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
-              //  $pdo->commit();
+                //  $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -832,7 +830,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-    
+
     /**
      * get consultant confirmation process details
      * @param array $params
@@ -909,7 +907,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                     ";
                 $statement = $pdo->prepare($sql);
                 $statement->bindValue(':profile_id', $params['profile_id'], \PDO::PARAM_INT);
-              //   echo debugPDO($sql, $params);
+                //   echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -919,7 +917,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
-              //  $pdo->commit();
+                //  $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -927,10 +925,8 @@ class SysOsbConsultants extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-    
- 
-    
-      /**
+
+    /**
      * parametre olarak gelen array deki 'id' li kaydın update ini yapar  !!
      * @author Okan CIRAN
      * @version v 1.0  10.02.2016     
@@ -943,30 +939,33 @@ class SysOsbConsultants extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-          
+
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                    
+
                 $addSql = " op_user_id, ";
                 $addSqlValue = intval($opUserIdValue) . ", ";
 
                 if (isset($params['operation_type_id'])) {
                     $addSql .= " operation_type_id, ";
                     $addSqlValue .= intval($params['operation_type_id']) . ", ";
-                }  
+                }
                 if (isset($params['cons_allow_id'])) {
                     $addSql .= " cons_allow_id, ";
                     $addSqlValue .= intval($params['cons_allow_id']) . ", ";
-                }   
-                    
-                
+                }
+                if (isset($params['role_id'])) {
+                    $addSql .= " role_id, ";
+                    $addSqlValue .= intval($params['role_id']) . ", ";
+                }
+                                
                 /*
                  *  parametre olarak gelen array deki 'id' li kaydın, info_users_details tablosundaki 
                  * active = 0 ve deleted = 0 olan kaydın active alanını 1 yapar  !!
                  */
                 InfoUsers::setUserDetailsDisables(array('id' => $params['id']));
- 
+
                 $sql = " 
                     INSERT INTO info_users_detail(
                            profile_public, 
@@ -1001,16 +1000,15 @@ class SysOsbConsultants extends \DAL\DalSlim {
 
  
                     ";
-                    $statementActInsert = $pdo->prepare($sql);
-                    //   echo debugPDO($sql, $params);
-                    $insertAct = $statementActInsert->execute();
-                    $insertID = $pdo->lastInsertId('info_users_detail_id_seq');
-                    $errorInfo = $statementActInsert->errorInfo();
-                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                        throw new \PDOException($errorInfo[0]);
-                    $pdo->commit();
-                    return array("found" => true, "errorInfo" => $errorInfo,  "newId" => $insertID);
-                    
+                $statementActInsert = $pdo->prepare($sql);
+                //   echo debugPDO($sql, $params);
+                $insertAct = $statementActInsert->execute();
+                $insertID = $pdo->lastInsertId('info_users_detail_id_seq');
+                $errorInfo = $statementActInsert->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "newId" => $insertID);
             } else {
                 $errorInfo = '23502';  /// 23502 user_id not_null_violation
                 $pdo->commit();
@@ -1023,9 +1021,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
         }
     }
 
-    
-    
-     /**
+    /**
      * @author Okan CIRAN
      * @ Gridi doldurmak için consultant ların yaptığı operasyon kayıtlarını döndürür !!
      * @version v 1.0  08.02.2016
@@ -1037,12 +1033,11 @@ class SysOsbConsultants extends \DAL\DalSlim {
         if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
             $offset = ((intval($params['page']) - 1) * intval($params['rows']));
             $limit = intval($params['rows']);
-    
         } else {
             $limit = 10;
             $offset = 0;
         }
-         
+
 
         $sortArr = array();
         $orderArr = array();
@@ -1065,43 +1060,43 @@ class SysOsbConsultants extends \DAL\DalSlim {
         }
 
         // sql query dynamic for filter operations
-        $sorguStr=null;
-        if(isset($params['filterRules'])) {
+        $sorguStr = null;
+        if (isset($params['filterRules'])) {
             $filterRules = trim($params['filterRules']);
             //print_r(json_decode($filterRules));
             $jsonFilter = json_decode($filterRules, true);
             //print_r($jsonFilter[0]->field);
             $sorguExpression = null;
             foreach ($jsonFilter as $std) {
-                if($std['value']!=null) {
+                if ($std['value'] != null) {
                     switch (trim($std['field'])) {
-                    case 'operation_type_id':
-                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\' ';
-                        $sorguStr.=' AND fpu.username'.$sorguExpression.' ';
-                        break;
-                    case 'company_name':
-                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\'  ';
-                        $sorguStr.=' AND fp.firm_name'.$sorguExpression.' ';
+                        case 'operation_type_id':
+                            $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                            $sorguStr.=' AND fpu.username' . $sorguExpression . ' ';
+                            break;
+                        case 'company_name':
+                            $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                            $sorguStr.=' AND fp.firm_name' . $sorguExpression . ' ';
 
-                        break;
-                    case 's_date':
-                        $sorguExpression = ' ILIKE \'%'.$std['value'].'%\'  ';
-                        $sorguStr.='AND TO_CHAR(fp.s_date, \'DD/MM/YYYY\')'.$sorguExpression.' ';
+                            break;
+                        case 's_date':
+                            $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                            $sorguStr.='AND TO_CHAR(fp.s_date, \'DD/MM/YYYY\')' . $sorguExpression . ' ';
 
-                        break;
-                    default:
-                        break;
+                            break;
+                        default:
+                            break;
                     }
-                }  
+                }
             }
         } else {
-            $sorguStr=null;
+            $sorguStr = null;
             $filterRules = "";
         }
-        
-      $sorguStr = rtrim($sorguStr,"AND ");
-      //if($sorguStr!="") $sorguStr = "WHERE ".$sorguStr;          
-        
+
+        $sorguStr = rtrim($sorguStr, "AND ");
+        //if($sorguStr!="") $sorguStr = "WHERE ".$sorguStr;          
+
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
@@ -1120,12 +1115,12 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 
                      a.user_id =" . intval($opUserIdValue) . "                                                
                 " . $sorguStr . "
-                ORDER BY    " . $sort . " "  
+                ORDER BY    " . $sort . " "
                         . "" . $order . " "
                         . "LIMIT " . $pdo->quote($limit) . " "
                         . "OFFSET " . $pdo->quote($offset) . " ";
                 $statement = $pdo->prepare($sql);
-         // echo debugPDO($sql, $params);
+                // echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -1144,14 +1139,86 @@ class SysOsbConsultants extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
- 
+
+    /**
+     * @author Okan CIRAN
+     * info_users tablosunda üzerinde en az iş olan consultant id sini döndürür    !!
+     * yeni kayıt edilen consultant varsa onu da işleme alır.
+     * @version v 1.0  
+     * @since 12.02.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function getConsultantIdForUsers($params = array()) {
+        try {
+                        
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                        
+           $sql = "               
+                SELECT consultant_id, 1=1 AS control FROM ( 
+                    SELECT 
+                        cons.user_id AS consultant_id , 
+                        count(iu.id) AS adet , 
+                        MAX(iu.s_date) 
+                    FROM sys_osb_consultants cons
+                    LEFT JOIN info_users iu ON iu.consultant_id = cons.user_id AND iu.cons_allow_id = 0  
+                    WHERE cons.active = 0 AND cons.deleted =0 AND cons.osb_id = 5 
+                    GROUP BY cons.user_id
+                    ORDER BY adet, max  
+                    LIMIT 1 
+                ) AS tempx                    
+                                 ";
+            $statement = $pdo->prepare($sql) ; 
+           // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
     
-    
+     /**
+     * @author Okan CIRAN
+     * info_firm_profile tablosunda üzerinde en az iş olan consultant id sini döndürür    !!
+     * yeni kayıt edilen consultant varsa onu da işleme alır.
+     * @version v 1.0  
+     * @since 12.02.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function getConsultantIdForCompany($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                        
+            $statement = $pdo->prepare("               
+                SELECT consultant_id, 1=1 AS control FROM ( 
+                    SELECT 
+                        cons.user_id AS consultant_id , 
+                        count(ifp.id) AS adet , 
+                        MAX(ifp.s_date) 
+                    FROM sys_osb_consultants cons
+                    LEFT JOIN info_firm_profile ifp ON ifp.consultant_id = cons.user_id AND ifp.cons_allow_id = 0  
+                    WHERE cons.active = 0 AND cons.deleted =0 AND cons.osb_id = 5 
+                    GROUP BY cons.user_id
+                    ORDER BY adet, max  
+                    LIMIT 1 
+                ) AS tempx                    
+                                 ");
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
 
 }
-
-    
-    
-
-
-
