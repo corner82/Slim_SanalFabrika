@@ -109,29 +109,29 @@ $app->get("/pkInsert_infoError/", function () use ($app ) {
 
     $vPk = '';
     if (isset($headerParams['X-Public'])) {
-        $vPk = strtolower(trim($headerParams['X-Public']));
+        $vPk = trim($headerParams['X-Public']);
     }
     $vServiceName = '';
     if (isset($_GET['service_name'])) {
-        $vServiceName = strtolower(trim($_GET['service_name']));
+        $vServiceName =  trim($_GET['service_name']);
     }
     $vUrl = '';
     if (isset($_GET['url_full'])) {
-        $vUrl = strtolower(trim($_GET['url_full']));
+        $vUrl =  trim($_GET['url_full']);
     }
     $vErrorCode = '';
     if (isset($_GET['error_code'])) {
-        $vErrorCode = strtolower(trim($_GET['error_code']));
+        $vErrorCode =  trim($_GET['error_code'] );
     }
 
     $vErrorInfo = '';
     if (isset($_GET['error_info'])) {
-        $vErrorInfo = strtolower(trim($_GET['error_info']));
+        $vErrorInfo = trim($_GET['error_info']);
     }
 
     $vPageName = '';
     if (isset($_GET['page_name'])) {
-        $vPageName = strtolower(trim($_GET['page_name']));
+        $vPageName = trim($_GET['page_name']);
     }
 
 
