@@ -53,7 +53,7 @@ $app->get("/fillComboBox_syslanguage/", function () use ($app ) {
     
     $BLL = $app->getBLLManager()->get('sysLanguageBLL'); 
     
-    $componentType = 'ddslick'; 
+    $componentType = 'bootstrap'; 
     if (isset($_GET['component_type'])) {
         $componentType = strtolower(trim($_GET['component_type'] ));
     }
