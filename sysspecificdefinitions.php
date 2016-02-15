@@ -39,14 +39,7 @@ $app->add(new \Slim\Middleware\MiddlewareDalManager());
 $app->add(new \Slim\Middleware\MiddlewareServiceManager());
 $app->add(new \Slim\Middleware\MiddlewareMQManager());
 
-
-$pdo = new PDO('pgsql:dbname=ecoman_01_10;host=88.249.18.205;user=postgres;password=1q2w3e4r');
-
-\Slim\Route::setDefaultConditions(array(
-    'firstName' => '[a-zA-Z]{3,}',
-    'page' => '[0-9]{1,}'
-));
-
+ 
 
 
 /**
@@ -67,10 +60,8 @@ $app->get("/fillMainDefinitions_sysSpecificDefinitions/", function () use ($app 
         $componentType = strtolower(trim($_GET['component_type']));
     }
 
-
     $resCombobox = $BLL->fillMainDefinitions(array('language_code' => $languageCode
     ));
-
 
     $menus = array();
     $menus[] = array( "text" => "Lütfen Bir Operasyon Tipi Seçiniz",  "value" => -1, "selected"=> true,) ;
