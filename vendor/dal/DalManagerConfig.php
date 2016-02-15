@@ -62,6 +62,8 @@ class DalManagerConfig {
                 'sysOperationTypesPDO' => 'DAL\Factory\PDO\SysOperationTypesFactory',
                 'sysOperationTypesToolsPDO' => 'DAL\Factory\PDO\SysOperationTypesToolsFactory', 
                 'infoErrorPDO' => 'DAL\Factory\PDO\InfoErrorFactory', 
+                'sysMachineToolGroupsPDO' => 'DAL\Factory\PDO\SysMachineToolGroupsFactory', 
+                
                 
                  
             ],
