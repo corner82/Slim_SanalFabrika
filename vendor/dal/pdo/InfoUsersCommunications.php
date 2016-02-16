@@ -104,15 +104,13 @@ class InfoUsersCommunications extends \DAL\DalSlim {
 		INNER JOIN sys_operation_types op on op.id = b.operation_type_id AND op.deleted = 0 AND op.active = 0 AND op.language_id = a.language_id                            
                 ORDER BY sd6.first_group              
                                  ");
-
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {         
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -127,8 +125,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
      */
     public function makePassive($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            //$pdo->beginTransaction();
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');       
             $statement = $pdo->prepare(" 
                 UPDATE info_users_communications
                 SET                         
@@ -140,11 +137,9 @@ class InfoUsersCommunications extends \DAL\DalSlim {
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            //$pdo->commit();
+                throw new \PDOException($errorInfo[0]);        
             return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
-        } catch (\PDOException $e /* Exception $e */) {
-            //$pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {       
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -165,7 +160,6 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $addSql = " op_user_id, ";
                 $addSqlValue = " " . $opUserIdValue . ",";
-
                 $addSql .= " user_id,  ";
                 if ((isset($params['user_id']) && $params['user_id'] != "")) {
                     $userId = $params['user_id'];
@@ -183,7 +177,6 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 $addSql .= " language_id,  ";
                 $addSqlValue .= " " . intval($languageIdValue) . ",";
 
-
                 if ((isset($params['active']) && $params['active'] != "")) {
                     $addSqlValue .= " " . intval($params['active']) . ",";
                     $addSql .= " active,  ";
@@ -195,7 +188,6 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 } ELSE {
                     $addSqlValue .= " 1,";
                 }
-
 
                 if ((isset($params['consultant_id']) && $params['consultant_id'] != "")) {
                     $addSqlValue .= " " . intval($params['consultant_id']) . ",";
@@ -263,7 +255,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
-                $pdo->commit();
+                 $pdo->rollback();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -272,11 +264,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic have records control  
-     * * returned result set example;
-     * for success result  
-     * usage     
+    /**    
      * @author Okan CIRAN
      * @ info_users_communications tablosunda user_id & communications_type_id & communications_no sutununda daha önce oluşturulmuş mu? 
      * @todo su an için insert ve update  fonksiyonlarında aktif edilmedi. daha sonra aktif edilecek
@@ -333,9 +321,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-
                 $this->makePassive(array('id' => $params['id']));
-
                 if ((isset($params['consultant_id']) && $params['consultant_id'] != "")) {
                     $addSqlValue .= " " . intval($params['consultant_id']) . ",";
                     $addSql .= " consultant_id,  ";
@@ -366,7 +352,6 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 }
                 $addSql .= " language_id,  ";
                 $addSqlValue .= " " . intval($languageIdValue) . ",";
-
 
                 $statementInsert = $pdo->prepare("
                 INSERT INTO info_users_communications (                                          
@@ -424,7 +409,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
                 $errorInfoColumn = 'user_id';
-                $pdo->commit();
+                 $pdo->rollback();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -637,8 +622,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             } else {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
-                $errorInfoColumn = 'user_id';
-                $pdo->commit();
+                $errorInfoColumn = 'user_id';         
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -709,8 +693,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             } else {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
-                $errorInfoColumn = 'pk';
-                $pdo->commit();
+                $errorInfoColumn = 'pk';                
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -825,13 +808,11 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             } else {
                 $errorInfo = '23505';   // 23505  unique_violation
-                $errorInfoColumn = 'pk';
-                $pdo->commit();
+                $errorInfoColumn = 'pk';            
                 $result = $kontrol;
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {      
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -884,15 +865,13 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                                 cx.deleted =0 AND 
                                 cx.active =0)) 
                     ");
-
-            //$statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);   
+        
             $result = $statement->execute();
             $insertID = $pdo->lastInsertId('info_users_communications_id_seq');
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
-
             return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -912,7 +891,6 @@ class InfoUsersCommunications extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function fillTextLanguageTemplate($args = array()) {
-
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -952,14 +930,10 @@ class InfoUsersCommunications extends \DAL\DalSlim {
              */
             $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_STR);
             $statement->bindValue(':language_parent_id', $args['id'], \PDO::PARAM_STR);
-
-
             //    echo debugPDO($sql, $parameters);
-
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -996,7 +970,6 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                     }
                     $addSqlValue .= intval($act_parent_id) . ", ";
                 }
-
 
                 if (isset($params['operation_type_id'])) {
                     $addSql .= " operation_type_id, ";
@@ -1069,7 +1042,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';  /// 23502  not_null_violation
                 $errorInfoColumn = 'pk / op_user_id';
-                $pdo->commit();
+                 $pdo->rollback();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -1169,7 +1142,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
-                $pdo->commit();
+                 $pdo->rollback();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -1259,7 +1232,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
                 $errorInfoColumn = 'user_id';
-                $pdo->commit();
+                $pdo->rollback();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -1326,8 +1299,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             } else {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
-                $errorInfoColumn = 'user_id';
-                $pdo->commit();
+                $errorInfoColumn = 'user_id';              
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -1407,8 +1379,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             } else {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
-                $errorInfoColumn = 'pk';
-                $pdo->commit();
+                $errorInfoColumn = 'pk';             
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -1461,13 +1432,11 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             } else {
                 $errorInfo = '23505';   // 23505  unique_violation
-                $errorInfoColumn = 'pk / user_id';
-                $pdo->commit();
-                $result = $kontrol;
+                $errorInfoColumn = 'pk';              
+                //$result = $kontrol;
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {       
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -1520,8 +1489,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                         communications_type_id, 
                         communications_no, 
                         description, 
-                        description_eng,
-                        
+                        description_eng,                        
                         profile_public, 
                         f_check, 
                         consultant_id,
@@ -1570,8 +1538,8 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
             } else {
                 $errorInfo = '23502';  /// 23502  not_null_violation
-                $errorInfoColumn = 'pk / op_user_id';
-                $pdo->commit();
+                $errorInfoColumn = 'pk';
+                 $pdo->rollback();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {

@@ -189,8 +189,7 @@ class BlActivationReport extends \DAL\DalSlim {
             return json_encode($result);
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
-                $errorInfoColumn = 'pk';
-                $pdo->commit();
+                $errorInfoColumn = 'pk';              
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -268,12 +267,10 @@ class BlActivationReport extends \DAL\DalSlim {
             return json_encode($result);
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
-                $errorInfoColumn = 'pk';
-           //     $pdo->commit();
+                $errorInfoColumn = 'pk';        
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
-        } catch (\PDOException $e /* Exception $e */) {
-          //  $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {      
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -346,12 +343,9 @@ class BlActivationReport extends \DAL\DalSlim {
             return json_encode($result);
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
-                $errorInfoColumn = 'pk';
-             //   $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
-            }
-        } catch (\PDOException $e /* Exception $e */) {
-         //   $pdo->rollback();
+                $errorInfoColumn = 'pk';        
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);            }
+        } catch (\PDOException $e /* Exception $e */) {  
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -373,8 +367,7 @@ class BlActivationReport extends \DAL\DalSlim {
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId['resultSet'][0]['user_id'];
                 
-            $sql = "  
-                 
+            $sql = "                   
                SELECT 
                     aciklama , 
                     CASE
@@ -407,12 +400,10 @@ class BlActivationReport extends \DAL\DalSlim {
             return json_encode($result);
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
-                $errorInfoColumn = 'pk';
-             //   $pdo->commit();
+                $errorInfoColumn = 'pk';          
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
-        } catch (\PDOException $e /* Exception $e */) {
-            
+        } catch (\PDOException $e /* Exception $e */) {            
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }

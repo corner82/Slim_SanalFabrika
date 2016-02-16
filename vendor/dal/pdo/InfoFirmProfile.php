@@ -716,7 +716,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
-                $pdo->commit();
+                 $pdo->rollback();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -1154,7 +1154,6 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     $addSql .= " owner_user_id,  ";
                     $addSqlValue .= " " . $opUserIdValue . ",";
 
-
                     $getConsultant = SysOsbConsultants::getConsultantIdForCompany(array('category_id' => 1));
                     if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                         $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
@@ -1170,7 +1169,6 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         $addSqlValue .= " '" . $foundationYear . "',";
                     }
 
-
                     $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                     if (\Utill\Dal\Helper::haveRecord($languageId)) {
                         $languageIdValue = $languageId ['resultSet'][0]['id'];
@@ -1179,7 +1177,6 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     }
                     $addSql .= " language_id, ";
                     $addSqlValue .= " " . intval($languageIdValue) . ",";
-
 
                     $sql = " 
                    INSERT INTO info_firm_profile(
@@ -1190,14 +1187,11 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         tax_office, 
                         tax_no, 
                         sgk_sicil_no, 
-                        ownership_status_id, 
-                        
+                        ownership_status_id,                         
                         language_code,                         
-                         " . $addSql . "   
-                  
+                         " . $addSql . "                     
                         firm_name_short,
-                        act_parent_id,
-                      
+                        act_parent_id,                      
                         description,
                         description_eng,
                         duns_number
@@ -1210,14 +1204,11 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         :tax_office, 
                         :tax_no, 
                         :sgk_sicil_no, 
-                        " . intval($params['ownership_status_id']) . ", 
-                        
+                        " . intval($params['ownership_status_id']) . ",                         
                         :language_code,                         
-                         " . $addSqlValue . " 
-                    
+                         " . $addSqlValue . "                     
                         :firm_name_short,
-                        (SELECT last_value FROM info_firm_profile_id_seq),
-                   
+                        (SELECT last_value FROM info_firm_profile_id_seq),                   
                         :description,
                         :description_eng,
                         :duns_number
@@ -1228,28 +1219,23 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     $statementInsert->bindValue(':tax_office', $params['tax_office'], \PDO::PARAM_STR);
                     $statementInsert->bindValue(':tax_no', $params['tax_no'], \PDO::PARAM_STR);
                     $statementInsert->bindValue(':sgk_sicil_no', $params['sgk_sicil_no'], \PDO::PARAM_STR);
-
                     $statementInsert->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
                     $statementInsert->bindValue(':firm_name_short', $params['firm_name_short'], \PDO::PARAM_STR);
                     $statementInsert->bindValue(':description', $params['description'], \PDO::PARAM_STR);
                     $statementInsert->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
                     $statementInsert->bindValue(':duns_number', $params['duns_number'], \PDO::PARAM_STR);
-
                     $result = $statementInsert->execute();
-
                     $insertID = $pdo->lastInsertId('info_firm_profile_id_seq');
                     $errorInfo = $statementInsert->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
                     $pdo->commit();
-
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
                     // 23505  unique_violation
                     $errorInfo = '23505';
                     $errorInfoColumn = 'firm_name';
-                    $pdo->rollback();
-                    // $result = $kontrol;
+                    $pdo->rollback();               
                     return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
             } else {

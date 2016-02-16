@@ -49,59 +49,7 @@ class SysCountrys extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic select from database  example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [resultSet] => Array
-      (
-      [0] => Array
-      (
-      [id] => 1
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [1] => Array
-      (
-      [id] => 4
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [2] => Array
-      (
-      [id] => 5
-      [name] => zeyn dag new
-      [international_code] => 25
-      [active] => 1
-      )
-
-      [3] => Array
-      (
-      [id] => 3
-      [name] => zeyn zeyn oldu şimdik
-      [international_code] => 12
-      [active] => 1
-      )
-
-      )
-
-      )
-     * usage 
+    /**  
      * @author Okan CIRAN
      * @ sys_countrys tablosundaki tüm kayıtları getirir.  !!
      * @version v 1.0  07.12.2015    
@@ -146,17 +94,12 @@ class SysCountrys extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {    
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
-        /**
-     * basic have records control  
-     * * returned result set example;
-     * for success result  
-     * usage     
+        /**       
      * @author Okan CIRAN
      * @ sys_countrys tablosunda name sutununda daha önce oluşturulmuş mu? 
      * @version v 1.0 21.01.2016
@@ -196,30 +139,7 @@ class SysCountrys extends \DAL\DalSlim {
     }
 
     
-    /**
-     * basic insert database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [lastInsertId] => 5
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage     
+    /**  
      * @author Okan CIRAN
      * @ sys_countrys tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  08.12.2015
@@ -264,7 +184,7 @@ class SysCountrys extends \DAL\DalSlim {
             return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
              } else {  
                 $errorInfo = '23505'; 
-                $pdo->commit();
+                 $pdo->rollback();
                 $result= $kontrol;  
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');           
             }
@@ -274,30 +194,7 @@ class SysCountrys extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic update database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage  
+    /**   
      * @author Okan CIRAN
      * sys_countrys tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  07.12.2015
@@ -343,7 +240,7 @@ class SysCountrys extends \DAL\DalSlim {
             return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
             } else {    
                 $errorInfo = '23505';  // 23505 unique_violation
-                $pdo->commit();
+                $pdo->rollback();
                 $result= $kontrol;            
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
@@ -392,11 +289,6 @@ class SysCountrys extends \DAL\DalSlim {
             $order = "ASC";
         }        
         
-        $whereSQL = '';
-        if (isset($args['search_name']) && $args['search_name'] != "") {
-            $whereSQL = " AND LOWER(COALESCE(NULLIF(a.name, ''), a.name_eng)) LIKE LOWER('%" . $args['search_name'] . "%') ";  
-        }  
-
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -536,8 +428,7 @@ class SysCountrys extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {   
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }

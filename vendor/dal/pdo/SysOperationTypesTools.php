@@ -59,7 +59,7 @@ class SysOperationTypesTools extends \DAL\DalSlim {
     public function getAll($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-           
+
             $statement = $pdo->prepare("
                 SELECT 
                     a.id, 
@@ -81,7 +81,7 @@ class SysOperationTypesTools extends \DAL\DalSlim {
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.op_user_id                         
                 ORDER BY a.role_name                  
-                                 ");            
+                                 ");
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -89,7 +89,6 @@ class SysOperationTypesTools extends \DAL\DalSlim {
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -134,8 +133,7 @@ class SysOperationTypesTools extends \DAL\DalSlim {
                         :op_user_id,
                         :language_parent_id,                       
                         :language_code ,
-                        :base_id
-                        
+                        :base_id                        
                                                 ");
                 $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':role_name', $params['operation_name'], \PDO::PARAM_STR);
@@ -155,7 +153,7 @@ class SysOperationTypesTools extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
-                $pdo->commit();
+                $pdo->rollback();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -164,7 +162,7 @@ class SysOperationTypesTools extends \DAL\DalSlim {
         }
     }
 
-    /** 
+    /**
      * sys_operation_types_tools tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller!!
      * @param type $params
      * @return array
@@ -179,13 +177,13 @@ class SysOperationTypesTools extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                 $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (\Utill\Dal\Helper::haveRecord($languageId)) {
                     $languageIdValue = $languageId ['resultSet'][0]['id'];
                 } else {
                     $languageIdValue = 647;
                 }
-            $statement = $pdo->prepare("
+                $statement = $pdo->prepare("
                 UPDATE sys_operation_types_tools
                 SET 
                      parent_id = :parent_id,
@@ -196,25 +194,25 @@ class SysOperationTypesTools extends \DAL\DalSlim {
                      language_parent_id = :language_parent_id,                       
                      language_code = :language_code  
                 WHERE base_id = :id");
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-            $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':role_name', $params['operation_name'], \PDO::PARAM_STR);
-            $statement->bindValue(':role_name_eng', $params['operation_name_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
-            $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
-            $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);    
-            $update = $statement->execute();
-            $affectedRows = $statement->rowCount();
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
+                $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);
+                $statement->bindValue(':role_name', $params['operation_name'], \PDO::PARAM_STR);
+                $statement->bindValue(':role_name_eng', $params['operation_name_eng'], \PDO::PARAM_STR);
+                $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
+                $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
+                $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
+                $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+                $update = $statement->execute();
+                $affectedRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
-                $pdo->commit();
+                $pdo->rollback();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -223,7 +221,7 @@ class SysOperationTypesTools extends \DAL\DalSlim {
         }
     }
 
-    /**  
+    /**
      * Gridi doldurmak için sys_operation_types_tools tablosundan kayıtları döndürür !!
      * @param array | null $args
      * @return array
@@ -247,7 +245,7 @@ class SysOperationTypesTools extends \DAL\DalSlim {
             $sortArr = explode(",", $sort);
             if (count($sortArr) === 1)
                 $sort = trim($params['sort']);
-        } else {   
+        } else {
             $sort = "a.role_name";
         }
 
@@ -257,7 +255,7 @@ class SysOperationTypesTools extends \DAL\DalSlim {
             //print_r($orderArr);
             if (count($orderArr) === 1)
                 $order = trim($params['order']);
-        } else {   
+        } else {
             $order = "ASC";
         }
 
@@ -294,13 +292,13 @@ class SysOperationTypesTools extends \DAL\DalSlim {
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
                     . "OFFSET " . $pdo->quote($offset) . " ";
-            $statement = $pdo->prepare($sql);        
+            $statement = $pdo->prepare($sql);
             $parameters = array(
                 'sort' => $sort,
                 'order' => $order,
                 'limit' => $pdo->quote($limit),
                 'offset' => $pdo->quote($offset),
-            ); 
+            );
             //  echo debugPDO($sql, $parameters);
             $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
             $statement->execute();
@@ -341,12 +339,11 @@ class SysOperationTypesTools extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.op_user_id   
-                WHERE a.language_id = " .intval($languageIdValue). "
+                WHERE a.language_id = " . intval($languageIdValue) . "
                     ";
-            $statement = $pdo->prepare($sql);            
+            $statement = $pdo->prepare($sql);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -367,23 +364,21 @@ class SysOperationTypesTools extends \DAL\DalSlim {
      */
     public function fillConsultantOperationsTools($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');   
-             $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
             if (\Utill\Dal\Helper::haveRecord($languageId)) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];
             } else {
                 $languageIdValue = 647;
             }
-            
-             if (isset($params['main_group']) && $params['main_group'] != "") { 
-                 $whereSql = "  a.main_group = ".  intval($params['main_group'])." AND  " ; 
-             }
-             else {
-                 //$whereSql = "  a.main_group in (1,2) AND  " ; 
-                 $whereSql = "  " ; 
-             } 
-                 
-             
+
+            if (isset($params['main_group']) && $params['main_group'] != "") {
+                $whereSql = "  a.main_group = " . intval($params['main_group']) . " AND  ";
+            } else {
+                //$whereSql = "  a.main_group in (1,2) AND  " ; 
+                $whereSql = "  ";
+            }
+
             $sql = "
                  SELECT                    
                     base_id AS id, 	
@@ -393,29 +388,26 @@ class SysOperationTypesTools extends \DAL\DalSlim {
                 WHERE 
                     a.active =0 AND a.deleted = 0 AND 
                     a.parent_id = 0 AND  
-                    ".$whereSql."
+                    " . $whereSql . "
                     a.language_id = :language_id
                 ORDER BY name
                 
                                  ";
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
-          //  echo debugPDO($sql, $params);
+            //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
- 
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
-    
-       /**
+    /**
      * returns operation type tools
      * @param array $params
      * @return array
@@ -425,23 +417,21 @@ class SysOperationTypesTools extends \DAL\DalSlim {
      */
     public function fillConsultantOperationsConfirmTools($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');   
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
             if (\Utill\Dal\Helper::haveRecord($languageId)) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];
             } else {
                 $languageIdValue = 647;
             }
-            
-             if (isset($params['main_group']) && $params['main_group'] != "") { 
-                 $whereSql = "  a.main_group = ".  intval($params['main_group'])." AND  " ; 
-             }
-             else {
-                 //$whereSql = "  a.main_group in (1,2) AND  " ; 
-                 $whereSql = "  " ; 
-             } 
-                 
-             
+
+            if (isset($params['main_group']) && $params['main_group'] != "") {
+                $whereSql = "  a.main_group = " . intval($params['main_group']) . " AND  ";
+            } else {
+                //$whereSql = "  a.main_group in (1,2) AND  " ; 
+                $whereSql = "  ";
+            }
+
             $sql = "
                  SELECT                    
                     base_id AS id, 	
@@ -451,28 +441,22 @@ class SysOperationTypesTools extends \DAL\DalSlim {
                 WHERE 
                     a.active =0 AND a.deleted = 0 AND 
                     a.parent_id = 0 AND  
-                    ".$whereSql."
+                    " . $whereSql . "
                     a.language_id = :language_id
-                ORDER BY name
-                
+                ORDER BY name                
                                  ";
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
-          //  echo debugPDO($sql, $params);
+            //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
- 
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
-    
-    
-  
 }

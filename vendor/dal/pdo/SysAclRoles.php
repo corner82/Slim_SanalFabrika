@@ -19,29 +19,6 @@ namespace DAL\PDO;
 class SysAclRoles extends \DAL\DalSlim {
 
     /**
-     * basic delete from database  example for PDO prepared
-     * statements, table names are irrelevant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage
      * @author Okan CIRAN
      * @ sys_acl_roles tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  07.01.2016
@@ -64,7 +41,6 @@ class SysAclRoles extends \DAL\DalSlim {
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
@@ -76,58 +52,6 @@ class SysAclRoles extends \DAL\DalSlim {
     }
 
     /**
-     * basic select from database  example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [resultSet] => Array
-      (
-      [0] => Array
-      (
-      [id] => 1
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [1] => Array
-      (
-      [id] => 4
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [2] => Array
-      (
-      [id] => 5
-      [name] => zeyn dag new
-      [international_code] => 25
-      [active] => 1
-      )
-
-      [3] => Array
-      (
-      [id] => 3
-      [name] => zeyn zeyn oldu şimdik
-      [international_code] => 12
-      [active] => 1
-      )
-
-      )
-
-      )
-     * usage 
      * @author Okan CIRAN
      * @ sys_acl_roles tablosundaki tüm kayıtları getirir.  !!
      * @version v 1.0  07.01.2016  
@@ -175,35 +99,11 @@ class SysAclRoles extends \DAL\DalSlim {
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
-
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
-    /**
-     * basic insert database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [lastInsertId] => 5
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage     
+    /**   
      * @author Okan CIRAN
      * @ sys_acl_roles tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  07.01.2016
@@ -211,8 +111,7 @@ class SysAclRoles extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function insert($params = array()) {
-        
+    public function insert($params = array()) {        
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -247,7 +146,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
             } else {  
                 $errorInfo = '23505'; 
-                $pdo->commit();
+                $pdo->rollback();
                 $result= $kontrol;  
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
                 //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -258,11 +157,7 @@ class SysAclRoles extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic have records control  
-     * * returned result set example;
-     * for success result  
-     * usage     
+    /**    
      * @author Okan CIRAN
      * @ sys_acl_roles tablosunda name sutununda daha önce oluşturulmuş mu? 
      * @version v 1.0 15.01.2016
@@ -272,8 +167,7 @@ class SysAclRoles extends \DAL\DalSlim {
      */
     public function haveRecords($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            //print_r($params);  
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');      
             $addSql = "";
             if (isset($params['id'])) {
                 $addSql = " AND id != " . intval($params['id']) . " ";
@@ -289,15 +183,13 @@ class SysAclRoles extends \DAL\DalSlim {
                     . $addSql . " 
                AND deleted =0   
                                ";
-            $statement = $pdo->prepare($sql);   
-         //   print_r($params);
+            $statement = $pdo->prepare($sql);      
        //   echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]); 
-            
+                throw new \PDOException($errorInfo[0]);             
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -305,29 +197,6 @@ class SysAclRoles extends \DAL\DalSlim {
     }
 
     /**
-     * basic update database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage  
      * @author Okan CIRAN
      * sys_acl_roles tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  07.01.2016
@@ -338,8 +207,7 @@ class SysAclRoles extends \DAL\DalSlim {
     public function update($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');           
-            $pdo->beginTransaction();
-            //print_r($params);
+            $pdo->beginTransaction();           
             $kontrol = $this->haveRecords($params); 
             if (!\Utill\Dal\Helper::haveRecord($kontrol)) {          
                 $sql = "
@@ -361,7 +229,7 @@ class SysAclRoles extends \DAL\DalSlim {
             } else {                
                 // 23505 	unique_violation
                 $errorInfo = '23505';// $kontrol ['resultSet'][0]['message'];  
-                $pdo->commit();
+                 $pdo->rollback();
                 $result= $kontrol;            
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
@@ -371,30 +239,7 @@ class SysAclRoles extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic update database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage  
+    /**     
      * @author Okan CIRAN
      * sys_acl_roles tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  07.01.2016
@@ -473,13 +318,7 @@ class SysAclRoles extends \DAL\DalSlim {
             //$order = "desc";
             $order = "ASC";
         }
-
-        $whereNameSQL = '';
-        if (isset($args['search_name']) && $args['search_name'] != "") {
-            $whereNameSQL = " AND LOWER(a.name) LIKE LOWER('%" . $args['search_name'] . "%') ";
-            //    print_r('2<<<<< sql e gelen ='.$args['search_name'].'>>>>>>>>>>2');
-        } 
-        
+       
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -510,9 +349,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
-                    . "OFFSET " . $pdo->quote($offset) . " ";
-
-            //  print_r('<<<<<'.$whereNameSQL.'>>>>>>>>>>');
+                    . "OFFSET " . $pdo->quote($offset) . " ";       
             $statement = $pdo->prepare($sql);
             /**
              * For debug purposes PDO statement sql
@@ -524,13 +361,10 @@ class SysAclRoles extends \DAL\DalSlim {
                 'limit' => $pdo->quote($limit),
                 'offset' => $pdo->quote($offset),
             );
-
             //   echo debugPDO($sql, $parameters);
-
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -541,7 +375,6 @@ class SysAclRoles extends \DAL\DalSlim {
     }
 
     /**
-     * user interface datagrid fill operation get row count for widget
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_acl_roles tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
      * @version v 1.0  07.01.2016
@@ -555,12 +388,7 @@ class SysAclRoles extends \DAL\DalSlim {
             $whereSQL = '';
             $whereSQL1 = ' WHERE a1.deleted =0 ';
             $whereSQL2 = ' WHERE a2.deleted =1 ';
-            if (isset($params['search_name']) && $params['search_name'] != "") {
-                $whereSQL = " WHERE a.name LIKE '%" . $params['search_name'] . "%' ";
-                $whereSQL1 .= " AND a1.name LIKE '%" . $params['search_name'] . "%' ";
-                $whereSQL2 .= " AND a2.name LIKE '%" . $params['search_name'] . "%' ";
-              //  print_r('2<<<<< sql e gelen =' . $params['search_name'] . '>>>>>>>>>>2');
-            }
+          
             $sql = "
                 SELECT 
                     COUNT(a.id) AS COUNT ,
@@ -581,7 +409,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 " . $whereSQL . "
                     ";
             $statement = $pdo->prepare($sql);
-            echo debugPDO($sql, $params);
+           // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -595,9 +423,7 @@ class SysAclRoles extends \DAL\DalSlim {
     }
 
     /**
-     * Combobox fill function used for testing
-     * user interface combobox fill operation   
-     * @author Okan CIRAN
+    * @author Okan CIRAN
      * @ combobox doldurmak için sys_acl_roles tablosundan parent ı 0 olan kayıtları (Ana grup) döndürür !!
      * @version v 1.0  07.01.2016
      * @return array
@@ -622,15 +448,12 @@ class SysAclRoles extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {      
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
-    /**
-     * Combobox fill function used for testing
-     * user interface combobox fill operation   
+    /**   
      * @author Okan CIRAN
      * @ combobox doldurmak için sys_acl_roles tablosundan tüm kayıtları döndürür !!
      * @version v 1.0  07.01.2016
@@ -668,8 +491,7 @@ class SysAclRoles extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {    
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }

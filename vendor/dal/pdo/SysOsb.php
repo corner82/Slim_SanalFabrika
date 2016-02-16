@@ -83,44 +83,19 @@ class SysOsb extends \DAL\DalSlim {
                 INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
 		INNER JOIN info_users u ON u.id = a.op_user_id                   
                 ORDER BY name            
-                                 "); 
-            
+                                 ");             
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);            
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {            
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
-    /**
-     * basic insert database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [lastInsertId] => 5
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage     
+    /**  
      * @author Okan CIRAN
      * @ sys_osb tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  09.02.2016
@@ -177,30 +152,7 @@ class SysOsb extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic update database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage  
+    /**     
      * @author Okan CIRAN
      * sys_osb tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  09.02.2016
@@ -286,13 +238,8 @@ class SysOsb extends \DAL\DalSlim {
                 $order = trim($args['order']);
         } else {   
             $order = "ASC";
-        }
-        
-        $whereSQL = '';
-        if (isset($args['search_name']) && $args['search_name'] != "") {
-            $whereSQL = " AND name LIKE '%" . $args['search_name'] . "%' ";        
         } 
-
+         
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -363,11 +310,7 @@ class SysOsb extends \DAL\DalSlim {
             $whereSQL = " WHERE a.language_code = '".$params['language_code']."' AND a.country_id =  ".intval($params['country_id']);
             $whereSQL1 = " WHERE a1.language_code = '".$params['language_code']."' AND a1.country_id = ".intval($params['country_id'])." AND a1.deleted = 0 ";
             $whereSQL2 = " WHERE a2.language_code = '".$params['language_code']."' AND a2.country_id = ".intval($params['country_id'])." AND a2.deleted = 1 ";
-            if (isset($params['search_name']) && $params['search_name'] != "") {
-                $whereSQL = " AND COALESCE(NULLIF(a.name, ''), a.name_eng) LIKE '%" . $params['search_name'] . "%' ";
-                $whereSQL1 .= " AND COALESCE(NULLIF(a1.name, ''), a1.name_eng) LIKE '%" . $params['search_name'] . "%' ";
-                $whereSQL2 .= " AND COALESCE(NULLIF(a2.name, ''), a2.name_eng) LIKE '%" . $params['search_name'] . "%' ";            
-            }
+            
             $sql = "
                         SELECT 
                         count(a.id) AS count ,
@@ -435,8 +378,7 @@ class SysOsb extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {       
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }

@@ -169,8 +169,7 @@ class SysSectors extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {        
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -219,10 +218,8 @@ class SysSectors extends \DAL\DalSlim {
                                ";
             $statement = $pdo->prepare($sql);            
             $statement->execute();
-            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);          
-
-            if (!isset($kontrol[0]['control'])) {  
-            
+            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);        
+            if (!isset($kontrol[0]['control'])) {              
             $pdo->beginTransaction();
             /**
              * table names and column names will be changed for specific use
@@ -246,19 +243,15 @@ class SysSectors extends \DAL\DalSlim {
             $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
             $statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
             $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-
             $result = $statement->execute();
-
             $insertID = $pdo->lastInsertId('sys_sectors_id_seq');
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
-
             return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
             } else {           
-                $result  = $kontrol;      
+                 $pdo->rollback();
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -299,7 +292,6 @@ class SysSectors extends \DAL\DalSlim {
      */
     public function update($params = array()) {
         try {
-
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();        
             $statement = $pdo->prepare("
@@ -377,7 +369,6 @@ class SysSectors extends \DAL\DalSlim {
             $order = "ASC";
         }
 
-
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -423,7 +414,6 @@ class SysSectors extends \DAL\DalSlim {
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -444,7 +434,6 @@ class SysSectors extends \DAL\DalSlim {
      */
     public function fillGridRowTotalCount($params = array()) {
         try {
-
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
                 SELECT 
@@ -469,11 +458,9 @@ class SysSectors extends \DAL\DalSlim {
 		INNER JOIN info_users u ON u.id = a.user_id  
                 WHERE a.language_code = '" . $params['language_code'] . "'
                     ";
-            $statement = $pdo->prepare($sql);
-          //  $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);  
+            $statement = $pdo->prepare($sql);          
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -496,8 +483,7 @@ class SysSectors extends \DAL\DalSlim {
                     COALESCE(NULLIF(a.name, ''), a.name_eng) AS name                                 
                 FROM sys_sectors a       
                 WHERE a.active =0 AND a.deleted = 0 AND a.language_code = :language_code    
-                ORDER BY name
-                
+                ORDER BY name                
                                  ");
               $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);  
               $statement->execute();
@@ -510,8 +496,7 @@ class SysSectors extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {         
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -562,16 +547,13 @@ class SysSectors extends \DAL\DalSlim {
                                 cx.id = ".intval($params['id'])." ) AND
                                 cx.deleted =0 AND 
                                 cx.active =0)) 
-                    ");
-
-            //$statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);   
+                    ");            
             $result = $statement->execute();
             $insertID = $pdo->lastInsertId('sys_sectors_id_seq');
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
-
             return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -591,7 +573,6 @@ class SysSectors extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function fillTextLanguageTemplate($args = array()) {
-
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -623,7 +604,6 @@ class SysSectors extends \DAL\DalSlim {
                         a.deleted = 0
 
                     ";
-
             $statement = $pdo->prepare($sql);
             /**
              * For debug purposes PDO statement sql
@@ -631,14 +611,10 @@ class SysSectors extends \DAL\DalSlim {
              */
             $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_STR);
             $statement->bindValue(':language_parent_id', $args['id'], \PDO::PARAM_STR);
-
-
             //    echo debugPDO($sql, $parameters);
-
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);

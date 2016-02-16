@@ -18,30 +18,7 @@ namespace DAL\PDO;
  */
 class SysVillage extends \DAL\DalSlim {
 
-    /**
-     * basic delete from database  example for PDO prepared
-     * statements, table names are irrelevant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage
+    /**    
      * @author Okan CIRAN
      * @ sys_village tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  07.12.2015
@@ -62,7 +39,6 @@ class SysVillage extends \DAL\DalSlim {
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
@@ -73,59 +49,7 @@ class SysVillage extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic select from database  example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [resultSet] => Array
-      (
-      [0] => Array
-      (
-      [id] => 1
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [1] => Array
-      (
-      [id] => 4
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [2] => Array
-      (
-      [id] => 5
-      [name] => zeyn dag new
-      [international_code] => 25
-      [active] => 1
-      )
-
-      [3] => Array
-      (
-      [id] => 3
-      [name] => zeyn zeyn oldu şimdik
-      [international_code] => 12
-      [active] => 1
-      )
-
-      )
-
-      )
-     * usage 
+    /**   
      * @author Okan CIRAN
      * @ sys_village tablosundaki tüm kayıtları getirir.  !!
      * @version v 1.0  07.12.2015    
@@ -177,36 +101,12 @@ class SysVillage extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {         
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
-    /**
-     * basic insert database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [lastInsertId] => 5
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage     
+    /**   
      * @author Okan CIRAN
      * @ sys_village tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  08.12.2015
@@ -237,34 +137,26 @@ class SysVillage extends \DAL\DalSlim {
                         :village_id,                        
                         :language_code,
                         :status,
-                        :user_id 
-                       
-
+                        :user_id   
                                                 ");
             $statement->bindValue(':ilceref', $params['ilceref'], \PDO::PARAM_INT);
             $statement->bindValue(':tapumahallead', $params['tapumahallead'], \PDO::PARAM_STR);
             $statement->bindValue(':kadastromahallead', $params['kadastromahallead'], \PDO::PARAM_STR);
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-            $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
-            
+            $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);            
             $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
             $statement->bindValue(':city_id', $params['city_id'], \PDO::PARAM_INT);
             $statement->bindValue(':boroughs_id', $params['boroughs_id'], \PDO::PARAM_INT);
             $statement->bindValue(':village_id', $params['village_id'], \PDO::PARAM_INT);
             $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
             $statement->bindValue(':status', $params['status'], \PDO::PARAM_STR);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-            
-             
+            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);             
             $result = $statement->execute();
-
             $insertID = $pdo->lastInsertId('sys_village_id_seq');
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
-
             return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -272,30 +164,7 @@ class SysVillage extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic update database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage  
+    /** 
      * @author Okan CIRAN
      * sys_village tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  07.12.2015
@@ -305,26 +174,25 @@ class SysVillage extends \DAL\DalSlim {
      */
     public function update($params = array()) {
         try {
-
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();         
             $statement = $pdo->prepare("
                UPDATE sys_village
                     SET 
-                         ilceref= :ilceref, 
-                         tapumahallead= :tapumahallead, 
-                         kadastromahallead= :kadastromahallead, 
-                         name= :name, 
-                         name_eng= :name_eng, 
-                         country_id= :country_id, 
-                         city_id= :city_id, 
-                         boroughs_id= :boroughs_id, 
-                         village_id= :village_id, 
-                         language_code= :language_code, 
-                         language_parent_id= :language_parent_id, 
-                         active= :active, 
-                         status= :status, 
-                         user_id= :user_id
+                        ilceref= :ilceref, 
+                        tapumahallead= :tapumahallead, 
+                        kadastromahallead= :kadastromahallead, 
+                        name= :name, 
+                        name_eng= :name_eng, 
+                        country_id= :country_id, 
+                        city_id= :city_id, 
+                        boroughs_id= :boroughs_id, 
+                        village_id= :village_id, 
+                        language_code= :language_code, 
+                        language_parent_id= :language_parent_id, 
+                        active= :active, 
+                        status= :status, 
+                        user_id= :user_id
                 WHERE id = :id");
             $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $statement->bindValue(':ilceref', $params['ilceref'], \PDO::PARAM_INT);
@@ -394,8 +262,7 @@ class SysVillage extends \DAL\DalSlim {
         } else {
             //$order = "desc";
             $order = "ASC";
-        }
-
+        } 
 
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -435,8 +302,7 @@ class SysVillage extends \DAL\DalSlim {
                     a.language_code = :language_code AND 
                     a.country_id = :country_id AND
                     a.city_id = :city_id AND                         
-                    a.boroughs_id = :boroughs_id  
-                        
+                    a.boroughs_id = :boroughs_id                          
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -456,12 +322,10 @@ class SysVillage extends \DAL\DalSlim {
             $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
             $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
             $statement->bindValue(':city_id', $params['city_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':boroughs_id', $params['boroughs_id'], \PDO::PARAM_INT);
-            
+            $statement->bindValue(':boroughs_id', $params['boroughs_id'], \PDO::PARAM_INT);            
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -482,7 +346,6 @@ class SysVillage extends \DAL\DalSlim {
      */
     public function fillGridRowTotalCount($params = array()) {
         try {
-
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
                       SELECT  
@@ -516,16 +379,13 @@ class SysVillage extends \DAL\DalSlim {
                     INNER JOIN info_users u ON u.id = a.user_id  
                     WHERE 
                        a.language_code = :language_code AND a.country_id = :country_id AND a.city_id = :city_id AND  a.boroughs_id = :boroughs_id  
-                  
-                  
-                    ";
+                                     ";
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
             $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
             $statement->bindValue(':city_id', $params['city_id'], \PDO::PARAM_INT);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -556,13 +416,12 @@ class SysVillage extends \DAL\DalSlim {
                     COALESCE(NULLIF(a.name, ''), a.name_eng) AS name 
                 FROM sys_village a                
                 WHERE a.language_code = :language_code 
-                AND a.country_id = :country_id 
-                AND a.city_id = :city_id
-                 AND a.boroughs_id = :boroughs_id
-                AND a.active = 0 
-                AND a.deleted = 0 
-                ORDER BY a.name
-                
+                    AND a.country_id = :country_id 
+                    AND a.city_id = :city_id
+                    AND a.boroughs_id = :boroughs_id
+                    AND a.active = 0 
+                    AND a.deleted = 0 
+                ORDER BY a.name                
                                  ";
             $statement = $pdo->prepare($sql);
            //echo debugPDO($sql, $params);
@@ -572,7 +431,6 @@ class SysVillage extends \DAL\DalSlim {
             $statement->bindValue(':boroughs_id', $params['boroughs_id'], \PDO::PARAM_INT);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
             /* while ($row = $statement->fetch()) {
               print_r($row);
               } */
@@ -580,36 +438,12 @@ class SysVillage extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {        
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
     /**
-     * basic insert database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [lastInsertId] => 5
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage     
      * @author Okan CIRAN
      * @ sys_village tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  29.12.2015
@@ -623,8 +457,7 @@ class SysVillage extends \DAL\DalSlim {
             /**
              * table names and column names will be changed for specific use
              */
-            $statement = $pdo->prepare(" 
-                
+            $statement = $pdo->prepare("                 
                  INSERT INTO sys_village(
                     ilceref, tapumahallead, kadastromahallead, name, name_eng, 
                     country_id, city_id, boroughs_id, village_id, language_id, language_parent_id, 
@@ -666,7 +499,6 @@ class SysVillage extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
-
             return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();

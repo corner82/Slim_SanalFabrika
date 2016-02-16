@@ -93,7 +93,6 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
-
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -105,8 +104,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function insert($params = array()) {
-        
+    public function insert($params = array()) {        
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
@@ -141,10 +139,9 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
             } else {  
                 $errorInfo = '23505'; 
-                $pdo->commit();
+                 $pdo->rollback();
                 $result= $kontrol;  
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
-                //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -161,8 +158,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
      */
     public function haveRecords($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            //print_r($params);  
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
             $addSql = "";
             if (isset($params['id'])) {
                 $addSql = " AND id != " . intval($params['id']) . " ";
@@ -178,15 +174,13 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                     . $addSql . " 
                AND deleted =0   
                                ";
-            $statement = $pdo->prepare($sql);   
-         //   print_r($params);
+            $statement = $pdo->prepare($sql);       
        //   echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]); 
-            
+                throw new \PDOException($errorInfo[0]);             
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -204,8 +198,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
     public function update($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');           
-            $pdo->beginTransaction();
-            //print_r($params);
+            $pdo->beginTransaction();     
             $kontrol = $this->haveRecords($params); 
             if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                 $sql = "
@@ -229,7 +222,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             } else {                
                 // 23505 	unique_violation
                 $errorInfo = '23505';// $kontrol ['resultSet'][0]['message'];  
-                $pdo->commit();
+                $pdo->rollback();
                 $result= $kontrol;            
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
@@ -319,12 +312,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
         } else {        
             $order = "ASC";
         }
-
-        $whereNameSQL = '';
-        if (isset($args['search_name']) && $args['search_name'] != "") {
-            $whereNameSQL = " AND LOWER(name) LIKE LOWER('%" . $args['search_name'] . "%') ";      
-        } 
-        
+ 
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -365,8 +353,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                         INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0
                         INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted = 0 AND l.active = 0 
                         INNER JOIN info_users u ON u.id = a.user_id 
-                        WHERE a.deleted =0 AND language_code = '" . $params['language_code'] . "' ) AS asd 
-                " . $whereNameSQL . " 
+                        WHERE a.deleted =0 AND language_code = '" . $params['language_code'] . "' ) AS asd               
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -406,13 +393,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $whereSQL = '';
             $whereSQL1 = ' WHERE a1.deleted =0 ';
-            $whereSQL2 = ' WHERE a2.deleted =1 ';
-            if (isset($params['search_name']) && $params['search_name'] != "") {
-                $whereSQL = " WHERE LOWER(COALESCE(NULLIF(a.description, ''), a.description_eng)) LIKE LOWER('%" . $params['search_name'] . "%') ";
-                $whereSQL1 .= " AND LOWER(COALESCE(NULLIF(a1.description, ''), a1.description_eng)) LIKE LOWER('%" . $params['search_name'] . "%') ";
-                $whereSQL2 .= " AND LOWER(COALESCE(NULLIF(a2.description, ''), a2.description_eng)) LIKE LOWER('%" . $params['search_name'] . "%') ";
-              //  print_r('2<<<<< sql e gelen =' . $params['search_name'] . '>>>>>>>>>>2');
-            }
+            $whereSQL2 = ' WHERE a2.deleted =1 ';            
             $sql = "
                 SELECT 
                     COUNT(a.id) AS COUNT ,
@@ -433,7 +414,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                 " . $whereSQL . "
                     ";
             $statement = $pdo->prepare($sql);
-            echo debugPDO($sql, $params);
+          //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -476,8 +457,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {        
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -524,8 +504,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {        
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -568,8 +547,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {         
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -612,8 +590,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {            
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -656,8 +633,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {           
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -700,8 +676,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {       
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -744,8 +719,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {           
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }

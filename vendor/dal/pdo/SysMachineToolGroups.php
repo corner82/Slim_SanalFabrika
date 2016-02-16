@@ -50,8 +50,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
             } else {
                 $errorInfo = '23502';  /// 23502  not_null_violation
-                $pdo->commit();
-                //  $result = $kontrol;
+                $pdo->rollback();                
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -97,7 +96,6 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
-
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -162,7 +160,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
                     $errorInfo = '23505';
-                    $pdo->commit();
+                     $pdo->rollback();
                     $result = $kontrol;
                     return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
                     //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -170,7 +168,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
-                $pdo->commit();
+                 $pdo->rollback();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -214,7 +212,6 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
-
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -274,14 +271,14 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                 } else {
                     // 23505 	unique_violation
                     $errorInfo = '23505'; // $kontrol ['resultSet'][0]['message'];  
-                    $pdo->commit();
+                     $pdo->rollback();
                     $result = $kontrol;
                     return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
                 }
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
-                $pdo->commit();
+                 $pdo->rollback();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -328,12 +325,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             //$order = "desc";
             $order = "ASC";
         }
-
-        $whereNameSQL = '';
-        if (isset($args['search_name']) && $args['search_name'] != "") {
-            $whereNameSQL = " AND LOWER(a.name) LIKE LOWER('%" . $args['search_name'] . "%') ";
-        }
-
+ 
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -358,8 +350,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                 INNER JOIN info_users u1 ON u1.id = a.op_user_id 
                 LEFT JOIN sys_osb osb ON osb.id = a.osb_id 
                 LEFT JOIN sys_countrys co on co.id = a.country_id AND co.active =0 AND co.deleted =0                                
-                WHERE a.deleted =0  
-                " . $whereNameSQL . "
+                WHERE a.deleted =0              
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -375,7 +366,6 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -400,11 +390,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             $whereSQL = '';
             $whereSQL1 = ' WHERE ax.deleted =0 ';
             $whereSQL2 = ' WHERE ay.deleted =1 ';
-            if (isset($params['search_name']) && $params['search_name'] != "") {
-                $whereSQL = " WHERE a.name LIKE '%" . $params['search_name'] . "%' ";
-                $whereSQL1 .= " AND ax.name LIKE '%" . $params['search_name'] . "%' ";
-                $whereSQL2 .= " AND ay.name LIKE '%" . $params['search_name'] . "%' ";
-            }
+            
             $sql = "
                SELECT 
                     COUNT(a.id) AS COUNT ,
@@ -428,7 +414,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                 " . $whereSQL . "
                     ";
             $statement = $pdo->prepare($sql);
-            echo debugPDO($sql, $params);
+           // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -451,13 +437,12 @@ class SysMachineToolGroups extends \DAL\DalSlim {
     public function fillOsbConsultantList($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-
             if (isset($params['osb_id']) && $params['osb_id'] != "") {
                 $whereSql = " AND a.osb_id = " . intval($params['osb_id']) . " AND  ";
             } else {
                 $whereSql = "  AND a.osb_id = 5  ";  // osbId = 5 ostim
             }
-
+            
             $statement = $pdo->prepare("
               SELECT                    
                     a.id, 	
@@ -477,8 +462,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {       
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -515,8 +499,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            // $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {         
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -566,8 +549,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {      
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }

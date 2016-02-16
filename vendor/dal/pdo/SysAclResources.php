@@ -18,30 +18,7 @@ namespace DAL\PDO;
  */
 class SysAclResources extends \DAL\DalSlim {
 
-    /**
-     * basic delete from database  example for PDO prepared
-     * statements, table names are irrelevant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage
+    /**       
      * @author Okan CIRAN
      * @ sys_acl_resources tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  07.01.2016
@@ -72,59 +49,7 @@ class SysAclResources extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic select from database  example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [resultSet] => Array
-      (
-      [0] => Array
-      (
-      [id] => 1
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [1] => Array
-      (
-      [id] => 4
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [2] => Array
-      (
-      [id] => 5
-      [name] => zeyn dag new
-      [international_code] => 25
-      [active] => 1
-      )
-
-      [3] => Array
-      (
-      [id] => 3
-      [name] => zeyn zeyn oldu şimdik
-      [international_code] => 12
-      [active] => 1
-      )
-
-      )
-
-      )
-     * usage 
+    /**  
      * @author Okan CIRAN
      * @ sys_acl_resources tablosundaki tüm kayıtları getirir.  !!
      * @version v 1.0  07.01.2016    
@@ -163,36 +88,12 @@ class SysAclResources extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {     
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
-    /**
-     * basic insert database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [lastInsertId] => 5
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage     
+    /** 
      * @author Okan CIRAN
      * @ sys_acl_resources tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  07.01.2016
@@ -232,7 +133,7 @@ class SysAclResources extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
             } else {  
                 $errorInfo = '23505'; 
-                $pdo->commit();
+                 $pdo->rollback();
                 $result= $kontrol;                            
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
@@ -242,30 +143,7 @@ class SysAclResources extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic update database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage  
+    /**    
      * @author Okan CIRAN
      * sys_acl_resources tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  07.01.2016
@@ -305,7 +183,7 @@ class SysAclResources extends \DAL\DalSlim {
             return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
         } else { 
                 $errorInfo = '23505';
-                $pdo->commit();
+                 $pdo->rollback();
                 $result= $kontrol;
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
@@ -316,11 +194,7 @@ class SysAclResources extends \DAL\DalSlim {
         }
     }
     
-    /**
-     * basic have records control  
-     * * returned result set example;
-     * for success result  
-     * usage     
+    /**     
      * @author Okan CIRAN
      * @ sys_acl_roles tablosunda name sutununda daha önce oluşturulmuş mu? 
      * @version v 1.0 15.01.2016
@@ -396,13 +270,8 @@ class SysAclResources extends \DAL\DalSlim {
                 $order = trim($args['order']);
         } else {
             $order = "ASC";
-        }
-  
-        $whereSQL = '';
-        if (isset($args['search_name']) && $args['search_name'] != "") {
-            $whereSQL = " AND a.name LIKE '%" . $args['search_name'] . "%' ";
-        }
- 
+        }  
+      
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "                   
@@ -450,7 +319,6 @@ class SysAclResources extends \DAL\DalSlim {
     }
 
     /**
-     * user interface datagrid fill operation get row count for widget
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_acl_resources tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
      * @version v 1.0  07.01.2016
@@ -464,11 +332,7 @@ class SysAclResources extends \DAL\DalSlim {
             $whereSQL = '';
             $whereSQL1 = ' WHERE a1.deleted =0 ';
             $whereSQL2 = ' WHERE a2.deleted =1 ';
-            if (isset($params['search_name']) && $params['search_name'] != "") {
-                $whereSQL = " WHERE a.name LIKE '%" . $params['search_name'] . "%' ";
-                $whereSQL1 .= " AND a1.name LIKE '%" . $params['search_name'] . "%' ";
-                $whereSQL2 .= " AND a2.name LIKE '%" . $params['search_name'] . "%' ";
-            }
+            
             $sql = "
                 SELECT 
                     COUNT(a.id) AS COUNT ,
@@ -528,15 +392,12 @@ class SysAclResources extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {         
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
-    /**
-     * Combobox fill function used for testing
-     * user interface combobox fill operation   
+    /**    
      * @author Okan CIRAN
      * @ combobox doldurmak için sys_acl_resources tablosundan tüm kayıtları döndürür !!
      * @version v 1.0  07.01.2016
@@ -572,8 +433,7 @@ class SysAclResources extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {        
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }

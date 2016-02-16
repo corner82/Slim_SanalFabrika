@@ -114,8 +114,7 @@ class SysBorough extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {     
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -204,7 +203,7 @@ class SysBorough extends \DAL\DalSlim {
             return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
             } else {  
                 $errorInfo = '23505'; 
-                $pdo->commit();
+                 $pdo->rollback();
                 $result= $kontrol;  
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');                
             }
@@ -260,7 +259,7 @@ class SysBorough extends \DAL\DalSlim {
             return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
              } else {      
                 $errorInfo = '23505';   // 23505  unique_violation
-                $pdo->commit();
+                 $pdo->rollback();
                 $result= $kontrol;            
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
@@ -308,11 +307,7 @@ class SysBorough extends \DAL\DalSlim {
                 $order = trim($args['order']);
         } else {         
             $order = "ASC";
-        }
-        $whereSQL = '';
-        if (isset($args['search_name']) && $args['search_name'] != "") {
-            $whereSQL = " WHERE name LIKE '%" . $args['search_name'] . "%' ";   
-        } 
+        }        
 
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -404,11 +399,7 @@ class SysBorough extends \DAL\DalSlim {
             $whereSQL = " WHERE a.language_code = ".$params['language_code']." AND a.country_id = ".intval($params['country_id'])." AND a.city_id = ".intval($params['city_id']);
             $whereSQL1 = " WHERE a1.language_code = '".$params['language_code']."' AND a1.country_id = ".intval($params['country_id'])." AND a1.city_id = ".intval($params['city_id'])." AND a1.deleted = 0 AND a1.active =0 ";
             $whereSQL2 = " WHERE a2.language_code = '".$params['language_code']."' AND a2.country_id = ".intval($params['country_id'])." AND a2.city_id = ".intval($params['city_id'])." AND a2.deleted = 1 AND a2.active = 1 ";
-            if (isset($params['search_name']) && $params['search_name'] != "") {
-                $whereSQL .= " a.name LIKE '%" . $params['search_name'] . "%' ";
-                $whereSQL1 .= " AND a1.name LIKE '%" . $params['search_name'] . "%' ";
-                $whereSQL2 .= " AND a2.name LIKE '%" . $params['search_name'] . "%' ";        
-            }
+            
             $sql = "
                      SELECT 
                         COUNT(a.id) AS toplam  , 
@@ -434,7 +425,6 @@ class SysBorough extends \DAL\DalSlim {
             $statement = $pdo->prepare($sql);           
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -480,8 +470,7 @@ class SysBorough extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {          
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }

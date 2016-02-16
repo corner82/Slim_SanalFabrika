@@ -18,30 +18,7 @@ namespace DAL\PDO;
  */
 class SysCity extends \DAL\DalSlim {
 
-    /**
-     * basic delete from database  example for PDO prepared
-     * statements, table names are irrelevant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage
+    /**    
      * @author Okan CIRAN
      * @ sys_city tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  18.12.2015
@@ -72,59 +49,7 @@ class SysCity extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic select from database  example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [resultSet] => Array
-      (
-      [0] => Array
-      (
-      [id] => 1
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [1] => Array
-      (
-      [id] => 4
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [2] => Array
-      (
-      [id] => 5
-      [name] => zeyn dag new
-      [international_code] => 25
-      [active] => 1
-      )
-
-      [3] => Array
-      (
-      [id] => 3
-      [name] => zeyn zeyn oldu şimdik
-      [international_code] => 12
-      [active] => 1
-      )
-
-      )
-
-      )
-     * usage 
+    /**  
      * @author Okan CIRAN
      * @ sys_city tablosundaki tüm kayıtları getirir.  !!
      * @version v 1.0  18.12.2015  
@@ -169,36 +94,12 @@ class SysCity extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {        
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
     /**
-     * basic insert database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [lastInsertId] => 5
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage     
      * @author Okan CIRAN
      * @ sys_city tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  18.12.2015
@@ -255,30 +156,7 @@ class SysCity extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic update database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage  
+    /**   
      * @author Okan CIRAN
      * sys_city tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  18.12.2015
@@ -364,13 +242,8 @@ class SysCity extends \DAL\DalSlim {
                 $order = trim($args['order']);
         } else {   
             $order = "ASC";
-        }
-        
-        $whereSQL = '';
-        if (isset($args['search_name']) && $args['search_name'] != "") {
-            $whereSQL = " AND name LIKE '%" . $args['search_name'] . "%' ";        
-        } 
-
+        }        
+       
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -441,11 +314,7 @@ class SysCity extends \DAL\DalSlim {
             $whereSQL = " WHERE a.language_code = '".$params['language_code']."' AND a.country_id =  ".intval($params['country_id']);
             $whereSQL1 = " WHERE a1.language_code = '".$params['language_code']."' AND a1.country_id = ".intval($params['country_id'])." AND a1.deleted = 0 ";
             $whereSQL2 = " WHERE a2.language_code = '".$params['language_code']."' AND a2.country_id = ".intval($params['country_id'])." AND a2.deleted = 1 ";
-            if (isset($params['search_name']) && $params['search_name'] != "") {
-                $whereSQL = " AND COALESCE(NULLIF(a.name, ''), a.name_eng) LIKE '%" . $params['search_name'] . "%' ";
-                $whereSQL1 .= " AND COALESCE(NULLIF(a1.name, ''), a1.name_eng) LIKE '%" . $params['search_name'] . "%' ";
-                $whereSQL2 .= " AND COALESCE(NULLIF(a2.name, ''), a2.name_eng) LIKE '%" . $params['search_name'] . "%' ";            
-            }
+           
             $sql = "
                         SELECT 
                         count(a.id) AS count ,
@@ -514,36 +383,12 @@ class SysCity extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {         
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
-     /**
-     * basic insert database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [lastInsertId] => 5
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage     
+     /**      
      * @author Okan CIRAN
      * @ sys_city tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  29.12.2015

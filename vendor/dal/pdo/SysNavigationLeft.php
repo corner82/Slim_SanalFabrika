@@ -190,16 +190,12 @@ class SysNavigationLeft extends \DAL\DalSlim {
             $statement->bindValue(':warning_class', $params['warning_class'], \PDO::PARAM_STR);
             $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
             $statement->bindValue(':acl_type', $params['acl_type'], \PDO::PARAM_INT);
-
             $result = $statement->execute();
-
             $insertID = $pdo->lastInsertId('sys_navigation_left_id_seq');
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
-
             return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -318,7 +314,6 @@ class SysNavigationLeft extends \DAL\DalSlim {
             $order = "ASC";
         }
 
-
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -383,7 +378,6 @@ class SysNavigationLeft extends \DAL\DalSlim {
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -433,7 +427,6 @@ class SysNavigationLeft extends \DAL\DalSlim {
           //  $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_INT);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -456,8 +449,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             /**
              * table names and column names will be changed for specific use
-             */
-            
+             */            
             $sql = "
                 SELECT a.id, 
                     COALESCE(NULLIF(a.menu_name, ''), a.menu_name_eng) AS menu_name, 
@@ -591,12 +583,10 @@ class SysNavigationLeft extends \DAL\DalSlim {
               AND acl_type = 0                
               ORDER BY a.parent, a.z_index 
                                  ";           
-            $statement = $pdo->prepare($sql);
-           
+            $statement = $pdo->prepare($sql);           
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);

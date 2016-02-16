@@ -18,30 +18,7 @@ namespace DAL\PDO;
  */
 class BlLoginLogout extends \DAL\DalSlim {
 
-    /**
-     * basic delete from database  example for PDO prepared
-     * statements, table names are irrelevant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage
+    /**     
      * @author Okan CIRAN
      * @ info_users tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  30.12.2015
@@ -138,8 +115,7 @@ class BlLoginLogout extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {      
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -191,7 +167,6 @@ class BlLoginLogout extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
-
             return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -211,7 +186,6 @@ class BlLoginLogout extends \DAL\DalSlim {
      */
     public function update($params = array()) {
         try {
-
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();           
             $statement = $pdo->prepare("
@@ -275,8 +249,7 @@ class BlLoginLogout extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {        
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -308,8 +281,7 @@ class BlLoginLogout extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {       
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -360,22 +332,17 @@ class BlLoginLogout extends \DAL\DalSlim {
                 INNER JOIN sys_acl_rrpmap sarmap ON sarmap.id = usr.rrpmap_id AND sarmap.active=0 AND sarmap.deleted =0 
                 INNER JOIN sys_acl_roles sar ON sar.id = sarmap.role_id AND sar.active=0 AND sar.deleted=0 
                 WHERE  
-                    CRYPT(a.sf_private_key_value,CONCAT('_J9..',REPLACE('".$params['pk']."','*','/'))) = CONCAT('_J9..',REPLACE('".$params['pk']."','*','/'))
- 
+                    CRYPT(a.sf_private_key_value,CONCAT('_J9..',REPLACE('".$params['pk']."','*','/'))) = CONCAT('_J9..',REPLACE('".$params['pk']."','*','/')) 
                     ";
-
             $statement = $pdo->prepare($sql);            
       //      echo debugPDO($sql, $parameters);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {    
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -427,15 +394,14 @@ class BlLoginLogout extends \DAL\DalSlim {
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':username', $params['username'], \PDO::PARAM_STR);
             $statement->bindValue(':password', $params['password'], \PDO::PARAM_STR);
-            echo debugPDO($sql, $parameters);
+          //  echo debugPDO($sql, $parameters);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {      
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -490,15 +456,14 @@ class BlLoginLogout extends \DAL\DalSlim {
             
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
-            echo debugPDO($sql, $params);
+           // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {            
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -528,8 +493,7 @@ class BlLoginLogout extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {    
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -563,8 +527,7 @@ class BlLoginLogout extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {            
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }

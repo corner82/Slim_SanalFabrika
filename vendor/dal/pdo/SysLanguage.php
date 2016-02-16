@@ -173,8 +173,7 @@ class SysLanguage extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {          
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -260,30 +259,23 @@ class SysLanguage extends \DAL\DalSlim {
             $statement->bindValue(':icon_road', $params['icon_road'], \PDO::PARAM_STR);
             $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_STR);
             $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
-            $statement->bindValue(':link', $params['link'], \PDO::PARAM_STR);
-            
+            $statement->bindValue(':link', $params['link'], \PDO::PARAM_STR);            
             $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
             $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
             $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);
             $statement->bindValue(':language_eng', $params['language_eng'], \PDO::PARAM_STR);
             $statement->bindValue(':language_main_code', $params['language_main_code'], \PDO::PARAM_STR);
             $statement->bindValue(':language', $params['language'], \PDO::PARAM_STR);
-            $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);
-                        
-
+            $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);  
             $result = $statement->execute();
-
             $insertID = $pdo->lastInsertId('sys_language_id_seq');
-
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
-
-            return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
-           
+            return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);           
             } else {           
-                $result  = $kontrol;             
+               // $result  = $kontrol;             
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -324,7 +316,6 @@ class SysLanguage extends \DAL\DalSlim {
      */
     public function update($params = array()) {
         try {
-
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();          
             $statement = $pdo->prepare("
@@ -356,17 +347,14 @@ class SysLanguage extends \DAL\DalSlim {
             $statement->bindValue(':icon_road', $params['icon_road'], \PDO::PARAM_STR);
             $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_STR);
             $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
-            $statement->bindValue(':link', $params['link'], \PDO::PARAM_STR);
-            
+            $statement->bindValue(':link', $params['link'], \PDO::PARAM_STR);            
             $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
             $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
             $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);
             $statement->bindValue(':language_eng', $params['language_eng'], \PDO::PARAM_STR);
             $statement->bindValue(':language_main_code', $params['language_main_code'], \PDO::PARAM_STR);
             $statement->bindValue(':language', $params['language'], \PDO::PARAM_STR);
-            $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);
-            
-            
+            $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);           
             //Execute our UPDATE statement.
             $update = $statement->execute(); 
             $affectedRows = $statement->rowCount();
@@ -420,7 +408,6 @@ class SysLanguage extends \DAL\DalSlim {
             $order = "ASC";
         }        
 
-
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = " 
@@ -471,7 +458,6 @@ class SysLanguage extends \DAL\DalSlim {
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
-
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -563,8 +549,7 @@ class SysLanguage extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {      
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -596,8 +581,7 @@ class SysLanguage extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            
+        } catch (\PDOException $e /* Exception $e */) {            
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }

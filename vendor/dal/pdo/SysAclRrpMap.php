@@ -18,30 +18,7 @@ namespace DAL\PDO;
  */
 class SysAclRrpMap extends \DAL\DalSlim {
 
-    /**
-     * basic delete from database  example for PDO prepared
-     * statements, table names are irrelevant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage
+    /**     
      * @author Okan CIRAN
      * @ sys_acl_rrpmap tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  13-01-2016
@@ -72,59 +49,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic select from database  example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [resultSet] => Array
-      (
-      [0] => Array
-      (
-      [id] => 1
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [1] => Array
-      (
-      [id] => 4
-      [name] => zeyn dag
-      [international_code] => 12
-      [active] => 1
-      )
-
-      [2] => Array
-      (
-      [id] => 5
-      [name] => zeyn dag new
-      [international_code] => 25
-      [active] => 1
-      )
-
-      [3] => Array
-      (
-      [id] => 3
-      [name] => zeyn zeyn oldu şimdik
-      [international_code] => 12
-      [active] => 1
-      )
-
-      )
-
-      )
-     * usage 
+    /**    
      * @author Okan CIRAN
      * @ sys_acl_rrpmap tablosundaki tüm kayıtları getirir.  !!
      * @version v 1.0  13-01-2016  
@@ -171,17 +96,12 @@ class SysAclRrpMap extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {     
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }    
     
-    /**
-     * basic have records control  
-     * * returned result set example;
-     * for success result  
-     * usage     
+    /**    
      * @author Okan CIRAN
      * @ sys_acl_rrpmap tablosunda role_id, resource_id ve privilege_id aynı kayıtta daha önce oluşturulmuş mu? 
      * @version v 1.0 15.01.2016
@@ -228,29 +148,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
     }
 
     /**
-     * basic insert database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific 
-     * * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [lastInsertId] => 5
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage     
+     
      * @author Okan CIRAN
      * @ sys_acl_rrpmap tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  13-01-2016
@@ -290,7 +188,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
             } else {  
                 $errorInfo = '23505'; 
-                $pdo->commit();
+                 $pdo->rollback();
                 $result= $kontrol;                            
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
@@ -300,30 +198,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * basic update database example for PDO prepared
-     * statements, table names are irrevelant and should be changed on specific
-     * returned result set example;
-     * for success result
-     * Array
-      (
-      [found] => 1
-      [errorInfo] => Array
-      (
-      [0] => 00000
-      [1] =>
-      [2] =>
-      )
-
-      [affectedRowsCount] => 1
-      )
-     * for error result
-     * Array
-      (
-      [found] => 0
-      [errorInfo] => 42P01
-      )
-     * usage  
+    /**     
      * @author Okan CIRAN
      * sys_acl_rrpmap tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  13-01-2016
@@ -333,7 +208,6 @@ class SysAclRrpMap extends \DAL\DalSlim {
      */
     public function update($params = array()) {
         try {
-
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $kontrol = $this->haveRecords($params); 
@@ -364,7 +238,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
             } else {   
                 $errorInfo = '23505';
-                $pdo->commit();
+                 $pdo->rollback();
                 $result= $kontrol;            
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
@@ -375,9 +249,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
     }
 
     /**
-     * Datagrid fill function used for testing
-     * user interface datagrid fill operation   
-     * @author Okan CIRAN
+      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_acl_rrpmap tablosundan kayıtları döndürür !!
      * @version v 1.0  13-01-2016
      * @param array | null $args
@@ -414,11 +286,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
             //$order = "desc";
             $order = "ASC";
         }
-        
-         $whereSQL = '';
-        if (isset($args['search_name']) && $args['search_name'] != "") {
-            $whereSQL = " AND name LIKE '%" . $args['search_name'] . "%' "; 
-        } 
+       
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -469,8 +337,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
                     INNER JOIN sys_acl_resources rs ON rs.id = a.resource_id AND rs.deleted = 0 AND rs.active = 0 
                     INNER JOIN sys_acl_privilege rp ON rp.id = a.privilege_id AND rp.deleted = 0 AND rp.active = 0      
                     WHERE a.deleted =0 
-               ) as asdd 
-                " . $whereSQL . "
+               ) as asdd             
                ORDER BY    " . $sort . " "
                        . "" . $order . " "
                        . "LIMIT " . $pdo->quote($limit) . " "
@@ -614,8 +481,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+        } catch (\PDOException $e /* Exception $e */) {          
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
