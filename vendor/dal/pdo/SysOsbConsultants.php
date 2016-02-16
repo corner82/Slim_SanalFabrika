@@ -167,7 +167,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
                     $errorInfo = '23505';
-                    $pdo->commit();
+                    $pdo->rollback();
                     $result = $kontrol;
                     return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
                     //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -175,7 +175,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             } else {
                 // 23505 	unique_violation
                 $errorInfo = '23505'; // $kontrol ['resultSet'][0]['message'];  
-                $pdo->commit();
+                $pdo->rollback();
                 $result = $kontrol;
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
@@ -280,14 +280,14 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 } else {
                     // 23505 	unique_violation
                     $errorInfo = '23505'; // $kontrol ['resultSet'][0]['message'];  
-                    $pdo->commit();
+                    $pdo->rollback();
                     $result = $kontrol;
                     return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
                 }
             } else {
                 // 23505 	unique_violation
                 $errorInfo = '23505'; // $kontrol ['resultSet'][0]['message'];  
-                $pdo->commit();
+                $pdo->rollback();
                 $result = $kontrol;
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
@@ -428,7 +428,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 " . $whereSQL . "
                     ";
             $statement = $pdo->prepare($sql);
-            echo debugPDO($sql, $params);
+         //   echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1018,7 +1018,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "newId" => $insertID);
             } else {
                 $errorInfo = '23502';  /// 23502 user_id not_null_violation
-                $pdo->commit();
+                $pdo->rollback();
                 $result = $kontrol;
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
@@ -1160,6 +1160,13 @@ class SysOsbConsultants extends \DAL\DalSlim {
         try {
 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $addSql = "  ";
+
+            if ((isset($params['category_id']) && $params['category_id'] != "")) {
+                $addSql .= " AND cons.category_id = " . intval($params['category_id'])  ;
+            }
+            $addSql .= " AND cons.category_id = 0 "; 
+            
             $sql = "               
                 SELECT consultant_id, 1=1 AS control FROM ( 
                     SELECT 
@@ -1204,11 +1211,9 @@ class SysOsbConsultants extends \DAL\DalSlim {
             $addSql = "  ";
 
             if ((isset($params['category_id']) && $params['category_id'] != "")) {
-                $addSql .= " AND category_id = " . intval($params['category_id']) . ",";
+                $addSql .= " AND cons.category_id = " . intval($params['category_id'])  ;
             }
-            $addSql .= " AND category_id = 0,";
-
-
+            $addSql .= " AND cons.category_id = 0 "; 
             $statement = $pdo->prepare("               
                 SELECT consultant_id, 1=1 AS control FROM ( 
                     SELECT 
