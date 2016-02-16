@@ -53,7 +53,16 @@ $app->get("/pkFillGridSingular_infoUsersAddresses/", function () use ($app ) {
     $vPk = $headerParams['X-Public'];
     $fPk = $vPk ; 
      
-    $vLanguageCode =$_GET['language_code'] ; 
+    
+    $vLanguageCode  = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+
     
     $resDataGrid = $BLL->fillGridSingular(array(
                                             'pk' => $fPk ,
@@ -214,34 +223,21 @@ $app->get("/pkInsert_infoUsersAddresses/", function () use ($app ) {
     $headerParams = $app->request()->headers();
     $vPk = $headerParams['X-Public'];
     
-    $vProfilePublic = $_GET['profile_public'];    
-    $vLanguageCode = $_GET['language_code'];
-    
-    $vAddressTypeId = $_GET['address_type_id'];
-    $vAddress1 = $_GET['address1'];
-    $vAddress2 = $_GET['address2'];
-    $vPostalCode = $_GET['postal_code'];    
-    $vCountryId = $_GET['country_id'];
-    $vCityId = $_GET['city_id'];
-    $vBoroughId = $_GET['borough_id'];
-    $vCityName = $_GET['city_name'];  
-    $vDescription = $_GET['description'];   
-    $vDescriptionEng = $_GET['description_eng'];    
-    
-     
-    
-    $vActive =0; 
-    if (isset($_GET['active'])) {
-        $vActive = $_GET['active'];
-    }    
-   
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }     
+    $vDescriptionEng = '';
+    if (isset($_GET['description_eng'])) {
+        $vDescriptionEng = strtolower(trim($_GET['description_eng']));
+    }
+    $vProfilePublic = 0;
+    if (isset($_GET['profile_public'])) {
+        $vProfilePublic = strtolower(trim($_GET['profile_public']));
+    }       
     $vOperationTypeId = 1;
     if (isset($_GET['operation_type_id'])) {
         $vOperationTypeId = $_GET['operation_type_id'];
-    }
-    $vUserId = NULL;
-    if (isset($_GET['user_id'])) {
-        $vUserId = $_GET['user_id'];
     }      
     $vConsAllowId = 0;
     if (isset($_GET['cons_allow_id'])) {
@@ -264,8 +260,23 @@ $app->get("/pkInsert_infoUsersAddresses/", function () use ($app ) {
         $vConsultantConfirmTypeId = $_GET['confirm_id'];
     } 
 
-    
-    $fUserId = $vUserId ; 
+ 
+    $vAddressTypeId = $_GET['address_type_id'];
+    $vAddress1 = $_GET['address1'];
+    $vAddress2 = $_GET['address2'];
+    $vPostalCode = $_GET['postal_code'];    
+    $vCountryId = $_GET['country_id'];
+    $vCityId = $_GET['city_id'];
+    $vBoroughId = $_GET['borough_id'];
+    $vCityName = $_GET['city_name'];  
+    $vDescription = $_GET['description'];   
+  
+    $vActive =0; 
+    if (isset($_GET['active'])) {
+        $vActive = $_GET['active'];
+    }    
+   
+  
     $fOperationTypeId = $vOperationTypeId;    
     $fActive =$vActive;
     $fActParentId =$vActParentId;
@@ -291,7 +302,7 @@ $app->get("/pkInsert_infoUsersAddresses/", function () use ($app ) {
      
     
     $resDataInsert = $BLL->insert(array(  
-            'user_id' =>$fUserId , 
+           
             'operation_type_id' => $fOperationTypeId,
             'active' => $fActive,        
             'act_parent_id' => $fActParentId,
@@ -335,10 +346,52 @@ $app->get("/pkUpdate_infoUsersAddresses/", function () use ($app ) {
     $BLL = $app->getBLLManager()->get('infoUsersAddressesBLL');
 
     $headerParams = $app->request()->headers();
-    $vpk = $headerParams['X-Public'];    
+    $vpk = $headerParams['X-Public'];   
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }     
+    $vDescriptionEng = '';
+    if (isset($_GET['description_eng'])) {
+        $vDescriptionEng = strtolower(trim($_GET['description_eng']));
+    }
+    $vProfilePublic = 0;
+    if (isset($_GET['profile_public'])) {
+        $vProfilePublic = strtolower(trim($_GET['profile_public']));
+    }       
+    $vOperationTypeId = 2;
+    if (isset($_GET['operation_type_id'])) {
+        $vOperationTypeId = $_GET['operation_type_id'];
+    }      
+    $vConsAllowId = 0;
+    if (isset($_GET['cons_allow_id'])) {
+        $vConsAllowId = $_GET['cons_allow_id'];
+    }
+    $vActParentId = 0;
+    if (isset($_GET['act_parent_id'])) {
+        $vActParentId = $_GET['act_parent_id'];
+    }  
+    $vConsultantId = 0;
+    if (isset($_GET['consultant_id'])) {
+        $vConsultantId = $_GET['consultant_id'];
+    }
+    $vConsultantConfirmTypeId = 0;
+    if (isset($_GET['consultant_confirm_type_id'])) {
+        $vConsultantConfirmTypeId = $_GET['consultant_confirm_type_id'];
+    }
+    $vConfirmId = 0;
+    if (isset($_GET['confirm_id'])) {
+        $vConsultantConfirmTypeId = $_GET['confirm_id'];
+    }
+     $vActive =0; 
+    if (isset($_GET['active'])) {
+        $vActive = $_GET['active'];
+    } 
+    
+    
     $vID =$_GET['id'];    
-    $vProfilePublic = $_GET['profile_public'];    
-    $vLanguageCode = $_GET['language_code'];
+ 
    
     
     $vAddressTypeId = $_GET['address_type_id'];
@@ -350,45 +403,10 @@ $app->get("/pkUpdate_infoUsersAddresses/", function () use ($app ) {
     $vBoroughId = $_GET['borough_id'];
     $vCityName = $_GET['city_name'];  
     $vDescription = $_GET['description'];   
-    $vDescriptionEng = $_GET['description_eng'];    
+   
     
     
-    $vActive =0; 
-    if (isset($_GET['active'])) {
-        $vActive = $_GET['active'];
-    }
-    $vOperationTypeId = 1;
-    if (isset($_GET['operation_type_id'])) {
-        $vOperationTypeId = $_GET['operation_type_id'];
-    }
-    $vUserId = NULL;
-    if (isset($_GET['user_id'])) {
-        $vUserId = $_GET['user_id'];
-    } 
-    
-    $vConsAllowId = 0;
-    if (isset($_GET['cons_allow_id'])) {
-        $vConsAllowId = $_GET['cons_allow_id'];
-    } 
-    $vActParentId = 0;
-    if (isset($_GET['act_parent_id'])) {
-        $vActParentId = $_GET['act_parent_id'];
-    }  
-    $vConsultantId = 0;
-    if (isset($_GET['consultant_id'])) {
-        $vConsultantId = $_GET['consultant_id'];
-    } 
-    
-    $vConsultantConfirmTypeId = 0;
-    if (isset($_GET['consultant_confirm_type_id'])) {
-        $vConsultantConfirmTypeId = $_GET['consultant_confirm_type_id'];
-    } 
-    
-    $vConfirmId = 0;
-    if (isset($_GET['confirm_id'])) {
-        $vConsultantConfirmTypeId = $_GET['confirm_id'];
-    } 
-    
+   
    
     $validater = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
     $validatorChainUrl = new Zend\Validator\ValidatorChain();
@@ -688,18 +706,9 @@ $app->get("/pkFillUserAddressesTypes_infoUsersAddresses/", function () use ($app
     
     $resCombobox = $BLL->fillUserAddressesTypes(array('pk' => $fPk , 
                                                         'language_code' => $vLanguageCode ));
-
-    $flows = array();
-    foreach ($resCombobox as $flow) {
-        $flows[] = array(
-            "id" => $flow["id"],       
-            "text" => $flow["name"],
-            "state" => 'open',
-            "checked" => false,
-            "attributes" => array("notroot" => true,   ),
-        );
-    }
-    
+ 
+    $menus = array();
+    $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
      if ($componentType == 'bootstrap') {
         $menus = array();
         foreach ($resCombobox as $menu) {
@@ -712,8 +721,7 @@ $app->get("/pkFillUserAddressesTypes_infoUsersAddresses/", function () use ($app
             );
         }
     } else if ($componentType == 'ddslick') {
-        $menus = array();
-        $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+        
         foreach ($resCombobox as $menu) {
             $menus[] = array(
                 "text" => $menu["name"],
@@ -724,16 +732,10 @@ $app->get("/pkFillUserAddressesTypes_infoUsersAddresses/", function () use ($app
             );
         }
     }
-    
-    
-    
-    
-    
+     
 
     $app->response()->header("Content-Type", "application/json");
-
  
-
     $app->response()->body(json_encode($flows));
 });
  
@@ -750,18 +752,22 @@ $app->get("/pktempFillGridSingular_infoUsersAddresses/", function () use ($app )
     $headerParams = $app->request()->headers();
     $vPkTemp = $headerParams['X-Public-Temp'];
     $vLanguageCode =$_GET['language_code'] ;
-    $tableType =$_GET['table_type'] ;
+    $componentType = 'bootstrap';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+
     
-    $fPkTemp = $vPkTemp ; 
+    $fPkTemp = $vPkTemp ;  
     
     $resDataGrid = $BLL->fillGridSingularTemp(array('pktemp' => $fPkTemp,
                                                     'language_code' => $vLanguageCode,
-                                                    'table_type' => $tableType
+                                                    
                                                     ));
 
     $resTotalRowCount = $BLL->fillGridSingularRowTotalCountTemp(array('pktemp' => $fPkTemp,
                                                                     'language_code' => $vLanguageCode,
-                                                                    'table_type' => $tableType));
+                                                                     ));
 
     $flows = array();
     foreach ($resDataGrid as $flow) {
@@ -811,18 +817,14 @@ $app->get("/pktempFillGridSingular_infoUsersAddresses/", function () use ($app )
     }
 
     $app->response()->header("Content-Type", "application/json");
-   // print_r($resTotalRowCount);
+  
     $resultArray = array();
     $resultArray['total'] = $resTotalRowCount[0]['count'];
     $resultArray['rows'] = $flows;
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-    
-    if($tableType == 'bootstrap'){
+ 
+    if($componentType == 'bootstrap'){
         $app->response()->body(json_encode($flows));
-    }else if($tableType == 'easyui'){
+    }else if($componentType == 'easyui'){
         $app->response()->body(json_encode($resultArray));
     }
 });
@@ -839,8 +841,47 @@ $app->get("/pktempInsert_infoUsersAddresses/", function () use ($app ) {
     $vPkTemp = $headerParams['X-Public-Temp'];
    // print_r($vPkTemp);
     
-    $vProfilePublic = $_GET['profile_public'];    
-    $vLanguageCode = $_GET['language_code'];
+     $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }     
+    $vDescriptionEng = '';
+    if (isset($_GET['description_eng'])) {
+        $vDescriptionEng = strtolower(trim($_GET['description_eng']));
+    }
+    $vProfilePublic = 0;
+    if (isset($_GET['profile_public'])) {
+        $vProfilePublic = strtolower(trim($_GET['profile_public']));
+    }       
+    $vOperationTypeId = 1;
+    if (isset($_GET['operation_type_id'])) {
+        $vOperationTypeId = $_GET['operation_type_id'];
+    }      
+    $vConsAllowId = 0;
+    if (isset($_GET['cons_allow_id'])) {
+        $vConsAllowId = $_GET['cons_allow_id'];
+    }
+    $vActParentId = 0;
+    if (isset($_GET['act_parent_id'])) {
+        $vActParentId = $_GET['act_parent_id'];
+    }  
+    $vConsultantId = 0;
+    if (isset($_GET['consultant_id'])) {
+        $vConsultantId = $_GET['consultant_id'];
+    }
+    $vConsultantConfirmTypeId = 0;
+    if (isset($_GET['consultant_confirm_type_id'])) {
+        $vConsultantConfirmTypeId = $_GET['consultant_confirm_type_id'];
+    }
+    $vConfirmId = 0;
+    if (isset($_GET['confirm_id'])) {
+        $vConsultantConfirmTypeId = $_GET['confirm_id'];
+    }
+     $vActive =0; 
+    if (isset($_GET['active'])) {
+        $vActive = $_GET['active'];
+    } 
+ 
 
     $vAddressTypeId = $_GET['address_type_id'];
     $vAddress1 = $_GET['address1'];
@@ -851,7 +892,7 @@ $app->get("/pktempInsert_infoUsersAddresses/", function () use ($app ) {
     $vBoroughId = $_GET['borough_id'];
     $vCityName = $_GET['city_name'];  
     $vDescription = $_GET['description'];   
-    //$vDescriptionEng = $_GET['description_eng'];    
+   
      
      
     $fLanguageCode = $vLanguageCode;
@@ -909,9 +950,50 @@ $app->get("/pktempUpdate_infoUsersAddresses/", function () use ($app ) {
     $headerParams = $app->request()->headers();
     $vPkTemp = $headerParams['X-Public-Temp'];  
     
+     $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }     
+    $vDescriptionEng = '';
+    if (isset($_GET['description_eng'])) {
+        $vDescriptionEng = strtolower(trim($_GET['description_eng']));
+    }
+    $vProfilePublic = 0;
+    if (isset($_GET['profile_public'])) {
+        $vProfilePublic = strtolower(trim($_GET['profile_public']));
+    }       
+    $vOperationTypeId = 2;
+    if (isset($_GET['operation_type_id'])) {
+        $vOperationTypeId = $_GET['operation_type_id'];
+    }      
+    $vConsAllowId = 0;
+    if (isset($_GET['cons_allow_id'])) {
+        $vConsAllowId = $_GET['cons_allow_id'];
+    }
+    $vActParentId = 0;
+    if (isset($_GET['act_parent_id'])) {
+        $vActParentId = $_GET['act_parent_id'];
+    }  
+    $vConsultantId = 0;
+    if (isset($_GET['consultant_id'])) {
+        $vConsultantId = $_GET['consultant_id'];
+    }
+    $vConsultantConfirmTypeId = 0;
+    if (isset($_GET['consultant_confirm_type_id'])) {
+        $vConsultantConfirmTypeId = $_GET['consultant_confirm_type_id'];
+    }
+    $vConfirmId = 0;
+    if (isset($_GET['confirm_id'])) {
+        $vConsultantConfirmTypeId = $_GET['confirm_id'];
+    }
+     $vActive =0; 
+    if (isset($_GET['active'])) {
+        $vActive = $_GET['active'];
+    } 
+    
+    
     $vID =$_GET['id'];    
-    $vProfilePublic = $_GET['profile_public'];    
-    $vLanguageCode = $_GET['language_code'];
+ 
  
     $vAddressTypeId = $_GET['address_type_id'];
     $vAddress1 = $_GET['address1'];
@@ -922,7 +1004,7 @@ $app->get("/pktempUpdate_infoUsersAddresses/", function () use ($app ) {
     $vBoroughId = $_GET['borough_id'];
     $vCityName = $_GET['city_name'];  
     $vDescription = $_GET['description'];   
-    $vDescriptionEng = $_GET['description_eng'];   
+ 
      
    
     $validater = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    

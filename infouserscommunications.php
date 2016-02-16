@@ -52,13 +52,19 @@ $app->get("/pkFillGridSingular_infoUsersCommunications/", function () use ($app 
     $headerParams = $app->request()->headers();
     $vPk = $headerParams['X-Public'];
     $fPk = $vPk ; 
+    $vlanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vlanguageCode = strtolower(trim($_GET['language_code']));
+    }
     
     $resDataGrid = $BLL->fillGridSingular(array(
-                                            'pk' => $fPk 
+                                            'pk' => $fPk,
+                                            'language_code' => $vlanguageCode
                                             ));
 
     $resTotalRowCount = $BLL->fillGridSingularRowTotalCount(array(
-                                                                'pk' => $fPk 
+                                                                'pk' => $fPk,
+                                                                'language_code' =>$vlanguageCode
                                                                  ));
 
     $flows = array();
@@ -659,45 +665,32 @@ $app->get("/pktempFillGridSingular_infoUsersCommunications/", function () use ($
     
     $fPkTemp = $vPkTemp ; 
     
-    $resDataGrid = $BLL->fillGridSingularTemp(array('pktemp' => $fPkTemp ));
+    $languageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $languageCode = strtolower(trim($_GET['language_code']));
+    }
+     $componentType = 'bootstrap';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
 
-    $resTotalRowCount = $BLL->fillGridSingularRowTotalCountTemp(array('pktemp' => $fPkTemp ));
+    
+    $resDataGrid = $BLL->fillGridSingularTemp(array('pktemp' => $fPkTemp ,'language_code' => $languageCode ));
+
+    $resTotalRowCount = $BLL->fillGridSingularRowTotalCountTemp(array('pktemp' => $fPkTemp,'language_code' => $languageCode ));
 
     $flows = array();
     foreach ($resDataGrid as $flow) {
         $flows[] = array(
             "id" => $flow["id"],
-            "profile_public" => $flow["profile_public"],
-            "user_id" => $flow["user_id"],
-            "s_date" => $flow["s_date"],
-            "c_date" => $flow["c_date"],
-            "name" => $flow["name"],
-            "surname" => $flow["surname"],
-            "deleted" => $flow["deleted"],
-            "state_deleted" => $flow["state_deleted"],
-            "active" => $flow["active"],
-            "state_active" => $flow["state_active"],
-            "language_code" => $flow["language_code"],
-            "language_name" => $flow["language_name"],
-            "language_parent_id" => $flow["language_parent_id"],
-            "description" => $flow["description"],
-            "description_eng" => $flow["description_eng"],
-            "op_user_id" => $flow["op_user_id"],
-            "op_username" => $flow["op_username"],
             "communications_type_id" => $flow["communications_type_id"],
             "comminication_type" => $flow["comminication_type"],
-            "communications_no" => $flow["communications_no"],  
-            "consultant_id" => $flow["consultant_id"],  
-            "consultant_confirm_type_id" => $flow["consultant_confirm_type_id"],  
-            "consultant_confirm_type" => $flow["consultant_confirm_type"],              
-            "confirm_id" => $flow["confirm_id"],  
-            "operation_type_id" => $flow["operation_type_id"],              
-            "operation_name" => $flow["operation_name"],
+            "communications_no" => $flow["communications_no"],              
             "default_communication_id" => $flow["default_communication_id"],
             "default_communication" => $flow["default_communication"],
 
             
-            "attributes" => array("notroot" => true, "active" => $flow["active"]),
+            "attributes" => array("notroot" => true, ),
         );
     }
 
@@ -706,12 +699,14 @@ $app->get("/pktempFillGridSingular_infoUsersCommunications/", function () use ($
     $resultArray = array();
     $resultArray['total'] = $resTotalRowCount[0]['count'];
     $resultArray['rows'] = $flows;
+ 
 
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
-    $app->response()->body(json_encode($resultArray));
+   // $app->response()->body(json_encode($flows));
+    if($componentType == 'bootstrap'){
+        $app->response()->body(json_encode($flows));
+    }else if($componentType == 'easyui'){
+        $app->response()->body(json_encode($resultArray));
+    }
 });
 
 /**x
@@ -725,27 +720,34 @@ $app->get("/pktempInsert_infoUsersCommunications/", function () use ($app ) {
     $headerParams = $app->request()->headers();
     $vPkTemp = $headerParams['X-Public-Temp'];
     
-    $vProfilePublic = $_GET['profile_public'];    
-    $vLanguageCode = $_GET['language_code'];
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }
+     
+    $vDescriptionEng = '';
+    if (isset($_GET['description_eng'])) {
+        $vDescriptionEng = strtolower(trim($_GET['description_eng']));
+    }
+    $vProfilePublic = 0;
+    if (isset($_GET['profile_public'])) {
+        $vProfilePublic = strtolower(trim($_GET['profile_public']));
+    } 
+    $vDefaultCommunicationId = 0;
+    if (isset($_GET['default_communication_id'])) {
+        $vDefaultCommunicationId = strtolower(trim($_GET['default_communication_id']));
+    } 
+    
     $vCommunicationsTypeId = $_GET['communications_type_id'];
     $vCommunicationsNo = $_GET['communications_no'];
-    $vDescription = $_GET['description'];   
-    $vDescriptionEng = $_GET['description_eng'];  
-    $vDefaultCommunicationId = $_GET['default_communication_id'];  
-    
+    $vDescription = $_GET['description'];       
+  
      
-    $vActive =0; 
-    if (isset($_GET['active'])) {
-        $vActive = $_GET['active'];
-    }
     $vOperationTypeId = 1;
     if (isset($_GET['operation_type_id'])) {
         $vOperationTypeId = $_GET['operation_type_id'];
     }
-    $vUserId = NULL;
-    if (isset($_GET['user_id'])) {
-        $vUserId = $_GET['user_id'];
-    }      
+      
     $vConsAllowId = 0;
     if (isset($_GET['cons_allow_id'])) {
         $vConsAllowId = $_GET['cons_allow_id'];
@@ -768,9 +770,9 @@ $app->get("/pktempInsert_infoUsersCommunications/", function () use ($app ) {
     } 
 
     
-    $fUserId = $vUserId ; 
+ 
     $fOperationTypeId = $vOperationTypeId;    
-    $fActive =$vActive;
+   
     $fActParentId =$vActParentId;
     $fLanguageCode = $vLanguageCode;
     $fProfilePublic = $vProfilePublic;
@@ -787,10 +789,8 @@ $app->get("/pktempInsert_infoUsersCommunications/", function () use ($app ) {
     
     
     
-    $resDataInsert = $BLL->insertTemp(array(  
-            'user_id' =>$fUserId , 
-            'operation_type_id' => $fOperationTypeId,
-            'active' => $fActive,        
+    $resDataInsert = $BLL->insertTemp(array(           
+            'operation_type_id' => $fOperationTypeId,              
             'act_parent_id' => $fActParentId,
             'language_code' => $fLanguageCode,
             'profile_public' => $fProfilePublic,              
@@ -807,10 +807,7 @@ $app->get("/pktempInsert_infoUsersCommunications/", function () use ($app ) {
             ));
 
     $app->response()->header("Content-Type", "application/json");
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
+ 
 
     $app->response()->body(json_encode($resDataInsert));
 }
@@ -826,30 +823,19 @@ $app->get("/pktempUpdate_infoUsersCommunications/", function () use ($app ) {
 
     $headerParams = $app->request()->headers();
     $vPkTemp = $headerParams['X-Public-Temp'];  
-    
-    $vID =$_GET['id'];    
-    $vProfilePublic = $_GET['profile_public'];    
-    $vLanguageCode = $_GET['language_code'];
-    $vCommunicationsTypeId = $_GET['communications_type_id'];
-    $vCommunicationsNo = $_GET['communications_no'];
-    $vDescription = $_GET['description'];   
-    $vDescriptionEng = $_GET['description_eng'];   
-    $vDefaultCommunicationId = $_GET['default_communication_id'];   
-    
-      
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }
     
     $vActive =0; 
     if (isset($_GET['active'])) {
         $vActive = $_GET['active'];
     }
-    $vOperationTypeId = 1;
+    $vOperationTypeId = 2;
     if (isset($_GET['operation_type_id'])) {
         $vOperationTypeId = $_GET['operation_type_id'];
-    }
-    $vUserId = NULL;
-    if (isset($_GET['user_id'])) {
-        $vUserId = $_GET['user_id'];
-    }     
+    }      
     $vConsAllowId = 0;
     if (isset($_GET['cons_allow_id'])) {
         $vConsAllowId = $_GET['cons_allow_id'];
@@ -869,7 +855,18 @@ $app->get("/pktempUpdate_infoUsersCommunications/", function () use ($app ) {
     $vConfirmId = 0;
     if (isset($_GET['confirm_id'])) {
         $vConsultantConfirmTypeId = $_GET['confirm_id'];
-    }     
+    } 
+    
+    $vID =$_GET['id'];    
+    $vProfilePublic = $_GET['profile_public']; 
+    $vCommunicationsTypeId = $_GET['communications_type_id'];
+    $vCommunicationsNo = $_GET['communications_no'];
+    $vDescription = $_GET['description'];   
+    $vDescriptionEng = $_GET['description_eng'];   
+    $vDefaultCommunicationId = $_GET['default_communication_id'];   
+    
+      
+    
    
     $validater = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
     $validatorChainUrl = new Zend\Validator\ValidatorChain();
@@ -971,8 +968,7 @@ $app->get("/pktempUpdate_infoUsersCommunications/", function () use ($app ) {
     print_r( $messager->getValidationMessage());
     
       
-    $fID = $vID;   
-    $fUserId = $vUserId ; 
+    $fID = $vID;  
     $fOperationTypeId = $vOperationTypeId;    
     $fActive =$vActive;
     $fActParentId =$vActParentId;
@@ -996,8 +992,8 @@ $app->get("/pktempUpdate_infoUsersCommunications/", function () use ($app ) {
      */
     
     $resDataUpdate = $BLL->updateTemp(array(
-        'id' =>$fID,  
-        'user_id' =>  $fUserId , 
+        'id' =>$fID, 
+    
         'operation_type_id' => $fOperationTypeId,
         'active' => $fActive,        
         'act_parent_id' => $fActParentId,
@@ -1081,7 +1077,11 @@ $app->get("/pktempFillUserCommunicationsTypes_infoUsersCommunications/", functio
     $headerParams = $app->request()->headers();
     $vPkTemp = $headerParams['X-Public-Temp'];      
     
-    $resCombobox = $BLL->fillUserCommunicationsTypesTemp(array('pktemp' => $vPkTemp));
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }
+    $resCombobox = $BLL->fillUserCommunicationsTypesTemp(array('pktemp' => $vPkTemp,'language_code' => $vLanguageCode,));
 
     $flows = array();
     foreach ($resCombobox as $flow) {
