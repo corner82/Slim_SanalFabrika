@@ -31,7 +31,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $userId = $this->getUserId(array('pk' => $params['pk']));
-            if (!\Utill\Dal\Helper::haveRecord($userId)) {
+            if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
                 $statement = $pdo->prepare(" 
                 UPDATE sys_osb_consultants
@@ -120,7 +120,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $userId = $this->getUserId(array('pk' => $params['pk']));
-            if (!\Utill\Dal\Helper::haveRecord($userId)) {
+            if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $opUserIdValue = $userId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
                 if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
@@ -240,7 +240,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $userId = $this->getUserId(array('pk' => $params['pk'], 'id' => $params['id']));
-            if (!\Utill\Dal\Helper::haveRecord($userId)) {
+            if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $opUserIdValue = $userId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
                 if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
@@ -478,7 +478,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+            //$pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -747,7 +747,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
-                $pdo->commit();
+         //       $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -948,7 +948,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             $pdo->beginTransaction();
 
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
-            if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
 
                 $addSql = " op_user_id, ";
@@ -1107,7 +1107,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
-            if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $sql = "
                 SELECT 
@@ -1137,8 +1137,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
-                $errorInfoColumn = 'pk';
-                $pdo->commit();
+                $errorInfoColumn = 'pk';             
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -1184,7 +1183,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+           
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -1232,7 +1231,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+          
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
