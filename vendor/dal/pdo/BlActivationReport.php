@@ -75,7 +75,7 @@ class BlActivationReport extends \DAL\DalSlim {
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+           // $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -161,7 +161,7 @@ class BlActivationReport extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');             
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));            
-            if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId['resultSet'][0]['user_id'];
                 
             $sql = "     
@@ -194,7 +194,7 @@ class BlActivationReport extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+          //  $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -228,7 +228,7 @@ class BlActivationReport extends \DAL\DalSlim {
             //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             return json_encode($result);         
         } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+          //  $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -245,7 +245,7 @@ class BlActivationReport extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');             
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));            
-            if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId['resultSet'][0]['user_id'];
                 
             $sql = "     
@@ -269,11 +269,11 @@ class BlActivationReport extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
-                $pdo->commit();
+           //     $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+          //  $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -292,7 +292,7 @@ class BlActivationReport extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');             
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));            
-            if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId['resultSet'][0]['user_id'];
                 
             $sql = "  
@@ -347,11 +347,11 @@ class BlActivationReport extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
-                $pdo->commit();
+             //   $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+         //   $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -370,7 +370,7 @@ class BlActivationReport extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');             
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));            
-            if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId['resultSet'][0]['user_id'];
                 
             $sql = "  
@@ -392,7 +392,7 @@ class BlActivationReport extends \DAL\DalSlim {
   
                     ";  
             $statement = $pdo->prepare($sql);
-            //  echo debugPDO($sql, $params);
+          // echo debugPDO($sql, $params);
             $statement->execute();       
             $result = $statement->fetchAll(\PDO::FETCH_CLASS);        
             $errorInfo = $statement->errorInfo();
@@ -403,11 +403,11 @@ class BlActivationReport extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
-                $pdo->commit();
+             //   $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
+            
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }

@@ -26,7 +26,7 @@ class InfoUsers extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $userId = $this->getUserId(array('pk' => $params['pk']));
-            if (!\Utill\Dal\Helper::haveRecord($userId)) {
+            if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
                 $statement = $pdo->prepare("
                     UPDATE info_users 
@@ -77,14 +77,15 @@ class InfoUsers extends \DAL\DalSlim {
                         a.password, 
                         ad.auth_email,                   
                         ad.language_code, 
+                        ad.language_id, 
                         COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,
                         sd2.description AS state_deleted, 
                         a.active, 
                         sd3.description AS state_active,  
                         a.deleted, 
                         a.op_user_id,
-                        u.username as kaydi_yaratan ,
-                        u1.username as enson_islem_yapan ,
+                        u.username AS kaydi_yaratan ,
+                        u1.username AS enson_islem_yapan ,
                         ad.act_parent_id, 
                         ad.auth_allow_id, 
                         sd.description AS auth_alow ,
@@ -92,23 +93,22 @@ class InfoUsers extends \DAL\DalSlim {
                         sd1.description AS cons_allow,                     
                         ad.root_id,
                         a.consultant_id,
-                        cons.name as cons_name, 
-                        cons.surname as cons_surname                        
+                        cons.name AS cons_name, 
+                        cons.surname AS cons_surname                        
                     FROM info_users a    
-                    inner join info_users_detail ad  on ad.language_code = a.language_code AND ad.deleted =0 AND ad.active =0 and ad.root_id = a.id 
-                    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_code = a.language_code
-                    INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_code = a.language_code AND ad.auth_allow_id = sd.first_group 
-                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 14 AND  sd1.language_code = a.language_code AND ad.cons_allow_id = sd1.first_group 
-                    INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a.deleted AND sd2.language_code = a.language_code AND sd2.deleted =0 AND sd2.active =0 
-                    INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_code = a.language_code AND sd3.deleted = 0 AND sd3.active = 0                    
-                    INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active =0 
+                    inner join info_users_detail ad  on ad.language_id = a.language_id AND ad.deleted =0 AND ad.active =0 and ad.root_id = a.id 
+                    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_id = a.language_id
+                    INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_id = a.language_id AND ad.auth_allow_id = sd.first_group 
+                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 14 AND  sd1.language_id = a.language_id AND ad.cons_allow_id = sd1.first_group 
+                    INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a.deleted AND sd2.language_id = a.language_id AND sd2.deleted =0 AND sd2.active =0 
+                    INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_id = a.language_id AND sd3.deleted = 0 AND sd3.active = 0                    
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
                     INNER JOIN info_users u ON u.id = a.op_user_id  
                     INNER JOIN info_users u1 ON u1.id = ad.op_user_id   
-                    LEFT JOIN info_users_detail cons ON cons.root_id  = a.consultant_id AND cons.active=0 AND cons.deleted = 0 
-                    WHERE a.deleted =0 AND a.language_code = :language_code   
+                    LEFT JOIN info_users_detail cons ON cons.root_id = a.consultant_id AND cons.active=0 AND cons.deleted = 0 
                     ORDER BY ad.name, ad.surname
                 ");
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+             
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -279,8 +279,7 @@ class InfoUsers extends \DAL\DalSlim {
     public function insert($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
-            
+            $pdo->beginTransaction();            
             $kontrol = $this->haveRecords($params); // username kontrolu
             if (!\Utill\Dal\Helper::haveRecord($kontrol)) { 
                 $userId = $this->getUserId(array('pk' => $params['pk']));// bı pk var mı  
@@ -299,13 +298,12 @@ class InfoUsers extends \DAL\DalSlim {
                     $addSqlValue = $languageIdValue . ',';
                     
                    //uzerinde az iş olan consultantı alalım.  
-                    if (!\Utill\Dal\Helper::haveRecord($getConsultant['resultSet'][0]['consultant_id'])) {
+                   $getConsultant = SysOsbConsultants::getConsultantIdForUsers();              
+                    if (\Utill\Dal\Helper::haveRecord($getConsultant['resultSet'][0]['consultant_id'])) {
                         $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                     } else {
                         $ConsultantId = 1001;
-                    }
-                 
-
+                    } 
                     $sql = " 
                     INSERT INTO info_users(                           
                                operation_type_id, 
@@ -343,15 +341,7 @@ class InfoUsers extends \DAL\DalSlim {
                      * kullanıcı için gerekli olan private key temp ve value temp değerleri yaratılılacak.  
                      */
                     $this->setPrivateKey(array('id' => $insertID));
-                    /*
-                     * kullanıcının public key temp değeri alınacak..  
-                     */
-                    $publicKeyTemp = $this->getPublicKeyTemp(array('id' => $insertID));
-                    if (!\Utill\Dal\Helper::haveRecord($publicKeyTemp)) {
-                        $publicKeyTempValue = $publicKeyTemp ['resultSet'][0]['pk_temp'];
-                    } else {
-                        $publicKeyTempValue = NULL;
-                    }
+                   
                     /*
                      * kullanıcı bilgileri info_users_detail tablosuna kayıt edilecek.   
                      */
@@ -376,7 +366,7 @@ class InfoUsers extends \DAL\DalSlim {
                     ));
 
                     $pdo->commit();
-                    return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID, "publicKeyTemp" => $publicKeyTempValue);
+                    return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
                     $errorInfo = '23502';   // 23502  not_null_violation
                     $errorInfoColumn = 'pk';
@@ -440,7 +430,8 @@ class InfoUsers extends \DAL\DalSlim {
                             :root_id, 
                             :op_user_id ,
                             :password,
-                            (SELECT consultant_id FROM info_users WHERE id = ".  intval($params['root_id'])." )
+                            (SELECT consultant_id FROM info_users WHERE id = ".  intval($params['root_id'])." ) 
+                               
                     )";
 
                 $statement = $pdo->prepare($sql);
@@ -458,8 +449,7 @@ class InfoUsers extends \DAL\DalSlim {
                 $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':root_id', $params['root_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':op_user_id', $params['op_user_id'], \PDO::PARAM_INT);
-             
-                //   echo debugPDO($sql, $params);
+               // echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('info_users_detail_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -493,15 +483,13 @@ class InfoUsers extends \DAL\DalSlim {
             $pdo->beginTransaction(); 
                 $kontrol = $this->haveRecords($params);
                 if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                    $getConsultant = SysOsbConsultants::getConsultantIdForUsers();              
-                    if (!\Utill\Dal\Helper::haveRecord($getConsultant['resultSet'][0]['consultant_id'])) {
+                    $getConsultant = SysOsbConsultants::getConsultantIdForUsers(array('category_id' => 0));              
+                    if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                         $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                     } else {
                         $ConsultantId = 1001;
                     }
-                  
-                   // print_r($ConsultantId);
-
+                    
                     $sql = " 
                 INSERT INTO info_users(                           
                         operation_type_id, 
@@ -525,7 +513,7 @@ class InfoUsers extends \DAL\DalSlim {
                     $statement->bindValue(':username', $params['username'], \PDO::PARAM_STR);
                     $statement->bindValue(':password', $params['password'], \PDO::PARAM_STR);
                     $statement->bindValue(':language_id', $params['preferred_language'], \PDO::PARAM_INT);
-                  //  echo debugPDO($sql, $params);
+                  //echo debugPDO($sql, $params);
                     $result = $statement->execute();
                     $insertID = $pdo->lastInsertId('info_users_id_seq');
                     $errorInfo = $statement->errorInfo();
@@ -540,13 +528,13 @@ class InfoUsers extends \DAL\DalSlim {
                     /*
                      * kullanıcının public key temp değeri alınacak..  
                      */
-                    $publicKeyTemp = $this->getPublicKeyTemp(array('id' => $insertID));
-                    if (!\Utill\Dal\Helper::haveRecord($publicKeyTemp)) {
+                    $publicKeyTemp = $this->getPublicKeyTemp(array('id' => $insertID));             
+                    if (\Utill\Dal\Helper::haveRecord($publicKeyTemp)) {
                         $publicKeyTempValue = $publicKeyTemp ['resultSet'][0]['pk_temp'];
                     } else {
                         $publicKeyTempValue = NULL;
                     }
-
+                
                     /*
                      * kullanıcı bilgileri info_users_detail tablosuna kayıt edilecek.   
                      */
@@ -601,7 +589,7 @@ class InfoUsers extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $userId = $this->getUserId(array('pk' => $params['pk'], 'id' => $params['id']));
-            if (!\Utill\Dal\Helper::haveRecord($userId)) {
+            if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
 
                 $kontrol = $this->haveRecords($params);
@@ -730,7 +718,7 @@ class InfoUsers extends \DAL\DalSlim {
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
 
                 $kontrol = $this->haveRecords($params);
-                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                if (\Utill\Dal\Helper::haveRecord($kontrol)) {
 
                     $addSql = " ";
                     $addSqlValue = "";
@@ -814,7 +802,7 @@ class InfoUsers extends \DAL\DalSlim {
  
                     ";
                     $statementActInsert = $pdo->prepare($sql);
-                    echo debugPDO($sql, $params);
+                  //  echo debugPDO($sql, $params);
                     $affectedRows1 = 1 ; 
                     $insertAct = $statementActInsert->execute();
                     $insertID = $pdo->lastInsertId('info_users_detail_id_seq');
@@ -967,11 +955,15 @@ class InfoUsers extends \DAL\DalSlim {
         } else {
             $order = "ASC";
         }
+        
+        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+        if (\Utill\Dal\Helper::haveRecord($languageId)) {
+            $languageIdValue = $languageId ['resultSet'][0]['id'];
+        }else {
+            $languageIdValue = 647;
+         }
+        $whereSql .= " AND a.language_id= ".intval($languageIdValue) ;
 
-        $whereNameSQL = '';
-        if (isset($args['search_name']) && $args['search_name'] != "") {
-            $whereNameSQL = " AND ad.name LIKE '%" . $args['search_name'] . "%' ";
-        }
 
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -990,14 +982,14 @@ class InfoUsers extends \DAL\DalSlim {
                         a.password, 
                         ad.auth_email,                   
                         ad.language_code, 
+                        ad.language_id,
                         COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,
                         sd2.description AS state_deleted, 
                         a.active, 
                         sd3.description AS state_active,  
                         a.deleted, 
                         a.op_user_id,
-                        u.username as kaydi_yaratan ,
-                        u1.username as enson_islem_yapan ,
+                        u1.username AS enson_islem_yapan ,
                         ad.act_parent_id, 
                         ad.auth_allow_id, 
                         sd.description AS auth_alow ,
@@ -1008,24 +1000,23 @@ class InfoUsers extends \DAL\DalSlim {
                         cons.name as cons_name, 
                         cons.surname as cons_surname                        
                     FROM info_users a    
-                    inner join info_users_detail ad  on ad.language_code = a.language_code AND ad.deleted =0 AND ad.active =0 and ad.root_id = a.id 
-                    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_code = a.language_code
-                    INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_code = a.language_code AND ad.auth_allow_id = sd.first_group 
-                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 14 AND  sd1.language_code = a.language_code AND ad.cons_allow_id = sd1.first_group 
-                    INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a.deleted AND sd2.language_code = a.language_code AND sd2.deleted =0 AND sd2.active =0 
-                    INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_code = a.language_code AND sd3.deleted = 0 AND sd3.active = 0                    
-                    INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active =0 
-                    INNER JOIN info_users u ON u.id = a.op_user_id  
-                    INNER JOIN info_users u1 ON u1.id = ad.op_user_id   
+                    inner join info_users_detail ad on ad.language_id = a.language_id AND ad.deleted =0 AND ad.active =0 and ad.root_id = a.id 
+                    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_id = a.language_id
+                    INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_id = a.language_id AND ad.auth_allow_id = sd.first_group 
+                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 14 AND  sd1.language_id = a.language_id AND ad.cons_allow_id = sd1.first_group 
+                    INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a.deleted AND sd2.language_id = a.language_id AND sd2.deleted =0 AND sd2.active =0 
+                    INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_id = a.language_id AND sd3.deleted = 0 AND sd3.active = 0                    
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0              
+                    LEFT JOIN info_users u1 ON u1.id = ad.op_user_id AND u1.language_id = a.language_id  
                     LEFT JOIN info_users_detail cons ON cons.root_id  = a.consultant_id AND cons.active=0 AND cons.deleted = 0 
-                    WHERE a.deleted =0 AND a.language_code = :language_code                       
-                      " . $whereNameSQL . "
+                    WHERE a.deleted =0  
+                    ".$whereSql."                   
                     ORDER BY  " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
                     . "OFFSET " . $pdo->quote($offset) . " ";
-            $statement = $pdo->prepare($sql);
-            $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_STR);
+             
+            $statement = $pdo->prepare($sql);            
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1047,53 +1038,52 @@ class InfoUsers extends \DAL\DalSlim {
     public function fillGridRowTotalCount($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $whereNameSQL = '';
-            $whereNameSQL1 = '';
-            $whereNameSQL2 = '';
-            if (isset($params['search_name']) && $params['search_name'] != "") {
-                $whereNameSQL = " AND a.name LIKE '%" . $params['search_name'] . "%' ";
-                $whereNameSQL1 = " AND a1.name LIKE '%" . $params['search_name'] . "%' ";
-                $whereNameSQL2 = " AND a2.name LIKE '%" . $params['search_name'] . "%' ";
-            }
+            
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            }else {
+                $languageIdValue = 647;
+             }
+            $whereSql .= "  a.language_id = ".intval($languageIdValue);
+            $whereSql1 .= " WHERE a1.deleted = 0 AND a1.language_id = ".intval($languageIdValue);
+            $whereSql2 .= " WHERE a2.deleted = 1 AND a2.language_id = ".intval($languageIdValue);
+             
             $sql = "
                    SELECT 
                         count(a.id) as count ,
                         (SELECT count(a1.id) AS toplam FROM info_users a1  		   
-                        INNER JOIN sys_operation_types op1 ON op1.id = a1.operation_type_id and op1.language_code = a1.language_code
-                        INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 13 AND sd1.language_code = a1.language_code AND a1.auth_allow_id = sd1.first_group 
+                        INNER JOIN sys_operation_types op1 ON op1.id = a1.operation_type_id and op1.language_id = a1.language_id
+                        INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 13 AND sd1.language_id = a1.language_id AND a1.auth_allow_id = sd1.first_group 
                         INNER JOIN sys_specific_definitions sd11 ON sd11.main_group = 14 AND  sd11.language_code = a1.language_code AND a1.cons_allow_id = sd11.first_group 
-                        INNER JOIN sys_specific_definitions sd21 ON sd21.main_group = 15 AND sd21.first_group= a1.deleted AND sd21.language_code = a1.language_code AND sd21.deleted =0 AND sd21.active =0 
-                        INNER JOIN sys_specific_definitions sd31 ON sd31.main_group = 16 AND sd31.first_group= a1.active AND sd31.language_code = a1.language_code AND sd31.deleted = 0 AND sd31.active = 0
-                        INNER JOIN sys_specific_definitions sd41 ON sd41.main_group = 3 AND sd41.first_group= a1.active AND sd41.language_code = a1.language_code AND sd41.deleted = 0 AND sd41.active = 0
-                        INNER JOIN sys_language l1 ON l1.language_main_code = a1.language_code AND l1.deleted =0 AND l1.active =0 
-                        INNER JOIN info_users u1 ON u1.id = a1.user_id 
-                        WHERE a1.language_code = '" . $params['language_code'] . "' AND a1.deleted = 0
-                             " . $whereNameSQL1 . ") AS undeleted_count,                         
+                        INNER JOIN sys_specific_definitions sd21 ON sd21.main_group = 15 AND sd21.first_group= a1.deleted AND sd21.language_id = a1.language_id AND sd21.deleted =0 AND sd21.active =0 
+                        INNER JOIN sys_specific_definitions sd31 ON sd31.main_group = 16 AND sd31.first_group= a1.active AND sd31.language_id = a1.language_id AND sd31.deleted = 0 AND sd31.active = 0
+                        INNER JOIN sys_specific_definitions sd41 ON sd41.main_group = 3 AND sd41.first_group= a1.active AND sd41.language_id = a1.language_id AND sd41.deleted = 0 AND sd41.active = 0
+                        INNER JOIN sys_language l1 ON l1.id = a1.language_id AND l1.deleted =0 AND l1.active =0 
+                        INNER JOIN info_users u1 ON u1.id = a1.user_id                           
+                             " . $whereSql1 . ") AS undeleted_count,                         
                         (SELECT count(a2.id) AS toplam FROM info_users a2
-                        INNER JOIN sys_operation_types op2 ON op2.id = a2.operation_type_id and op2.language_code = a2.language_code
-                        INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 13 AND sd2.language_code = a2.language_code AND a2.auth_allow_id = sd2.first_group 
-                        INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 14 AND sd12.language_code = a2.language_code AND a2.cons_allow_id = sd12.first_group 
-                        INNER JOIN sys_specific_definitions sd22 ON sd22.main_group = 15 AND sd22.first_group = a2.deleted AND sd22.language_code = a2.language_code AND sd22.deleted =0 AND sd22.active =0 
-                        INNER JOIN sys_specific_definitions sd32 ON sd32.main_group = 16 AND sd32.first_group = a2.active AND sd32.language_code = a2.language_code AND sd32.deleted = 0 AND sd32.active = 0
-                        INNER JOIN sys_specific_definitions sd42 ON sd42.main_group = 3 AND sd42.first_group = a2.active AND sd42.language_code = a2.language_code AND sd42.deleted = 0 AND sd42.active = 0
-                        INNER JOIN sys_language l2 ON l2.language_main_code = a2.language_code AND l2.deleted =0 AND l2.active =0 
-                        INNER JOIN info_users u2 ON u2.id = a2.user_id 
-                        WHERE a2.language_code = '" . $params['language_code'] . "' AND a2.deleted = 1
-                             " . $whereNameSQL2 . " ) AS deleted_count                  
+                        INNER JOIN sys_operation_types op2 ON op2.id = a2.operation_type_id and op2.language_id = a2.language_id
+                        INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 13 AND sd2.language_id = a2.language_id AND a2.auth_allow_id = sd2.first_group 
+                        INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 14 AND sd12.language_id = a2.language_id AND a2.cons_allow_id = sd12.first_group 
+                        INNER JOIN sys_specific_definitions sd22 ON sd22.main_group = 15 AND sd22.first_group = a2.deleted AND sd22.language_id = a2.language_id AND sd22.deleted =0 AND sd22.active =0 
+                        INNER JOIN sys_specific_definitions sd32 ON sd32.main_group = 16 AND sd32.first_group = a2.active AND sd32.language_id = a2.language_id AND sd32.deleted = 0 AND sd32.active = 0
+                        INNER JOIN sys_specific_definitions sd42 ON sd42.main_group = 3 AND sd42.first_group = a2.active AND sd42.language_id = a2.language_id AND sd42.deleted = 0 AND sd42.active = 0
+                        INNER JOIN sys_language l2 ON l2.id = a2.language_id AND l2.deleted =0 AND l2.active =0 
+                        INNER JOIN info_users u2 ON u2.id = a2.user_id                        
+                             " . $whereSql2 . " ) AS deleted_count                  
                     FROM info_users a  		   
-		    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_code = a.language_code
-		    INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_code = a.language_code AND a.auth_allow_id = sd.first_group 
-		    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 14 AND  sd1.language_code = a.language_code AND a.cons_allow_id = sd1.first_group 
-		    INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a.deleted AND sd2.language_code = a.language_code AND sd2.deleted =0 AND sd2.active =0 
-		    INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_code = a.language_code AND sd3.deleted = 0 AND sd3.active = 0
-		    INNER JOIN sys_specific_definitions sd4 ON sd4.main_group = 3 AND sd4.first_group= a.active AND sd4.language_code = a.language_code AND sd4.deleted = 0 AND sd4.active = 0
-		    INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active =0 
-		    INNER JOIN info_users u ON u.id = a.user_id 
-		    WHERE a.language_code = '" . $params['language_code'] . "' 
-                    " . $whereNameSQL . " 
-                         ";
-            $statement = $pdo->prepare($sql);
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+		    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_id = a.language_id
+		    INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_id = a.language_id AND a.auth_allow_id = sd.first_group 
+		    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 14 AND  sd1.language_id = a.language_id AND a.cons_allow_id = sd1.first_group 
+		    INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a.deleted AND sd2.language_id = a.language_id AND sd2.deleted =0 AND sd2.active =0 
+		    INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_id = a.language_id AND sd3.deleted = 0 AND sd3.active = 0
+		    INNER JOIN sys_specific_definitions sd4 ON sd4.main_group = 3 AND sd4.first_group= a.active AND sd4.language_id = a.language_id AND sd4.deleted = 0 AND sd4.active = 0
+		    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+		    INNER JOIN info_users u ON u.id = a.user_id 		   
+                    " . $whereSql . " 
+                         ";             
+            $statement = $pdo->prepare($sql);            
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1116,13 +1106,12 @@ class InfoUsers extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-
             $userId = $this->getUserId(array('pk' => $params['pk']));
-            if (!\Utill\Dal\Helper::haveRecord($userId)) {
+            if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
-
-                $this->setUserDetailsDisables(array('id' => $params['id']));
-                $this->makeUserDeleted(array('id' => $params['id']));
+ 
+                $this->setUserDetailsDisables(array('id' => $userIdValue));
+                $this->makeUserDeleted(array('id' => $userIdValue));
 
                 $sql = " 
                     INSERT INTO info_users_detail(
@@ -1138,6 +1127,7 @@ class InfoUsers extends \DAL\DalSlim {
                            auth_allow_id,
                            cons_allow_id,
                            language_code,
+                           language_id,
                            root_id,
                            op_user_id,
                            language_id,
@@ -1158,6 +1148,7 @@ class InfoUsers extends \DAL\DalSlim {
                                 auth_allow_id,
                                 cons_allow_id,
                                 language_code,
+                                language_id,
                                 root_id,                               
                                 " . intval($userIdValue) . " AS op_user_id,
                                 language_id,
@@ -1165,29 +1156,10 @@ class InfoUsers extends \DAL\DalSlim {
                                1,
                                1
                             FROM info_users_detail 
-                            WHERE root_id  =" . intval($params['id']) . " 
+                            WHERE root_id  =" . intval($userIdValue) . " 
                                 AND active =0 AND deleted =0 
  
-                    ";
-
-
-                $statement = $pdo->prepare($sql);
-                $statement_act_insert->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
-                $statement_act_insert->bindValue(':f_check', $params['f_check'], \PDO::PARAM_INT);
-                $statement_act_insert->bindValue(':s_date', $params['s_date'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);
-                $statement_act_insert->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':surname', $params['surname'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':username', $params['username'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':password', $params['password'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':auth_allow_id', $params['auth_allow_id'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':user_id', $userIdValue, \PDO::PARAM_INT);
-                $statement_act_insert->bindValue(':act_parent_id', $act_parent_id, \PDO::PARAM_INT);
-                $statement_act_insert->bindValue(':cons_allow_id', $params['cons_allow_id'], \PDO::PARAM_INT);
-                $statement_act_insert->bindValue(':preferred_language', $params['preferred_language'], \PDO::PARAM_STR);
-                $statement_act_insert->bindValue(':person_number', $params['personIdNumber'], \PDO::PARAM_STR);
+                    "; 
                 $insert_act_insert = $statement_act_insert->execute();
                 $affectedRows = $statement_act_insert->rowCount();
                 $errorInfo = $statement_act_insert->errorInfo();
@@ -1266,13 +1238,13 @@ class InfoUsers extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = " 
                 SELECT 
-                    REPLACE(TRIM(SUBSTRING(crypt(sf_private_key_value_temp,gen_salt('xdes')),6,20)),'/','*') as pk_temp                  
+                    REPLACE(TRIM(SUBSTRING(crypt(sf_private_key_value_temp,gen_salt('xdes')),6,20)),'/','*') as pk_temp ,              
+                    id =" .intval( $params['id']) . " AS control
                 FROM info_users 
                 WHERE 
-                    id = :id 
+                     id =" .intval( $params['id']) . "
                 ";
             $statement = $pdo->prepare($sql);
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1296,9 +1268,9 @@ class InfoUsers extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "  
-                 SELECT id AS user_id FROM (
-                            SELECT id, 	
-                                CRYPT(sf_private_key_value,CONCAT('_J9..',REPLACE('" . $params['pk'] . "','*','/'))) = CONCAT('_J9..',REPLACE('" . $params['pk'] . "','*','/')) as pkey
+                 SELECT id AS user_id, 1=1 AS control FROM (
+                            SELECT id , 	
+                                CRYPT(sf_private_key_value,CONCAT('_J9..',REPLACE('" . $params['pk'] . "','*','/'))) = CONCAT('_J9..',REPLACE('" . $params['pk'] . "','*','/')) as pkey                                
                             FROM info_users WHERE active =0 AND deleted =0) AS logintable
                         WHERE pkey = TRUE 
                 ";
@@ -1327,14 +1299,14 @@ class InfoUsers extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "  
-                 SELECT id AS user_id , pkeytemp AS control FROM (
+                 SELECT id AS user_id , 1=1 AS control FROM (
                             SELECT id, 	                              
                                 CRYPT(sf_private_key_value_Temp,CONCAT('_J9..',REPLACE('" . $params['pktemp'] . "','*','/'))) = CONCAT('_J9..',REPLACE('" . $params['pktemp'] . "','*','/')) AS pkeytemp                                    
                             FROM info_users WHERE active =0 AND deleted =0) AS logintable
                         WHERE pkeytemp = TRUE 
                 ";
             $statement = $pdo->prepare($sql);
-            //echo debugPDO($sql, $params);
+         // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1427,125 +1399,5 @@ class InfoUsers extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-
-    /**
-     * parametre olarak gelen array deki 'id' li kaydın update ini yapar  !!
-     * @author Okan CIRAN
-     * @version v 1.0  26.01.2016     
-     * @param array | null $args
-     * @param type $params
-     * @return array
-     * @throws PDOException
-     */
-    public function setConsultantOperationUserDetail($params = array()) {
-        try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
-            $userId = $this->getUserId(array('pk' => $params['pk'], 'id' => $params['id']));
-            if (!\Utill\Dal\Helper::haveRecord($userId)) {
-                $userIdValue = $userId ['resultSet'][0]['user_id'];
-
-                $kontrol = $this->haveRecords($params);
-                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-
-                    $addSql = "";
-                    $addSqlValue = "";
-
-
-                    if (isset($params['f_check'])) {
-                        $addSql .= " f_check, ";
-                        $addSqlValue .= intval($params['f_check']) . ", ";
-                    }
-                    if (isset($params['auth_allow_id'])) {
-                        $addSql .= " auth_allow_id, ";
-                        $addSqlValue .= intval($params['auth_allow_id']) . ", ";
-                    }
-                    if (isset($params['cons_allow_id'])) {
-                        $addSql .= " cons_allow_id, ";
-                        $addSqlValue .= intval($params['cons_allow_id']) . ", ";
-                        $consAllowId = intval($params['cons_allow_id']);
-                    } else {
-                        $consAllowId = 0;
-                    }
-
-
-                    /*
-                     * parametre olarak gelen array deki 'id' li kaydın, info_users tablosundaki 
-                     * alanlarını update eder !! username update edilmez.  
-                     */
-                    $this->updateInfoUsers(array('id' => $params['id'],
-                        'op_user_id' => $userIdValue,
-                        'role_id' => $params['role_id'],
-                        'active' => $params['active'],
-                        'operation_type_id' => $params['operation_type_id'],
-                        'language_id' => $params['preferred_language'],
-                        'password' => $params['password'],
-                        'cons_allow_id' => $consAllowId,
-                    ));
-
-                    /*
-                     *  parametre olarak gelen array deki 'id' li kaydın, info_users_details tablosundaki 
-                     * active = 0 ve deleted = 0 olan kaydın active alanını 1 yapar  !!
-                     */
-                    $this->setUserDetailsDisables(array('id' => $params['id']));
-
-                    $sql = " 
-                    INSERT INTO info_users_detail(
-                           profile_public,                            
-                           operation_type_id, 
-                           " . $addSql . "
-                           name, 
-                           surname,                           
-                           auth_email,                            
-                           language_id,                           
-                           op_user_id,                                                       
-                           root_id,
-                           act_parent_id,
-                           password
-                            ) 
-                           SELECT 
-                                " . intval($params['profile_public']) . " AS profile_public,                           
-                                " . intval($params['operation_type_id']) . " AS operation_type_id, 
-                                " . $addSqlValue . "
-                                '" . $params['name'] . "' AS name, 
-                                '" . $params['surname'] . "' AS surname,                                 
-                                '" . $params['auth_email'] . "' AS auth_email,   
-                                '" . $params['preferred_language'] . "' AS language_id,   
-                                " . intval($userIdValue) . " AS user_id,
-                                COALESCE(NULLIF(root_id, 0), " . intval($params['id']) . " ),
-                                act_parent_id,
-                                 '" . $params['password'] . "' AS password    
-                            FROM info_users_detail 
-                            WHERE root_id  =" . intval($params['id']) . " 
-                                AND active =0 AND deleted =0
-
  
-                    ";
-                    $statementActInsert = $pdo->prepare($sql);
-                    //   echo debugPDO($sql, $params);
-                    $insertAct = $statementActInsert->execute();
-                    $insertID = $pdo->lastInsertId('info_users_detail_id_seq');
-                    $errorInfo = $statementActInsert->errorInfo();
-                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                        throw new \PDOException($errorInfo[0]);
-                    $pdo->commit();
-                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows, "newId" => $insertID);
-                } else {
-                    $errorInfo = '23505';  // 23505  unique_violation 
-                    $pdo->commit();
-                    $result = $kontrol;
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
-                }
-            } else {
-                $errorInfo = '23502';  /// 23502 user_id not_null_violation
-                $pdo->commit();
-                $result = $kontrol;
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
-            }
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
-            return array("found" => false, "errorInfo" => $e->getMessage());
-        }
-    }
-
 }

@@ -108,10 +108,11 @@ class SysOperationTypes extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $languageIdValue =647;
-                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];
+                 $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                } else {
+                    $languageIdValue = 647;
                 }
                 $statement = $pdo->prepare("
                 INSERT INTO sys_operation_types(
@@ -176,10 +177,11 @@ class SysOperationTypes extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $languageIdValue =647;
                 $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                if (!\Utill\Dal\Helper::haveRecord($languageId)) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                } else {
+                    $languageIdValue = 647;
                 }
             $statement = $pdo->prepare("
                 UPDATE sys_operation_types
@@ -259,10 +261,11 @@ class SysOperationTypes extends \DAL\DalSlim {
             $order = "ASC";
         }
 
-        $languageIdValue =647;
-        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-        if (!\Utill\Dal\Helper::haveRecord($languageId)) {
-        $languageIdValue = $languageId ['resultSet'][0]['id'];
+         $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+        if (\Utill\Dal\Helper::haveRecord($languageId)) {
+            $languageIdValue = $languageId ['resultSet'][0]['id'];
+        } else {
+            $languageIdValue = 647;
         }
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -324,10 +327,11 @@ class SysOperationTypes extends \DAL\DalSlim {
     public function fillGridRowTotalCount($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $languageIdValue =647;
             $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-            if (!\Utill\Dal\Helper::haveRecord($languageId)) {
-            $languageIdValue = $languageId ['resultSet'][0]['id'];
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
             }
             $sql = "
                 SELECT 
@@ -357,10 +361,11 @@ class SysOperationTypes extends \DAL\DalSlim {
     public function fillConsultantOperations($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');   
-            $languageIdValue =647;
-            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-            if (!\Utill\Dal\Helper::haveRecord($languageId)) {
-            $languageIdValue = $languageId ['resultSet'][0]['id'];
+             $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
             }
             
              if (isset($params['main_group']) && $params['main_group'] != "") { 
