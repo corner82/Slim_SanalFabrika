@@ -126,5 +126,16 @@ class InfoFirmProfile extends \BLL\BLLSlim {
         $resultSet = $DAL->fillTextLanguageTemplate($params);
         return $resultSet['resultSet'];
     }
+    
+    
+     /**
+     * Data insert function
+     * @param array | null $params
+     * @return array
+     */
+    public function insertTemp($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        return $DAL->insertTemp($params);
+    }
 
 }
