@@ -300,13 +300,13 @@ class BlActivationReport extends \DAL\DalSlim {
                         SELECT 1 as ids,
                            'Toplam Firma Sayısı' AS aciklama,
                             COUNT(id) AS adet                     
-                        FROM info_firm_profile 
+                        FROM info_firm_profile a
                         WHERE deleted =0 AND active =0  
                     UNION 
                         SELECT 2 AS ids,
                            'Onaylanmış Firma Sayısı' AS aciklama,
                             COUNT(a.id) AS adet                     
-                        FROM info_firm_profile 
+                        FROM info_firm_profile a
                         INNER JOIN sys_operation_types op ON op.parent_id = 2 AND a.operation_type_id = op.id AND op.active = 0 AND op.deleted =0
                         WHERE a.deleted =0 AND a.active =0 AND
                               a.operation_type_id = 5
@@ -375,17 +375,22 @@ class BlActivationReport extends \DAL\DalSlim {
                 
             $sql = "  
                  
-                SELECT aciklama ,   
-                    CAST(SUBSTRING(sure FROM 1 FOR POSITION(' ' IN sure )-1 ) AS integer) AS sure
+               SELECT 
+                    aciklama , 
+                    CASE
+                        WHEN sure_int > 0 THEN CAST(SUBSTRING(sure FROM 1 FOR POSITION(' ' IN sure )-1 ) AS integer)
+                    ELSE 0 
+                    END AS sure
                 FROM (
-                    SELECT a.id,	   
-                       a.firm_name AS aciklama,
+                    SELECT a.id,
+                        EXTRACT(EPOCH FROM age(a.s_date)) AS sure_int,  
+			a.firm_name AS aciklama, 
                        CAST(CURRENT_TIMESTAMP - a.s_date AS VARCHAR(20)) AS sure
-                    FROM info_firm_profile a                 
+                    FROM  info_firm_profile a                 
                     INNER JOIN info_users u ON u.id = a.consultant_id   
                     INNER JOIN sys_operation_types op ON op.parent_id = 1 AND a.operation_type_id = op.id AND op.active = 0 AND op.deleted =0
                     WHERE 
-                        a.consultant_id = ".intval($opUserIdValue)." 
+                        a.consultant_id = ".intval($opUserIdValue)."                     
                     ) AS asdasd
                 ORDER BY sure DESC
                 LIMIT 6
