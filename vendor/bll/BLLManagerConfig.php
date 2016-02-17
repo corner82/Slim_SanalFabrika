@@ -58,7 +58,8 @@ class BLLManagerConfig{
                  'sysOperationTypesToolsBLL' => 'BLL\BLL\SysOperationTypesTools',
                  'infoErrorBLL' => 'BLL\BLL\InfoError',
                  'sysMachineToolGroupsBLL' => 'BLL\BLL\SysMachineToolGroups',
-          
+                 'sysMachineToolsBLL' => 'BLL\BLL\SysMachineTools',
+                 
                  
              ),
              'factories' => [
