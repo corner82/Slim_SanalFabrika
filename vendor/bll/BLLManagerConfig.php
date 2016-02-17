@@ -60,7 +60,9 @@ class BLLManagerConfig{
                  'sysMachineToolGroupsBLL' => 'BLL\BLL\SysMachineToolGroups',
                  'sysMachineToolsBLL' => 'BLL\BLL\SysMachineTools',
                  'sysMachineToolPropertyDefinitionBLL' => 'BLL\BLL\SysMachineToolPropertyDefinition',
+                 'sysMachineToolPropertiesBLL' => 'BLL\BLL\SysMachineToolProperties',
                  
+              
                                   
              ),
              'factories' => [
