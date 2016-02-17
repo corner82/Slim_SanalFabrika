@@ -59,8 +59,9 @@ class BLLManagerConfig{
                  'infoErrorBLL' => 'BLL\BLL\InfoError',
                  'sysMachineToolGroupsBLL' => 'BLL\BLL\SysMachineToolGroups',
                  'sysMachineToolsBLL' => 'BLL\BLL\SysMachineTools',
+                 'sysMachineToolPropertyDefinitionBLL' => 'BLL\BLL\SysMachineToolPropertyDefinition',
                  
-                 
+                                  
              ),
              'factories' => [
                  //'reportConfigurationPDO' => 'BLL\BLL\ReportConfiguration',
