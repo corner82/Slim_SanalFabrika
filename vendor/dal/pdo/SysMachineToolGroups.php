@@ -81,10 +81,15 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                         a.active, 
                         sd1.description as state_active, 
                         a.op_user_id,
-                        u.username AS op_user_name     
+                        u.username AS op_user_name ,
+                        a.language_code, 
+                        a.language_id, 
+                        COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,
+                        a.language_parent_id
                 FROM sys_machine_tool_groups  a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
                 INNER JOIN info_users u ON u.id = a.op_user_id                              
                 ORDER BY a.parent_id, a.group_name
                                  ");
@@ -126,30 +131,27 @@ class SysMachineToolGroups extends \DAL\DalSlim {
 
                     $sql = "
                 INSERT INTO sys_machine_tool_groups(
-                        osb_id, 
-                        country_id, 
-                        active, 
-                        op_user_id, 
+                        group_name, 
+                        group_name_eng,
+                        parent_id, 
                         language_id, 
-                        language_code, 
-                        op_user_id )
+                        op_user_id,                        
+                        icon_class )
                 VALUES (
-                        :osb_id, 
-                        :country_id, 
-                        :active, 
-                        :user_id, 
+                        :group_name, 
+                        :group_name_eng, 
+                        :parent_id, 
                         :language_id, 
-                        :language_code, 
-                        :op_user_id 
+                        :op_user_id,                        
+                        :icon_class  
                                              )   ";
                     $statement = $pdo->prepare($sql);
-                    $statement->bindValue(':osb_id', $params['osb_id'], \PDO::PARAM_INT);
-                    $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
-                    $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
-                    $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
+                    $statement->bindValue(':group_name', $params['group_name'], \PDO::PARAM_STR);
+                    $statement->bindValue(':group_name_eng', $params['group_name_eng'], \PDO::PARAM_STR);                    
+                    $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);
                     $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
-                    $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
                     $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
+                    $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
                     // echo debugPDO($sql, $params);
                     $result = $statement->execute();
                     $insertID = $pdo->lastInsertId('sys_machine_tool_groups_id_seq');
@@ -160,15 +162,14 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
                     $errorInfo = '23505';
-                     $pdo->rollback();
-                    $result = $kontrol;
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
-                    //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+                    $errorInfoColumn = 'group_name';
+                    $pdo->rollback();                    
+                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);                    
                 }
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
-                 $pdo->rollback();
+                $pdo->rollback();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -193,16 +194,14 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                 $addSql = " AND a.id != " . intval($params['id']) . " ";
             }
             $sql = " 
-
             SELECT  
-                CONCAT(u.name,' ',u.surname) AS name , 
-                '" . $params['user_id'] . "' AS value , 
-                a.op_user_id =" . intval($params['user_id']) . " AS control,
-                CONCAT(u.name,' ',u.surname, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
-            FROM sys_machine_tool_groups  a              
-            INNER JOIN info_users_detail u ON u.root_id = a.op_user_id AND u.active = 0 AND u.deleted = 0                 
-            WHERE a.op_user_id = " . intval($params['user_id']) . "
-                   " . $addSql . " 
+               a.group_name  AS name , 
+               '" . $params['group_name'] . "' AS value , 
+                LOWER(a.group_name) =LOWER(TRIM('" . $params['group_name'] . "')) AS control,
+                CONCAT(a.group_name, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
+            FROM sys_machine_tool_groups  a                          
+            WHERE a.group_name = " . intval($params['group_name']) . "            
+                  " . $addSql . " 
                AND a.deleted =0    
                                ";
             $statement = $pdo->prepare($sql);
@@ -234,7 +233,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             if (!\Utill\Dal\Helper::haveRecord($userId)) {
                 $opUserIdValue = $userId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
-                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                if (\Utill\Dal\Helper::haveRecord($kontrol)) {
                     $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                     if (\Utill\Dal\Helper::haveRecord($languageId)) {
                         $languageIdValue = $languageId ['resultSet'][0]['id'];
@@ -245,22 +244,20 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                     $sql = "
                 UPDATE sys_machine_tool_groups
                 SET   
-                    osb_id= :osb_id, 
-                    country_id= :country_id, 
-                    active= :active, 
-                    user_id = :user_id, 
-                    language_id= :language_id, 
-                    language_code= :language_code, 
-                    op_user_id= :op_user_id, 
+                    group_name = :group_name, 
+                    group_name_eng= :group_name_eng,                    
+                    parent_id = :parent_id, 
+                    language_id = :language_id, 
+                    op_user_id= :op_user_id,                        
+                    icon_class = :icon_class  
                 WHERE id = " . intval($params['id']);
                     $statement = $pdo->prepare($sql);
-                    $statement->bindValue(':osb_id', $params['osb_id'], \PDO::PARAM_INT);
-                    $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
-                    $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
-                    $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
+                    $statement->bindValue(':group_name', $params['group_name'], \PDO::PARAM_STR);
+                    $statement->bindValue(':group_name_eng', $params['group_name_eng'], \PDO::PARAM_STR);                   
                     $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
-                    $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
+                    $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);
                     $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
+                    $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
                     $update = $statement->execute();
                     $affectedRows = $statement->rowCount();
                     $errorInfo = $statement->errorInfo();
@@ -270,10 +267,10 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                     return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
                 } else {
                     // 23505 	unique_violation
-                    $errorInfo = '23505'; // $kontrol ['resultSet'][0]['message'];  
-                     $pdo->rollback();
-                    $result = $kontrol;
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                    $errorInfo = '23505'; 
+                    $errorInfoColumn = 'group_name';
+                     $pdo->rollback();                  
+                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
@@ -312,7 +309,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             if (count($sortArr) === 1)
                 $sort = trim($args['sort']);
         } else {
-            $sort = "u.name";
+            $sort = "a.parent_id, a.group_name ";
         }
 
         if (isset($args['order']) && $args['order'] != "") {
@@ -329,27 +326,21 @@ class SysMachineToolGroups extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-                  SELECT 
+                 SELECT 
                         a.id, 
-                        u.name AS name,
-                        u.surname AS name,
-                        a.osb_id,
-                        osb.name as osb_name,
-                        a.country_id,
-                        co.name as country, 		                   
+                        a.group_name ,
+                        a.group_name_eng,          
+                        a.parent_id,                  		                   
                         a.deleted, 
                         sd.description as state_deleted,                 
                         a.active, 
                         sd1.description as state_active, 
                         a.op_user_id,
-                        u1.username AS op_user_name     
+                        u.username AS op_user_name     
                 FROM sys_machine_tool_groups  a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
-                INNER JOIN info_users_detail u ON u.root_id = a.user_id AND u.active = 0 AND u.deleted = 0 
-                INNER JOIN info_users u1 ON u1.id = a.op_user_id 
-                LEFT JOIN sys_osb osb ON osb.id = a.osb_id 
-                LEFT JOIN sys_countrys co on co.id = a.country_id AND co.active =0 AND co.deleted =0                                
+                INNER JOIN info_users u ON u.id = a.op_user_id   
                 WHERE a.deleted =0              
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
@@ -386,32 +377,14 @@ class SysMachineToolGroups extends \DAL\DalSlim {
      */
     public function fillGridRowTotalCount($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $whereSQL = '';
-            $whereSQL1 = ' WHERE ax.deleted =0 ';
-            $whereSQL2 = ' WHERE ay.deleted =1 ';
-            
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');      
             $sql = "
                SELECT 
-                    COUNT(a.id) AS COUNT ,
-                    (SELECT COUNT(ax.id) FROM sys_machine_tool_groups ax  			
-			INNER JOIN sys_specific_definitions sdx ON sdx.main_group = 15 AND sdx.first_group= ax.deleted AND sdx.language_code = 'tr' AND sdx.deleted = 0 AND sdx.active = 0
-			INNER JOIN sys_specific_definitions sd1x ON sd1x.main_group = 16 AND sd1x.first_group= ax.active AND sd1x.language_code = 'tr' AND sd1x.deleted = 0 AND sd1x.active = 0                             
-			INNER JOIN info_users_detail ux ON ux.root_id = ax.user_id AND ux.active = 0 AND ux.deleted = 0 
-			INNER JOIN info_users u1x ON u1x.id = ax.op_user_id 
-                     " . $whereSQL1 . " ) AS undeleted_count, 
-                    (SELECT COUNT(ay.id) FROM sys_machine_tool_groups ay
-			INNER JOIN sys_specific_definitions sdy ON sdy.main_group = 15 AND sdy.first_group= ay.deleted AND sdy.language_code = 'tr' AND sdy.deleted = 0 AND sdy.active = 0
-			INNER JOIN sys_specific_definitions sd1y ON sd1y.main_group = 16 AND sd1y.first_group= ay.active AND sd1y.language_code = 'tr' AND sd1y.deleted = 0 AND sd1y.active = 0                             
-			INNER JOIN info_users_detail uy ON uy.root_id = ay.user_id AND uy.active = 0 AND uy.deleted = 0 
-			INNER JOIN info_users u1y ON u1y.id = ay.op_user_id 			
-                      " . $whereSQL2 . ") AS deleted_count                        
+                    COUNT(a.id) AS COUNT  
                 FROM sys_machine_tool_groups  a
-		INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
-		INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
-		INNER JOIN info_users_detail u ON u.root_id = a.user_id AND u.active = 0 AND u.deleted = 0 
-		INNER JOIN info_users u1 ON u1.id = a.op_user_id 
-                " . $whereSQL . "
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
+                INNER JOIN info_users u ON u.id = a.op_user_id                  
                     ";
             $statement = $pdo->prepare($sql);
            // echo debugPDO($sql, $params);
@@ -427,83 +400,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * @author Okan CIRAN
-     * @ sys_machine_tool_groups tablosundan osb_id si olan kayıtları döndürür !!
-     * @version v 1.0  15.02.2016
-     * @return array
-     * @throws \PDOException
-     */
-    public function fillOsbConsultantList($params = array()) {
-        try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            if (isset($params['osb_id']) && $params['osb_id'] != "") {
-                $whereSql = " AND a.osb_id = " . intval($params['osb_id']) . " AND  ";
-            } else {
-                $whereSql = "  AND a.osb_id = 5  ";  // osbId = 5 ostim
-            }
-            
-            $statement = $pdo->prepare("
-              SELECT                    
-                    a.id, 	
-                    CONCAT(u.name,' ', u.surname) AS name,                  
-                    a.active ,
-                    0 AS state_type                
-                FROM sys_machine_tool_groups  a                
-                INNER JOIN info_users_detail u ON u.root_id = a.user_id AND u.active = 0 AND u.deleted = 0                 
-                INNER JOIN sys_osb osb ON osb.id = a.osb_id                 
-                WHERE a.deleted =0 AND a.active = 0
-                " . $whereSql . " 
-                ORDER BY name              
-                               ");
-            $statement->execute();
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {       
-            return array("found" => false, "errorInfo" => $e->getMessage());
-        }
-    }
-
-    /**
-     * @author Okan CIRAN
-     * @ sys_machine_tool_groups tablosundan active kayıtları döndürür !!
-     * @version v 1.0  15.02.2016
-     * @param array | null $args
-     * @return array
-     * @throws \PDOException
-     */
-    public function fillConsultantList($params = array()) {
-        try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $id = 0;
-            if (isset($params['id']) && $params['id'] != "") {
-                $id = $params['id'];
-            }
-            $statement = $pdo->prepare("               
-		SELECT                    
-                    a.id, 	
-                    CONCAT(u.name,' ', u.surname) AS name,                  
-                    a.active ,
-                    0 AS state_type                
-                FROM sys_machine_tool_groups  a                
-                INNER JOIN info_users_detail u ON u.root_id = a.user_id AND u.active = 0 AND u.deleted = 0                                 
-                WHERE a.deleted =0 AND a.active = 0  
-                ORDER BY name                   
-                                 ");
-            $statement->execute();
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {         
-            return array("found" => false, "errorInfo" => $e->getMessage());
-        }
-    }
-
+ 
     /**
      * user interface fill operation   
      * @author Okan CIRAN
