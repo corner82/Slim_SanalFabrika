@@ -27,25 +27,8 @@ class BlLoginLogout extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function delete($params = array()) {
-        try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
-            $statement = $pdo->prepare(" 
-                UPDATE info_users
-                SET deleted= 1 , active = 1 ,
-                    op_user_id =  " . intval($params['user_id']) . " 
-                WHERE id = :id");
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-            $update = $statement->execute();
-            $afterRows = $statement->rowCount();
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
-        } catch (\PDOException $e /* Exception $e */) {
-            $pdo->rollback();
-            return array("found" => false, "errorInfo" => $e->getMessage());
+        try {             
+        } catch (\PDOException $e /* Exception $e */) {             
         }
     }
 

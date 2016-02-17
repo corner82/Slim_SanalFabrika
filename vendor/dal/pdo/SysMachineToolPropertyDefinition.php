@@ -28,11 +28,11 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function delete($params = array()) {
-        try {
+     try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $userId = $this->getUserId(array('pk' => $params['pk']));
-            if (!\Utill\Dal\Helper::haveRecord($userId)) {
+            if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
                 $statement = $pdo->prepare(" 
                 UPDATE sys_machine_tool_property_definition
@@ -43,7 +43,6 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
-
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
                 $pdo->commit();
@@ -57,7 +56,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
-    }
+    } 
 
     /**
      * @author Okan CIRAN

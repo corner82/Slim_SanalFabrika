@@ -28,17 +28,18 @@ class SysMachineToolGroups extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function delete($params = array()) {
-        try {
+       try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $userId = $this->getUserId(array('pk' => $params['pk']));
-            if (!\Utill\Dal\Helper::haveRecord($userId)) {
+            if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
                 $statement = $pdo->prepare(" 
                 UPDATE sys_machine_tools
-                SET  deleted= 1, active = 1 ,
+                SET  deleted= 1 , active = 1 ,
                      op_user_id = " . $userIdValue . "     
-                WHERE id = :id");          
+                WHERE id = :id");
+                //Execute our DELETE statement.
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
@@ -48,14 +49,14 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
             } else {
                 $errorInfo = '23502';  /// 23502  not_null_violation
-               $pdo->rollback();      
+                $pdo->rollback();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
-    }
+    } 
 
     /**
      * @author Okan CIRAN

@@ -27,7 +27,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function delete($params = array()) {
-        try {
+         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $userId = $this->getUserId(array('pk' => $params['pk']));
@@ -42,23 +42,20 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
-
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
             } else {
                 $errorInfo = '23502';  /// 23502  not_null_violation
-                $pdo->commit();
-                //  $result = $kontrol;
+                $pdo->rollback();
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
-    }
-
+    } 
     /**
      * @author Okan CIRAN
      * @ sys_osb_consultants tablosundaki tüm kayıtları getirir.  !!

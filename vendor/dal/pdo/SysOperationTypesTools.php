@@ -27,27 +27,35 @@ class SysOperationTypesTools extends \DAL\DalSlim {
      * @author Mustafa Zeynel Dağlı
      */
     public function delete($params = array()) {
-        try {
+       try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $statement = $pdo->prepare(" 
+            $userId = $this->getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($userId)) {
+                $userIdValue = $userId ['resultSet'][0]['user_id'];
+                $statement = $pdo->prepare(" 
                 UPDATE sys_operations_types_tools
-                SET  deleted= 1, active = 1, 
-                    op_user_id =  " . intval($params['user_id']) . " 
-                WHERE base_id = :id");
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-            $update = $statement->execute();
-            $afterRows = $statement->rowCount();
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+                SET  deleted= 1 , active = 1 ,
+                     op_user_id = " . $userIdValue . "     
+                WHERE id = :id");
+                //Execute our DELETE statement.
+                $update = $statement->execute();
+                $afterRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+            } else {
+                $errorInfo = '23502';  /// 23502  not_null_violation
+                $pdo->rollback();
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
-    }
+    } 
 
     /**
      * @author Mustafa Zeynel DAĞLI
@@ -144,7 +152,7 @@ class SysOperationTypesTools extends \DAL\DalSlim {
                 $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
                 $result = $statement->execute();
-                $insertID = $pdo->lastInsertId('sys_operation_types_id_seq');
+                $insertID = $pdo->lastInsertId('sys_operations_types_tools_id_seq');
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
@@ -334,7 +342,7 @@ class SysOperationTypesTools extends \DAL\DalSlim {
             $sql = "
                 SELECT 
                     COUNT(a.id) AS COUNT ,    
-                FROM sys_operation_types  a
+                FROM sys_operations_types_tools  a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 

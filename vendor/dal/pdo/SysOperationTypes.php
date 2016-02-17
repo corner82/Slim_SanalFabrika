@@ -27,27 +27,35 @@ class SysOperationTypes extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function delete($params = array()) {
-        try {
+          try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $statement = $pdo->prepare(" 
+            $userId = $this->getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($userId)) {
+                $userIdValue = $userId ['resultSet'][0]['user_id'];
+                $statement = $pdo->prepare(" 
                 UPDATE sys_operation_types
-                SET  deleted= 1, active = 1, 
-                    op_user_id =  " . intval($params['user_id']) . " 
-                WHERE base_id = :id");
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-            $update = $statement->execute();
-            $afterRows = $statement->rowCount();
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+                SET  deleted= 1 , active = 1 ,
+                     op_user_id = " . $userIdValue . "     
+                WHERE id = :id");
+                //Execute our DELETE statement.
+                $update = $statement->execute();
+                $afterRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+            } else {
+                $errorInfo = '23502';  /// 23502  not_null_violation
+                $pdo->rollback();
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
-    }
+    } 
 
     /**
      * @author Okan CIRAN
@@ -69,6 +77,7 @@ class SysOperationTypes extends \DAL\DalSlim {
                     a.active, 
 		    sd1.description as state_active,                      
                     a.language_code, 
+                    a.language_id,
 		    COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,               
                     a.language_parent_id,                     
                     a.op_user_id,
