@@ -62,6 +62,7 @@ class BLLManagerConfig{
                  'sysMachineToolPropertyDefinitionBLL' => 'BLL\BLL\SysMachineToolPropertyDefinition',
                  'sysMachineToolPropertiesBLL' => 'BLL\BLL\SysMachineToolProperties',
                  'sysUnitsBLL' => 'BLL\BLL\SysUnits',
+                 'infoFirmMachineToolBLL' => 'BLL\BLL\InfoFirmMachineTool',
                  
               
                                   

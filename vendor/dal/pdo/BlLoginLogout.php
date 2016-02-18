@@ -311,9 +311,9 @@ class BlLoginLogout extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 14 AND sd1.language_code = COALESCE(NULLIF(l.language_main_code, ''), 'en') AND a.cons_allow_id = sd1.first_group 
                 INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_code = COALESCE(NULLIF(l.language_main_code, ''),'en') AND sd3.deleted = 0 AND sd3.active = 0
                 INNER JOIN sys_specific_definitions sd4 ON sd4.main_group = 3 AND sd4.first_group= a.active AND sd4.language_code = COALESCE(NULLIF(l.language_main_code, ''),'en') AND sd4.deleted = 0 AND sd4.active = 0
-                INNER JOIN act_users_rrpmap usr ON usr.info_users_id = a.id AND usr.active = 0 AND usr.deleted = 0 
-                INNER JOIN sys_acl_rrpmap sarmap ON sarmap.id = usr.rrpmap_id AND sarmap.active=0 AND sarmap.deleted =0 
-                INNER JOIN sys_acl_roles sar ON sar.id = sarmap.role_id AND sar.active=0 AND sar.deleted=0 
+                
+                
+                INNER JOIN sys_acl_roles sar ON sar.id = a.role_id AND sar.active=0 AND sar.deleted=0 
                 WHERE  
                     CRYPT(a.sf_private_key_value,CONCAT('_J9..',REPLACE('".$params['pk']."','*','/'))) = CONCAT('_J9..',REPLACE('".$params['pk']."','*','/')) 
                     ";
@@ -364,9 +364,7 @@ class BlLoginLogout extends \DAL\DalSlim {
                 SELECT       
                      REPLACE(TRIM(SUBSTRING(crypt(sf_private_key_value,gen_salt('xdes')),6,20)),'/','*') AS public_key 
                 FROM info_users a              
-                INNER JOIN act_users_rrpmap usr ON usr.info_users_id = a.root_id AND usr.active = 0 AND usr.deleted = 0 
-		INNER JOIN sys_acl_rrpmap sarmap ON sarmap.id = usr.rrpmap_id AND sarmap.active=0 AND sarmap.deleted =0 
-                INNER JOIN sys_acl_roles sar ON sar.id = sarmap.role_id AND sar.active=0 AND sar.deleted=0 
+                INNER JOIN sys_acl_roles sar ON sar.id = a.role_id AND sar.active=0 AND sar.deleted=0 
                 WHERE a.username = :username 
                     AND a.password = :password   
                     AND a.deleted = 0 
