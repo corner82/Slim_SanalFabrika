@@ -510,11 +510,10 @@ class SysNavigationLeft extends \DAL\DalSlim {
                          (SELECT COALESCE(NULLIF(sar.id , 0),az.id)  
                                            FROM sys_acl_roles az                                         
 					   LEFT JOIN sys_acl_roles sar ON sar.id = az.root AND sar.active =0 AND sar.deleted =0  
-                                           WHERE az.id= sarmapv.role_id),0), sarv.id ) AS Menu_type  
+                                           WHERE az.id= av.role_id),0), sarv.id ) AS Menu_type  
                          FROM info_users av
-                         INNER JOIN act_users_rrpmap usrv ON usrv.info_users_id = av.id AND usrv.active = 0 AND usrv.deleted = 0 
-                         INNER JOIN sys_acl_rrpmap sarmapv ON sarmapv.id = usrv.rrpmap_id AND sarmapv.active=0 AND sarmapv.deleted =0 
-                         INNER JOIN sys_acl_roles sarv ON sarv.id = sarmapv.role_id AND sarv.active=0 AND sarv.deleted=0 
+                         
+                         INNER JOIN sys_acl_roles sarv ON sarv.id = av.role_id AND sarv.active=0 AND sarv.deleted=0 
                          INNER JOIN act_session sszv ON CRYPT(av.sf_private_key_value,CONCAT('_J9..',REPLACE(sszv.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(sszv.public_key,'*','/'))  
                          WHERE av.active =0 and av.deleted =0 AND sszv.public_key = ssx.public_key 
                       ) as integer) AND
