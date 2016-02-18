@@ -66,6 +66,7 @@ class DalManagerConfig {
                 'sysMachineToolsPDO' => 'DAL\Factory\PDO\SysMachineToolsFactory',
                 'sysMachineToolPropertyDefinitionPDO' => 'DAL\Factory\PDO\SysMachineToolPropertyDefinitionFactory',
                 'sysMachineToolPropertiesPDO' => 'DAL\Factory\PDO\SysMachineToolPropertiesFactory',
+                'sysUnitsPDO' => 'DAL\Factory\PDO\SysUnitsFactory',
                 
                   
             ],
