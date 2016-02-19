@@ -412,31 +412,48 @@ class SysMachineToolGroups extends \DAL\DalSlim {
     public function fillMachineToolGroups($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+             $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
             $parentId = 0;
             if (isset($params['parent_id']) && $params['parent_id'] != "") {
                 $parentId = $params['parent_id'];
             }
             $statement = $pdo->prepare("                
                 SELECT                    
-                    a.id, 
-                    a.group_name AS name,            
+                    a.id,                     
+                    COALESCE(NULLIF(a.group_name, ''), a.group_name_eng) as name ,
                     a.parent_id,
                     a.active ,
+                    CASE
+                        (CASE 
+                            (SELECT DISTINCT 1 state_type FROM sys_machine_tool_groups WHERE parent_id = a.id AND deleted = 0)    
+                             WHEN 1 THEN 'closed'
+                             ELSE 'open'   
+                             END ) 
+                         WHEN 'open' THEN COALESCE(NULLIF((SELECT DISTINCT 'closed' FROM sys_machine_tools mz WHERE mz.machine_tool_grup_id =a.id AND mz.deleted = 0), ''), 'open')   
+                    ELSE 'closed'
+                    END AS state_type,
+                    CASE
+                        (SELECT DISTINCT 1 parent_id FROM sys_machine_tool_groups WHERE id = a.id AND deleted = 0 AND parent_id =0 )    
+                        WHEN 1 THEN 'true'
+                    ELSE 'false'   
+                    END AS root_type,
+                    a.icon_class,
                     CASE 
-                    (SELECT DISTINCT 1 state_type FROM sys_machine_tool_groups WHERE parent_id = a.id AND deleted = 0)    
-                     WHEN 1 THEN 'closed'
-                     ELSE 'open'   
-                     END AS state_type,
-                     CASE
-                     (SELECT DISTINCT 1 parent_id FROM sys_machine_tool_groups WHERE id = a.id AND deleted = 0 AND parent_id =0 )    
-                     WHEN 1 THEN 'true'
-                     ELSE 'false'   
-                     END AS root_type,
-                     a.icon_class
-                FROM sys_machine_tool_groups a       
+                        (SELECT DISTINCT 1 state_type FROM sys_machine_tool_groups WHERE parent_id = a.id AND deleted = 0)    
+                         WHEN 1 THEN 'false'
+                    ELSE 'true'   
+                    END AS last_node,
+                    'false' as machine
+                FROM sys_machine_tool_groups a  
+                INNER JOIN sys_language lx ON lx.id = a.language_id AND lx.deleted =0 AND lx.active =0 
                 WHERE                    
-                    a.parent_id = " . $parentId . " AND 
-                    a.deleted = 0     
+                    a.parent_id = " .intval($parentId) . " AND 
+                    a.deleted = 0 AND a.language_id = " . intval($languageIdValue) . "  
                 ORDER BY name             
                                  ");
             $statement->execute();
@@ -449,5 +466,114 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+      /**
+     * user interface fill operation   
+     * @author Okan CIRAN
+     * @ tree doldurmak için sys_machine_tool tablosundan tüm kayıtları döndürür !!
+     * @version v 1.0  19.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillMachineToolGroupsMachines($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
+            $parentId = 0;
+            if (isset($params['parent_id']) && $params['parent_id'] != "") {
+                $parentId = $params['parent_id'];
+            }
+            $sql =" 
+                SELECT                    
+                    a.id, 
+                    COALESCE(NULLIF( (mt.machine_tool_name), ''), mt.machine_tool_name_eng) AS name,            
+                    -1 AS parent_id,
+                    a.active ,
+                    'open' AS state_type,                                          
+                    'false' AS root_type,
+                    Null AS icon_class,
+                    'true' AS last_node,
+                    'true' as machine   
+                FROM sys_machine_tool_groups a 
+                INNER JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                      
+                INNER join sys_machine_tools mt on mt.machine_tool_grup_id = a.id AND mt.language_id = lx.id AND mt.active =0 AND mt.deleted =0 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                
+                WHERE                    
+                   a.id =  " .intval($parentId) . " AND 
+                   a.deleted = 0     
+                ORDER BY name        
+                                 ";
+             $statement = $pdo->prepare( $sql);
+          //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {      
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+     /**
+     * user interface fill operation   
+     * @author Okan CIRAN
+     * @ tree doldurmak için sys_machine_tool tablosundan tüm kayıtları döndürür !!
+     * @version v 1.0  19.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillMachineToolGroupsMachineProperties($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
+            $parentId = 0;
+            if (isset($params['parent_id']) && $params['parent_id'] != "") {
+                $parentId = $params['parent_id'];
+            }
+            $statement = $pdo->prepare("                
+                SELECT                    
+                    a.id, 
+                    COALESCE(NULLIF( (mt.machine_tool_name), ''), mt.machine_tool_name_eng) AS name,            
+                    -1 AS parent_id,
+                    a.active ,
+                    'open' AS state_type,                                          
+                    'false' AS root_type,
+                    Null AS icon_class,
+                    'true' AS last_node                     
+                FROM sys_machine_tool_groups a 
+                INNER JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                      
+                INNER JOIN sys_machine_tools mt ON mt.machine_tool_grup_id = a.id AND mt.language_id = lx.id AND mt.active =0 AND mt.deleted =0 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                
+                WHERE                    
+                   a.parent_id =  " .intval($parentId) . " AND 
+                   a.deleted = 0     
+                ORDER BY name        
+                                 ");
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {      
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
 
 }

@@ -48,12 +48,37 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
 $app->get("/pkFillMachineToolGroups_sysMachineToolGroups/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('sysMachineToolGroupsBLL');
-
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }
+     $vParentId = 0;
+    if (isset($_GET['parent_id'])) {
+        $vParentId = strtolower(trim($_GET['parent_id']));
+    }
+    $vState =NULL;
+    if (isset($_GET['state'])) {
+        $vState = strtolower(trim($_GET['state']));
+    }
+    $vLastNode =NULL;
+    if (isset($_GET['last_node'])) {
+        $vLastNode = strtolower(trim($_GET['last_node']));
+    }
+    $vMachine= NULL;
+     if (isset($_GET['machine'])) {
+        $vMachine = strtolower(trim($_GET['machine']));
+    }
 
     if (isset($_GET['parent_id']) && $_GET['parent_id'] != "") {
-        $resCombobox = $BLL->fillMachineToolGroups(array('parent_id' => $_GET ["parent_id"]));
+        $resCombobox = $BLL->fillMachineToolGroups(array('parent_id' => $vParentId,
+                                                         'language_code' => $vLanguageCode, 
+                                                         'state' => $vState,
+                                                         'last_node' => $vLastNode,
+                                                         'machine' => $vMachine,
+            
+                                                                ));
     } else {
-        $resCombobox = $BLL->fillMachineToolGroups();
+        $resCombobox = $BLL->fillMachineToolGroups(array('language_code' => $vLanguageCode));
     }
 
     $flows = array();
@@ -65,7 +90,8 @@ $app->get("/pkFillMachineToolGroups_sysMachineToolGroups/", function () use ($ap
             "state" => $flow["state_type"], //   'closed',
             "checked" => false,
             "icon_class"=>$flow["icon_class"], 
-            "attributes" => array("root" => $flow["root_type"], "active" => $flow["active"]),
+            "attributes" => array("root" => $flow["root_type"], "active" => $flow["active"]
+                ,"machine" => $flow["machine"],"last_node" => $flow["last_node"]),
         );
     }
 

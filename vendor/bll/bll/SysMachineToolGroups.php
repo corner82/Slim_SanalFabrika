@@ -94,8 +94,19 @@ class SysMachineToolGroups extends \BLL\BLLSlim {
      */
     public function fillMachineToolGroups($params = array()) {
 
-        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolGroupsPDO');
-        $resultSet = $DAL->fillMachineToolGroups($params);
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolGroupsPDO');        
+         if (isset($params['parent_id']) && ($params['parent_id'] == 0))  { 
+            $resultSet = $DAL->fillMachineToolGroups($params);
+        } else {            
+            if (isset($params['state']) && ($params['state'] == "closed") && 
+                isset($params['last_node']) && ($params['last_node'] == "true") &&   
+                isset($params['machine']) && $params['machine'] == "false" )  
+            {            
+                $resultSet = $DAL->fillMachineToolGroupsMachines($params);
+            } else {                        
+                $resultSet = $DAL->fillMachineToolGroups($params);                
+            }
+        }        
         return $resultSet['resultSet'];
     }
 
