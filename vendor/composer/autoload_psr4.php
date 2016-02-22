@@ -33,6 +33,7 @@ return array(
     'Services\\Database\\' => array($vendorDir . '/services/database'),
     'Services\\Database\\Postgresql\\' => array($vendorDir . '/services/database/postgresql'),
     'Services\\Filter\\' => array($vendorDir . '/services/filter'),
+    'Services\\Filter\\Helper\\' => array($vendorDir . '/services/filter/helper'),
     'Services\\Validator\\' => array($vendorDir . '/services/validator'),
     'Services\\' => array($vendorDir . '/services'),
     'Services\\Messager\\' => array($vendorDir . '/services/messager'),

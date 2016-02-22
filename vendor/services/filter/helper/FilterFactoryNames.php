@@ -7,14 +7,27 @@
  * @license   
  */
 
-namespace Services\Filter;
+namespace Services\Filter\Helper;
 
 /**
  * class to get filter service name constants
  */
-final class FilterServiceNames {
+final class FilterFactoryNames {
     
-    const FILTER_DEFAULT = 'filterDefault';
+    const FILTER_PARANOID_LEVEL1 = 'onlyParanoidLevel1';
+    const FILTER_PARANOID_LEVEL2 = 'onlyParanoidLevel2';
+    const FILTER_PARANOID_LEVEL3 = 'onlyParanoidLevel3';
+    const FILTER_PARANOID_LEVEL4 = 'onlyParanoidLevel4';
+    
+    const FILTER_ONLY_ALPHABETIC_ALLOWED = 'onlyAlphabetic';
+    const FILTER_ONLY_NUMBER_ALLOWED = 'onlyNumber';
+    const FILTER_ONLY_TRUE_ALLOWED = 'onlyTrue';
+    const FILTER_ONLY_FALSE_ALLOWED = 'onlyFalse';
+    const FILTER_ONLY_BOOLEAN_ALLOWED = 'onlyBoolean';
+    const FILTER_ONLY_STATE_ALLOWED = 'onlyState';
+    const FILTER_ONLY_LANGUAGE_CODE = 'onlyLanguageCode';
+    
+    const FILTER_DEFAULT = 'onlyDefault';
     const FILTER_TRIM = 'filterTrim';
     
     const FILTER_HTML_TAGS_CUSTOM_BASE = 'filterHTMLTagsCustomBase';
@@ -24,13 +37,7 @@ final class FilterServiceNames {
      // const FILTER_HEXADECIMAL_BASE = 'filterHexadecimalBase';
     //const FILTER_PREG_REPLACE = 'filterPregReplace';
     
-    const FILTER_ONLY_ALPHABETIC_ALLOWED = 'filterOnlyAlphabeticAllowed';
-    const FILTER_ONLY_NUMBER_ALLOWED = 'filterOnlyNumberAllowed';
-    const FILTER_ONLY_TRUE_ALLOWED = 'filterOnlyTrue';
-    const FILTER_ONLY_FALSE_ALLOWED = 'filterOnlyFalse';
-    const FILTER_ONLY_BOOLEAN_ALLOWED = 'filterOnlyBoolean';
-    const FILTER_ONLY_STATE_ALLOWED = 'filterOnlyState';
-    const FILTER_ONLY_LANGUAGE_CODE = 'filterOnlyLanguageCode';
+    
     
     const FILTER_SQL_RESERVEDWORDS = 'filterSQLReservedWords';
        

@@ -15,5 +15,5 @@ namespace Utill\Factories;
  * @since 11/02/2016
  */
 abstract  class AbstractFactory{
-    protected function getUtill($identifier = null);
+    abstract protected function getUtill($identifier = null);
 }

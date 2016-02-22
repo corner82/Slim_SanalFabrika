@@ -10,13 +10,12 @@
 namespace Services\Filter;
 
 
-
 /**
  * service manager layer for filter functions
- * @author Okan CIRAN
- * @version 29.12.2015
+ * @author Mustafa Zeynel Dağlı
  */
-class FilterOnlyNumberAllowed implements \Zend\ServiceManager\FactoryInterface {
+class FilterOnlyLanguageCode implements \Zend\ServiceManager\FactoryInterface {
+    
     
     /**
      * service ceration via factory on zend service manager
@@ -26,9 +25,11 @@ class FilterOnlyNumberAllowed implements \Zend\ServiceManager\FactoryInterface {
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
         // Create a filter chain and filter for usage
         $filterChain = new \Zend\Filter\FilterChain();
-        $filterChain->attach(new \Zend\Filter\StringToLower(array('encoding' => 'UTF-8')));
+        $filterChain ->attach(new \Zend\Filter\Whitelist(array('list' => 
+                                                array('tr','de','ar','ru','zh','en','fa'))));
         return $filterChain;
 
+        
     }
 
 }

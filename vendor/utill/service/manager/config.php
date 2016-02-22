@@ -42,7 +42,9 @@ class config {
                 'filterLowerCase' => 'Services\Filter\FilterLowerCase',
                 'filterPregReplace' => 'Services\Filter\FilterPregReplace',
                 'filterOnlyNumberAllowed' => 'Services\Filter\filterOnlyNumberAllowed',
+                'filterOnlyLanguageCode' => 'Services\Filter\FilterOnlyLanguageCode',
                 'filterOnlyAlphabeticAllowed' => 'Services\Filter\filterOnlyAlphabeticAllowed',
+                'filterOnlyState' => 'Services\Filter\filterOnlyState',
                 'filterParentheses' => 'Services\Filter\filterParentheses',
                 'filterSQLReservedWords' => 'Services\Filter\FilterSQLReservedWords',
                 'filterToNull' => 'Services\Filter\FilterToNull',
@@ -53,7 +55,10 @@ class config {
                 'filterParentheses' => 'Services\Messager\FilterParentheses',
                 'filterJavascriptMethods' => 'Services\Filter\FilterJavascriptMethods',               
                 'validationChainerServiceForZendChainer' => 'Services\Validator\ValidationChainerServiceForZendChainer',
-                
+                'filterOnlyTrue' => 'Services\Filter\FilterOnlyTrue',
+                'filterOnlyFalse' => 'Services\Filter\FilterOnlyFalse',
+                'filterOnlyBoolean' => 'Services\Filter\FilterOnlyBoolean',
+                'filterTrim' => 'Services\Filter\FilterTrim',
                 
                 
             ],
