@@ -240,7 +240,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $opUserIdValue = $userId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
-                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                if (\Utill\Dal\Helper::haveRecord($kontrol)) {
                     $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                     if (\Utill\Dal\Helper::haveRecord($languageId)) {
                         $languageIdValue = $languageId ['resultSet'][0]['id'];
