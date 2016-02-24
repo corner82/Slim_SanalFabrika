@@ -495,17 +495,19 @@ class SysUnits extends \DAL\DalSlim {
             $sql = "
                SELECT 
                     a.id,                   
-                    COALESCE(NULLIF(a.system, ''), a.system_eng) AS systems,  
+                    COALESCE(NULLIF(su.system, ''), a.system_eng) AS systems,  
                     a.system_eng,  
-		    COALESCE(NULLIF(a.abbreviation, ''), a.abbreviation_eng) AS abbreviations,  
+		    COALESCE(NULLIF(su.abbreviation, ''), a.abbreviation_eng) AS abbreviations,  
                     a.abbreviation_eng,  
-		    COALESCE(NULLIF(a.unitcode, ''), a.unitcode_eng) AS unitcodes,  
+		    COALESCE(NULLIF(su.unitcode, ''), a.unitcode_eng) AS unitcodes,  
                     a.unitcode_eng,  
-                    COALESCE(NULLIF(a.unit, ''), a.unit_eng) AS units,  
+                    COALESCE(NULLIF(su.unit, ''), a.unit_eng) AS units,  
                     a.unit_eng 
                 FROM sys_units a
-                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0                  
-                    " . $whereSql . "                
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id =".$languageIdValue." AND lx.deleted =0 AND lx.active =0                      		
+                LEFT JOIN sys_units su ON (su.id =a.id OR su.language_parent_id = a.id) AND su.deleted =0 AND su.active =0 AND lx.id = su.language_id                
+                " . $whereSql . "                
                 ORDER BY a.main, a.sub, systems,unitcodes            
                                  ";
             $statement = $pdo->prepare($sql);            
