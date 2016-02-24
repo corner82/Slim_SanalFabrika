@@ -18,7 +18,8 @@ protected $connection;
  * @var string 
  */
 //protected $server = 'localhost';
-protected $server = '10.18.2.206';
+//protected $server = '10.18.2.206';
+protected $server = 'localhost';   
 
 /**
  * rabbitMQ connection port
