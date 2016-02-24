@@ -40,14 +40,14 @@ class FilterChainerFactory extends \Utill\Factories\AbstractFactory {
     }
     
     protected function onlyParanoidLevel1($app, $value) {
-        return new \Utill\Strip\Chain\StripChainer($app, strtolower(trim($_GET['language_code'])), array(
+        return new \Utill\Strip\Chain\StripChainer($app, $value, array(
                             \Services\Filter\FilterServiceNames::FILTER_DEFAULT,   
                             \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_CUSTOM_BASE, 
         ));
     }
     
     protected function onlyParanoidLevel2($app, $value) {
-        return new \Utill\Strip\Chain\StripChainer($app, strtolower(trim($_GET['language_code'])), array(
+        return new \Utill\Strip\Chain\StripChainer($app, $value, array(
                             \Services\Filter\FilterServiceNames::FILTER_DEFAULT,   
                             \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_CUSTOM_ADVANCED,
                             \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,
@@ -55,7 +55,7 @@ class FilterChainerFactory extends \Utill\Factories\AbstractFactory {
     }
     
     protected function onlyParanoidLevel3($app, $value) {
-        return new \Utill\Strip\Chain\StripChainer($app, strtolower(trim($_GET['language_code'])), array(
+        return new \Utill\Strip\Chain\StripChainer($app, $value, array(
                             \Services\Filter\FilterServiceNames::FILTER_DEFAULT,   
                             \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_CUSTOM_ADVANCED,
                             \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,
@@ -65,7 +65,7 @@ class FilterChainerFactory extends \Utill\Factories\AbstractFactory {
     }  
     
     protected function onlyParanoidLevel4($app, $value) {
-        return new \Utill\Strip\Chain\StripChainer($app, strtolower(trim($_GET['language_code'])), array(
+        return new \Utill\Strip\Chain\StripChainer($app, $value, array(
                             \Services\Filter\FilterServiceNames::FILTER_DEFAULT,   
                             \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_CUSTOM_ADVANCED,
                             \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,
@@ -101,7 +101,7 @@ class FilterChainerFactory extends \Utill\Factories\AbstractFactory {
     }
     
     protected function onlyAlphabetic($app, $value) {
-        return new \Utill\Strip\Chain\StripChainer($app, $_GET['parent_id'], array(
+        return new \Utill\Strip\Chain\StripChainer($app, $value, array(
                     \Services\Filter\FilterServiceNames::FILTER_TRIM,
                     \Services\Filter\FilterServiceNames::FILTER_LOWER_CASE,
                     \Services\Filter\FilterServiceNames::FILTER_ONLY_ALPHABETIC_ALLOWED,                                                                                             
@@ -109,21 +109,21 @@ class FilterChainerFactory extends \Utill\Factories\AbstractFactory {
     }
     
     protected function onlyNumber($app, $value) {
-        return new \Utill\Strip\Chain\StripChainer($app, $_GET['parent_id'], array(
+        return new \Utill\Strip\Chain\StripChainer($app, $value, array(
                     \Services\Filter\FilterServiceNames::FILTER_TRIM,
                     \Services\Filter\FilterServiceNames::FILTER_ONLY_NUMBER_ALLOWED,                                                                                             
         ));
     }
     
     protected function onlyTrue($app, $value) {
-        return new \Utill\Strip\Chain\StripChainer($app, $_GET['parent_id'], array(
+        return new \Utill\Strip\Chain\StripChainer($app, $value, array(
                     \Services\Filter\FilterServiceNames::FILTER_TRIM,
                     \Services\Filter\FilterServiceNames::FILTER_ONLY_TRUE_ALLOWED,                                                                                             
         ));
     }
     
     protected function onlyFalse($app, $value) {
-        return new \Utill\Strip\Chain\StripChainer($app, $_GET['parent_id'], array(
+        return new \Utill\Strip\Chain\StripChainer($app, $value, array(
                     \Services\Filter\FilterServiceNames::FILTER_TRIM,
                     \Services\Filter\FilterServiceNames::FILTER_ONLY_FALSE_ALLOWED,                                                                                             
         ));
