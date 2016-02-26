@@ -146,7 +146,16 @@ class InfoFirmMachineTool extends \BLL\BLLSlim{
         return $DAL->fillUsersFirmMachineProperties($params);
     }
     
-    
+      /**
+     * Function to get datagrid row count on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillUsersFirmMachinesRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        $resultSet = $DAL->fillUsersFirmMachinesRtc($params);  
+        return $resultSet['resultSet'];
+    }
 
      
     
