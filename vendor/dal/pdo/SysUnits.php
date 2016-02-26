@@ -524,4 +524,105 @@ class SysUnits extends \DAL\DalSlim {
     }
 
  
+ 
+    public function fillUnitsTree($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
+
+            $whereSql = " WHERE a.active =0 AND a.deleted = 0 " ; 
+            
+            if (isset($params['id']) && $params['id'] != "") {
+                $whereSql .= " AND a.parent_id  = " . intval($params['id']) ;
+                             
+            } else {
+                $whereSql .= "  AND a.parent_id = 0 ";
+            }
+
+            $sql = "
+               SELECT 
+                    a.id,                                     
+		    CASE 
+                        a.parent_id    
+                            WHEN 0 THEN COALESCE(NULLIF(su.system, ''), a.system_eng)  
+                            ELSE COALESCE(NULLIF(su.unitcode, ''), a.unitcode_eng) 
+                    END AS unitcodes,
+                    CASE 
+                        a.parent_id    
+                            WHEN 0 THEN a.system_eng  
+                            ELSE a.unitcode_eng
+                    END AS unitcodes_eng,
+                    CASE 
+                        (SELECT DISTINCT 1 state_type FROM sys_machine_tool_property_definition ax WHERE ax.parent_id = a.id AND ax.deleted = 0)    
+                            WHEN 1 THEN 'closed'
+                            ELSE 'open'   
+                    END AS state_type  
+                FROM sys_units a
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id =".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0                      		
+                LEFT JOIN sys_units su ON (su.id =a.id OR su.language_parent_id = a.id) AND su.deleted =0 AND su.active =0 AND lx.id = su.language_id                
+                " . $whereSql . "                
+                ORDER BY a.id            
+                                 ";
+            $statement = $pdo->prepare($sql);            
+         // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
+    public function fillUnitsTreeRtc($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
+
+            $whereSql = " WHERE a.active =0 AND a.deleted = 0 " ; 
+            
+            if (isset($params['id']) && $params['id'] != "") {
+                $whereSql .= " AND a.parent_id  = " . intval($params['id']) ;
+                             
+            } else {
+                $whereSql .= "  AND a.parent_id = 0 ";
+            }
+
+            $sql = "
+               SELECT 
+                    COUNT(a.id ) as COUNT 
+                FROM sys_units a
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id =".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0                      		
+                LEFT JOIN sys_units su ON (su.id =a.id OR su.language_parent_id = a.id) AND su.deleted =0 AND su.active =0 AND lx.id = su.language_id                
+                " . $whereSql . "                
+                       
+                                 ";
+            $statement = $pdo->prepare($sql);            
+           //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
 }

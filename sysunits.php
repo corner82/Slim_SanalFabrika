@@ -3,7 +3,7 @@
 // test commit for branch slim2
 require 'vendor/autoload.php';
 
-
+use \Services\Filter\Helper\FilterFactoryNames as stripChainers;
 
 
 /* $app = new \Slim\Slim(array(
@@ -124,6 +124,103 @@ $app->get("/pkGetUnits_sysUnits/", function () use ($app ) {
     $app->response()->body(json_encode($menus));
 });
  
+
+ 
+/**
+ *  * Okan CIRAN
+ * @since 26-02-2016
+ */
+$app->get("/pkFillUnitsTree_sysUnits/", function () use ($app ) {
+
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('sysUnitsBLL');
+    
+    $headerParams = $app->request()->headers();
+    
+    $componentType = 'bootstrap'; // 'easyui'    
+    if (isset($_GET['component_type'])) {
+        $componentType = $_GET['component_type']; 
+    }
+    
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillMachineToolFullProperties_sysMachineToolProperties" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vParentId = 0;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    }    
+    
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('id')) {
+        $vParentId = $stripper->offsetGet('id')->getFilterValue();
+    }
+
+   
+    $resDataGrid = $BLL->fillUnitsTree(array(
+                                            'language_code' => $vLanguageCode,
+                                            'pk' => $pk,
+                                            'id' => $vParentId,
+                                                    ));
+                                                    
+                                                  
+    $resTotalRowCount = $BLL->fillUnitsTreeRtc(array(
+                                                        'language_code' => $vLanguageCode,
+                                                        'pk' => $pk,
+                                                        'id' => $vParentId,
+                                                                ));
+                                                              
+    
+        $flows = array();
+    if (isset($resDataGrid['resultSet'][0]['id'])) {      
+        foreach ($resDataGrid['resultSet']  as $flow) {    
+            $flows[] = array(
+                "id" => $flow["id"],
+                "text" =>  $flow["unitcodes"],
+                "state" => $flow["state_type"],
+                "checked" => false,
+                "attributes" => array ("notroot"=>true,"text_eng"=>$flow["unitcodes_eng"]),               
+                
+            );
+        }
+        
+    }
+   
+     
+    
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['total'] = $resTotalRowCount[0]['count'];
+    $resultArray['rows'] = $flows;
+
+    
+     // $app->response()->body(json_encode($flows));
+    if($componentType == 'bootstrap'){
+        $app->response()->body(json_encode($flows));
+    }else if($componentType == 'easyui'){
+        $app->response()->body(json_encode($resultArray));
+    }
+      //  $app->response()->body(json_encode($resultArray));
+        
+ 
+});
+
+
+
+
 /**
  *  * Okan CIRAN
  * @since 15-02-2016

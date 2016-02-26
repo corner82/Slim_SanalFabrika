@@ -97,6 +97,27 @@ class SysUnits extends \BLL\BLLSlim {
         return $resultSet['resultSet'];
     }
 
+  
  
+       /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillUnitsTree($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysUnitsPDO');     
+        return $DAL->fillUnitsTree($params);
+    }
+        /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillUnitsTreeRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysUnitsPDO');
+        $resultSet = $DAL->fillUnitsTreeRtc($params);
+        return $resultSet['resultSet'];
+    }
+
     
 }
