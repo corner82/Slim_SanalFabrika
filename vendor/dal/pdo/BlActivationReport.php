@@ -371,7 +371,7 @@ class BlActivationReport extends \DAL\DalSlim {
                SELECT 
                     aciklama , 
                     CASE
-                        WHEN sure_int > 43309 THEN CAST(SUBSTRING(sure FROM 1 FOR POSITION(' ' IN sure )-1 ) AS integer)
+                        WHEN sure_int > 50000 THEN CAST(SUBSTRING(sure FROM 1 FOR POSITION(' ' IN sure )-1 ) AS integer)
                     ELSE 0 
                     END AS sure
                 FROM (
