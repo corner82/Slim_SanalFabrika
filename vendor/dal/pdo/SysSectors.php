@@ -361,24 +361,24 @@ class SysSectors extends \DAL\DalSlim {
       public function fillComboBox() {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */
+             if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
             $statement = $pdo->prepare("
-                SELECT                    
+               SELECT                    
                     a.id, 	
-                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name                                 
-                FROM sys_sectors a       
-                WHERE a.active =0 AND a.deleted = 0 AND a.language_code = :language_code    
-                ORDER BY name                
-                                 ");
-              $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);  
-              $statement->execute();
+                    COALESCE(NULLIF(sd.name, ''), a.name_eng) AS name                                 
+		FROM sys_sectors a
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id =".$languageIdValue." AND lx.deleted =0 AND lx.active =0                
+		LEFT JOIN sys_sectors sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id
+                WHERE a.active =0 AND a.deleted = 0 AND a.language_parent_id = 0  
+                ORDER BY name               
+                                 ");            
+            $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);

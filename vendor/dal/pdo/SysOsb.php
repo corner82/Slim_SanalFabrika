@@ -369,14 +369,31 @@ class SysOsb extends \DAL\DalSlim {
     public function fillComboBox($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $sql = "
-               SELECT 
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
+            $countryId = 91;
+            if (isset($params['country_id']) && $params['country_id'] != "") {
+                $countryId = $params['country_id'];
+            }
+            $addSql ="" ;
+            if (isset($params['city_id']) && $params['city_id'] != "") {
+                $addSql .= " AND a.city_id = ".$params['city_id'];
+            }
+            $sql = "               
+                SELECT  
                     a.city_id AS id,
-                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name 
-                FROM sys_osb a                 
-                WHERE a.language_code =  '".$params['language_code']."' AND a.active = 0 AND a.deleted = 0 
-                AND country_id =  ".intval($params['country_id'])." 
-                ORDER BY a.priority ASC, name                
+                    COALESCE(NULLIF(sd.name, ''), a.name_eng) AS name 
+                FROM sys_osb a 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id =".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0                
+		LEFT JOIN sys_osb sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
+                WHERE a.active = 0 AND a.deleted = 0 AND a.language_parent_id =0 
+                AND a.country_id = ".intval($countryId)."     
+                ".$addSql."    
+                ORDER BY  name                
                                  ";
             $statement = $pdo->prepare($sql);
           // echo debugPDO($sql, $params);  

@@ -461,11 +461,16 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             if (isset($params['id']) && $params['id'] != "") {
                 $id = $params['id'];
             }
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
             $statement = $pdo->prepare("             
-            SELECT                    
-                    a.first_group as id, 	
-                   COALESCE(NULLIF(a.description, ''), a.description_eng) AS name, 
-                    a.description_eng as name_eng,
+                SELECT                    
+                    a.first_group AS id, 	
+                    COALESCE(NULLIF(sd.description, ''), a.description_eng) AS name,  
+                    a.description_eng AS name_eng,
                     a.parent_id,
                     a.active,
                     CASE 
@@ -473,12 +478,15 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                      WHEN 1 THEN 'closed'
                      ELSE 'open'   
                      END AS state_type  
-                FROM sys_specific_definitions a       
-                WHERE                    
-                    a.parent = " . $id . " AND 
-                    language_code = '" . $params['language_code'] . "' AND 
-                    a.deleted = 0     
-                ORDER BY   a.id, a.parent_id                                    
+                FROM sys_specific_definitions a    
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id =" . $languageIdValue . " AND lx.deleted =0 AND lx.active =0                      		
+                LEFT JOIN sys_specific_definitions sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
+                WHERE                     
+                    a.parent = " . $id . " AND                   
+                    a.deleted = 0 AND                    
+                ORDER BY a.id, a.parent_id   
+                                                  
                                  ");
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
@@ -504,11 +512,16 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
     public function fillCommunicationsTypes($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
             $statement = $pdo->prepare("             
-            SELECT                    
-                     a.first_group as id, 	
-                   COALESCE(NULLIF(a.description, ''), a.description_eng) AS name, 
-                    a.description_eng as name_eng,
+                SELECT                    
+                    a.first_group AS id, 	
+                    COALESCE(NULLIF(sd.description, ''), a.description_eng) AS name,  
+                    a.description_eng AS name_eng,
                     a.parent_id,
                     a.active,
                     CASE 
@@ -516,12 +529,15 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                      WHEN 1 THEN 'closed'
                      ELSE 'open'   
                      END AS state_type  
-                FROM sys_specific_definitions a       
-                WHERE     
-                    a.main_group = 5  AND  
-                    language_code = '" . $params['language_code'] . "' AND
-                    a.deleted = 0     
-                ORDER BY a.id, a.parent_id                                    
+                FROM sys_specific_definitions a    
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id =" . $languageIdValue . " AND lx.deleted =0 AND lx.active =0                      		
+                LEFT JOIN sys_specific_definitions sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
+                WHERE                     
+                    a.main_group = 5 AND                    
+                    a.deleted = 0 AND
+                    a.language_parent_id =0 
+                ORDER BY a.id, a.parent_id   
                                  ");
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
@@ -547,11 +563,16 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
     public function fillBuildingType($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
+             if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
             $statement = $pdo->prepare("             
-            SELECT                    
-                   a.first_group as id,  	
-                   COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
-                    a.description_eng as name_eng,
+                SELECT                    
+                    a.first_group AS id, 	
+                    COALESCE(NULLIF(sd.description, ''), a.description_eng) AS name,  
+                    a.description_eng AS name_eng,
                     a.parent_id,
                     a.active,
                     CASE 
@@ -559,12 +580,15 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                      WHEN 1 THEN 'closed'
                      ELSE 'open'   
                      END AS state_type  
-                FROM sys_specific_definitions a       
-                WHERE     
-                    a.main_group = 4  AND  
-                    language_code = '" . $params['language_code'] . "' AND
-                    a.deleted = 0     
-                ORDER BY a.id, a.parent_id                                    
+                FROM sys_specific_definitions a    
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id =" . $languageIdValue . " AND lx.deleted =0 AND lx.active =0                      		
+                LEFT JOIN sys_specific_definitions sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
+                WHERE                     
+                    a.main_group = 4 AND                    
+                    a.deleted = 0 AND
+                    a.language_parent_id =0 
+                ORDER BY a.id, a.parent_id   
                                  ");
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
@@ -590,11 +614,16 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
     public function fillOwnershipType($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
+             if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
             $statement = $pdo->prepare("             
-            SELECT                    
-                    a.first_group as id, 	
-                    COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
-                    a.description_eng as name_eng,
+                SELECT                    
+                    a.first_group AS id, 	
+                    COALESCE(NULLIF(sd.description, ''), a.description_eng) AS name,  
+                    a.description_eng AS name_eng,
                     a.parent_id,
                     a.active,
                     CASE 
@@ -602,12 +631,15 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                      WHEN 1 THEN 'closed'
                      ELSE 'open'   
                      END AS state_type  
-                FROM sys_specific_definitions a       
-                WHERE     
-                    a.main_group = 1  AND  
-                    language_code = '" . $params['language_code'] . "' AND
-                    a.deleted = 0     
-                ORDER BY a.id, a.parent_id                                    
+                FROM sys_specific_definitions a    
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id =" . $languageIdValue . " AND lx.deleted =0 AND lx.active =0                      		
+                LEFT JOIN sys_specific_definitions sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
+                WHERE                     
+                    a.main_group = 1 AND                    
+                    a.deleted = 0 AND
+                    a.language_parent_id =0 
+                ORDER BY a.id, a.parent_id   
                                  ");
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
@@ -632,12 +664,17 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
      */
     public function fillPersonnelTypes($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
+             if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
             $statement = $pdo->prepare("             
-            SELECT                    
-                    a.first_group as id, 	
-                    COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
-                    a.description_eng as name_eng,
+                SELECT                    
+                    a.first_group AS id, 	
+                    COALESCE(NULLIF(sd.description, ''), a.description_eng) AS name,  
+                    a.description_eng AS name_eng,
                     a.parent_id,
                     a.active,
                     CASE 
@@ -645,12 +682,15 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                      WHEN 1 THEN 'closed'
                      ELSE 'open'   
                      END AS state_type  
-                FROM sys_specific_definitions a       
-                WHERE     
-                    a.main_group = 10  AND  
-                    language_code = '" . $params['language_code'] . "' AND
-                    a.deleted = 0     
-                ORDER BY a.id, a.parent_id                                    
+                FROM sys_specific_definitions a    
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id =" . $languageIdValue . " AND lx.deleted =0 AND lx.active =0                      		
+                LEFT JOIN sys_specific_definitions sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
+                WHERE                     
+                    a.main_group = 10 AND                    
+                    a.deleted = 0 AND
+                    a.language_parent_id =0 
+                ORDER BY a.id, a.parent_id   
                                  ");
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
@@ -676,11 +716,16 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
     public function fillAddressTypes($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
             $statement = $pdo->prepare("             
-            SELECT                    
-                    a.first_group as id, 	
-                    COALESCE(NULLIF(a.description, ''), a.description_eng) AS name,  
-                    a.description_eng as name_eng,
+                SELECT                    
+                    a.first_group AS id, 	
+                    COALESCE(NULLIF(sd.description, ''), a.description_eng) AS name,  
+                    a.description_eng AS name_eng,
                     a.parent_id,
                     a.active,
                     CASE 
@@ -688,12 +733,15 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                      WHEN 1 THEN 'closed'
                      ELSE 'open'   
                      END AS state_type  
-                FROM sys_specific_definitions a       
-                WHERE     
-                    a.main_group = 17  AND  
-                    language_code = '" . $params['language_code'] . "' AND
-                    a.deleted = 0     
-                ORDER BY a.id, a.parent_id                                    
+                FROM sys_specific_definitions a    
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id =" . $languageIdValue . " AND lx.deleted =0 AND lx.active =0                      		
+                LEFT JOIN sys_specific_definitions sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
+                WHERE                     
+                    a.main_group = 17 AND                    
+                    a.deleted = 0 AND
+                    a.language_parent_id =0 
+                ORDER BY a.id, a.parent_id   
                                  ");
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 

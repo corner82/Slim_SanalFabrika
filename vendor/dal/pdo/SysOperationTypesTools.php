@@ -379,31 +379,33 @@ class SysOperationTypesTools extends \DAL\DalSlim {
             } else {
                 $languageIdValue = 647;
             }
+            $addSql = " WHERE 
+                    a.active =0 AND 
+                    a.deleted = 0 AND 
+                    a.language_parent_id = 0 AND
+                    a.parent_id = 0 ";
 
             if (isset($params['main_group']) && $params['main_group'] != "") {
-                $whereSql = "  a.main_group = " . intval($params['main_group']) . " AND  ";
+                $addSql .= " AND a.main_group = " . intval($params['main_group'])  ;
             } else {
                 //$whereSql = "  a.main_group in (1,2) AND  " ; 
-                $whereSql = "  ";
+                $addSql .= " ";
             }
 
             $sql = "
-                 SELECT                    
-                    base_id AS id, 	
-                    COALESCE(NULLIF(a.role_name, ''), a.role_name_eng) AS name,
-                    role_name_eng AS name_eng                                 
-                FROM sys_operations_types_tools a       
-                WHERE 
-                    a.active =0 AND a.deleted = 0 AND 
-                    a.parent_id = 0 AND  
-                    " . $whereSql . "
-                    a.language_id = :language_id
-                ORDER BY name
-                
+                SELECT                    
+                    a.base_id AS id, 	
+                    COALESCE(NULLIF(sd.role_name, ''), a.role_name_eng) AS name,
+                    a.role_name_eng AS name_eng                                 
+                FROM sys_operations_types_tools a                     
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id =". intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0                
+		LEFT JOIN sys_operations_types_tools sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id                         
+                " . $addSql . "                    
+                ORDER BY name                   
                                  ";
-            $statement = $pdo->prepare($sql);
-            $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
-            //  echo debugPDO($sql, $params);
+            $statement = $pdo->prepare($sql);            
+            // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -432,30 +434,32 @@ class SysOperationTypesTools extends \DAL\DalSlim {
             } else {
                 $languageIdValue = 647;
             }
-
+            $addSql = "WHERE 
+                    a.active =0 AND a.deleted = 0 AND 
+                    a.language_parent_id=0 AND
+                    a.parent_id = 0   ";
+           
             if (isset($params['main_group']) && $params['main_group'] != "") {
-                $whereSql = "  a.main_group = " . intval($params['main_group']) . " AND  ";
+                $addSql .= "  AND a.main_group = " . intval($params['main_group']);
             } else {
-                //$whereSql = "  a.main_group in (1,2) AND  " ; 
-                $whereSql = "  ";
+                //$addSql .= "  a.main_group in (1,2) AND  " ; 
+                $addSql .= " ";
             }
 
             $sql = "
-                 SELECT                    
-                    base_id AS id, 	
-                    COALESCE(NULLIF(a.role_name, ''), a.role_name_eng) AS name,
-                    role_name_eng AS name_eng                                 
-                FROM sys_operations_types_tools a       
-                WHERE 
-                    a.active =0 AND a.deleted = 0 AND 
-                    a.parent_id = 0 AND  
-                    " . $whereSql . "
-                    a.language_id = :language_id
+                SELECT                    
+                    a.base_id AS id, 	
+                    COALESCE(NULLIF(sd.role_name, ''), a.role_name_eng) AS name,
+                    a.role_name_eng AS name_eng                                 
+                FROM sys_operations_types_tools a  
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id =". intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0                
+		LEFT JOIN sys_operations_types_tools sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id                  
+                " . $addSql . "                    
                 ORDER BY name                
                                  ";
-            $statement = $pdo->prepare($sql);
-            $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
-            //  echo debugPDO($sql, $params);
+            $statement = $pdo->prepare($sql);  
+         // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
