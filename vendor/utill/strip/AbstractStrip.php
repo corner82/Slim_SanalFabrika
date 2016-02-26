@@ -23,7 +23,7 @@ use Countable;
     const ALL_HTML_STRATEGY  = 'all_html_strategy';
     const BASE_STRATEGY  = 'base_strategy';*/
     
-    protected $stripStrategies;
+    protected $stripStrategies =array();
     
      /**
      * returns the count of countable interface method
