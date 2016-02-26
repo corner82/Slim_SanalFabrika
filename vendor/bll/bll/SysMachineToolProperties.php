@@ -86,6 +86,26 @@ class SysMachineToolProperties extends \BLL\BLLSlim {
     }
 
   
+         /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */
+    public function fillMachineToolFullProperties($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertiesPDO');     
+        return $DAL->fillMachineToolFullProperties($params);
+    }
+    
+      /**
+     * Function to get datagrid row count on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillMachineToolFullPropertiesRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertiesPDO');
+        $resultSet = $DAL->fillMachineToolFullPropertiesRtc($params);  
+        return $resultSet['resultSet'];
+    }
 
  
     

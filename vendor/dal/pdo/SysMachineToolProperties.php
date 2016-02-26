@@ -451,5 +451,115 @@ class SysMachineToolProperties extends \DAL\DalSlim {
     }
 
  
- 
+   /**
+     * user interface fill operation   
+     * @author Okan CIRAN
+     * @ tree doldurmak için sys_machine_tool tablosundan tüm kayıtları döndürür !!
+     * @version v 1.0  19.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillMachineToolFullProperties($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
+            $parentId = 0;
+            if (isset($params['id']) && $params['id'] != "") {
+                $parentId = $params['id'];
+            }
+            
+            $whereSql = " WHERE 
+                               a.deleted =0 AND 
+                               a.active = 0 AND
+                               a.language_parent_id = 0 AND 
+                               a.parent_id = " . intval($parentId)." AND
+                               a.language_id = " . intval($languageIdValue);
+                               
+            $sql = "                
+                SELECT 
+                    a.id,
+                    COALESCE(NULLIF(a.property_name, ''), a.property_name_eng) AS property_names,  
+                    a.property_name_eng ,
+                    CASE 
+                    (SELECT DISTINCT 1 state_type FROM sys_machine_tool_property_definition ax WHERE ax.parent_id = a.id AND ax.deleted = 0)    
+                     WHEN 1 THEN 'closed'
+                     ELSE 'open'   
+                     END AS state_type  
+                FROM sys_machine_tool_property_definition  a
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  	                                
+                ".$whereSql ."   
+                ORDER BY property_names               
+                                 ";
+            
+            $statement = $pdo->prepare($sql);
+            //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {      
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * user interface datagrid fill operation get row count for widget
+     * @author Okan CIRAN
+     * @ Gridi doldurmak için sys_machine_tool_properties tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
+     * @version v 1.0  17.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillMachineToolFullPropertiesRtc($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');    
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
+              $parentId = 0;
+            if (isset($params['id']) && $params['id'] != "") {
+                $parentId = $params['id'];
+            }
+            $whereSql = " WHERE 
+                                a.deleted =0 AND 
+                                a.active = 0 AND
+                                a.language_parent_id = 0 AND 
+                                a.parent_id = " . intval($parentId)." AND 
+                                a.language_id = " . intval($languageIdValue);                               
+                     
+            $sql = "
+                 SELECT 
+                     COUNT(a.id) AS COUNT               
+                FROM sys_machine_tool_property_definition  a
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  	                                
+                ".$whereSql."
+                             
+                    ";
+            $statement = $pdo->prepare($sql);
+          // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);            
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
 }
