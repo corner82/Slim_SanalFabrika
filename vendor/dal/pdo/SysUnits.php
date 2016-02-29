@@ -511,7 +511,7 @@ class SysUnits extends \DAL\DalSlim {
                 ORDER BY a.main, a.sub, systems,unitcodes            
                                  ";
             $statement = $pdo->prepare($sql);            
-          //   echo debugPDO($sql, $params);
+        //    echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -558,7 +558,7 @@ class SysUnits extends \DAL\DalSlim {
                             ELSE a.unitcode_eng
                     END AS unitcodes_eng,
                     CASE 
-                        (SELECT DISTINCT 1 state_type FROM sys_machine_tool_property_definition ax WHERE ax.parent_id = a.id AND ax.deleted = 0)    
+                        (SELECT DISTINCT 1 state_type FROM sys_units ax WHERE ax.parent_id = a.id AND ax.deleted = 0)    
                             WHEN 1 THEN 'closed'
                             ELSE 'open'   
                     END AS state_type  
@@ -570,7 +570,7 @@ class SysUnits extends \DAL\DalSlim {
                 ORDER BY a.id            
                                  ";
             $statement = $pdo->prepare($sql);            
-         // echo debugPDO($sql, $params);
+       //echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
