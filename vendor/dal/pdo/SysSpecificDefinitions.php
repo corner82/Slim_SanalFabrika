@@ -512,7 +512,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
     public function fillCommunicationsTypes($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
-            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+            if (\Utill\Dal\Helper::haveRecord($params['language_code'])) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];
             } else {
                 $languageIdValue = 647;
@@ -614,7 +614,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
     public function fillOwnershipType($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
-             if (\Utill\Dal\Helper::haveRecord($languageId)) {
+             if (\Utill\Dal\Helper::haveRecord($params['language_code'])) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];
             } else {
                 $languageIdValue = 647;
@@ -716,7 +716,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
     public function fillAddressTypes($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
-            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+            if (\Utill\Dal\Helper::haveRecord($params['language_code'])) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];
             } else {
                 $languageIdValue = 647;
