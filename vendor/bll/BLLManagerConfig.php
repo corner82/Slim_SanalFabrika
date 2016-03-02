@@ -63,7 +63,7 @@ class BLLManagerConfig{
                  'sysMachineToolPropertiesBLL' => 'BLL\BLL\SysMachineToolProperties',
                  'sysUnitsBLL' => 'BLL\BLL\SysUnits',
                  'infoFirmMachineToolBLL' => 'BLL\BLL\InfoFirmMachineTool',
-                 
+                 'sysNaceCodesBLL' => 'BLL\BLL\SysNaceCodes',
               
                                   
              ),
