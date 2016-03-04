@@ -1211,7 +1211,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 $addSql .= " AND cons.category_id = " . intval($params['category_id'])  ;
             }
             $addSql .= " AND cons.category_id = 0 "; 
-            $statement = $pdo->prepare("               
+               $sql = "              
                 SELECT consultant_id, 1=1 AS control FROM ( 
                     SELECT 
                         cons.user_id AS consultant_id , 
@@ -1225,7 +1225,9 @@ class SysOsbConsultants extends \DAL\DalSlim {
                     ORDER BY adet, max  
                     LIMIT 1 
                 ) AS tempx                    
-                                 ");
+                                 ";
+               $statement = $pdo->prepare($sql);
+           //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
