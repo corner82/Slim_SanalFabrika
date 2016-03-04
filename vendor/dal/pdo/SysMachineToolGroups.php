@@ -491,7 +491,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             }
             $sql =" 
                 SELECT                    
-                    a.id, 
+                    mt.id, 
                     COALESCE(NULLIF( (mt.machine_tool_name), ''), mt.machine_tool_name_eng) AS name,            
                     -1 AS parent_id,
                     a.active ,
@@ -541,28 +541,33 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             } else {
                 $languageIdValue = 647;
             }
-            $parentId = 0;
-            if (isset($params['parent_id']) && $params['parent_id'] != "") {
-                $parentId = $params['parent_id'];
+            $machineId = 0;
+            $addSql =" WHERE a.deleted =0 AND a.active =0  
+                AND a.language_parent_id =0  ";
+            if (isset($params['machine_id']) && $params['machine_id'] != "") {
+                $machineId = $params['machine_id'];
+                $addSql .=" AND a.machine_tool_id= " . intval($machineId);
             }
             $statement = $pdo->prepare("                
-                SELECT                    
+               
+                SELECT 
                     a.id, 
-                    COALESCE(NULLIF( (mt.machine_tool_name), ''), mt.machine_tool_name_eng) AS name,            
-                    -1 AS parent_id,
-                    a.active ,
-                    'open' AS state_type,                                          
-                    'false' AS root_type,
-                    Null AS icon_class,
-                    'true' AS last_node                     
-                FROM sys_machine_tool_groups a 
-                INNER JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                      
-                INNER JOIN sys_machine_tools mt ON mt.machine_tool_grup_id = a.id AND mt.language_id = lx.id AND mt.active =0 AND mt.deleted =0 
-                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                
-                WHERE                    
-                   a.parent_id =  " .intval($parentId) . " AND 
-                   a.deleted = 0     
-                ORDER BY name        
+                    cast(a.machine_tool_id as text) as machine_id ,	
+                    COALESCE(NULLIF(mtx.machine_tool_name, ''), mt.machine_tool_name_eng) AS machine_names,	
+                    COALESCE(NULLIF(pdx.property_name, ''), pd.property_name_eng) AS property_names,
+                    pd.property_name_eng,
+                    a.property_value, 
+                    u.id AS unit_id,
+                    COALESCE(NULLIF(u.unitcode, ''), u.unitcode_eng) AS unitcodes                  
+                FROM sys_machine_tool_properties a
+		LEFT JOIN sys_language lx ON lx.id =". intval($languageIdValue)."  AND lx.deleted =0 AND lx.active =0                      
+		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  				
+                INNER JOIN sys_machine_tools mt ON (mt.id = a.machine_tool_id OR mt.language_parent_id = a.machine_tool_id ) AND mt.language_id = l.id            
+                LEFT JOIN sys_machine_tools mtx ON (mtx.id = a.machine_tool_id OR mtx.language_parent_id = a.machine_tool_id ) AND mtx.language_id = lx.id              
+                INNER JOIN sys_machine_tool_property_definition pd ON pd.id = a.machine_tool_property_definition_id AND pd.language_parent_id = 0              
+                LEFT JOIN sys_machine_tool_property_definition pdx ON (pdx.id = a.machine_tool_property_definition_id OR pdx.language_parent_id = a.machine_tool_property_definition_id) AND pdx.language_id = lx.id             
+                LEFT JOIN sys_units u ON (u.id = a.unit_id OR u.language_parent_id = a.unit_id) AND u.language_id = l.id                 
+                ".$addSql."                
                                  ");
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
