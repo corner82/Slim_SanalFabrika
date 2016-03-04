@@ -294,7 +294,7 @@ class InfoUsers extends \DAL\DalSlim {
                     
                    //uzerinde az iş olan consultantı alalım.  
                    $getConsultant = SysOsbConsultants::getConsultantIdForUsers();              
-                    if (\Utill\Dal\Helper::haveRecord($getConsultant['resultSet'][0]['consultant_id'])) {
+                    if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                         $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                     } else {
                         $ConsultantId = 1001;

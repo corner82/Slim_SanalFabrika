@@ -242,7 +242,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     }
 
                     $getConsultant = SysOsbConsultants::getConsultantIdForCompany(array('category_id' => 1));
-                    if (\Utill\Dal\Helper::haveRecord($getConsultant['resultSet'][0]['consultant_id'])) {
+                    if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                         $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                     } else {
                         $ConsultantId = 1001;
