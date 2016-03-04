@@ -293,45 +293,56 @@ class BlActivationReport extends \DAL\DalSlim {
                 $opUserIdValue = $opUserId['resultSet'][0]['user_id'];
                 
             $sql = "  
-                SELECT ids,aciklama,adet FROM  (
-                        SELECT 1 as ids,
-                           'Toplam Firma Sayısı' AS aciklama,
-                            COUNT(id) AS adet                     
-                        FROM info_firm_profile a
-                        WHERE deleted =0 AND active =0  
-                    UNION 
-                        SELECT 2 AS ids,
-                           'Onaylanmış Firma Sayısı' AS aciklama,
-                            COUNT(a.id) AS adet                     
-                        FROM info_firm_profile a
-                        INNER JOIN sys_operation_types op ON op.parent_id = 2 AND a.operation_type_id = op.id AND op.active = 0 AND op.deleted =0
-                        WHERE a.deleted =0 AND a.active =0 AND
-                              a.operation_type_id = 5
-                    UNION 
-                        SELECT 3 as ids,
-                           'Danışmanın Firma Sayısı' as aciklama,
-                            count(a.id) AS adet                   
-                        FROM info_firm_profile a                                    
-                        INNER JOIN info_users u ON u.id = a.consultant_id      
-                        INNER JOIN sys_acl_roles acl ON acl.id = u.role_id  
-                        WHERE a.active = 0 AND a.deleted = 0 AND 
-                            a.consultant_id = ".intval($opUserIdValue)."
-                        GROUP BY a.consultant_id 
-                    UNION 
-                        SELECT 4 AS ids,
-                           'Danışman Onayı Bekleyen Firma' as aciklama,
-                            count(a.id) AS adet                   
-                        FROM info_firm_profile a                                    
-                        INNER JOIN info_users u ON u.id = a.consultant_id      
-                        INNER JOIN sys_acl_roles acl ON acl.id = u.role_id  
-                        INNER JOIN sys_operation_types op ON op.parent_id = 1 AND a.operation_type_id = op.id AND op.active = 0 AND op.deleted =0
-                        WHERE 
-                            a.consultant_id =".intval($opUserIdValue)."                         
-                        GROUP BY a.consultant_id 
-                           ) AS ttemp
-                ORDER BY ids 
                 
+SELECT ids,aciklama,adet FROM  (
+				SELECT ids, aciklama, adet from (
+						SELECT      
+						    1 as ids, 
+						    cast('Toplam Firma Sayısı' as character varying(50))  AS aciklama,                      
+						     cast(COALESCE(count(a.id),0) as character varying(5))   AS adet                          
+						FROM info_firm_profile a
+						WHERE deleted =0 AND active =0  
+				) as dasda
+                   UNION 
+				SELECT   ids,  aciklama, adet from (
+						SELECT 
+						    2 as ids, 
+						    cast('Onaylanmış Firma Sayısı' as character varying(50))  AS aciklama,   
+						      cast(COALESCE(count(a.id),0) as character varying(5))   AS adet                    
+						FROM info_firm_profile a
+						INNER JOIN sys_operation_types op ON op.parent_id = 2 AND a.operation_type_id = op.id AND op.active = 0 AND op.deleted =0
+						WHERE a.deleted =0 AND a.active =0 AND
+						      a.operation_type_id = 5
+				) as dasdb
+                     UNION 
+				SELECT  ids,   aciklama,    adet from (
+						SELECT  3 as ids,
+						 cast('Danışmanın Firma Sayısı' as character varying(50))  AS aciklama,                      
+						        cast(COALESCE(count(a.id),0) as character varying(5))   AS adet                     
+						FROM info_firm_profile a                                    
+						INNER JOIN info_users u ON u.id = a.consultant_id      
+						INNER JOIN sys_acl_roles acl ON acl.id = u.role_id  
+						WHERE a.active = 0 AND a.deleted = 0 AND 
+						    a.consultant_id = ".intval($opUserIdValue)." 
+				) as dasc
+                    UNION 
+				SELECT  ids, aciklama, adet from (
+						SELECT   4 as ids,  
+						cast('Danışman Onayı Bekleyen Firma' as character varying(50))  AS aciklama,                      
+						    cast(COALESCE(count(a.id),0) as character varying(5))   AS adet                         
+						FROM info_firm_profile a                                    
+						INNER JOIN info_users u ON u.id = a.consultant_id      
+						INNER JOIN sys_acl_roles acl ON acl.id = u.role_id  
+						INNER JOIN sys_operation_types op ON op.parent_id = 1 AND a.operation_type_id = op.id AND op.active = 0 AND op.deleted =0
+						WHERE 
+						    a.consultant_id =".intval($opUserIdValue)." 
+				 ) as dasdd
+				 
+		   ) AS ttemp
+               ORDER BY ids 
                     ";  
+            
+            
             $statement = $pdo->prepare($sql);
             //  echo debugPDO($sql, $params);
             $statement->execute();       
