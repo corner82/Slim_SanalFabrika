@@ -111,4 +111,17 @@ class SysMachineToolGroups extends \BLL\BLLSlim {
     }
 
     
+     /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */      
+    public function fillMachineToolGroupsMachineProperties($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolGroupsPDO');     
+        return $DAL->fillMachineToolGroupsMachineProperties($params);
+    }
+    
+    
+    
+    
 }

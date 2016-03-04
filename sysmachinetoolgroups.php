@@ -137,6 +137,69 @@ $app->get("/pkFillMachineToolGroups_sysMachineToolGroups/", function () use ($ap
 });
 /**
  *  * Okan CIRAN
- * @since 07-01-2016
+ * @since 29-02-2016
  */
+
+$app->get("/pkFillMachineToolGroupsMachineProperties_sysMachineToolGroups/", function () use ($app ) {
+
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    
+    $BLL = $app->getBLLManager()->get('sysMachineToolGroupsBLL');
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }
+     $vMachineId = 0;
+    if (isset($_GET['machine_id'])) {
+        $stripper->offsetSet('machine_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['machine_id']));
+    }
+    
+    $stripper->strip();    
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('machine_id')) $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
+    
+    if (isset($_GET['machine_id'])) {
+        $resData = $BLL->fillMachineToolGroupsMachineProperties(array('machine_id' => $vMachineId,
+                                                         'language_code' => $vLanguageCode, 
+                                                        
+                                                                ));
+    } else {
+        $resData = $BLL->fillMachineToolGroupsMachineProperties(array('language_code' => $vLanguageCode));
+    }
+     $flows = array();
+    if (isset($resData['resultSet'][0]['machine_id'])) {      
+        foreach ($resData['resultSet']  as $flow) {
+            $flows[] = array(
+                "id" => $flow["id"],
+                "machine_id" => $flow["machine_id"], 
+                "machine_names" => $flow["machine_names"],                
+                "property_names" => $flow["property_names"],
+                "property_name_eng" => $flow["property_name_eng"],
+                "property_value" => $flow["property_value"],
+                "unit_id" => $flow["unit_id"],
+                "unitcodes" => $flow["unitcodes"],             
+                "attributes" => array("notroot" => true ),
+            );
+        }
+        
+    }
+    $resultArray = array();
+    //  $resultArray['total'] = 2;//$resTotalRowCount[0]['count'];
+    $resultArray['rows'] = $flows;
+    $app->response()->header("Content-Type", "application/json");
+
+    /* $app->contentType('application/json');
+      $app->halt(302, '{"error":"Something went wrong"}');
+      $app->stop(); */
+
+    $app->response()->body(json_encode($resultArray));
+    
+});
+
+
 $app->run();
