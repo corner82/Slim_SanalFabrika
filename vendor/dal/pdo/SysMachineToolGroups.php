@@ -425,7 +425,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             $statement = $pdo->prepare("                
                 SELECT                    
                     a.id,                     
-                    COALESCE(NULLIF(a.group_name, ''), a.group_name_eng) as name ,
+                    COALESCE(NULLIF(ax.group_name, ''), a.group_name_eng) as name ,
                     a.parent_id,
                     a.active ,
                     CASE
@@ -450,11 +450,14 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                     END AS last_node,
                     'false' as machine
                 FROM sys_machine_tool_groups a  
-                INNER JOIN sys_language lx ON lx.id = a.language_id AND lx.deleted =0 AND lx.active =0 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.deleted =0 AND lx.active =0 AND lx.id = " . intval($languageIdValue) . "
+                LEFT JOIN sys_machine_tool_groups ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.language_id = lx.id
                 WHERE                    
-                    a.parent_id = " .intval($parentId) . " AND 
-                    a.deleted = 0 AND a.language_id = " . intval($languageIdValue) . "  
-                ORDER BY name             
+                    a.parent_id = " .intval($parentId) . " AND a.language_parent_id =0 AND 
+                    a.deleted = 0  
+                ORDER BY name  
+             
                                  ");
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -492,7 +495,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             $sql =" 
                 SELECT                    
                     mt.id, 
-                    COALESCE(NULLIF( (mt.machine_tool_name), ''), mt.machine_tool_name_eng) AS name,            
+                    COALESCE(NULLIF( (mtx.machine_tool_name), ''), mt.machine_tool_name_eng) AS name,            
                     -1 AS parent_id,
                     a.active ,
                     'open' AS state_type,                                          
@@ -501,12 +504,14 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                     'true' AS last_node,
                     'true' as machine   
                 FROM sys_machine_tool_groups a 
-                INNER JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                      
-                INNER join sys_machine_tools mt on mt.machine_tool_grup_id = a.id AND mt.language_id = lx.id AND mt.active =0 AND mt.deleted =0 
-                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0   
+		INNER join sys_machine_tools mt on mt.machine_tool_grup_id = a.id AND mt.language_id = l.id AND mt.active =0 AND mt.deleted =0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
+		LEFT join sys_machine_tools mtx on mtx.id = mt.id AND mtx.language_id = lx.id AND mtx.deleted =0 AND mtx.active =0 AND mtx.language_parent_id =0                         
                 WHERE                    
                    a.id =  " .intval($parentId) . " AND 
-                   a.deleted = 0     
+                   a.deleted = 0 AND
+                   a.active =0 
                 ORDER BY name        
                                  ";
              $statement = $pdo->prepare( $sql);

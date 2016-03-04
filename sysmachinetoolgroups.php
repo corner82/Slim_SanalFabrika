@@ -135,6 +135,76 @@ $app->get("/pkFillMachineToolGroups_sysMachineToolGroups/", function () use ($ap
 
     $app->response()->body(json_encode($flows));
 });
+
+
+/**
+ *  * Okan CIRAN
+ * @since 15-02-2016
+ */
+$app->get("/pkFillJustMachineToolGroups_sysMachineToolGroups/", function () use ($app ) {
+
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    
+    $BLL = $app->getBLLManager()->get('sysMachineToolGroupsBLL');
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }
+     $vParentId = 0;
+    if (isset($_GET['parent_id'])) {
+        $stripper->offsetSet('parent_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['parent_id']));
+    }    
+    $vsearch = null;
+    if(isset($_GET['search'])) {
+        $stripper->offsetSet('search', 
+                $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                        $app,
+                        $_GET['search']));
+    }
+    
+    
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('parent_id')) $vParentId = $stripper->offsetGet('parent_id')->getFilterValue();
+    if($stripper->offsetExists('search')) $vsearch = $stripper->offsetGet('search')->getFilterValue();
+
+    if (isset($_GET['parent_id'])) {
+        $resCombobox = $BLL->fillMachineToolGroups(array('parent_id' => $vParentId,
+                                                         'language_code' => $vLanguageCode,                                                        
+                                                         'search' => $vsearch,
+                                                                ));
+    } else {
+        $resCombobox = $BLL->fillMachineToolGroups(array('language_code' => $vLanguageCode));
+    }
+
+    $flows = array();
+    foreach ($resCombobox as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+            //"text" => strtolower($flow["name"]),
+            "text" => $flow["name"],
+            "state" => $flow["state_type"], //   'closed',
+            "checked" => false,
+            "icon_class"=>$flow["icon_class"], 
+            "attributes" => array("root" => $flow["root_type"], "active" => $flow["active"]
+                ,"machine" => $flow["machine"],"last_node" => $flow["last_node"]),
+        );
+    }
+
+    $app->response()->header("Content-Type", "application/json");
+
+    /* $app->contentType('application/json');
+      $app->halt(302, '{"error":"Something went wrong"}');
+      $app->stop(); */
+
+    $app->response()->body(json_encode($flows));
+});
+
 /**
  *  * Okan CIRAN
  * @since 29-02-2016
