@@ -94,7 +94,7 @@ $app->get("/pkFillMachineToolGroupPropertyDefinitions_sysMachineToolPropertyDefi
  
 /**
  *  * Okan CIRAN
- * @since 01-02-2016
+ * @since 15-02-2016
  */
 $app->get("/pkInsert_sysMachineToolPropertyDefinition/", function () use ($app ) {
 
@@ -149,7 +149,7 @@ $app->get("/pkInsert_sysMachineToolPropertyDefinition/", function () use ($app )
 
 /**
  *  * Okan CIRAN
- * @since 01-02-2016
+ * @since 15-02-2016
  */
 $app->get("/pkUpdate_sysMachineToolPropertyDefinition/", function () use ($app ) {
 
@@ -213,18 +213,25 @@ $app->get("/pkUpdate_sysMachineToolPropertyDefinition/", function () use ($app )
 
 /**
  *  * Okan CIRAN
- * @since 25-01-2016
+ * @since 15-02-2016
  */
-$app->get("/pkGetAll_sysMachineToolPropertyDefinition/", function () use ($app ) {
+$app->get("/pkFillGrid_sysMachineToolPropertyDefinition/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('sysMachineToolPropertyDefinitionBLL');
     $headerParams = $app->request()->headers();
     $vPk = $headerParams['X-Public'];
-    $fPk = $vPk ; 
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }    
     
-    $resDataGrid = $BLL->getAll();
+    $resDataGrid = $BLL->fillGrid(array(              
+            'language_code' => $vLanguageCode,
+            ));
     
-    $resTotalRowCount = $BLL->fillGridRowTotalCount();
+    $resTotalRowCount = $BLL->fillGridRowTotalCount(array(              
+            'language_code' => $vLanguageCode,
+            ));
 
     $flows = array();
     foreach ($resDataGrid as $flow) {

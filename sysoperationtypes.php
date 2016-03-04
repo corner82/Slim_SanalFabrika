@@ -54,14 +54,17 @@ $app->get("/pkFillConsultantOperationsDropDown_sysOperationTypes/", function () 
     $headerParams = $app->request()->headers();
     $vPk = $headerParams['X-Public'];
     $fPk =$vPk ; 
-    
+      $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }  
   
     if (isset($_GET['main_group'])) {
-    $resCombobox = $BLL->fillConsultantOperations (array('language_code'=>$_GET['language_code'],
+    $resCombobox = $BLL->fillConsultantOperations (array('language_code'=>$vLanguageCode,
                                                           'main_group'=>$_GET['main_group'],
                                                           'pk' => $fPk )  ); 
     } else {
-        $resCombobox = $BLL->fillConsultantOperations (array('language_code'=>$_GET['language_code'],  'pk' => $fPk) 
+        $resCombobox = $BLL->fillConsultantOperations (array('language_code'=>$vLanguageCode,  'pk' => $fPk) 
                                                           ); 
     }
  

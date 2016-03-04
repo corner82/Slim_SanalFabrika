@@ -40,15 +40,7 @@ $app->add(new \Slim\Middleware\MiddlewareDalManager());
 $app->add(new \Slim\Middleware\MiddlewareServiceManager());
 $app->add(new \Slim\Middleware\MiddlewareMQManager());
 
-
-$pdo = new PDO('pgsql:dbname=ecoman_01_10;host=88.249.18.205;user=postgres;password=1q2w3e4r');
-
-\Slim\Route::setDefaultConditions(array(
-    'firstName' => '[a-zA-Z]{3,}',
-    'page' => '[0-9]{1,}'
-));
-
-
+ 
 
 /**
  *  * Okan CIRAN
@@ -59,10 +51,7 @@ $app->get("/pkFillComboBoxMainResources_sysAclResources/", function () use ($app
 
     $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');
 
-    //print_r('--****************get parent--' );  
-    $resCombobox = $BLL->fillComboBoxMainResources();
-    //print_r($resDataMenu);
-
+     $resCombobox = $BLL->fillComboBoxMainResources();
 
     $flows = array();
     foreach ($resCombobox as $flow) {
@@ -75,14 +64,10 @@ $app->get("/pkFillComboBoxMainResources_sysAclResources/", function () use ($app
             "attributes" => array("notroot" => true, "active" => $flow["active"], "deleted" => $flow["deleted"]),
         );
     }
-    //   print_r($flows);
-
     $app->response()->header("Content-Type", "application/json");
-
     /* $app->contentType('application/json');
       $app->halt(302, '{"error":"Something went wrong"}');
       $app->stop(); */
-
     $app->response()->body(json_encode($flows));
 });
 /**
@@ -132,7 +117,6 @@ $app->get("/pkFillGrid_sysAclResources/", function () use ($app ) {
     $headerParams = $app->request()->headers();
     $pk = $headerParams['X-Public'];
    
-
 
     $resDataGrid = $BLL->fillGrid(array('page' => $_GET['page'],
         'rows' => $_GET['rows'],
@@ -191,6 +175,78 @@ $app->get("/pkFillGrid_sysAclResources/", function () use ($app ) {
  * @since 13-01-2016
  */
 $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
+    
+    ///////////////////**** validator 
+     /**
+     * validat chain test
+     * @author Mustafa Zeynel Dağlı
+     * @since 15/01/2016
+     */
+    
+    $vName = $_GET['name'];
+    $vUrl = $_GET['url'];
+    $vParent = $_GET['parent'];
+    $vIconClass = $_GET['icon_class'];
+    $vDescription = $_GET['description']; 
+    $vUserId =$_GET['user_ID'];
+    
+    
+    $validater = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
+    $validatorChainUrl = new Zend\Validator\ValidatorChain();
+    $validater->offsetSet(array_search($_GET['url'], $_GET), 
+            new \Utill\Validation\Chain\ZendValidationChainer($app, 
+                                                              $_GET['url'], 
+                                                              $validatorChainUrl->attach(
+                                                                        new Zend\Validator\StringLength(array('min' => 6,
+                                                                                                              'max' => 50)))
+                                                                              // ->attach(new Zend\I18n\Validator\Alnum())    
+                    ) );
+ 
+     
+    $validatorChainName = new Zend\Validator\ValidatorChain();
+    $validater->offsetSet('name', 
+            new \Utill\Validation\Chain\ZendValidationChainer($app, 
+                                                              $vName, 
+                                                              $validatorChainName->attach(
+                                                                        new Zend\Validator\StringLength(array('min' => 3,
+                                                                                                              'max' => 10)))
+                                                                              ->attach(new Zend\I18n\Validator\Alnum())    
+                    ) );
+  
+    $validater->offsetSet('parent', 
+        new \Utill\Validation\Chain\ZendValidationChainer($app, 
+                                                          $vParent, 
+                                                          $validatorChainName->attach(
+                                                                    new Zend\Validator\StringLength(array('min' => 3,
+                                                                                                          'max' => 10)))
+                                                                          ->attach(new Zend\I18n\Validator\Alnum())    
+                ) );
+  
+    $validater->validate();
+    $messager = $app->getServiceManager()->get('validatorMessager');  
+    print_r( $messager->getValidationMessage());
+   
+ 
+    /***validator ***/ 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
  
@@ -260,45 +316,6 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
     $vPk = $headerParams['X-Public'];
      
       
-    /**
-     * validat chain test
-     * @author Mustafa Zeynel Dağlı
-     * @since 15/01/2016
-     */
-    $validater = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
-    $validatorChainUrl = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet(array_search($_GET['url'], $_GET), 
-            new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                              $_GET['url'], 
-                                                              $validatorChainUrl->attach(
-                                                                        new Zend\Validator\StringLength(array('min' => 6,
-                                                                                                              'max' => 50)))
-                                                                              // ->attach(new Zend\I18n\Validator\Alnum())    
-                    ) );
- 
-     
-    $validatorChainName = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('name', 
-            new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                              $vName, 
-                                                              $validatorChainName->attach(
-                                                                        new Zend\Validator\StringLength(array('min' => 3,
-                                                                                                              'max' => 10)))
-                                                                              ->attach(new Zend\I18n\Validator\Alnum())    
-                    ) );
-  
-    $validater->offsetSet('parent', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vParent, 
-                                                          $validatorChainName->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 3,
-                                                                                                          'max' => 10)))
-                                                                          ->attach(new Zend\I18n\Validator\Alnum())    
-                ) );
-  
-    $validater->validate();
-    $messager = $app->getServiceManager()->get('validatorMessager');  
-    print_r( $messager->getValidationMessage());
    
     
     

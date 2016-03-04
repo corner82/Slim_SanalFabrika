@@ -49,11 +49,15 @@ $app->get("/pkFillGrid1_sysMachineTools/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('sysMachineToolsBLL');
 
-
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }   
     if (isset($_GET['parent_id']) && $_GET['parent_id'] != "") {
-        $resCombobox = $BLL->fillMachineToolGroups(array('parent_id' => $_GET ["parent_id"]));
+        $resCombobox = $BLL->fillMachineToolGroups(array('parent_id' => $_GET ["parent_id"],
+                                                         'language_code' =>$vLanguageCode));
     } else {
-        $resCombobox = $BLL->fillMachineToolGroups();
+        $resCombobox = $BLL->fillMachineToolGroups(array('language_code' =>$vLanguageCode));
     }
 
     $flows = array();

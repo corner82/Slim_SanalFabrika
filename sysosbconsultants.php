@@ -127,9 +127,11 @@ $app->get("/pkGetConsConfirmationProcessDetails_sysOsbConsultants/", function ()
     if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkGetConsConfirmationProcessDetails_sysOsbConsultants" end point, X-Public variable not found');
     $pk = $headerParams['X-Public'];
     $profileID;
-    if(isset($_GET['profile_id'])) $profileID = $_GET['profile_id'];
+    if (isset($_GET['profile_id'])) {
+        $profileID = $_GET['profile_id'];
+    }
 
-    $result = $BLL->getConsConfirmationProcessDetails(array('profile_id' => $profileID,
+    $result = $BLL->getConsConfirmationProcessDetails(array('profile_id' => 97,
                                                          'pk' => $pk));    
     //print_r($resDataGrid['$result']);
     $flows = array();
