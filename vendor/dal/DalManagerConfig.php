@@ -69,6 +69,7 @@ class DalManagerConfig {
                 'sysUnitsPDO' => 'DAL\Factory\PDO\SysUnitsFactory',
                 'infoFirmMachineToolPDO' => 'DAL\Factory\PDO\InfoFirmMachineToolFactory',
                 'sysNaceCodesPDO' => 'DAL\Factory\PDO\SysNaceCodesFactory',
+                'hstryLoginPDO' => 'DAL\Factory\PDO\HstryLoginFactory',
                 
                   
             ],

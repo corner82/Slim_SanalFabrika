@@ -64,7 +64,7 @@ class BLLManagerConfig{
                  'sysUnitsBLL' => 'BLL\BLL\SysUnits',
                  'infoFirmMachineToolBLL' => 'BLL\BLL\InfoFirmMachineTool',
                  'sysNaceCodesBLL' => 'BLL\BLL\SysNaceCodes',
-              
+                 'hstryLoginBLL' => 'BLL\BLL\HstryLogin',              
                                   
              ),
              'factories' => [
