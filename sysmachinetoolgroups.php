@@ -154,10 +154,10 @@ $app->get("/pkFillJustMachineToolGroups_sysMachineToolGroups/", function () use 
                                                 $_GET['language_code']));
     }
      $vParentId = 0;
-    if (isset($_GET['parent_id'])) {
-        $stripper->offsetSet('parent_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
-                                                $_GET['parent_id']));
+                                                $_GET['id']));
     }    
     $vsearch = null;
     if(isset($_GET['search'])) {
@@ -170,10 +170,10 @@ $app->get("/pkFillJustMachineToolGroups_sysMachineToolGroups/", function () use 
     
     $stripper->strip();
     if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    if($stripper->offsetExists('parent_id')) $vParentId = $stripper->offsetGet('parent_id')->getFilterValue();
+    if($stripper->offsetExists('id')) $vParentId = $stripper->offsetGet('id')->getFilterValue();
     if($stripper->offsetExists('search')) $vsearch = $stripper->offsetGet('search')->getFilterValue();
 
-    if (isset($_GET['parent_id'])) {
+    if (isset($_GET['id'])) {
         $resCombobox = $BLL->fillMachineToolGroups(array('parent_id' => $vParentId,
                                                          'language_code' => $vLanguageCode,                                                        
                                                          'search' => $vsearch,
