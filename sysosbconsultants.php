@@ -131,7 +131,7 @@ $app->get("/pkGetConsConfirmationProcessDetails_sysOsbConsultants/", function ()
         $profileID = $_GET['profile_id'];
     }
 
-    $result = $BLL->getConsConfirmationProcessDetails(array('profile_id' => 97,
+    $result = $BLL->getConsConfirmationProcessDetails(array('profile_id' => $profileID,
                                                          'pk' => $pk));    
     //print_r($resDataGrid['$result']);
     $flows = array();
