@@ -455,12 +455,16 @@ class SysNavigationLeft extends \DAL\DalSlim {
     public function pkGetLeftMenu($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            /**
-             * table names and column names will be changed for specific use
-             */            
+              $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                } else {
+                    $languageIdValue = 647;
+                }          
             $sql = "
+                
                 SELECT a.id, 
-                    COALESCE(NULLIF(a.menu_name, ''), a.menu_name_eng) AS menu_name, 
+                    COALESCE(NULLIF(axz.menu_name, ''), a.menu_name_eng) AS menu_name, 
                     a.language_id, 
                     a.menu_name_eng, 
                     a.url, 
@@ -476,7 +480,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     END AS state,    
                     a.warning, 
                     a.warning_type, 
-                    COALESCE(NULLIF(hint, ''), hint_eng) AS hint, 
+                    COALESCE(NULLIF(axz.hint, ''), a.hint_eng) AS hint, 
                     a.z_index, 
                     a.language_parent_id, 
                     a.hint_eng, 
@@ -498,9 +502,11 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 FROM sys_navigation_left a 
                 INNER JOIN info_users iu ON iu.active =0 AND iu.deleted =0	     	
                 INNER JOIN act_session ssx ON CRYPT(iu.sf_private_key_value,CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))  
-                WHERE a.language_code = 
-                    (SELECT COALESCE(NULLIF((SELECT language_main_code FROM sys_language lz WHERE lz.language_main_code = '".$params['language_code']."' AND lz.deleted =0 AND lz.active =0 ),''),'en')) AND                        
-                    acl_type = 0 AND 
+		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.deleted =0 AND lx.active =0 AND lx.id = " . intval($languageIdValue) . "
+                LEFT JOIN sys_navigation_left axz ON (axz.id = a.id OR axz.language_parent_id = a.id) AND axz.language_id = lx.id
+                WHERE a.language_parent_id = 0 AND                        
+                    a.acl_type = 0 AND 
                     a.active = 0 AND 
                     a.deleted = 0 AND 
                     a.parent = ".intval($params['parent'])." AND                    
@@ -512,22 +518,17 @@ class SysNavigationLeft extends \DAL\DalSlim {
 					   LEFT JOIN sys_acl_roles sar ON sar.id = az.root AND sar.active =0 AND sar.deleted =0  
                                            WHERE az.id= av.role_id),0), sarv.id ) AS Menu_type  
                          FROM info_users av
-                         
                          INNER JOIN sys_acl_roles sarv ON sarv.id = av.role_id AND sarv.active=0 AND sarv.deleted=0 
                          INNER JOIN act_session sszv ON CRYPT(av.sf_private_key_value,CONCAT('_J9..',REPLACE(sszv.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(sszv.public_key,'*','/'))  
                          WHERE av.active =0 and av.deleted =0 AND sszv.public_key = ssx.public_key 
                       ) as integer) AND
-                      ssx.public_key = '".$params['pk']."'                     
-
+                      ssx.public_key = '".$params['pk']."'    
                 ORDER BY a.parent, a.z_index
-
+ 
                                  ";           
             $statement = $pdo->prepare($sql);
-          //  $statement->bindValue(':parent',  $params['parent'], \PDO::PARAM_INT);
-         
-         //   $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
-        //    $statement->bindValue(':public_key', $params['pk'], \PDO::PARAM_STR);
-        // echo debugPDO($sql, $params);  
+   
+           //echo debugPDO($sql, $params);  
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
