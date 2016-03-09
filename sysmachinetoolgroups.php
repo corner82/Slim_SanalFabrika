@@ -174,12 +174,12 @@ $app->get("/pkFillJustMachineToolGroups_sysMachineToolGroups/", function () use 
     if($stripper->offsetExists('search')) $vsearch = $stripper->offsetGet('search')->getFilterValue();
 
     if (isset($_GET['id'])) {
-        $resCombobox = $BLL->fillMachineToolGroups(array('parent_id' => $vParentId,
+        $resCombobox = $BLL->fillJustMachineToolGroups(array('parent_id' => $vParentId,
                                                          'language_code' => $vLanguageCode,                                                        
                                                          'search' => $vsearch,
                                                                 ));
     } else {
-        $resCombobox = $BLL->fillMachineToolGroups(array('language_code' => $vLanguageCode));
+        $resCombobox = $BLL->fillJustMachineToolGroups(array('language_code' => $vLanguageCode));
     }
 
     $flows = array();
