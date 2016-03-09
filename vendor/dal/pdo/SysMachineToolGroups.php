@@ -422,7 +422,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             if (isset($params['parent_id']) && $params['parent_id'] != "") {
                 $parentId = $params['parent_id'];
             }
-            $statement = $pdo->prepare("                
+            $sql = "                
                 SELECT                    
                     a.id,                     
                     COALESCE(NULLIF(ax.group_name, ''), a.group_name_eng) as name ,
@@ -458,7 +458,9 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                     a.deleted = 0  
                 ORDER BY name  
              
-                                 ");
+                                 ";
+              $statement = $pdo->prepare($sql);
+           // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -469,6 +471,77 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+    
+    
+    
+    /**
+     * user interface fill operation   
+     * @author Okan CIRAN
+     * @ tree doldurmak için sys_machine_tool_groups tablosundan tüm kayıtları döndürür !!
+     * @version v 1.0  15.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillJustMachineToolGroups($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+             $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            } else {
+                $languageIdValue = 647;
+            }
+            $parentId = 0;
+            if (isset($params['parent_id']) && $params['parent_id'] != "") {
+                $parentId = $params['parent_id'];
+            }
+            $sql = "                
+                SELECT                    
+                    a.id,                     
+                    COALESCE(NULLIF(ax.group_name, ''), a.group_name_eng) as name ,
+                    a.parent_id,
+                    a.active ,
+                    CASE 
+                        (SELECT DISTINCT 1 state_type FROM sys_machine_tool_groups WHERE parent_id = a.id AND deleted = 0)    
+                        WHEN 1 THEN 'closed'
+                        ELSE 'open' 
+                    END AS state_type,
+                    CASE
+                        (SELECT DISTINCT 1 parent_id FROM sys_machine_tool_groups WHERE id = a.id AND deleted = 0 AND parent_id =0 )    
+                        WHEN 1 THEN 'true'
+                    ELSE 'false'   
+                    END AS root_type,
+                    a.icon_class,
+                    CASE 
+                        (SELECT DISTINCT 1 state_type FROM sys_machine_tool_groups WHERE parent_id = a.id AND deleted = 0)    
+                         WHEN 1 THEN 'false'
+                    ELSE 'true'   
+                    END AS last_node,
+                    'false' AS machine
+                FROM sys_machine_tool_groups a  
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.deleted =0 AND lx.active =0 AND lx.id = " . intval($languageIdValue) . "
+                LEFT JOIN sys_machine_tool_groups ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.language_id = lx.id
+                WHERE                    
+                    a.parent_id = " .intval($parentId) . " AND a.language_parent_id =0 AND 
+                    a.deleted = 0  
+                ORDER BY name  
+             
+                                 ";
+              $statement = $pdo->prepare($sql);
+         //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {      
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
       /**
      * user interface fill operation   
      * @author Okan CIRAN
