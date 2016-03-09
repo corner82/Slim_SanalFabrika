@@ -35,6 +35,7 @@ class config {
             ),
             'factories' => [
                 'pgConnectFactory' => 'Services\Database\Postgresql\PostgreSQLConnectPDO',
+                'pgConnectLogFactory' => 'Services\Database\Postgresql\PostgreSQLConnectLogPDO',
                 'filterDefault' => 'Services\Filter\FilterDefault',
                 'filterHtmlTagsCustomAdvanced' => 'Services\Filter\filterHtmlTagsCustomAdvanced',
                 'filterHtmlTagsCustomBase' => 'Services\Filter\filterHtmlTagsCustomBase',
