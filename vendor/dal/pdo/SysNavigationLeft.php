@@ -510,17 +510,19 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     a.active = 0 AND 
                     a.deleted = 0 AND 
                     a.parent = ".intval($params['parent'])." AND                    
-                    a.menu_type = CAST(
-                      (SELECT                               
+                     a.menu_type = CAST(
+                      (SELECT 
                           COALESCE(NULLIF( 
-                         (SELECT COALESCE(NULLIF(sar.id , 0),az.id)  
-                                           FROM sys_acl_roles az                                         
+                         (SELECT COALESCE(NULLIF(sar.id, 0),az.id)  
+                                           FROM sys_acl_roles az
 					   LEFT JOIN sys_acl_roles sar ON sar.id = az.root AND sar.active =0 AND sar.deleted =0  
                                            WHERE az.id= av.role_id),0), sarv.id ) AS Menu_type  
                          FROM info_users av
-                         INNER JOIN sys_acl_roles sarv ON sarv.id = av.role_id AND sarv.active=0 AND sarv.deleted=0 
-                         INNER JOIN act_session sszv ON CRYPT(av.sf_private_key_value,CONCAT('_J9..',REPLACE(sszv.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(sszv.public_key,'*','/'))  
-                         WHERE av.active =0 and av.deleted =0 AND sszv.public_key = ssx.public_key 
+                         INNER JOIN sys_acl_roles sarv ON sarv.id = av.role_id AND sarv.active=0 AND sarv.deleted=0                          
+                         WHERE 
+				av.active =0 AND 
+				av.deleted =0 AND 
+				iu.id = av.id
                       ) as integer) AND
                       ssx.public_key = '".$params['pk']."'    
                 ORDER BY a.parent, a.z_index
