@@ -361,6 +361,15 @@ class InfoUsers extends \DAL\DalSlim {
                     ));
 
                     $pdo->commit();
+                    $logDbData = $this->getUsernamePrivateKey(array('id' => $insertID));
+                    $this->insertLogUser(array('oid' => $insertID ,
+                                               'username'=> $logDbData['resultSet'][0]['username'],  
+                                               'sf_private_key_value'=> $logDbData['resultSet'][0]['sf_private_key_value'],  
+                                               'sf_private_key_value_temp'=> $logDbData['resultSet'][0]['sf_private_key_value_temp']  
+                            
+                                                ));
+                     
+                    
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
                     $errorInfo = '23502';   // 23502  not_null_violation
@@ -549,6 +558,14 @@ class InfoUsers extends \DAL\DalSlim {
                     ));
 
                     $pdo->commit();
+                    $logDbData = $this->getUsernamePrivateKey(array('id' => $insertID));                    
+                    $this->insertLogUser(array('oid' => $insertID ,
+                                               'username'=> $logDbData['resultSet'][0]['username'],  
+                                               'sf_private_key_value'=> $logDbData['resultSet'][0]['sf_private_key_value'],  
+                                               'sf_private_key_value_temp'=> $logDbData['resultSet'][0]['sf_private_key_value_temp']  
+                            
+                                                ));
+                    
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID, "pktemp" => $publicKeyTempValue);
                 } else {
                     $errorInfo = '23505';   // 23505  unique_violation
@@ -1128,6 +1145,7 @@ class InfoUsers extends \DAL\DalSlim {
                                 AND active =0 AND deleted =0 
  
                     "; 
+                $statement_act_insert = $pdo->prepare($sql);   
                 $insert_act_insert = $statement_act_insert->execute();
                 $affectedRows = $statement_act_insert->rowCount();
                 $errorInfo = $statement_act_insert->errorInfo();
@@ -1358,4 +1376,88 @@ class InfoUsers extends \DAL\DalSlim {
         }
     }
  
+    
+   /**
+     * log databasine yeni kullanıcı için kayıt ekler           
+     * @author Okan CIRAN
+     * @version v 1.0  09.03.2016
+     * @param array $params 
+     * @return array
+     * @throws \PDOException
+     */
+    public function insertLogUser($params = array()) {
+        try {
+           // print_r('123123') ;
+            $pdoLog = $this->slimApp->getServiceManager()->get('pgConnectLogFactory');
+            $pdoLog->beginTransaction();
+                $sql = " 
+                    INSERT INTO info_users(
+                        username, 
+                        sf_private_key_value, 
+                        sf_private_key_value_temp,
+                        oid
+                        ) 
+                    VALUES (
+                        :username, 
+                        :sf_private_key_value, 
+                        :sf_private_key_value_temp,
+                        :oid
+                        )     
+                    "; 
+                $statement_log_insert = $pdoLog->prepare($sql);  
+                $statement_log_insert->bindValue(':username', $params['username'], \PDO::PARAM_STR);
+                $statement_log_insert->bindValue(':sf_private_key_value', $params['sf_private_key_value'], \PDO::PARAM_STR);
+                $statement_log_insert->bindValue(':sf_private_key_value_temp', $params['sf_private_key_value_temp'], \PDO::PARAM_STR);
+                $statement_log_insert->bindValue(':oid', $params['oid'], \PDO::PARAM_INT);
+               //  echo debugPDO($sql, $params);
+                $insert_log = $statement_log_insert->execute();
+                $affectedRows = $statement_log_insert->rowCount();
+                $errorInfo = $statement_log_insert->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                $pdoLog->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+           
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdoLog->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
+    /**
+     * parametre olarak gelen array deki 'id' li kaydın, info_users tablosundaki username ve private key değerlerini döndürür !!
+     * @author Okan CIRAN
+     * @version v 1.0  09.03.2016
+     * @param array $params 
+     * @return array
+     * @throws \PDOException
+     */
+    public function getUsernamePrivateKey($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $sql = " 
+                SELECT 
+                    id,
+                    username, 
+                    sf_private_key_value, 
+                    sf_private_key_value_temp
+                FROM info_users 
+                WHERE 
+                     id =" .intval( $params['id']) . "
+                ";
+            $statement = $pdo->prepare($sql);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
+    
 }
