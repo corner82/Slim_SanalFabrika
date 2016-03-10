@@ -98,7 +98,7 @@ class LogConnection extends \DAL\DalSlim {
                 $statement->bindValue(':pk', $params['pk'], \PDO::PARAM_STR);
                 $statement->bindValue(':type_id', $params['type_id'], \PDO::PARAM_INT);                
                 $statement->bindValue(':log_datetime', $params['log_datetime'], \PDO::PARAM_STR);
-                echo debugPDO($sql, $params);
+              //  echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('connection_log_id_seq');
                 $errorInfo = $statement->errorInfo();
