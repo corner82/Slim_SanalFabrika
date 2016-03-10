@@ -151,12 +151,14 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             SELECT  
                 smt.machine_tool_name AS name , 
                 smt.machine_tool_name AS value , 
-                a.sys_machine_tool_id  = " . intval($params['machine_id']) . " AS control,
-                CONCAT(smt.machine_tool_name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message                             
+                a.sys_machine_tool_id = " . intval($params['machine_id']) . " AS control,
+                CONCAT(smt.machine_tool_name, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message                             
             FROM info_firm_machine_tool a 
             INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.deleted =0 AND smt.active =0 
             WHERE a.firm_id = " . intval($params['firm_id']) . "
-                AND a.sys_machine_tool_id =  " . intval($params['machine_id']) . "
+                AND a.sys_machine_tool_id = " . intval($params['machine_id']) . "
+                AND a.active = 0 
+                AND a.deleted = 0     
                    " . $addSql . "                  
                                ";
             $statement = $pdo->prepare($sql);
@@ -215,46 +217,51 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $kontrol = $this->haveRecords($params);
-                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                    $addSql = " op_user_id, ";
-                    $addSqlValue = " " . $opUserIdValue . ",";
+                $getFirm = $this->getUserFirmId(array('user_id' => $opUserIdValue));
+                if (\Utill\Dal\Helper::haveRecord($getFirm)) {
+                    $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
 
-                    $addSql .= " operation_type_id,  ";
-                    if ((isset($params['operation_type_id']) && $params['operation_type_id'] != "")) {
-                        $addSqlValue .= " " . intval($params['operation_type_id']) . ",";
-                    } ELSE {
-                        $addSqlValue .= " 29,";
-                    }
+                    $kontrol = $this->haveRecords(array('firm_id' => $getFirmId,
+                        'machine_id' => $params['machine_id'],
+                    ));
+                    if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                        $addSql = " op_user_id, ";
+                        $addSqlValue = " " . $opUserIdValue . ",";
 
-                    $getConsultant = SysOsbConsultants::getConsultantIdForCompany(array('category_id' => 1));
-                    if (\Utill\Dal\Helper::haveRecord($getConsultant['resultSet'][0]['consultant_id'])) {
-                        $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
-                    } else {
-                        $ConsultantId = 1001;
-                    }
-                    $addSql .= " consultant_id,  ";
-                    $addSqlValue .= " " . intval($ConsultantId) . ",";
-                  
-                    if (isset($params['profile_public'])) {
-                        $addSql .= " profile_public, ";
-                        $addSqlValue .= intval($params['profile_public']) . ", ";
-                    }
-                    
-                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                        $languageIdValue = $languageId ['resultSet'][0]['id'];
-                    } else {
-                        $languageIdValue = 647;
-                    }
-                    $addSql .= " language_id, ";
-                    $addSqlValue .= " " . $languageIdValue . ",";
+                        $addSql .= " operation_type_id,  ";
+                        if ((isset($params['operation_type_id']) && $params['operation_type_id'] != "")) {
+                            $addSqlValue .= " " . intval($params['operation_type_id']) . ",";
+                        } ELSE {
+                            $addSqlValue .= " 29,";
+                        }
 
-                    $statement = $pdo->prepare("
+                        $getConsultant = SysOsbConsultants::getConsultantIdForCompany(array('category_id' => 1));
+                        if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
+                            $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
+                        } else {
+                            $ConsultantId = 1001;
+                        }
+                        $addSql .= " consultant_id,  ";
+                        $addSqlValue .= " " . intval($ConsultantId) . ",";
+
+                        if (isset($params['profile_public'])) {
+                            $addSql .= " profile_public, ";
+                            $addSqlValue .= intval($params['profile_public']) . ", ";
+                        }
+
+                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                            $languageIdValue = $languageId ['resultSet'][0]['id'];
+                        } else {
+                            $languageIdValue = 647;
+                        }
+                        $addSql .= " language_id, ";
+                        $addSqlValue .= " " . $languageIdValue . ",";
+
+                        $sql = " 
                    INSERT INTO info_firm_machine_tool(
                         firm_id,                         
                         sys_machine_tool_id,
@@ -270,25 +277,34 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         :availability_id, 
                          " . $addSqlValue . "
                         (SELECT last_value FROM info_firm_machine_tool_id_seq)
-                        ");
-                    $statement->bindValue(':firm_id', $params['firm_id'], \PDO::PARAM_INT);
-                    $statement->bindValue(':sys_machine_tool_id', $params['machine_id'], \PDO::PARAM_INT);                    
-                    $statement->bindValue(':availability_id', $params['availability_id'], \PDO::PARAM_INT);                    
-                    $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);                    
-                    $result = $statement->execute();
-                    $insertID = $pdo->lastInsertId('info_firm_machine_tool_id_seq');
-                    $errorInfo = $statement->errorInfo();
-                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                        throw new \PDOException($errorInfo[0]);
-                    $pdo->commit();
+                        
+                        )";
+                        $statement = $pdo->prepare($sql);
+                        $statement->bindValue(':firm_id', $getFirmId, \PDO::PARAM_INT);
+                        $statement->bindValue(':sys_machine_tool_id', $params['machine_id'], \PDO::PARAM_INT);
+                        $statement->bindValue(':availability_id', $params['availability_id'], \PDO::PARAM_INT);
+                        $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+                      //  echo debugPDO($sql, $params);
+                        $result = $statement->execute();
+                        $insertID = $pdo->lastInsertId('info_firm_machine_tool_id_seq');
+                        $errorInfo = $statement->errorInfo();
+                        if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                            throw new \PDOException($errorInfo[0]);
+                        $pdo->commit();
 
-                    return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                        return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                    } else {
+                        // 23505  unique_violation
+                        $errorInfo = '23505';
+                        $errorInfoColumn = 'machine_id';
+                        $pdo->rollback();
+                        // $result = $kontrol;
+                        return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                    }
                 } else {
-                    // 23505  unique_violation
-                    $errorInfo = '23505';
-                    $errorInfoColumn = 'sys_machine_tool_id';
+                    $errorInfo = '23502';   // 23502  not_null_violation
+                    $errorInfoColumn = 'firm_id';
                     $pdo->rollback();
-                    // $result = $kontrol;
                     return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
             } else {
@@ -349,7 +365,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         $languageIdValue = 647;
                     }
 
-             
+
 
 
                     $statement_act_insert = $pdo->prepare(" 
@@ -877,81 +893,57 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
-            if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
 
                 $this->makePassive(array('id' => $params['id']));
 
                 $addSql = " op_user_id, ";
-                $addSqlValue = " " . intval($opUserIdValue) . ",";
-                $addSql .= " owner_user_id, ";
-                $addSqlValue .= " owner_user_id,";
+                $addSqlValue = " " . intval($opUserIdValue) . ",";             
                 $addSql .= " active,  ";
                 $addSqlValue .= " 1,";
                 $addSql .= " deleted,  ";
-                $addSqlValue .= " 1,";
-                $addSql .= " consultant_id,  ";
-                $addSqlValue .= " consultant_id, ";
-                $addSql .= " consultant_confirm_type_id,  ";
-                $addSqlValue .= " consultant_confirm_type_id,  ";
-                $addSql .= " confirm_id,  ";
-                $addSqlValue .= " confirm_id,";
-
+                $addSqlValue .= " 1,";               
 
                 $addSql .= " operation_type_id,  ";
                 if ((isset($params['operation_type_id']) && $params['operation_type_id'] != "")) {
                     $addSqlValue .= " " . intval($params['operation_type_id']) . ",";
                 } ELSE {
-                    $addSqlValue .= " 3,";
-                }
-
-
-                $statement_act_insert = $pdo->prepare(" 
-                 INSERT INTO info_firm_machine_tool(
-                        profile_public, 
-                        " . $addSql . "
-                        country_id,                        
-                        firm_name, 
-                        web_address, 
-                        tax_office, 
-                        tax_no, 
-                        sgk_sicil_no, 
-                        ownership_status_id, 
-                        foundation_year, 
-                        language_code,                         
-                        firm_name_eng, 
-                        firm_name_short,
-                        act_parent_id, 
-                        auth_allow_id,
-                        language_id,
-                        description,
-                        description_eng,
-                        duns_number
+                    $addSqlValue .= " 31,";
+                } 
+                $sql = "                
+                  INSERT INTO info_firm_machine_tool(
+                        firm_id,                         
+                        sys_machine_tool_id,                   
+                        availability_id,
+                         " . $addSql . "
+                        act_parent_id,
+                        consultant_id,
+                        consultant_confirm_type_id,
+                        confirm_id,
+                        language_id,                     
+                        language_code,
+                        cons_allow_id,
+                        language_parent_id                                             
                         )
                         SELECT  
-                            profile_public, 
-                            " . $addSqlValue . "
-                            country_id,                             
-                            firm_name, 
-                            web_address, 
-                            tax_office, 
-                            tax_no, 
-                            sgk_sicil_no, 
-                            ownership_status_id, 
-                            foundation_year, 
-                            language_code,                             
-                            firm_name_eng, 
-                            firm_name_short,
-                            act_parent_id,  
-                            auth_allow_id,
-                            language_id,
-                            description, 
-                            description_eng, 
-                            duns_number                                              
+                            firm_id,                         
+                            sys_machine_tool_id,                          
+                            availability_id,
+                             " . $addSqlValue . "
+                            act_parent_id,
+                            consultant_id,
+                            consultant_confirm_type_id,
+                            confirm_id,
+                            language_id,                         
+                            language_code,
+                            cons_allow_id,
+                            language_parent_id                                                                        
                         FROM info_firm_machine_tool 
                         WHERE id =  " . intval($params['id']) . " 
-                        ");
-
+                        ";
+                $statement_act_insert = $pdo->prepare( $sql);
+               //  echo debugPDO($sql, $params);
                 $insert_act_insert = $statement_act_insert->execute();
                 $affectedRows = $statement_act_insert->rowCount();
                 $errorInfo = $statement_act_insert->errorInfo();
@@ -1048,7 +1040,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
-                $affectedRows = $statement->rowCount();       
+                $affectedRows = $statement->rowCount();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -1237,7 +1229,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $ownerUser = $userId ['resultSet'][0]['user_id'];
-                $addSql="";
+                $addSql = "";
 
                 $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (\Utill\Dal\Helper::haveRecord($languageId)) {
@@ -1245,20 +1237,21 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 } else {
                     $languageIdValue = 647;
                 }
-                
-                if (isset($params['id'])) {
-                    $addSql .= " AND a.sys_machine_tool_id = " . intval($params['id']) . " ";
+
+                if (isset($params['machine_id'])) {
+                    $addSql .= " AND a.sys_machine_tool_id = " . intval($params['machine_id']) . " ";
                 }
 
                 $sql = " 
                SELECT 
-                    a.id,  
+                    a.id ,  
                     cast(a.sys_machine_tool_id as text) AS machine_id,
 		    m.manufacturer_name ,  
 		    COALESCE(NULLIF(mtg.group_name, ''), mtg.group_name_eng) AS machine_tool_grup_names ,  
                     COALESCE(NULLIF(mt.machine_tool_name, ''), mt.machine_tool_name_eng) AS machine_tool_names,
                     mt.model, 
-                    cast(mt.model_year as text) AS model_year                                  
+                    cast(mt.model_year AS text) AS model_year ,
+                    ifu.firm_id
                 FROM info_firm_machine_tool a
 		INNER JOIN sys_language lx ON lx.id =" . intval($languageIdValue) . "  AND lx.deleted =0 AND lx.active =0                      
 		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  		
@@ -1269,12 +1262,13 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 INNER JOIN sys_manufacturer m ON (m.id = mt.manufactuer_id OR m.language_parent_id = mt.manufactuer_id) AND m.language_id = lx.id             
                 WHERE a.deleted =0 AND a.active =0                
                 AND a.language_parent_id =0 
-                ".$addSql."
-                                 ";
+                " . $addSql . "
+                ORDER BY machine_tool_grup_names, manufacturer_name,machine_tool_names                
+                ";
                 $statement = $pdo->prepare($sql);
-                // echo debugPDO($sql, $params);
+             //  echo debugPDO($sql, $params);
                 $statement->execute();
-                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);              
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
@@ -1289,7 +1283,6 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
         }
     }
 
-    
     /**
      * user interface fill operation   
      * @author Okan CIRAN
@@ -1305,7 +1298,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $ownerUser = $userId ['resultSet'][0]['user_id'];
-                $addSql="";
+                $addSql = "";
 
                 $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (\Utill\Dal\Helper::haveRecord($languageId)) {
@@ -1313,9 +1306,9 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 } else {
                     $languageIdValue = 647;
                 }
-                
-                if (isset($params['id'])) {
-                    $addSql .= " AND a.sys_machine_tool_id = " . intval($params['id']) . " ";
+
+                if (isset($params['machine_id'])) {
+                    $addSql .= " AND a.sys_machine_tool_id = " . intval($params['machine_id']) . " ";
                 }
 
                 $sql = " 
@@ -1331,12 +1324,12 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 INNER JOIN sys_manufacturer m ON (m.id = mt.manufactuer_id OR m.language_parent_id = mt.manufactuer_id) AND m.language_id = lx.id             
                 WHERE a.deleted =0 AND a.active =0                
                 AND a.language_parent_id =0 
-                ".$addSql."
+                " . $addSql . "
                                  ";
                 $statement = $pdo->prepare($sql);
                 // echo debugPDO($sql, $params);
                 $statement->execute();
-                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);              
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
@@ -1351,8 +1344,6 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
         }
     }
 
-    
-    
     /**
      * user interface fill operation   
      * @author Okan CIRAN
@@ -1368,7 +1359,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $ownerUser = $userId ['resultSet'][0]['user_id'];
-                $addSql="";
+                $addSql = "";
 
                 $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (\Utill\Dal\Helper::haveRecord($languageId)) {
@@ -1376,7 +1367,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 } else {
                     $languageIdValue = 647;
                 }
-                
+
                 if (isset($params['machine_id'])) {
                     $addSql .= " AND a.sys_machine_tool_id = " . intval($params['machine_id']) . " ";
                 }
@@ -1385,10 +1376,10 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                	SELECT 
                     mtp.id, 
                     cast(a.sys_machine_tool_id as text) as machine_id ,		   
-		     COALESCE(NULLIF(pd.property_name, ''), pd.property_name_eng) AS property_names,
-                     pd.property_name_eng,
-		     mtp.property_value, 
-		     u.id AS unit_id,
+                    COALESCE(NULLIF(pd.property_name, ''), pd.property_name_eng) AS property_names,
+                    pd.property_name_eng,
+                    mtp.property_value, 
+                    u.id AS unit_id,
                     COALESCE(NULLIF(u.unitcode, ''), u.unitcode_eng) AS unitcodes                  
                 FROM info_firm_machine_tool a
 		INNER JOIN sys_language lx ON lx.id =" . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                      
@@ -1401,12 +1392,58 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 LEFT JOIN sys_units u ON (u.id = mtp.unit_id OR u.language_parent_id = mtp.unit_id) AND u.language_id = lx.id
                 WHERE a.deleted =0 AND a.active =0  
                 AND a.language_parent_id =0 
-                ".$addSql."
+                " . $addSql . "
                                  ";
                 $statement = $pdo->prepare($sql);
-            //    echo debugPDO($sql, $params);
+          // echo debugPDO($sql, $params);
                 $statement->execute();
-                $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * user interface fill operation   
+     * @author Okan CIRAN
+     * @ userin firm id sini döndürür döndürür !!
+     * su an için sadece 1 firması varmış senaryosu için gecerli. 
+     * @version v 1.0  29.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getUserFirmId($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            if (isset($params['user_id'])) {
+                $ownerUser = $params['user_id'];
+                $addSql = " WHERE a.deleted =0 AND a.active =0 
+                AND a.language_parent_id =0 
+                limit 1 ";
+
+                $sql = " 
+                SELECT                    
+                   ifu.firm_id,
+                   1=1 control
+                FROM info_firm_machine_tool a		
+		INNER JOIN info_firm_users ifu ON ifu.user_id = " . intval($ownerUser) . " AND ifu.language_parent_id =0 
+                INNER JOIN info_firm_profile ifp ON ifp.active =0 AND ifp.deleted =0 AND ifp.language_parent_id =0                 
+                " . $addSql . "
+                                 ";
+                $statement = $pdo->prepare($sql);
+                // echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
