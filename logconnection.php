@@ -37,8 +37,7 @@ $app->add(new \Slim\Middleware\MiddlewareBLLManager());
 $app->add(new \Slim\Middleware\MiddlewareDalManager());
 $app->add(new \Slim\Middleware\MiddlewareServiceManager());
 $app->add(new \Slim\Middleware\MiddlewareMQManager());
-
-
+ 
 
 
 /**
@@ -51,7 +50,6 @@ $app->get("/pkFillGrid_logConnection/", function () use ($app ) {
 
     $headerParams = $app->request()->headers();
     $vPk = $headerParams['X-Public'];
-    $vPkTemp = $headerParams['X-Public-Temp'];
 
     $resDataGrid = $BLL->fillGrid(array('page' => $_GET['page'],
         'rows' => $_GET['rows'],
@@ -71,6 +69,7 @@ $app->get("/pkFillGrid_logConnection/", function () use ($app ) {
             "type_state" => $flow["type_state"],
             "user_id" => $flow["user_id"],
             "username" => $flow["username"],
+            "log_datetime" => $flow["log_datetime"],
             "attributes" => array("notroot" => true,  
                 ),
         );
@@ -85,7 +84,7 @@ $app->get("/pkFillGrid_logConnection/", function () use ($app ) {
 
 /**
  *  * Okan CIRAN
- * @since 25-01-2016
+ * @since 10-03-2016
  */
 $app->get("/pkInsert_logConnection/", function () use ($app ) {
     
@@ -100,12 +99,22 @@ $app->get("/pkInsert_logConnection/", function () use ($app ) {
         $stripper->offsetSet('type_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['type_id']));
-    }     
+    }  
+    $vLogDatetime = '2016-02-22 04:00:00';
+    if (isset($_GET['log_datetime'])) {
+        $stripper->offsetSet('log_datetime', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['log_datetime']));
+    }  
+    
+    
     $stripper->strip();
     if($stripper->offsetExists('type_id')) $vTypeId = $stripper->offsetGet('type_id')->getFilterValue();
+    if($stripper->offsetExists('log_datetime')) $vLogDatetime = $stripper->offsetGet('log_datetime')->getFilterValue();
     
     $resDataInsert = $BLL->insert(array(        
         'type_id' => $vTypeId,
+        'log_datetime' => $vLogDatetime,
         'pk' => $Pk));
 
     $app->response()->header("Content-Type", "application/json"); 
@@ -116,14 +125,12 @@ $app->get("/pkInsert_logConnection/", function () use ($app ) {
   
 /**
  *  * Okan CIRAN
- * @since 25-01-2016
+ * @since 10-03-2016
  */
 $app->get("/pkGetAll_logConnection/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('logConnectionBLL');
-
     $resDataGrid = $BLL->getAll();
-
     $resTotalRowCount = $BLL->fillGridRowTotalCount( );
 
     $flows = array();
@@ -136,6 +143,7 @@ $app->get("/pkGetAll_logConnection/", function () use ($app ) {
             "type_state" => $flow["type_state"],
             "user_id" => $flow["user_id"],
             "username" => $flow["username"],
+            "log_datetime" => $flow["log_datetime"],
             "attributes" => array("notroot" => true,  ),
         );
     }

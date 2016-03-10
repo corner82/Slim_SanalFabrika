@@ -54,7 +54,8 @@ class LogConnection extends \DAL\DalSlim {
                       WHEN 0 THEN 'Login'
                 ELSE 'Logout'  end as type_state,
 		b.oid as user_id ,
-		b.username
+		b.username,
+                a.log_datetime
             FROM connection_log  a            
             INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
                 Or CRYPT(b.sf_private_key_value_temp,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/'))     
@@ -86,15 +87,18 @@ class LogConnection extends \DAL\DalSlim {
                 $sql = "
                 INSERT INTO connection_log(
                        pk, 
-                       type_id )
+                       type_id,
+                       log_datetime)
                 VALUES (
                         :pk,
-                        :type_id
+                        :type_id,
+                        :log_datetime
                                              )   ";
                 $statement = $pdo->prepare($sql);
                 $statement->bindValue(':pk', $params['pk'], \PDO::PARAM_STR);
                 $statement->bindValue(':type_id', $params['type_id'], \PDO::PARAM_INT);                
-               // echo debugPDO($sql, $params);
+                $statement->bindValue(':log_datetime', $params['log_datetime'], \PDO::PARAM_STR);
+                echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('connection_log_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -175,7 +179,8 @@ class LogConnection extends \DAL\DalSlim {
                       WHEN 0 THEN 'Login'
                 ELSE 'Logout'  end as type_state,
 		b.oid as user_id ,
-		b.username
+		b.username,
+                a.log_datetime
             FROM connection_log  a            
             INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
                 Or CRYPT(b.sf_private_key_value_temp,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/'))               
