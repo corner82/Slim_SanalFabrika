@@ -114,7 +114,7 @@ class BlActivationReport extends \DAL\DalSlim {
                                                 ");
             $statement->bindValue(':op_user_id', $params['op_user_id'], \PDO::PARAM_INT);
             $statement->bindValue(':operation_type_id', $params['operation_type_id'], \PDO::PARAM_INT);            
-            //$statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
             $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
             $statement->bindValue(':service_name', $params['service_name'], \PDO::PARAM_STR);
             $statement->bindValue(':table_name', $params['table_name'], \PDO::PARAM_STR);
