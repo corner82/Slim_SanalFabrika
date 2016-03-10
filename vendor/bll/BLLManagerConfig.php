@@ -65,7 +65,13 @@ class BLLManagerConfig{
                  'infoFirmMachineToolBLL' => 'BLL\BLL\InfoFirmMachineTool',
                  'sysNaceCodesBLL' => 'BLL\BLL\SysNaceCodes',
                  'hstryLoginBLL' => 'BLL\BLL\HstryLogin',              
-                                  
+                 'blAdminActivationReportBLL' => 'BLL\BLL\BlAdminActivationReport',              
+                 
+                 
+                 
+                 
+                 'logConnectionBLL' => 'BLL\BLL\LogConnection',  
+                 
              ),
              'factories' => [
                  //'reportConfigurationPDO' => 'BLL\BLL\ReportConfiguration',

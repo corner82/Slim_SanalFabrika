@@ -70,8 +70,13 @@ class DalManagerConfig {
                 'infoFirmMachineToolPDO' => 'DAL\Factory\PDO\InfoFirmMachineToolFactory',
                 'sysNaceCodesPDO' => 'DAL\Factory\PDO\SysNaceCodesFactory',
                 'hstryLoginPDO' => 'DAL\Factory\PDO\HstryLoginFactory',
-                
+                'blAdminActivationReportPDO' => 'DAL\Factory\PDO\BlAdminActivationReportFactory',
                   
+                 
+                
+                
+                'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
+                
             ],
         ),
     );
