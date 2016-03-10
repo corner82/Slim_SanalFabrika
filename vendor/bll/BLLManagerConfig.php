@@ -71,6 +71,8 @@ class BLLManagerConfig{
                  
                  
                  'logConnectionBLL' => 'BLL\BLL\LogConnection',  
+                 'logUserBLL' => 'BLL\BLL\LogUser',  
+                 
                  
              ),
              'factories' => [
