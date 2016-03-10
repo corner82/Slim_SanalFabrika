@@ -216,7 +216,7 @@ class BlActivationReport extends \DAL\DalSlim {
                     COUNT(id) AS adet ,
                     'Firma Sayısı' AS aciklama
                 FROM info_firm_profile 
-                WHERE deleted =0 AND active =0                
+                WHERE deleted =0 AND active =0 AND language_parent_id =0               
                     ";  
             $statement = $pdo->prepare($sql);
             $statement->execute();       
@@ -252,12 +252,12 @@ class BlActivationReport extends \DAL\DalSlim {
                     COUNT(id) AS adet ,
                     'Firma Sayısı' AS aciklama
                 FROM info_firm_profile 
-                WHERE deleted =0 AND active =0 AND                 
+                WHERE deleted =0 AND active =0 AND language_parent_id =0 AND                
                      consultant_id = ".intval($opUserIdValue)."
                 
                     ";  
             $statement = $pdo->prepare($sql);
-              echo debugPDO($sql, $params);
+            //  echo debugPDO($sql, $params);
             $statement->execute();       
             $result = $statement->fetchAll(\PDO::FETCH_CLASS);        
             $errorInfo = $statement->errorInfo();
@@ -294,16 +294,16 @@ class BlActivationReport extends \DAL\DalSlim {
                 
             $sql = "  
                 
-SELECT ids,aciklama,adet FROM  (
+                    SELECT ids,aciklama,adet FROM  (
 				SELECT ids, aciklama, adet from (
 						SELECT      
 						    1 as ids, 
 						    cast('Toplam Firma Sayısı' as character varying(50))  AS aciklama,                      
 						     cast(COALESCE(count(a.id),0) as character varying(5))   AS adet                          
 						FROM info_firm_profile a
-						WHERE deleted =0 AND active =0  
+						WHERE deleted =0 AND active =0 AND language_parent_id =0 
 				) as dasda
-                   UNION 
+                    UNION 
 				SELECT   ids,  aciklama, adet from (
 						SELECT 
 						    2 as ids, 
@@ -311,10 +311,10 @@ SELECT ids,aciklama,adet FROM  (
 						      cast(COALESCE(count(a.id),0) as character varying(5))   AS adet                    
 						FROM info_firm_profile a
 						INNER JOIN sys_operation_types op ON op.parent_id = 2 AND a.operation_type_id = op.id AND op.active = 0 AND op.deleted =0
-						WHERE a.deleted =0 AND a.active =0 AND
+						WHERE a.deleted =0 AND a.active =0 AND a.language_parent_id =0 AND
 						      a.operation_type_id = 5
 				) as dasdb
-                     UNION 
+                    UNION 
 				SELECT  ids,   aciklama,    adet from (
 						SELECT  3 as ids,
 						 cast('Danışmanın Firma Sayısı' as character varying(50))  AS aciklama,                      
@@ -322,7 +322,7 @@ SELECT ids,aciklama,adet FROM  (
 						FROM info_firm_profile a                                    
 						INNER JOIN info_users u ON u.id = a.consultant_id      
 						INNER JOIN sys_acl_roles acl ON acl.id = u.role_id  
-						WHERE a.active = 0 AND a.deleted = 0 AND 
+						WHERE a.active = 0 AND a.deleted = 0 AND a.language_parent_id =0 AND
 						    a.consultant_id = ".intval($opUserIdValue)." 
 				) as dasc
                     UNION 
@@ -334,12 +334,12 @@ SELECT ids,aciklama,adet FROM  (
 						INNER JOIN info_users u ON u.id = a.consultant_id      
 						INNER JOIN sys_acl_roles acl ON acl.id = u.role_id  
 						INNER JOIN sys_operation_types op ON op.parent_id = 1 AND a.operation_type_id = op.id AND op.active = 0 AND op.deleted =0
-						WHERE 
+						WHERE a.language_parent_id =0 AND
 						    a.consultant_id =".intval($opUserIdValue)." 
 				 ) as dasdd
 				 
 		   ) AS ttemp
-               ORDER BY ids 
+                ORDER BY ids 
                     ";  
             
             
@@ -393,7 +393,7 @@ SELECT ids,aciklama,adet FROM  (
                     FROM  info_firm_profile a                 
                     INNER JOIN info_users u ON u.id = a.consultant_id   
                     INNER JOIN sys_operation_types op ON op.parent_id = 1 AND a.operation_type_id = op.id AND op.active = 0 AND op.deleted =0
-                    WHERE 
+                    WHERE a.language_parent_id =0 AND
                         a.consultant_id = ".intval($opUserIdValue)."                     
                     ) AS asdasd
                 ORDER BY sure DESC
