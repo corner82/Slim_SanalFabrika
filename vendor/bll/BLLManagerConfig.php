@@ -73,6 +73,9 @@ class BLLManagerConfig{
                  'logConnectionBLL' => 'BLL\BLL\LogConnection',  
                  'logUserBLL' => 'BLL\BLL\LogUser',
                  'logConsultantBLL' => 'BLL\BLL\LogConsultant',
+                 'logAdminBLL' => 'BLL\BLL\LogAdmin',
+                 
+               
                  
                  
                  

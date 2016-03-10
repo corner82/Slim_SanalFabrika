@@ -78,6 +78,8 @@ class DalManagerConfig {
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
                 'logUserPDO' => 'DAL\Factory\PDO\LogUserFactory',
                 'logConsultantPDO' => 'DAL\Factory\PDO\LogConsultantFactory',
+                'logConsultantPDO' => 'DAL\Factory\PDO\LogConsultantFactory',
+                'logAdminPDO' => 'DAL\Factory\PDO\LogAdminFactory',
                 
                 
             ],
