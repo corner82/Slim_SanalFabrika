@@ -351,7 +351,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 INNER JOIN info_users u ON u.id = a.user_id 
                 LEFT JOIN sys_acl_roles sar ON a.root > 0 AND sar.id = a.root AND sar.active =0 AND sar.deleted =0              
                 WHERE a.deleted =0  
-                " . $whereNameSQL . "
+          
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
