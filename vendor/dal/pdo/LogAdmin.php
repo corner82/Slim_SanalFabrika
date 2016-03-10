@@ -56,7 +56,7 @@ class LogAdmin extends \DAL\DalSlim {
 		b.username,
                 a.log_datetime
             FROM admin_log  a            
-            INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
+            INNER JOIN admin_log b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
                 Or CRYPT(b.sf_private_key_value_temp,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/'))  
             INNER JOIN sys_operation_types op ON op.id = a.op_type_id  
             ORDER BY a.s_date
@@ -193,7 +193,7 @@ class LogAdmin extends \DAL\DalSlim {
 		b.username,
                 a.log_datetime
             FROM admin_log  a            
-            INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
+            INNER JOIN admin_log b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
                 Or CRYPT(b.sf_private_key_value_temp,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/'))  
             INNER JOIN sys_operation_types op ON op.id = a.op_type_id              
             ORDER BY    " . $sort . " "
@@ -235,7 +235,7 @@ class LogAdmin extends \DAL\DalSlim {
                 SELECT 
                     COUNT(a.id) AS COUNT                        
                 FROM admin_log  a            
-                INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
+                INNER JOIN admin_log b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
                     Or CRYPT(b.sf_private_key_value_temp,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/'))  
                 INNER JOIN sys_operation_types op ON op.id = a.op_type_id              
                ";

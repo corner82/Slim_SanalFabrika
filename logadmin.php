@@ -47,7 +47,7 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
  */
 $app->get("/pkFillGrid_logAdmin/", function () use ($app ) {
 
-    $BLL = $app->getBLLManager()->get('logUserBLL');
+    $BLL = $app->getBLLManager()->get('logAdminBLL');
 
     $headerParams = $app->request()->headers();
     $vPk = $headerParams['X-Public'];
@@ -95,7 +95,7 @@ $app->get("/pkInsert_logAdmin/", function () use ($app ) {
     
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
-    $BLL = $app->getBLLManager()->get('logUserBLL');
+    $BLL = $app->getBLLManager()->get('logAdminBLL');
     $headerParams = $app->request()->headers();
     $Pk = $headerParams['X-Public'];
     
@@ -167,7 +167,7 @@ $app->get("/pkInsert_logAdmin/", function () use ($app ) {
  */
 $app->get("/pkGetAll_logAdmin/", function () use ($app ) {
 
-    $BLL = $app->getBLLManager()->get('logUserBLL');
+    $BLL = $app->getBLLManager()->get('logAdminBLL');
     $resDataGrid = $BLL->getAll();
     $resTotalRowCount = $BLL->fillGridRowTotalCount( );
 
