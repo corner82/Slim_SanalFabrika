@@ -22,6 +22,10 @@ class ResultSetHelperFactory extends \Utill\Factories\AbstractFactory {
     public function __construct() {
         
     }
-    
-    
+
+    protected function getUtility($identifier = null,
+            $params = null) {
+        
+    }
+
 }
