@@ -22,10 +22,7 @@ class FilterChainerFactory extends \Utill\Factories\AbstractFactory {
     public function __construct() {
         
     }
-    
-    protected function getUtill($identifier = null){
-        
-    }
+
     
     public function get($helperName, $app, $value) {
         if(method_exists($this,$helperName)) {
@@ -128,8 +125,10 @@ class FilterChainerFactory extends \Utill\Factories\AbstractFactory {
                     \Services\Filter\FilterServiceNames::FILTER_ONLY_FALSE_ALLOWED,                                                                                             
         ));
     }
-    
-    
-    
-    
+
+    protected function getUtility($identifier = null,
+            $params = null) {
+        
+    }
+
 }
