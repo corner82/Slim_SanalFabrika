@@ -83,11 +83,17 @@ class LogConnection extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function insert($params = array()) {        
+    public function insert($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectLogFactory');
-            $pdo->beginTransaction();            
-                $sql = "
+            $pdo->beginTransaction();
+            $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($userId)) {
+                $userIdValue = $userId ['resultSet'][0]['user_id'];
+                $addSql = " op_user_id,";
+                $addSqlValue = " ".  intval($userIdValue).", ";
+            }
+            $sql = "
                 INSERT INTO connection_log(
                        pk, 
                        type_id,
@@ -96,7 +102,9 @@ class LogConnection extends \DAL\DalSlim {
                        path, 
                        ip, 
                        params,
+                       ".$addSql." 
                        method
+                       
                        )
                 VALUES (
                         :pk,
@@ -106,32 +114,33 @@ class LogConnection extends \DAL\DalSlim {
                         :path, 
                         :ip, 
                         :params,
-                        :method
+                        ".$addSqlValue." 
+                        :method                       
                                              )   ";
-                $statement = $pdo->prepare($sql);
-                $statement->bindValue(':pk', $params['pk'], \PDO::PARAM_STR);
-                $statement->bindValue(':type_id', $params['type_id'], \PDO::PARAM_INT);                
-                $statement->bindValue(':log_datetime', $params['log_datetime'], \PDO::PARAM_STR);
-                $statement->bindValue(':url', $params['url'], \PDO::PARAM_STR);
-                $statement->bindValue(':path', $params['path'], \PDO::PARAM_STR);
-                $statement->bindValue(':ip', $params['ip'], \PDO::PARAM_STR);
-                $statement->bindValue(':params', $params['params'], \PDO::PARAM_STR);
-                $statement->bindValue(':method', $params['method'], \PDO::PARAM_STR);
-                      
-              //  echo debugPDO($sql, $params);
-                $result = $statement->execute();
-                $insertID = $pdo->lastInsertId('connection_log_id_seq');
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
-                $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);            
+            $statement = $pdo->prepare($sql);
+            $statement->bindValue(':pk', $params['pk'], \PDO::PARAM_STR);
+            $statement->bindValue(':type_id', $params['type_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':log_datetime', $params['log_datetime'], \PDO::PARAM_STR);
+            $statement->bindValue(':url', $params['url'], \PDO::PARAM_STR);
+            $statement->bindValue(':path', $params['path'], \PDO::PARAM_STR);
+            $statement->bindValue(':ip', $params['ip'], \PDO::PARAM_STR);
+            $statement->bindValue(':params', $params['params'], \PDO::PARAM_STR);
+            $statement->bindValue(':method', $params['method'], \PDO::PARAM_STR);
+
+            echo debugPDO($sql, $params);
+            $result = $statement->execute();
+            $insertID = $pdo->lastInsertId('connection_log_id_seq');
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            $pdo->commit();
+            return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
- 
+
     /**
      * @author Okan CIRAN
      * connection_log tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
