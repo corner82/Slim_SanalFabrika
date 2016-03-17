@@ -56,7 +56,8 @@ class LogConnection extends \DAL\DalSlim {
                 a.url, 
                 a.path, 
                 a.ip, 
-                a.params
+                a.params,
+                a.method
             FROM connection_log a 
             INNER JOIN sys_operation_types so ON so.id = a.type_id
             INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
@@ -94,7 +95,8 @@ class LogConnection extends \DAL\DalSlim {
                        url, 
                        path, 
                        ip, 
-                       params
+                       params,
+                       method
                        )
                 VALUES (
                         :pk,
@@ -103,7 +105,8 @@ class LogConnection extends \DAL\DalSlim {
                         :url, 
                         :path, 
                         :ip, 
-                        :params
+                        :params,
+                        :method
                                              )   ";
                 $statement = $pdo->prepare($sql);
                 $statement->bindValue(':pk', $params['pk'], \PDO::PARAM_STR);
@@ -113,6 +116,7 @@ class LogConnection extends \DAL\DalSlim {
                 $statement->bindValue(':path', $params['path'], \PDO::PARAM_STR);
                 $statement->bindValue(':ip', $params['ip'], \PDO::PARAM_STR);
                 $statement->bindValue(':params', $params['params'], \PDO::PARAM_STR);
+                $statement->bindValue(':method', $params['method'], \PDO::PARAM_STR);
                       
               //  echo debugPDO($sql, $params);
                 $result = $statement->execute();
@@ -197,7 +201,8 @@ class LogConnection extends \DAL\DalSlim {
                 a.url, 
                 a.path, 
                 a.ip, 
-                a.params
+                a.params,
+                a.method
             FROM connection_log a 
             INNER JOIN sys_operation_types so ON so.id = a.type_id
             INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
@@ -257,7 +262,7 @@ class LogConnection extends \DAL\DalSlim {
             //$debugSQLParams = $statement->debugDumpParams();
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
-    }
+    } 
 
  
 }
