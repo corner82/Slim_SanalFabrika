@@ -44,19 +44,21 @@ class LogConnection extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectLogFactory');
             $statement = $pdo->prepare("
-            SELECT 
+           SELECT 
 		a.id, 
 		a.s_date, 
 		a.pk, 
 		a.type_id,
-		CASE 
-                   a.type_id
-                      WHEN 0 THEN 'Login'
-                ELSE 'Logout'  end as type_state,
-		b.oid as user_id ,
+		so.operation_name  ,
+		b.oid AS user_id ,
 		b.username,
-                a.log_datetime
-            FROM connection_log  a            
+                a.log_datetime,
+                a.url, 
+                a.path, 
+                a.ip, 
+                a.params
+            FROM connection_log a 
+            INNER JOIN sys_operation_types so ON so.id = a.type_id
             INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
                 Or CRYPT(b.sf_private_key_value_temp,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/'))     
             ORDER BY a.s_date
@@ -88,16 +90,30 @@ class LogConnection extends \DAL\DalSlim {
                 INSERT INTO connection_log(
                        pk, 
                        type_id,
-                       log_datetime)
+                       log_datetime,
+                       url, 
+                       path, 
+                       ip, 
+                       params
+                       )
                 VALUES (
                         :pk,
                         :type_id,
-                        :log_datetime
+                        :log_datetime,
+                        :url, 
+                        :path, 
+                        :ip, 
+                        :params
                                              )   ";
                 $statement = $pdo->prepare($sql);
                 $statement->bindValue(':pk', $params['pk'], \PDO::PARAM_STR);
                 $statement->bindValue(':type_id', $params['type_id'], \PDO::PARAM_INT);                
                 $statement->bindValue(':log_datetime', $params['log_datetime'], \PDO::PARAM_STR);
+                $statement->bindValue(':url', $params['url'], \PDO::PARAM_STR);
+                $statement->bindValue(':path', $params['path'], \PDO::PARAM_STR);
+                $statement->bindValue(':ip', $params['ip'], \PDO::PARAM_STR);
+                $statement->bindValue(':params', $params['params'], \PDO::PARAM_STR);
+                      
               //  echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('connection_log_id_seq');
@@ -169,21 +185,23 @@ class LogConnection extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectLogFactory');
             $sql = "
-            SELECT 
+             SELECT 
 		a.id, 
 		a.s_date, 
 		a.pk, 
 		a.type_id,
-		CASE 
-                   a.type_id
-                      WHEN 0 THEN 'Login'
-                ELSE 'Logout'  end as type_state,
+		so.operation_name  ,
 		b.oid as user_id ,
 		b.username,
-                a.log_datetime
-            FROM connection_log  a            
+                a.log_datetime,
+                a.url, 
+                a.path, 
+                a.ip, 
+                a.params
+            FROM connection_log a 
+            INNER JOIN sys_operation_types so ON so.id = a.type_id
             INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
-                Or CRYPT(b.sf_private_key_value_temp,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/'))               
+                OR CRYPT(b.sf_private_key_value_temp,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/'))     
             ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -221,11 +239,12 @@ class LogConnection extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectLogFactory');
             $sql = "
                 SELECT 
-                    COUNT(a.id) AS COUNT                        
-                FROM connection_log  a            
+                    COUNT(a.id) AS COUNT 
+                FROM connection_log a 
+                INNER JOIN sys_operation_types so ON so.id = a.type_id
                 INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
-                    Or CRYPT(b.sf_private_key_value_temp,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/'))                          
-                    ";
+                    Or CRYPT(b.sf_private_key_value_temp,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/'))     
+                ORDER BY a.s_date   ";
             $statement = $pdo->prepare($sql);
            // echo debugPDO($sql, $params);
             $statement->execute();

@@ -66,15 +66,20 @@ $app->get("/pkFillGrid_logConnection/", function () use ($app ) {
             "s_date" => $flow["s_date"],
             "pk" => $flow["pk"],
             "type_id" => $flow["type_id"],
-            "type_state" => $flow["type_state"],
+            "operation_name" => $flow["operation_name"],
             "user_id" => $flow["user_id"],
             "username" => $flow["username"],
             "log_datetime" => $flow["log_datetime"],
+            "url" => $flow["url"],
+            "path" => $flow["path"],
+            "ip" => $flow["ip"],
+            "params" => $flow["params"],
             "attributes" => array("notroot" => true,  
                 ),
         );
-    }
-
+    } 
+             
+    
     $app->response()->header("Content-Type", "application/json");
     $resultArray = array();
     $resultArray['total'] = $resTotalRowCount[0]['count'];
@@ -105,16 +110,52 @@ $app->get("/pkInsert_logConnection/", function () use ($app ) {
         $stripper->offsetSet('log_datetime', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
                                                 $_GET['log_datetime']));
-    }  
+    } 
+    $vUrl = NULL;
+     if (isset($_GET['url'])) {
+        $stripper->offsetSet('url', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
+                                                $app,
+                                                $_GET['url']));
+    } 
+    
+    $vPath = NULL;
+     if (isset($_GET['path'])) {
+        $stripper->offsetSet('path', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
+                                                $app,
+                                                $_GET['path']));
+    } 
+    
+    $vIp = NULL;
+    if (isset($_GET['ip'])) {
+        $stripper->offsetSet('ip', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
+                                                $app,
+                                                $_GET['ip']));
+    } 
+      $vParams = NULL;
+    if (isset($_GET['params'])) {
+        $stripper->offsetSet('params', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
+                                                $app,
+                                                $_GET['params']));
+    } 
+    
     
     
     $stripper->strip();
     if($stripper->offsetExists('type_id')) $vTypeId = $stripper->offsetGet('type_id')->getFilterValue();
     if($stripper->offsetExists('log_datetime')) $vLogDatetime = $stripper->offsetGet('log_datetime')->getFilterValue();
+    if($stripper->offsetExists('url')) $vUrl = $stripper->offsetGet('url')->getFilterValue();
+    if($stripper->offsetExists('path')) $vPath = $stripper->offsetGet('path')->getFilterValue();
+    if($stripper->offsetExists('ip')) $vIp = $stripper->offsetGet('ip')->getFilterValue();
+    if($stripper->offsetExists('params')) $vParams = $stripper->offsetGet('params')->getFilterValue();
+    
     
     $resDataInsert = $BLL->insert(array(        
         'type_id' => $vTypeId,
         'log_datetime' => $vLogDatetime,
+        'url' => $vUrl,
+        'path' => $vPath,
+        'ip' => $vIp,
+        'params' => $vParams,
         'pk' => $Pk));
 
     $app->response()->header("Content-Type", "application/json"); 
@@ -140,10 +181,14 @@ $app->get("/pkGetAll_logConnection/", function () use ($app ) {
             "s_date" => $flow["s_date"],
             "pk" => $flow["pk"],
             "type_id" => $flow["type_id"],
-            "type_state" => $flow["type_state"],
+            "operation_name" => $flow["operation_name"],
             "user_id" => $flow["user_id"],
             "username" => $flow["username"],
             "log_datetime" => $flow["log_datetime"],
+            "url" => $flow["url"],
+            "path" => $flow["path"],
+            "ip" => $flow["ip"],
+            "params" => $flow["params"],
             "attributes" => array("notroot" => true,  ),
         );
     }
