@@ -71,7 +71,7 @@ class DalManagerConfig {
                 'sysNaceCodesPDO' => 'DAL\Factory\PDO\SysNaceCodesFactory',
                 'hstryLoginPDO' => 'DAL\Factory\PDO\HstryLoginFactory',
                 'blAdminActivationReportPDO' => 'DAL\Factory\PDO\BlAdminActivationReportFactory',
-                  
+                'sysUnspscCodesPDO' => 'DAL\Factory\PDO\SysUnspscCodesFactory',                  
                  
                 
                 
