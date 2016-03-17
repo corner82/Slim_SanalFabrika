@@ -74,6 +74,7 @@ $app->get("/pkFillGrid_logConnection/", function () use ($app ) {
             "path" => $flow["path"],
             "ip" => $flow["ip"],
             "params" => $flow["params"],
+            "method" =>  $flow["method"],
             "attributes" => array("notroot" => true,  
                 ),
         );
@@ -131,11 +132,18 @@ $app->get("/pkInsert_logConnection/", function () use ($app ) {
                                                 $app,
                                                 $_GET['ip']));
     } 
-      $vParams = NULL;
+    $vParams = NULL;
     if (isset($_GET['params'])) {
         $stripper->offsetSet('params', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
                                                 $app,
                                                 $_GET['params']));
+    } 
+    
+    $vMethod = NULL;
+    if (isset($_GET['method'])) {
+        $stripper->offsetSet('method', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
+                                                $app,
+                                                $_GET['method']));
     } 
     
     
@@ -147,6 +155,7 @@ $app->get("/pkInsert_logConnection/", function () use ($app ) {
     if($stripper->offsetExists('path')) $vPath = $stripper->offsetGet('path')->getFilterValue();
     if($stripper->offsetExists('ip')) $vIp = $stripper->offsetGet('ip')->getFilterValue();
     if($stripper->offsetExists('params')) $vParams = $stripper->offsetGet('params')->getFilterValue();
+    if($stripper->offsetExists('method')) $vMethod = $stripper->offsetGet('method')->getFilterValue();
     
     
     $resDataInsert = $BLL->insert(array(        
@@ -156,6 +165,7 @@ $app->get("/pkInsert_logConnection/", function () use ($app ) {
         'path' => $vPath,
         'ip' => $vIp,
         'params' => $vParams,
+        'method' =>$vMethod,
         'pk' => $Pk));
 
     $app->response()->header("Content-Type", "application/json"); 
@@ -189,6 +199,7 @@ $app->get("/pkGetAll_logConnection/", function () use ($app ) {
             "path" => $flow["path"],
             "ip" => $flow["ip"],
             "params" => $flow["params"],
+            "method" => $flow["method"],            
             "attributes" => array("notroot" => true,  ),
         );
     }
