@@ -87,12 +87,17 @@ class LogConnection extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectLogFactory');
             $pdo->beginTransaction();
-            $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $userIdValue = $userId ['resultSet'][0]['user_id'];
-                $addSql = " op_user_id,";
-                $addSqlValue = " ".  intval($userIdValue).", ";
-            }
+            
+            $pk = NULL;
+            $userIdValue = NULL;
+            if ((isset($params['pk']) && $params['pk'] != "")) {
+                $pk = intval($params['pk']) ;
+                $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
+                if (\Utill\Dal\Helper::haveRecord($userId)) {
+                    $userIdValue = $userId ['resultSet'][0]['user_id'];                    
+                }
+            }              
+            
             $sql = "
                 INSERT INTO connection_log(
                        pk, 
@@ -102,9 +107,8 @@ class LogConnection extends \DAL\DalSlim {
                        path, 
                        ip, 
                        params,
-                       ".$addSql." 
-                       method
-                       
+                       op_user_id,
+                       method                       
                        )
                 VALUES (
                         :pk,
@@ -114,17 +118,18 @@ class LogConnection extends \DAL\DalSlim {
                         :path, 
                         :ip, 
                         :params,
-                        ".$addSqlValue." 
+                        :op_user_id, 
                         :method                       
                                              )   ";
             $statement = $pdo->prepare($sql);
-            $statement->bindValue(':pk', $params['pk'], \PDO::PARAM_STR);
+            $statement->bindValue(':pk', $pk, \PDO::PARAM_STR);
             $statement->bindValue(':type_id', $params['type_id'], \PDO::PARAM_INT);
             $statement->bindValue(':log_datetime', $params['log_datetime'], \PDO::PARAM_STR);
             $statement->bindValue(':url', $params['url'], \PDO::PARAM_STR);
             $statement->bindValue(':path', $params['path'], \PDO::PARAM_STR);
             $statement->bindValue(':ip', $params['ip'], \PDO::PARAM_STR);
             $statement->bindValue(':params', $params['params'], \PDO::PARAM_STR);
+            $statement->bindValue(':op_user_id', $userIdValue, \PDO::PARAM_INT);            
             $statement->bindValue(':method', $params['method'], \PDO::PARAM_STR);
 
             echo debugPDO($sql, $params);
