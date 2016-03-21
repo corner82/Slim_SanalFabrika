@@ -144,20 +144,20 @@ use PhpAmqpLib\Message\AMQPMessage;
         print_r($this->requestHeaderData['X-Insertoperationlogged']);
         print_r($this->requestHeaderData['X-Deleteoperationlogged']);*/
         
-        $MQMAnager = $this->app->getMQManager();
+        $MQManager = $this->app->getMQManager();
         $serviceManager = $this->app->getServiceManager();
         if($this->requestHeaderData['X-Updateoperationlogged'] == 'true') {
-          print_r('--testt--');
+          print_r('--testt1--');
           $this->controlUrlParam('update');
         }
         
-        if($this->requestHeaderData['X-Inserteoperationlogged'] == 'true') {
-          print_r('--testt--');
+        if($this->requestHeaderData['X-Insertoperationlogged'] == 'true') {
+          print_r('--testt2--');
           $this->controlUrlParam('insert');
         }
         
-        if($this->requestHeaderData['X-Deleteeoperationlogged'] == 'true') {
-          print_r('--testt--');
+        if($this->requestHeaderData['X-Deleteoperationlogged'] == 'true') {
+          print_r('--testt3--');
           $this->controlUrlParam('delete');
         }
 
@@ -169,7 +169,8 @@ use PhpAmqpLib\Message\AMQPMessage;
         if(isset($requestParams['url'])) {
             $found = stripos($requestParams['url'], $wordTosearch);
             if($found !== false) {
-                
+                $MQManager = $this->app->getMQManager();
+                $MQManager->get('serviceRestEntryLog');
             } else {
                 return false;
             }

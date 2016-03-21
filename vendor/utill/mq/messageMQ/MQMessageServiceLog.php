@@ -15,7 +15,7 @@ class MQMessageServiceLog extends \Utill\MQ\MessageMQ\MQMessage {
     const SERVICE_INSERT_OPERATION                 = 45;
     const SERVICE_DELETE_OPERATION                 = 46;
     const SERVICE_UPDATE_OPERATION                 = 47;
-    const SERVICE_INSERT_OPERATION                 = 48;
+    
 
 
     public function __construct() {
