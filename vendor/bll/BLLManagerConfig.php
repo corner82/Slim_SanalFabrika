@@ -66,7 +66,8 @@ class BLLManagerConfig{
                  'sysNaceCodesBLL' => 'BLL\BLL\SysNaceCodes',
                  'hstryLoginBLL' => 'BLL\BLL\HstryLogin',              
                  'blAdminActivationReportBLL' => 'BLL\BLL\BlAdminActivationReport',  
-                 'sysUnspscCodesBLL' => 'BLL\BLL\SysUnspscCodes',                   
+                 'sysUnspscCodesBLL' => 'BLL\BLL\SysUnspscCodes',
+                 'infoFirmKeysBLL' => 'BLL\BLL\InfoFirmKeys',
                  
                  
                  
