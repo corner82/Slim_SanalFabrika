@@ -7,7 +7,7 @@
  * @license   
  */
 
-namespace Utill\MQ;
+namespace Utill\MQ\Manager;
 
 /**
  * class called for MQ manager config 
@@ -36,14 +36,16 @@ class MQManagerConfig{
                  //'test' => 'Utill\BLL\Test\Test'
              ),
              'factories' => [
-                 'MQHashmac' => 'Utill\MQ\hashMacMQ',
                  /**
                   * @author Mustafa Zeynel Dağlı
                   * @todo first test to publish exceptions by manager has failed
                   * if further test do not work please erase 'MQException' below and related class
                   */
-                 'MQException' => 'Utill\MQ\FactoryServiceExceptionsMQ',
-                 'MQRestCallLog' => 'Utill\MQ\FactoryServiceRestCallLogMQ',
+                 'serviceExceptions' => 'Utill\MQ\Factory\FactoryServiceExceptions',
+                 'serviceRestCallLog' => 'Utill\MQ\Factory\FactoryServiceRestEntryLog',
+                 'serviceLogoutLog' => 'Utill\MQ\Factory\FactoryServiceLogoutLog',
+                 'servicePageLog' => 'Utill\MQ\Factory\FactoryServicePageLog',
+                 'serviceLoginLog' => 'Utill\MQ\Factory\FactoryServiceLoginLog',
              ],  
              
          ),

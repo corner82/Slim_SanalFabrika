@@ -7,7 +7,7 @@
  * @license   
  */
 
-namespace Utill\MQ;
+namespace Utill\MQ\Manager;
 
 /**
  * DAL manager extended from Zend\ServiceManager\ServiceManager

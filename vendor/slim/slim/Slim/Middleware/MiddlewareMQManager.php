@@ -42,9 +42,9 @@ namespace Slim\Middleware;
     public function call()
     {
         //print_r('--middlewareMQManager call()--');
-        $MQManagerConfigObject = new \Utill\MQ\MQManagerConfig;
+        $MQManagerConfigObject = new \Utill\MQ\Manager\MQManagerConfig;
         $managerConfig = new \Zend\ServiceManager\Config($MQManagerConfigObject->getConfig());
-        $MQManager = new \Utill\MQ\MQManager($managerConfig);
+        $MQManager = new \Utill\MQ\Manager\MQManager($managerConfig);
         $MQManager->setService('slimApp', $this->app);
         $this->app->setMQManager($MQManager);
         //$test = $BLLManager->get('reportConfigurationBLL');

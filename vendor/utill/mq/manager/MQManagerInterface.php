@@ -7,7 +7,7 @@
  * @license   
  */
 
-namespace Utill\MQ;
+namespace Utill\MQ\Manager;
 
 /**
  * interface to set MQ Manager

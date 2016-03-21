@@ -23,7 +23,6 @@ class FilterChainerFactory extends \Utill\Factories\AbstractFactory {
         
     }
 
-    
     public function get($helperName, $app, $value) {
         if(method_exists($this,$helperName)) {
           return  $this->$helperName($app, $value);

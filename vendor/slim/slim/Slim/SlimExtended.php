@@ -9,7 +9,7 @@ use Slim\Slim;
 class SlimExtended extends Slim implements  \Utill\MQ\ImessagePublisher,
                                             \DAL\DalManagerInterface,
                                             \BLL\BLLManagerInterface,
-                                            \Utill\MQ\MQManagerInterface{
+                                            \Utill\MQ\Manager\MQManagerInterface{
     
     /**
      * exceptions and rabbitMQ configuration parameters
@@ -262,11 +262,11 @@ class SlimExtended extends Slim implements  \Utill\MQ\ImessagePublisher,
          * MQMAnager middle ware katmanından önce inject
          * ediliyor/ test amaçlı değiştirilecek
          */
-        $MQManagerConfigObject = new \Utill\MQ\MQManagerConfig;
+        /*$MQManagerConfigObject = new \Utill\MQ\Manager\MQManagerConfig;
         $managerConfig = new \Zend\ServiceManager\Config($MQManagerConfigObject->getConfig());
-        $MQManager = new \Utill\MQ\MQManager($managerConfig);
+        $MQManager = new \Utill\MQ\Manager\MQManager($managerConfig);
         $MQManager->setService('slimApp', $this);
-        $this->setMQManager($MQManager);
+        $this->setMQManager($MQManager);*/
         
         
         set_error_handler(array('\Slim\Slim', 'handleErrors'));
@@ -302,7 +302,7 @@ class SlimExtended extends Slim implements  \Utill\MQ\ImessagePublisher,
          * @author Mustafa Zeynel Dağlı
          */
         //if($this->container['settings']['restEntry.rabbitMQ'] == true) $this->publishMessage();
-        if($this->container['settings']['restEntry.rabbitMQ'] == true) $this->getMQManager()->get('MQRestCallLog');
+        //if($this->container['settings']['restEntry.rabbitMQ'] == true) $this->getMQManager()->get('MQRestCallLog');
 
         //Fetch status, header, and body
         list($status, $headers, $body) = $this->response->finalize();

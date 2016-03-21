@@ -2,11 +2,11 @@
 /**
  * OSTİM TEKNOLOJİ Framework 
  *
- * @link      https://github.com/corner82/slim_test for the canonical source repository
+ * @link      https://github.com/corner82/sanalfabrika for the canonical source repository
  * @copyright Copyright (c) 2015 OSTİM TEKNOLOJİ (http://www.ostim.com.tr)
  * @license   
  */
-namespace Utill\MQ;
+namespace Utill\MQ\Factory;
 
 
 /**
@@ -17,7 +17,7 @@ namespace Utill\MQ;
  * if further test do not work please erase 'FactoryServiceExceptionsMQ' function below 
  * and related entery in MQMAnager config class
  */
-class FactoryServiceExceptionsMQ implements \Zend\ServiceManager\FactoryInterface {
+class FactoryServiceExceptions implements \Zend\ServiceManager\FactoryInterface {
     
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
         $exceptionMQ = new \Utill\MQ\exceptionMQ();

@@ -31,6 +31,7 @@ $res->header('Access-Control-Allow-Origin', '*');
 $res->header("Access-Control-Allow-Methods: PUT, GET, POST, DELETE, OPTIONS");
 
 //$app->add(new \Slim\Middleware\MiddlewareTest());
+$app->add(new \Slim\Middleware\MiddlewareInsertUpdateDeleteLog());
 $app->add(new \Slim\Middleware\MiddlewareHMAC());
 $app->add(new \Slim\Middleware\MiddlewareSecurity());
 $app->add(new \Slim\Middleware\MiddlewareBLLManager());

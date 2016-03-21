@@ -1,12 +1,24 @@
 <?php
 /**
+ * OSTİM TEKNOLOJİ Framework 
+ *
+ * @link      https://github.com/corner82/sanalfabrika for the canonical source repository
+ * @copyright Copyright (c) 2016 OSTİM TEKNOLOJİ (http://www.ostim.com.tr)
+ * @license   
+ */
+
+namespace Utill\MQ;
+
+/**
  * RabbitMQ message queue wrapper abstract class
  * @author Mustafa Zeynel Dağlı
  */
-namespace Utill\MQ;
-
 abstract class abstractMQ  {
     
+  const QUEUE_NAME = 'userLogin2_queue'; 
+  const PAGE_ENTRY_LOG_QUEUE_NAME = 'userPageEntryLog2_queue'; 
+  const SERVICE_ENTRY_LOG_QUEUE_NAME = 'serviceEntryLog2_queue'; 
+  
  /**
  * rabbitMQ connection
   * @var PhpAmqpLib\Connection
@@ -31,15 +43,15 @@ protected $port = 5672;
  * rabbitMQ user
  * @var string
  */
-//protected $user = 'guest';
-protected $user = 'test';
+protected $user = 'guest';
+//protected $user = 'test';
 
 /**
  * rabbitMQ connection password
  * @var string
  */
-//protected $password = 'guest';
-protected $password = 'test';
+protected $password = 'guest';
+//protected $password = 'test';
 
 /**
  * rabbitMQ queue name
@@ -70,6 +82,39 @@ protected $channelProperties = array(
         'exclusive' => false,
         'auto_delete' => false
 );
+
+/**
+* rabbitMQ basic publish wrapper function
+* @return null
+*/
+public function basicPublish() {
+   if($this->message == null) return null;
+   $this->setConnection();
+
+   try {
+      $this->channel = $this->connection->channel();
+
+       $this->channel->queue_declare(
+       $this->channelProperties['queue.name'],    #queue - Queue names may be up to 255 bytes of UTF-8 characters
+       $this->channelProperties['passive'],       #passive - can use this to check whether an exchange exists without modifying the server state
+       $this->channelProperties['durable'],       #durable, make sure that RabbitMQ will never lose our queue if a crash occurs - the queue will survive a broker restart
+       $this->channelProperties['exclusive'],     #exclusive - used by only one connection and the queue will be deleted when that connection closes
+       //$this->channelProperties['auto_delete']    #auto delete - queue is deleted when last consumer unsubscribes
+       false
+       );
+
+       $this->channel->basic_publish(
+           $this->message,     #message 
+           '',                 #exchange
+           $this->channelProperties['queue.name']     #routing key (queue)
+           );
+       $this->channel->close();
+       $this->connection->close(); 
+   } catch (Exception $ex) {
+
+   }
+
+}
 
 /**
  * set rabbitMQ channel properties
@@ -211,11 +256,7 @@ public function getChannel() {
     return $this->channel;
 }
 
-/**
- * rabbitMQ basic message publish method
- * will be overriden in extended classes
- */
-abstract public function basicPublish();
+
 
 /**
  * rabbitMQ connection close
