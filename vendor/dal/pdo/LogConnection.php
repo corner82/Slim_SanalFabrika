@@ -91,13 +91,13 @@ class LogConnection extends \DAL\DalSlim {
             $pk = NULL;
             $userIdValue = NULL;
             if ((isset($params['pk']) && $params['pk'] != "")) {
-                $pk = intval($params['pk']) ;
+                $pk = $params['pk'] ;
                 $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
                 if (\Utill\Dal\Helper::haveRecord($userId)) {
                     $userIdValue = $userId ['resultSet'][0]['user_id'];                    
                 }
             }              
-            
+            print_r("===>>>".$userIdValue);
             $sql = "
                 INSERT INTO connection_log(
                        pk, 
@@ -106,8 +106,8 @@ class LogConnection extends \DAL\DalSlim {
                        url, 
                        path, 
                        ip, 
-                       params,
                        op_user_id,
+                       params,                       
                        method                       
                        )
                 VALUES (
@@ -117,8 +117,8 @@ class LogConnection extends \DAL\DalSlim {
                         :url, 
                         :path, 
                         :ip, 
-                        :params,
                         :op_user_id, 
+                        :params,                        
                         :method                       
                                              )   ";
             $statement = $pdo->prepare($sql);
