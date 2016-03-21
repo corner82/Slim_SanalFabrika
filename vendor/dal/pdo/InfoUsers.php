@@ -925,6 +925,7 @@ class InfoUsers extends \DAL\DalSlim {
 
         $sortArr = array();
         $orderArr = array();
+        $whereSql = "" ;
         if (isset($args['sort']) && $args['sort'] != "") {
             $sort = trim($args['sort']);
             $sortArr = explode(",", $sort);
@@ -944,12 +945,14 @@ class InfoUsers extends \DAL\DalSlim {
             $order = "ASC";
         }
         
-        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-        if (\Utill\Dal\Helper::haveRecord($languageId)) {
-            $languageIdValue = $languageId ['resultSet'][0]['id'];
-        }else {
-            $languageIdValue = 647;
-         }
+        $languageId = NULL;
+        $languageIdValue = 647;
+        if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+            }
+        }  
         $whereSql .= " AND a.language_id= ".intval($languageIdValue) ;
 
 
