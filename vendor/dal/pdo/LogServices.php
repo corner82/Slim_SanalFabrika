@@ -16,11 +16,11 @@ namespace DAL\PDO;
  * @
  * @author Okan CIRAN
  */
-class LogUser extends \DAL\DalSlim {
+class LogServices extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
-     * @ user_log tablosundan parametre olarak  gelen id kaydını siler. !!
+     * @ services_log tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  10.03.2016
      * @param array $params
      * @return array
@@ -34,7 +34,7 @@ class LogUser extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
-     * @ user_log tablosundaki tüm kayıtları getirir.  !!
+     * @ services_log tablosundaki tüm kayıtları getirir.  !!
      * @version v 1.0  10.03.2016  
      * @param array $params
      * @return array
@@ -50,12 +50,15 @@ class LogUser extends \DAL\DalSlim {
 		a.pk, 
 		a.op_type_id, 
 		op.operation_name,
-		a.url, path, a.ip, 
+		a.url, 
+                a.path, 
+                a.ip, 
 		a.params,
-		b.oid as user_id ,
+		b.oid AS user_id ,
 		b.username,
-                a.log_datetime
-            FROM user_log  a            
+                a.log_datetime,
+                a.method
+            FROM services_log  a            
             INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
                 Or CRYPT(b.sf_private_key_value_temp,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/'))  
             INNER JOIN sys_operation_types op ON op.id = a.op_type_id  
@@ -74,7 +77,7 @@ class LogUser extends \DAL\DalSlim {
 
     /**   
      * @author Okan CIRAN
-     * @ user_log tablosuna yeni bir kayıt oluşturur.  !!
+     * @ services_log tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  10.03.2016
      * @param type $params
      * @return array
@@ -83,16 +86,28 @@ class LogUser extends \DAL\DalSlim {
     public function insert($params = array()) {        
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectLogFactory');
-            $pdo->beginTransaction();            
+            $pdo->beginTransaction();  
+            $pk = NULL;
+            $userIdValue = NULL;
+            if ((isset($params['pk']) && $params['pk'] != "")) {
+                $pk = $params['pk'] ;
+                $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
+                if (\Utill\Dal\Helper::haveRecord($userId)) {
+                    $userIdValue = $userId ['resultSet'][0]['user_id'];                    
+                }
+            }              
+          
                 $sql = "
-                INSERT INTO user_log(
+                INSERT INTO services_log(
                         pk, 
                         op_type_id, 
                         url, 
                         path, 
                         ip, 
                         params,
-                        log_datetime)
+                        log_datetime,
+                        method,
+                        op_user_id)
                 VALUES (
                         :pk, 
                         :op_type_id, 
@@ -100,19 +115,23 @@ class LogUser extends \DAL\DalSlim {
                         :path, 
                         :ip, 
                         :params,
-                        :log_datetime
+                        :log_datetime,
+                        :method,
+                        :op_user_id
                                              )   ";
                 $statement = $pdo->prepare($sql);
-                $statement->bindValue(':pk', $params['pk'], \PDO::PARAM_STR);
-                $statement->bindValue(':op_type_id', $params['op_type_id'], \PDO::PARAM_INT);                
+                $statement->bindValue(':pk', $pk, \PDO::PARAM_STR);
+                $statement->bindValue(':op_type_id', $params['op_type_id'], \PDO::PARAM_INT);
+                $statement->bindValue(':log_datetime', $params['log_datetime'], \PDO::PARAM_STR);
                 $statement->bindValue(':url', $params['url'], \PDO::PARAM_STR);
                 $statement->bindValue(':path', $params['path'], \PDO::PARAM_STR);
                 $statement->bindValue(':ip', $params['ip'], \PDO::PARAM_STR);
                 $statement->bindValue(':params', $params['params'], \PDO::PARAM_STR);
-                $statement->bindValue(':log_datetime', $params['log_datetime'], \PDO::PARAM_STR);
+                $statement->bindValue(':op_user_id', $userIdValue, \PDO::PARAM_INT);            
+                $statement->bindValue(':method', $params['method'], \PDO::PARAM_STR);
                // echo debugPDO($sql, $params);
                 $result = $statement->execute();
-                $insertID = $pdo->lastInsertId('user_log_id_seq');
+                $insertID = $pdo->lastInsertId('services_log_id_seq');
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
@@ -126,7 +145,7 @@ class LogUser extends \DAL\DalSlim {
  
     /**
      * @author Okan CIRAN
-     * user_log tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
+     * services_log tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  10.03.2016
      * @param type $params
      * @return array
@@ -142,7 +161,7 @@ class LogUser extends \DAL\DalSlim {
      * Datagrid fill function used for testing
      * user interface datagrid fill operation   
      * @author Okan CIRAN
-     * @ Gridi doldurmak için user_log tablosundan kayıtları döndürür !!
+     * @ Gridi doldurmak için services_log tablosundan kayıtları döndürür !!
      * @version v 1.0  10.03.2016
      * @param array | null $args
      * @return array
@@ -187,12 +206,15 @@ class LogUser extends \DAL\DalSlim {
 		a.pk, 
 		a.op_type_id, 
 		op.operation_name,
-		a.url, path, a.ip, 
+		a.url, 
+                a.path, 
+                a.ip, 
 		a.params,
-		b.oid as user_id ,
+		b.oid AS user_id ,
 		b.username,
-                a.log_datetime
-            FROM user_log  a            
+                a.log_datetime,
+                a.method
+            FROM services_log  a            
             INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
                 Or CRYPT(b.sf_private_key_value_temp,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/'))  
             INNER JOIN sys_operation_types op ON op.id = a.op_type_id              
@@ -222,7 +244,7 @@ class LogUser extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
-     * @ Gridi doldurmak için user_log tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
+     * @ Gridi doldurmak için services_log tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
      * @version v 1.0  10.03.2016
      * @param array | null $args
      * @return array
@@ -234,7 +256,7 @@ class LogUser extends \DAL\DalSlim {
             $sql = "
                 SELECT 
                     COUNT(a.id) AS COUNT                        
-                FROM user_log  a            
+                FROM services_log  a            
                 INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
                     Or CRYPT(b.sf_private_key_value_temp,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/'))  
                 INNER JOIN sys_operation_types op ON op.id = a.op_type_id              

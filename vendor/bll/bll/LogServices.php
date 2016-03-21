@@ -12,7 +12,7 @@ namespace BLL\BLL;
 /**
  * Business Layer class for report Configuration entity
  */
-class LogUser extends \BLL\BLLSlim{
+class LogServices extends \BLL\BLLSlim{
     
     /**
      * constructor
@@ -27,7 +27,7 @@ class LogUser extends \BLL\BLLSlim{
      * @return array
      */
     public function insert($params = array()) {
-        $DAL = $this->slimApp->getDALManager()->get('logUserPDO');
+        $DAL = $this->slimApp->getDALManager()->get('logServicesPDO');
         return $DAL->insert($params);
     }
     
@@ -37,7 +37,7 @@ class LogUser extends \BLL\BLLSlim{
      * @return array
      */
     public function update( $params = array()) {
-     //   $DAL = $this->slimApp->getDALManager()->get('logUserPDO');
+     //   $DAL = $this->slimApp->getDALManager()->get('logServicesPDO');
      //   return $DAL->update( $params);
     }
     
@@ -47,7 +47,7 @@ class LogUser extends \BLL\BLLSlim{
      * @return array
      */
     public function delete( $params = array()) {
-     //   $DAL = $this->slimApp->getDALManager()->get('logUserPDO');
+     //   $DAL = $this->slimApp->getDALManager()->get('logServicesPDO');
      //   return $DAL->delete($params);
     }
 
@@ -57,7 +57,7 @@ class LogUser extends \BLL\BLLSlim{
      * @return array
      */
     public function getAll($params = array()) {
-        $DAL = $this->slimApp->getDALManager()->get('logUserPDO');
+        $DAL = $this->slimApp->getDALManager()->get('logServicesPDO');
         return $DAL->getAll($params);
     }
     
@@ -68,7 +68,7 @@ class LogUser extends \BLL\BLLSlim{
      */
     public function fillGrid ($params = array()) {
         
-        $DAL = $this->slimApp->getDALManager()->get('logUserPDO');
+        $DAL = $this->slimApp->getDALManager()->get('logServicesPDO');
         $resultSet = $DAL->fillGrid($params);  
         return $resultSet['resultSet'];
     }
@@ -79,7 +79,7 @@ class LogUser extends \BLL\BLLSlim{
      * @return array
      */
     public function fillGridRowTotalCount($params = array()) {
-        $DAL = $this->slimApp->getDALManager()->get('logUserPDO');
+        $DAL = $this->slimApp->getDALManager()->get('logServicesPDO');
         $resultSet = $DAL->fillGridRowTotalCount($params);  
         return $resultSet['resultSet'];
     }

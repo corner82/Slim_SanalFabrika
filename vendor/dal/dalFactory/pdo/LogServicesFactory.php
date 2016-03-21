@@ -14,13 +14,13 @@ namespace DAL\Factory\PDO;
  * created to be used by DAL MAnager
  * @author Mustafa Zeynel Dağlı
  */
-class LogUserFactory implements \Zend\ServiceManager\FactoryInterface {
+class LogServicesFactory implements \Zend\ServiceManager\FactoryInterface {
     
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
-        $logUser = new \DAL\PDO\LogUser();
+        $logServices = new \DAL\PDO\LogServices();
         $slimApp = $serviceLocator->get('slimApp');
-        $logUser->setSlimApp($slimApp);
-        return $logUser;
+        $logServices->setSlimApp($slimApp);
+        return $logServices;
     }
 
 }

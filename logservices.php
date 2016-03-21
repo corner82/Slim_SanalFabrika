@@ -45,9 +45,9 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
  *  * Okan CIRAN
  * @since 10-03-2016
  */
-$app->get("/pkFillGrid_logUser/", function () use ($app ) {
+$app->get("/pkFillGrid_logServices/", function () use ($app ) {
 
-    $BLL = $app->getBLLManager()->get('logUserBLL');
+    $BLL = $app->getBLLManager()->get('logServicesBLL');
 
     $headerParams = $app->request()->headers();
     $vPk = $headerParams['X-Public'];
@@ -75,6 +75,8 @@ $app->get("/pkFillGrid_logUser/", function () use ($app ) {
             "params" => $flow["params"], 
             "user_id" => $flow["user_id"], 
             "username" => $flow["username"],
+            "method" => $flow["method"],
+            
             "attributes" => array("notroot" => true,  
                 ),
         );
@@ -91,11 +93,11 @@ $app->get("/pkFillGrid_logUser/", function () use ($app ) {
  *  * Okan CIRAN
  * @since 10-03-2016
  */
-$app->get("/pkInsert_logUser/", function () use ($app ) {
+$app->get("/pkInsert_logServices/", function () use ($app ) {
     
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
-    $BLL = $app->getBLLManager()->get('logUserBLL');
+    $BLL = $app->getBLLManager()->get('logServicesBLL');
     $headerParams = $app->request()->headers();
     $Pk = $headerParams['X-Public'];
     
@@ -136,6 +138,12 @@ $app->get("/pkInsert_logUser/", function () use ($app ) {
                                                 $app,
                                                 $_GET['log_datetime']));
     } 
+    $vMethod = NULL;
+    if (isset($_GET['method'])) {
+        $stripper->offsetSet('method', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
+                                                $app,
+                                                $_GET['method']));
+    }  
     $stripper->strip();    
     if($stripper->offsetExists('op_type_id')) $vOpTypeId = $stripper->offsetGet('op_type_id')->getFilterValue();
     if($stripper->offsetExists('urlx')) $vUrl = $stripper->offsetGet('urlx')->getFilterValue();
@@ -143,6 +151,7 @@ $app->get("/pkInsert_logUser/", function () use ($app ) {
     if($stripper->offsetExists('ip')) $vIp = $stripper->offsetGet('ip')->getFilterValue();
     if($stripper->offsetExists('params')) $vParams = $stripper->offsetGet('params')->getFilterValue();  
     if($stripper->offsetExists('log_datetime')) $vLogDatetime = $stripper->offsetGet('log_datetime')->getFilterValue();
+    if($stripper->offsetExists('method')) $vMethod = $stripper->offsetGet('method')->getFilterValue();  
      
     
     $resDataInsert = $BLL->insert(array(      
@@ -153,6 +162,7 @@ $app->get("/pkInsert_logUser/", function () use ($app ) {
         'ip' => $vIp,
         'params' => $vParams,
         'log_datetime' => $vLogDatetime,
+        'method' =>$vMethod,
             ));
 
     $app->response()->header("Content-Type", "application/json"); 
@@ -165,9 +175,9 @@ $app->get("/pkInsert_logUser/", function () use ($app ) {
  *  * Okan CIRAN
  * @since 10-03-2016
  */
-$app->get("/pkGetAll_logUser/", function () use ($app ) {
+$app->get("/pkGetAll_logServices/", function () use ($app ) {
 
-    $BLL = $app->getBLLManager()->get('logUserBLL');
+    $BLL = $app->getBLLManager()->get('logServicesBLL');
     $resDataGrid = $BLL->getAll();
     $resTotalRowCount = $BLL->fillGridRowTotalCount( );
 
