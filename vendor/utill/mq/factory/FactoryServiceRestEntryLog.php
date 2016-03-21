@@ -20,18 +20,21 @@ class FactoryServiceRestEntryLog implements \Zend\ServiceManager\FactoryInterfac
         $serviceLogMQ = new \Utill\MQ\restEntryMQ();
         $slimApp = $serviceLocator->get('slimApp');
         $serviceLogMQ->setChannelProperties(array('queue.name' => \Utill\MQ\abstractMQ::SERVICE_ENTRY_LOG_QUEUE_NAME));
-        $message = new \Utill\MQ\MessageMQ\MQMessage();
+        $message = new \Utill\MQ\MessageMQ\MQMessageServiceLog();
         ;
         
        
         $message->setMessageBody(array('message' => 'Rest service has been used', 
                                        'time'  => date('l jS \of F Y h:i:s A'),
+                                        'log_datetime'  => date('Y-m-d G:i:s '),
                                        'serial' => $slimApp->container['settings']['request.serial'],
                                        'ip' => \Utill\Env\serverVariables::getClientIp(),
                                        'url' => $slimApp->request()->getUrl(),
                                        'path' => $slimApp->request()->getPath(),
                                        'method' => $slimApp->request()->getMethod(),
                                        'params' => json_encode($slimApp->request()->params()),
+                                        'type_id' => \Utill\MQ\MessageMQ\MQMessageServiceLog::SERVICE_INSERT_OPERATION,
+                                        'pk' => 'test rest zeynel',
                                        'logFormat' => $slimApp->container['settings']['restEntry.rabbitMQ.logging']));
         $message->setMessageProperties(array('delivery_mode' => 2,
                                              'content_type' => 'application/json'));

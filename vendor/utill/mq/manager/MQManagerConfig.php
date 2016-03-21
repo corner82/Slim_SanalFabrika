@@ -42,7 +42,7 @@ class MQManagerConfig{
                   * if further test do not work please erase 'MQException' below and related class
                   */
                  'serviceExceptions' => 'Utill\MQ\Factory\FactoryServiceExceptions',
-                 'serviceRestCallLog' => 'Utill\MQ\Factory\FactoryServiceRestEntryLog',
+                 'serviceRestEntryLog' => 'Utill\MQ\Factory\FactoryServiceRestEntryLog',
                  'serviceLogoutLog' => 'Utill\MQ\Factory\FactoryServiceLogoutLog',
                  'servicePageLog' => 'Utill\MQ\Factory\FactoryServicePageLog',
                  'serviceLoginLog' => 'Utill\MQ\Factory\FactoryServiceLoginLog',
