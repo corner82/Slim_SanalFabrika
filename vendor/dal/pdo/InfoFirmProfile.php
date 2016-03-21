@@ -37,12 +37,10 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 UPDATE info_firm_profile
                 SET  deleted= 1 , active = 1 ,
                      op_user_id = " . $userIdValue . "     
-                WHERE id = :id");
-                //Execute our DELETE statement.
+                WHERE id = :id");               
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
-
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
                 $pdo->commit();
@@ -68,60 +66,81 @@ class InfoFirmProfile extends \DAL\DalSlim {
     public function getAll($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }   
+         
             $statement = $pdo->prepare("
-                  SELECT 
-                        a.id, 
-                        a.profile_public, 
-                        a.f_check, 
-                        a.s_date, 
-                        a.c_date, 
-                        a.operation_type_id,
-                        op.operation_name, 
-                        a.firm_name, 
-                        a.web_address,                     
-                        a.tax_office, 
-                        a.tax_no, 
-                        a.sgk_sicil_no,
-			a.bagkur_sicil_no,
-			a.ownership_status_id,
-                        sd4.description AS owner_ship,
-			a.foundation_year,			
-			a.act_parent_id,  
-                        a.language_code, 
-                        a.language_id, 
-                        COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,                        
-                        a.active, 
-                        sd3.description AS state_active,  
-                        a.deleted,
-			sd2.description AS state_deleted, 
-                        a.op_user_id,
-                        u.username,                    
-                        a.auth_allow_id, 
-                        sd.description AS auth_alow ,
-                        a.cons_allow_id,
-                        sd1.description AS cons_allow,
-                        a.language_parent_id,               
-                        a.firm_name_eng, 
-                        a.firm_name_short,
-                        a.country_id, 
-                        co.name AS tr_country_name ,
-                        a.description,
-                        a.description_eng,
-                        a.duns_number,
-                        a.owner_user_id,
-                        own.username as owner_username  
-                    FROM info_firm_profile a    
-                    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_id = a.language_id  AND op.deleted =0 AND op.active =0
-                    INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_id = a.language_id AND a.auth_allow_id = sd.first_group AND sd.deleted =0 AND sd.active =0
-                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 14 AND  sd1.language_id = a.language_id AND a.cons_allow_id = sd1.first_group AND sd1.deleted =0 AND sd1.active =0
-                    INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a.deleted AND sd2.language_id = a.language_id AND sd2.deleted =0 AND sd2.active =0 
-                    INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_id = a.language_id AND sd3.deleted = 0 AND sd3.active = 0
-                    LEFT JOIN sys_specific_definitions sd4 ON sd4.main_group = 1 AND sd4.first_group= a.ownership_status_id AND sd4.language_id = a.language_id AND sd4.deleted = 0 AND sd4.active = 0
-                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
-                    LEFT JOIN info_users u ON u.id = a.op_user_id                      
-                    LEFT JOIN info_users own ON own.id = a.owner_user_id                      
-                    LEFT JOIN sys_countrys co ON co.id = a.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = a.language_id 
-                    ORDER BY a.firm_name   
+            SELECT 
+                    a.id, 
+                    a.profile_public, 
+                    a.f_check, 
+                    a.s_date, 
+                    a.c_date, 
+                    a.operation_type_id,                   
+                    COALESCE(NULLIF(opx.operation_name, ''), op.operation_name_eng) AS operation_names,                   
+                    COALESCE(NULLIF(COALESCE(NULLIF(ax.firm_name, ''), a.firm_name_eng), ''), a.firm_name) AS firm_names,   
+                    a.web_address,                     
+                    a.tax_office, 
+                    a.tax_no, 
+                    a.sgk_sicil_no,                   
+                    a.ownership_status_id,             
+                    COALESCE(NULLIF(sd1x.description, ''), sd1.description_eng) AS owner_ships,   
+                    a.foundation_year,			
+                    a.act_parent_id,  
+                    a.language_code, 
+                    a.language_id, 
+                    COALESCE(NULLIF(lx.language, ''), l.language_eng) AS language_names,                        
+                    a.active,                
+                    COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng) AS state_actives,    
+                    a.deleted,                  
+                    COALESCE(NULLIF(sd15x.description, ''), sd15.description_eng) AS state_deleteds,    
+                    a.op_user_id,
+                    u.username,                    
+                    a.auth_allow_id,                    
+                    COALESCE(NULLIF(sd13x.description, ''), sd13.description_eng) AS auth_alows,    
+                    a.cons_allow_id,                   
+                    COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allows,    
+                    a.language_parent_id, 
+                    a.firm_name_short,
+                    a.country_id,                   
+		    COALESCE(NULLIF(cox.name, ''), co.name_eng) AS country_names,                     
+                    COALESCE(NULLIF(COALESCE(NULLIF(ax.description, ''), a.description_eng), ''), a.description) AS descriptions,   
+                    a.duns_number,
+                    a.owner_user_id,
+                    own.username AS owner_username ,
+                    ifk.network_key 
+                FROM info_firm_profile a   
+                LEFT JOIN info_firm_keys ifk on ifk.firm_id =  a.act_parent_id AND a.deleted = 0 AND a.active =0 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0 
+                INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = a.language_id AND op.deleted =0 AND op.active =0
+                INNER JOIN sys_specific_definitions sd13 ON sd13.main_group = 13 AND sd13.language_id = a.language_id AND a.auth_allow_id = sd13.first_group AND sd13.deleted =0 AND sd13.active =0
+                INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.language_id = a.language_id AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = a.language_id AND sd15.deleted =0 AND sd15.active =0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0 AND sd16.active = 0
+                LEFT JOIN sys_specific_definitions sd1 ON sd1.main_group = 1 AND sd1.first_group= a.ownership_status_id AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0
+                
+                LEFT JOIN info_users u ON u.id = a.op_user_id                      
+                LEFT JOIN info_users own ON own.id = a.owner_user_id                                      
+                LEFT JOIN sys_countrys co ON co.id = a.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = a.language_id  
+                
+                LEFT JOIN sys_countrys cox ON (cox.id = a.country_id OR cox.language_parent_id = a.country_id) AND cox.deleted = 0 AND cox.active = 0 AND cox.language_id = lx.id                
+		LEFT JOIN sys_operation_types opx ON opx.id = a.operation_type_id AND opx.language_id = lx.id AND opx.deleted =0 AND opx.active =0
+                LEFT JOIN sys_specific_definitions sd13x ON sd13x.main_group = 13 AND sd13x.language_id = lx.id  AND a.auth_allow_id = sd13x.first_group AND sd13x.deleted =0 AND sd13x.active =0
+                LEFT JOIN sys_specific_definitions sd14x ON sd14x.main_group = 14 AND  sd14x.language_id = lx.id  AND a.cons_allow_id = sd14x.first_group AND sd14x.deleted =0 AND sd14x.active =0
+                LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= a.deleted AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
+                LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
+                LEFT JOIN sys_specific_definitions sd1x ON sd1x.main_group = 1 AND sd1x.first_group= a.ownership_status_id AND sd1x.language_id =lx.id  AND sd1x.deleted = 0 AND sd1x.active = 0
+		LEFT JOIN info_firm_profile ax on ax.language_parent_id = a.id AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0 
+                
+                WHERE a.deleted =0 AND a.active =0 AND a.language_parent_id =0       
+                ORDER BY a.firm_name   
                           ");
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
@@ -265,14 +284,17 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     }
 
 
-                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                        $languageIdValue = $languageId ['resultSet'][0]['id'];
-                    } else {
-                        $languageIdValue = 647;
-                    }
+                    $languageId = NULL;
+                    $languageIdValue = 647;
+                    if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                            $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                            }
+                    }   
                     $addSql .= " language_id, ";
                     $addSqlValue .= " " . $languageIdValue . ",";
+                  
 
                     $statement = $pdo->prepare("
                    INSERT INTO info_firm_profile(
@@ -333,8 +355,11 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     $errorInfo = $statement->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
+                                
+                    InfoFirmKeys::insert(array('firm_id' => $insertID, 
+                                              'country_id' => $params['country_id']));
+                   
                     $pdo->commit();
-
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
                     // 23505  unique_violation
@@ -393,12 +418,14 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         $addSqlValue .= " " . intval($params['active']) . ",";
                     }  
 
-                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                        $languageIdValue = $languageId ['resultSet'][0]['id'];
-                    } else {
-                        $languageIdValue = 647;
-                    }
+                    $languageId = NULL;
+                    $languageIdValue = 647;
+                    if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                            $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                            }
+                    }   
 
                     if ((isset($params['consultant_id']) && $params['consultant_id'] != "")) {
                         $addSql .= " consultant_id,  ";
@@ -529,72 +556,85 @@ class InfoFirmProfile extends \DAL\DalSlim {
         } else {
             $order = "ASC";
         }
-        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-        if (\Utill\Dal\Helper::haveRecord($languageId)) {
-            $languageIdValue = $languageId ['resultSet'][0]['id'];
-        } else {
-            $languageIdValue = 647;
-        }
-        $whereSql .= "WHERE a.language_id =   " . intval($languageIdValue);
+        
+        $languageId = NULL;
+        $languageIdValue = 647;
+        if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+        }           
 
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-                     SELECT 
-                        a.id, 
-                        a.profile_public, 
-                        a.f_check, 
-                        a.s_date, 
-                        a.c_date, 
-                        a.operation_type_id,
-                        op.operation_name, 
-                        a.firm_name, 
-                        a.web_address,                     
-                        a.tax_office, 
-                        a.tax_no, 
-                        a.sgk_sicil_no,
-			a.bagkur_sicil_no,
-			a.ownership_status_id,
-                        sd4.description AS owner_ship,
-			a.foundation_year,			
-			a.act_parent_id,  
-                        a.language_code, 
-                        a.language_id, 
-                        COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,                        
-                        a.active, 
-                        sd3.description AS state_active,  
-                        a.deleted,
-			sd2.description AS state_deleted, 
-                        a.op_user_id,
-                        u.username,                    
-                        a.auth_allow_id, 
-                        sd.description AS auth_alow ,
-                        a.cons_allow_id,
-                        sd1.description AS cons_allow,
-                        a.language_parent_id,               
-                        a.firm_name_eng, 
-                        a.firm_name_short,
-                        a.country_id, 
-                        co.name AS tr_country_name ,
-                        a.description,
-                        a.description_eng,
-                        a.duns_number,
-                        a.owner_user_id,
-                        own.username as owner_username  
-                    FROM info_firm_profile a    
-                    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_id = a.language_id  AND op.deleted =0 AND op.active =0
-                    INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_id = a.language_id AND a.auth_allow_id = sd.first_group AND sd.deleted =0 AND sd.active =0
-                    INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 14 AND  sd1.language_id = a.language_id AND a.cons_allow_id = sd1.first_group AND sd1.deleted =0 AND sd1.active =0
-                    INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a.deleted AND sd2.language_id = a.language_id AND sd2.deleted =0 AND sd2.active =0 
-                    INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_id = a.language_id AND sd3.deleted = 0 AND sd3.active = 0
-                    LEFT JOIN sys_specific_definitions sd4 ON sd4.main_group = 1 AND sd4.first_group= a.ownership_status_id AND sd4.language_id = a.language_id AND sd4.deleted = 0 AND sd4.active = 0
-                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
-                    LEFT JOIN info_users u ON u.id = a.op_user_id                      
-                    LEFT JOIN info_users own ON own.id = a.owner_user_id                      
-                    LEFT JOIN sys_countrys co ON co.id = a.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = a.language_id                               
-                    "
-                    . $whereSql .
-                    " ORDER BY    " . $sort . " "
+                SELECT 
+                    a.id, 
+                    a.profile_public, 
+                    a.f_check, 
+                    a.s_date, 
+                    a.c_date, 
+                    a.operation_type_id,                   
+                    COALESCE(NULLIF(opx.operation_name, ''), op.operation_name_eng) AS operation_names,                   
+                    COALESCE(NULLIF(COALESCE(NULLIF(ax.firm_name, ''), a.firm_name_eng), ''), a.firm_name) AS firm_names,   
+                    a.web_address,                     
+                    a.tax_office, 
+                    a.tax_no, 
+                    a.sgk_sicil_no,
+                    a.ownership_status_id,             
+                    COALESCE(NULLIF(sd1x.description, ''), sd1.description_eng) AS owner_ships,   
+                    a.foundation_year,			
+                    a.act_parent_id,  
+                    a.language_code, 
+                    a.language_id, 
+                    COALESCE(NULLIF(lx.language, ''), l.language_eng) AS language_names,                        
+                    a.active,                
+                    COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng) AS state_actives,    
+                    a.deleted,                  
+                    COALESCE(NULLIF(sd15x.description, ''), sd15.description_eng) AS state_deleteds,    
+                    a.op_user_id,
+                    u.username,                    
+                    a.auth_allow_id,                    
+                    COALESCE(NULLIF(sd13x.description, ''), sd13.description_eng) AS auth_alows,    
+                    a.cons_allow_id,                   
+                    COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allows,    
+                    a.language_parent_id,   
+                    a.firm_name_short,
+                    a.country_id,                   
+		    COALESCE(NULLIF(cox.name, ''), co.name_eng) AS country_names,                     
+                    COALESCE(NULLIF(COALESCE(NULLIF(ax.description, ''), a.description_eng), ''), a.description) AS descriptions,   
+                    a.duns_number,
+                    a.owner_user_id,
+                    own.username AS owner_username ,
+                    ifk.network_key 
+                FROM info_firm_profile a   
+                LEFT JOIN info_firm_keys ifk on ifk.firm_id =  a.act_parent_id AND a.deleted = 0 AND a.active =0 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0 
+                INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = a.language_id AND op.deleted =0 AND op.active =0
+                INNER JOIN sys_specific_definitions sd13 ON sd13.main_group = 13 AND sd13.language_id = a.language_id AND a.auth_allow_id = sd13.first_group AND sd13.deleted =0 AND sd13.active =0
+                INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.language_id = a.language_id AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = a.language_id AND sd15.deleted =0 AND sd15.active =0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0 AND sd16.active = 0
+                LEFT JOIN sys_specific_definitions sd1 ON sd1.main_group = 1 AND sd1.first_group= a.ownership_status_id AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0
+                
+                LEFT JOIN info_users u ON u.id = a.op_user_id                      
+                LEFT JOIN info_users own ON own.id = a.owner_user_id                                      
+                LEFT JOIN sys_countrys co ON co.id = a.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = a.language_id  
+                
+                LEFT JOIN sys_countrys cox ON (cox.id = a.country_id OR cox.language_parent_id = a.country_id) AND cox.deleted = 0 AND cox.active = 0 AND cox.language_id = lx.id                
+		LEFT JOIN sys_operation_types opx ON opx.id = a.operation_type_id AND opx.language_id = lx.id AND opx.deleted =0 AND opx.active =0
+                LEFT JOIN sys_specific_definitions sd13x ON sd13x.main_group = 13 AND sd13x.language_id = lx.id  AND a.auth_allow_id = sd13x.first_group AND sd13x.deleted =0 AND sd13x.active =0
+                LEFT JOIN sys_specific_definitions sd14x ON sd14x.main_group = 14 AND  sd14x.language_id = lx.id  AND a.cons_allow_id = sd14x.first_group AND sd14x.deleted =0 AND sd14x.active =0
+                LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= a.deleted AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
+                LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
+                LEFT JOIN sys_specific_definitions sd1x ON sd1x.main_group = 1 AND sd1x.first_group= a.ownership_status_id AND sd1x.language_id =lx.id  AND sd1x.deleted = 0 AND sd1x.active = 0
+		LEFT JOIN info_firm_profile ax on ax.language_parent_id = a.id AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0 
+                
+                WHERE a.deleted =0 AND a.active =0 AND a.language_parent_id =0 
+              
+                ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
                     . "OFFSET " . $pdo->quote($offset) . " ";
@@ -630,12 +670,14 @@ class InfoFirmProfile extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
 
-            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-            if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];
-            } else {
-                $languageIdValue = 647;
-            }
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    }
+            }   
             $whereSQL = " WHERE a.language_id =  " . intval($languageIdValue);
             $whereSQL1 = " WHERE a1.language_id =" . intval($languageIdValue) . " AND a2.deleted = 1 ";
             $whereSQL2 = " WHERE a2.language_id = " . intval($languageIdValue) . " AND a1.deleted = 0 ";
@@ -695,13 +737,15 @@ class InfoFirmProfile extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
-                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                    $languageIdValue = $languageId ['resultSet'][0]['id'];
-                } else {
-                    $languageIdValue = 647;
-                }
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];               
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    }
+                }   
                 $sql = "            
                 SELECT 
                     a.id,                     
@@ -882,8 +926,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         a.language_parent_id,
                         a.owner_user_id,
                         u1.name as firm_owner_name,
-                        u1.surname as firm_owner_surname,
-                        a.firm_name_eng, 
+                        u1.surname as firm_owner_surname,                       
                         a.firm_name_short
                     FROM info_firm_profile a    
                     INNER JOIN sys_operation_types op ON op.id = a.operation_type_id and  op.language_code = a.language_code  AND op.deleted =0 AND op.active =0
@@ -1053,13 +1096,14 @@ class InfoFirmProfile extends \DAL\DalSlim {
             if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $whereSql = " AND a.owner_user_id = " . $userId ['resultSet'][0]['user_id'];
 
-                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                    $languageIdValue = $languageId ['resultSet'][0]['id'];
-                } else {
-                    $languageIdValue = 647;
-                }
-                $whereSql .= " AND a.language_id = " . intval($languageIdValue);
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    }
+                }                   
 
                 $sql = "
                  SELECT 
@@ -1068,55 +1112,66 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     a.f_check, 
                     a.s_date, 
                     a.c_date, 
-                    a.operation_type_id,
-                    op.operation_name, 
-                    a.firm_name, 
+                    a.operation_type_id,                   
+                    COALESCE(NULLIF(opx.operation_name, ''), op.operation_name_eng) AS operation_names,                   
+                    COALESCE(NULLIF(COALESCE(NULLIF(ax.firm_name, ''), a.firm_name_eng), ''), a.firm_name) AS firm_names,   
                     a.web_address,                     
                     a.tax_office, 
                     a.tax_no, 
-                    a.sgk_sicil_no,
-                    a.bagkur_sicil_no,
-                    a.ownership_status_id,
-                    sd4.description AS owner_ship,
+                    a.sgk_sicil_no,                   
+                    a.ownership_status_id,             
+                    COALESCE(NULLIF(sd1x.description, ''), sd1.description_eng) AS owner_ships,   
                     a.foundation_year,			
                     a.act_parent_id,  
                     a.language_code, 
                     a.language_id, 
-                    COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,                        
-                    a.active, 
-                    sd3.description AS state_active,  
-                    a.deleted,
-                    sd2.description AS state_deleted, 
+                    COALESCE(NULLIF(lx.language, ''), l.language_eng) AS language_names,                        
+                    a.active,                
+                    COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng) AS state_actives,    
+                    a.deleted,                  
+                    COALESCE(NULLIF(sd15x.description, ''), sd15.description_eng) AS state_deleteds,    
                     a.op_user_id,
                     u.username,                    
-                    a.auth_allow_id, 
-                    sd.description AS auth_alow ,
-                    a.cons_allow_id,
-                    sd1.description AS cons_allow,
-                    a.language_parent_id,               
-                    a.firm_name_eng, 
+                    a.auth_allow_id,                    
+                    COALESCE(NULLIF(sd13x.description, ''), sd13.description_eng) AS auth_alows,    
+                    a.cons_allow_id,                   
+                    COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allows,    
+                    a.language_parent_id,  
                     a.firm_name_short,
-                    a.country_id, 
-                    co.name AS tr_country_name ,
-                    a.description,
-                    a.description_eng,
+                    a.country_id,                   
+		    COALESCE(NULLIF(cox.name, ''), co.name_eng) AS country_names,                     
+                    COALESCE(NULLIF(COALESCE(NULLIF(ax.description, ''), a.description_eng), ''), a.description) AS descriptions,   
                     a.duns_number,
                     a.owner_user_id,
-                    own.username AS owner_username  
-                FROM info_firm_profile a    
-                INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = a.language_id  AND op.deleted =0 AND op.active =0
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 13 AND sd.language_id = a.language_id AND a.auth_allow_id = sd.first_group AND sd.deleted =0 AND sd.active =0
-                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 14 AND  sd1.language_id = a.language_id AND a.cons_allow_id = sd1.first_group AND sd1.deleted =0 AND sd1.active =0
-                INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a.deleted AND sd2.language_id = a.language_id AND sd2.deleted =0 AND sd2.active =0 
-                INNER JOIN sys_specific_definitions sd3 ON sd3.main_group = 16 AND sd3.first_group= a.active AND sd3.language_id = a.language_id AND sd3.deleted = 0 AND sd3.active = 0
-                LEFT JOIN sys_specific_definitions sd4 ON sd4.main_group = 1 AND sd4.first_group= a.ownership_status_id AND sd4.language_id = a.language_id AND sd4.deleted = 0 AND sd4.active = 0
+                    own.username AS owner_username ,
+                    ifk.network_key 
+                FROM info_firm_profile a   
+                LEFT JOIN info_firm_keys ifk on ifk.firm_id =  a.act_parent_id AND a.deleted = 0 AND a.active =0 
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0 
+                INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = a.language_id AND op.deleted =0 AND op.active =0
+                INNER JOIN sys_specific_definitions sd13 ON sd13.main_group = 13 AND sd13.language_id = a.language_id AND a.auth_allow_id = sd13.first_group AND sd13.deleted =0 AND sd13.active =0
+                INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.language_id = a.language_id AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = a.language_id AND sd15.deleted =0 AND sd15.active =0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0 AND sd16.active = 0
+                LEFT JOIN sys_specific_definitions sd1 ON sd1.main_group = 1 AND sd1.first_group= a.ownership_status_id AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0
+                
                 LEFT JOIN info_users u ON u.id = a.op_user_id                      
-                LEFT JOIN info_users own ON own.id = a.owner_user_id                      
-                LEFT JOIN sys_countrys co ON co.id = a.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = a.language_id 
-                WHERE a.deleted =0 AND a.active =0 
-                " . $whereSql . "
-                    ORDER BY sd6.first_group 
+                LEFT JOIN info_users own ON own.id = a.owner_user_id                                      
+                LEFT JOIN sys_countrys co ON co.id = a.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = a.language_id  
+                
+                LEFT JOIN sys_countrys cox ON (cox.id = a.country_id OR cox.language_parent_id = a.country_id) AND cox.deleted = 0 AND cox.active = 0 AND cox.language_id = lx.id                
+		LEFT JOIN sys_operation_types opx ON opx.id = a.operation_type_id AND opx.language_id = lx.id AND opx.deleted =0 AND opx.active =0
+                LEFT JOIN sys_specific_definitions sd13x ON sd13x.main_group = 13 AND sd13x.language_id = lx.id  AND a.auth_allow_id = sd13x.first_group AND sd13x.deleted =0 AND sd13x.active =0
+                LEFT JOIN sys_specific_definitions sd14x ON sd14x.main_group = 14 AND  sd14x.language_id = lx.id  AND a.cons_allow_id = sd14x.first_group AND sd14x.deleted =0 AND sd14x.active =0
+                LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= a.deleted AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
+                LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
+                LEFT JOIN sys_specific_definitions sd1x ON sd1x.main_group = 1 AND sd1x.first_group= a.ownership_status_id AND sd1x.language_id =lx.id  AND sd1x.deleted = 0 AND sd1x.active = 0
+		LEFT JOIN info_firm_profile ax on ax.language_parent_id = a.id AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0 
+                
+                WHERE a.deleted =0 AND a.active =0 AND a.language_parent_id =0 
+                
+                ORDER BY sd6.first_group 
                 ";
                 $statement = $pdo->prepare($sql);
                 //  echo debugPDO($sql, $parameters);                
@@ -1177,12 +1232,14 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         $addSqlValue .= " '" . $foundationYear . "',";
                     }
 
-                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                        $languageIdValue = $languageId ['resultSet'][0]['id'];
-                    } else {
-                        $languageIdValue = 647;
-                    }
+                    $languageId = NULL;
+                    $languageIdValue = 647;
+                    if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                            $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                        }
+                    }   
                     $addSql .= " language_id, ";
                     $addSqlValue .= " " . intval($languageIdValue) . ",";
 
@@ -1232,11 +1289,16 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     $statementInsert->bindValue(':description', $params['description'], \PDO::PARAM_STR);
                     $statementInsert->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
                     $statementInsert->bindValue(':duns_number', $params['duns_number'], \PDO::PARAM_STR);
+                   // echo debugPDO($sql, $params);     
                     $result = $statementInsert->execute();
                     $insertID = $pdo->lastInsertId('info_firm_profile_id_seq');
                     $errorInfo = $statementInsert->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
+                     
+                    
+                    InfoFirmKeys::insert(array('firm_id' => $insertID, 
+                                              'country_id' => $params['country_id']));
                     $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
