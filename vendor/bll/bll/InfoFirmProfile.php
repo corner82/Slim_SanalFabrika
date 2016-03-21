@@ -137,5 +137,20 @@ class InfoFirmProfile extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
         return $DAL->insertTemp($params);
     }
-
+    /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillCompanyListsGuest($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        $resultSet = $DAL->fillCompanyListsGuest($params);
+        return $resultSet['resultSet'];
+    }
+    
+    
+    
+    
+    
+    
 }

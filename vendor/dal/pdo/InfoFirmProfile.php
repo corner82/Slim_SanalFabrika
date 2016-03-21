@@ -114,7 +114,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     a.duns_number,
                     a.owner_user_id,
                     own.username AS owner_username ,
-                    ifk.network_key 
+                    ifk.network_key,
+                    a.logo
                 FROM info_firm_profile a   
                 LEFT JOIN info_firm_keys ifk on ifk.firm_id =  a.act_parent_id AND a.deleted = 0 AND a.active =0 
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
@@ -314,7 +315,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         act_parent_id,                   
                         description,
                         description_eng,
-                        duns_number
+                        duns_number,
+                        logo
                         )
                 VALUES (
                         :profile_public, 
@@ -333,7 +335,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         (SELECT last_value FROM info_firm_profile_id_seq),                       
                         :description,
                         :description_eng,
-                        :duns_number
+                        :duns_number,
+                        :logo
                                                 ");
                     $statement->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
                     $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
@@ -350,6 +353,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
                     $statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
                     $statement->bindValue(':duns_number', $params['duns_number'], \PDO::PARAM_STR);
+                    $statement->bindValue(':logo', $params['logo'], \PDO::PARAM_STR);
                     $result = $statement->execute();
                     $insertID = $pdo->lastInsertId('info_firm_profile_id_seq');
                     $errorInfo = $statement->errorInfo();
@@ -465,7 +469,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         language_id,
                         description,
                         description_eng,
-                        duns_number
+                        duns_number,
+                        logo
                         )
                         SELECT  
                             " . intval($params['profile_public']) . " AS profile_public, 
@@ -486,7 +491,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                              " . intval($languageIdValue) . " AS language_id,
                             '" . $params['description'] . "' AS description, 
                             '" . $params['description_eng'] . "' AS description_eng, 
-                            '" . $params['duns_number'] . "' AS duns_number                                              
+                            '" . $params['duns_number'] . "' AS duns_number ,
+                            '" . $params['logo'] . "' AS logo       
                         FROM info_firm_profile 
                         WHERE id =  " . intval($params['id']) . " 
                         ");
@@ -527,10 +533,10 @@ class InfoFirmProfile extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function fillGrid($args = array()) {
-        if (isset($args['page']) && $args['page'] != "" && isset($args['rows']) && $args['rows'] != "") {
-            $offset = ((intval($args['page']) - 1) * intval($args['rows']));
-            $limit = intval($args['rows']);
+    public function fillGrid($params = array()) {
+        if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+            $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+            $limit = intval($params['rows']);
         } else {
             $limit = 10;
             $offset = 0;
@@ -539,20 +545,20 @@ class InfoFirmProfile extends \DAL\DalSlim {
         $sortArr = array();
         $orderArr = array();
         $whereSql = "";
-        if (isset($args['sort']) && $args['sort'] != "") {
-            $sort = trim($args['sort']);
+        if (isset($params['sort']) && $params['sort'] != "") {
+            $sort = trim($params['sort']);
             $sortArr = explode(",", $sort);
             if (count($sortArr) === 1)
-                $sort = trim($args['sort']);
+                $sort = trim($params['sort']);
         } else {
             $sort = " a.firm_name";
         }
 
-        if (isset($args['order']) && $args['order'] != "") {
-            $order = trim($args['order']);
+        if (isset($params['order']) && $params['order'] != "") {
+            $order = trim($params['order']);
             $orderArr = explode(",", $order); 
             if (count($orderArr) === 1)
-                $order = trim($args['order']);
+                $order = trim($params['order']);
         } else {
             $order = "ASC";
         }
@@ -607,7 +613,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     a.duns_number,
                     a.owner_user_id,
                     own.username AS owner_username ,
-                    ifk.network_key 
+                    ifk.network_key,
+                    a.logo
                 FROM info_firm_profile a   
                 LEFT JOIN info_firm_keys ifk on ifk.firm_id =  a.act_parent_id AND a.deleted = 0 AND a.active =0 
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
@@ -1034,7 +1041,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         language_id,
                         description,
                         description_eng,
-                        duns_number
+                        duns_number,
+                        logo
                         )
                         SELECT  
                             profile_public, 
@@ -1055,7 +1063,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                             language_id,
                             description, 
                             description_eng, 
-                            duns_number                                              
+                            duns_number,
+                            logo
                         FROM info_firm_profile 
                         WHERE id =  " . intval($params['id']) . " 
                         ");
@@ -1089,10 +1098,10 @@ class InfoFirmProfile extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function fillSingular($args = array()) {
+    public function fillSingular($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $userId = InfoUsers::getUserId(array('pk' => $args['pk']));
+            $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $whereSql = " AND a.owner_user_id = " . $userId ['resultSet'][0]['user_id'];
 
@@ -1144,7 +1153,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     a.duns_number,
                     a.owner_user_id,
                     own.username AS owner_username ,
-                    ifk.network_key 
+                    ifk.network_key,
+                    a.logo
                 FROM info_firm_profile a   
                 LEFT JOIN info_firm_keys ifk on ifk.firm_id =  a.act_parent_id AND a.deleted = 0 AND a.active =0 
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
@@ -1259,7 +1269,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         act_parent_id,                      
                         description,
                         description_eng,
-                        duns_number
+                        duns_number,
+                        logo
                         )
                 VALUES (
                         " . intval($params['profile_public']) . ", 
@@ -1276,7 +1287,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         (SELECT last_value FROM info_firm_profile_id_seq),                   
                         :description,
                         :description_eng,
-                        :duns_number
+                        :duns_number,
+                        :logo
                                             )    ";
                     $statementInsert = $pdo->prepare($sql);
                     $statementInsert->bindValue(':firm_name', $params['firm_name'], \PDO::PARAM_STR);
@@ -1289,6 +1301,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     $statementInsert->bindValue(':description', $params['description'], \PDO::PARAM_STR);
                     $statementInsert->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
                     $statementInsert->bindValue(':duns_number', $params['duns_number'], \PDO::PARAM_STR);
+                    $statementInsert->bindValue(':logo', $params['logo'], \PDO::PARAM_STR);
                    // echo debugPDO($sql, $params);     
                     $result = $statementInsert->execute();
                     $insertID = $pdo->lastInsertId('info_firm_profile_id_seq');
@@ -1320,4 +1333,151 @@ class InfoFirmProfile extends \DAL\DalSlim {
         }
     }
 
+    
+    
+     /**
+   
+     * @author Okan CIRAN
+     * @ quest kullanıcısı için,   info_firm_profile tablosundan kayıtları döndürür !!
+     * @version v 1.0  21.03.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillCompanyListsGuest($params = array()) {
+        try {
+                $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
+                 if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+                $limit = intval($params['rows']);
+                } else {
+                    $limit = 10;
+                    $offset = 0;
+                }
+
+                $sortArr = array();
+                $orderArr = array();
+                $whereSql = "";
+                if (isset($params['sort']) && $params['sort'] != "") {
+                    $sort = trim($params['sort']);
+                    $sortArr = explode(",", $sort);
+                    if (count($sortArr) === 1)
+                        $sort = trim($params['sort']);
+                } else {
+                    $sort = " firm_names";
+                }
+
+                if (isset($params['order']) && $params['order'] != "") {
+                    $order = trim($params['order']);
+                    $orderArr = explode(",", $order); 
+                    if (count($orderArr) === 1)
+                        $order = trim($params['order']);
+                } else {
+                    $order = "ASC";
+                }
+
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    }
+                }                                 
+
+                $sql = "
+                 
+		SELECT 
+                    a.id,                 
+                    COALESCE(NULLIF(COALESCE(NULLIF(ax.firm_name, ''), a.firm_name_eng), ''), a.firm_name) AS firm_names,   
+                    a.web_address,                                         
+                    a.firm_name_short,
+                    a.country_id,                   
+		    COALESCE(NULLIF(cox.name, ''), co.name_eng) AS country_names,                     
+                    COALESCE(NULLIF(COALESCE(NULLIF(ax.description, ''), a.description_eng), ''), a.description) AS descriptions,
+                    a.logo
+                FROM info_firm_profile a                   
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_countrys co ON co.id = a.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = a.language_id                  
+                LEFT JOIN sys_countrys cox ON (cox.id = a.country_id OR cox.language_parent_id = a.country_id) AND cox.deleted = 0 AND cox.active = 0 AND cox.language_id = lx.id                
+		LEFT JOIN info_firm_profile ax on ax.language_parent_id = a.id AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0 AND ax.profile_public =0                 
+                WHERE a.deleted =0 AND a.active =0 AND a.language_parent_id =0 AND a.profile_public =0 
+                ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";
+                $statement = $pdo->prepare($sql);
+                $parameters = array(
+                    'sort' => $sort,
+                    'order' => $order,
+                    'limit' => $pdo->quote($limit),
+                    'offset' => $pdo->quote($offset),
+                );
+                $statement = $pdo->prepare($sql);
+                //  echo debugPDO($sql, $parameters);                
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+         /**
+   
+     * @author Okan CIRAN
+     * @ quest kullanıcısı için,   info_firm_profile tablosundan kayıtları döndürür !!
+     * @version v 1.0  21.03.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillCompanyListsGuestRtc($params = array()) {
+        try {
+                $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                           
+
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    }
+                }                                 
+
+                $sql = "                 
+		SELECT 
+                    count(a.id) as count  
+                FROM info_firm_profile a                   
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_countrys co ON co.id = a.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = a.language_id                  
+                LEFT JOIN sys_countrys cox ON (cox.id = a.country_id OR cox.language_parent_id = a.country_id) AND cox.deleted = 0 AND cox.active = 0 AND cox.language_id = lx.id                
+		LEFT JOIN info_firm_profile ax on ax.language_parent_id = a.id AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0 AND ax.profile_public =0                 
+                WHERE a.deleted =0 AND a.active =0 AND a.language_parent_id =0 AND a.profile_public =0 
+                 ";
+                $statement = $pdo->prepare($sql);
+                //  echo debugPDO($sql, $parameters);                
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    
+    
+    
 }

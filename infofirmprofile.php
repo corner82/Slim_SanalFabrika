@@ -65,10 +65,15 @@ $app->get("/pkInsert_infoFirmProfile/", function () use ($app ) {
     $vBagkurSicilNo = $_GET['bagkur_sicil_no'];
     $vFirmNameEng = $_GET['firm_name_eng'];
     $vFirmNameShort = $_GET['firm_name_short']; 
+    
 
     $vLanguageCode  = 'tr';
     if (isset($_GET['language_code'])) {
         $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }
+    $vLogo  = 'logo';
+    if (isset($_GET['logo'])) {
+        $vLogo = strtolower(trim($_GET['logo']));
     }
     $vOperationTypeId = 1;
     if (isset($_GET['operation_type_id'])) {
@@ -140,7 +145,7 @@ $app->get("/pkInsert_infoFirmProfile/", function () use ($app ) {
             'city_name' => $fCityName ,        
             'description' => $fDescription ,
             'description_eng' => $fDescriptionEng,  
-        
+            'logo' => $vLogo,
             'pk' => $fpk,        
             ));
 
@@ -215,106 +220,12 @@ $app->get("/pkUpdate_infoFirmProfile/", function () use ($app ) {
     if (isset($_GET['confirm_id'])) {
         $vConsultantConfirmTypeId = $_GET['confirm_id'];
     } 
-    
-   
-    $validater = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
-    $validatorChainUrl = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet(array_search($_GET['url'], $_GET), 
-            new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                              $_GET['url'], 
-                                                              $validatorChainUrl->attach(
-                                                                        new Zend\Validator\StringLength(array('min' => 6,
-                                                                                                              'max' => 50)))
-                                                                              // ->attach(new Zend\I18n\Validator\Alnum())    
-                    ) );
-   
-    $validatorChainLanguageCode = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('language_code', 
-    new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vLanguageCode, 
-                                                          $validatorChainLanguageCode->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 2,
-                                                                                                          'max' => 2)))
-                                                                          ->attach(new Zend\I18n\Validator\Alpha()) 
-                                                                                 
-                ) );
-        
-    $validatorChainId = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('id', 
-    new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vID, 
-                                                          $validatorChainId->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                         // ,'max' => 2
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-                                                                                 
-                ) );
-        
-    $validatorChainOperationTypeId = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('operation_type_id', 
-    new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vOperationTypeId, 
-                                                          $validatorChainOperationTypeId->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                         // ,'max' => 2
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-                                                                                 
-                ) ); 
-  
-    $validatorChainActive = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('active', 
-    new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vActive, 
-                                                          $validatorChainActive->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                          ,'max' => 1
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-                                                                                 
-                ) ); 
-        
-    $validatorChainProfilePublic = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('profile_public', 
-    new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vProfilePublic, 
-                                                          $validatorChainProfilePublic->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                          ,'max' => 1
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-         ) ); 
-         
-        
-    $validatorChainConsAllowId = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('cons_allow_id', 
-    new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vConsAllowId, 
-                                                          $validatorChainConsAllowId->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                          ,'max' => 1
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-         ) ); 
-        
+    $vLogo = 'logo';
+    if (isset($_GET['logo'])) {
+        $vLogo = strtolower(trim($_GET['logo']));
+    }
+
      
-    $validatorChainActParentId = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('act_parent_id', 
-    new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vActParentId, 
-                                                          $validatorChainActParentId->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                          ,'max' => 1
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-         ) );  
-        
- 
-        
-    $validater->validate();
-    $messager = $app->getServiceManager()->get('validatorMessager');  
-    print_r( $messager->getValidationMessage());
     
       
     $fID = $vID;   
@@ -370,10 +281,10 @@ $app->get("/pkUpdate_infoFirmProfile/", function () use ($app ) {
         'city_name' => $fCityName ,        
         'description' => $fDescription ,
         'description_eng' => $fDescriptionEng ,  
+        'logo' => $vLogo , 
         'pk' => $fpk,
          ));
-    
-   
+
     $app->response()->header("Content-Type", "application/json");
 
 
@@ -481,12 +392,13 @@ $app->get("/pkGetAll_infoFirmProfile/", function () use ($app ) {
             "duns_number" => $flow["duns_number"],
             "owner_user_id" => $flow["owner_user_id"],
             "owner_username" => $flow["owner_username"],
-            "network_key" => $flow["network_key"],                 
+            "network_key" => $flow["network_key"],   
+            "logo" => $flow["logo"],
             
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }
-     
+
     $app->response()->header("Content-Type", "application/json");
 
     $resultArray = array();
@@ -600,11 +512,12 @@ $app->get("/pktempFillGridSingular_infoFirmProfile/", function () use ($app ) {
             "owner_user_id" => $flow["owner_user_id"],
             "owner_username" => $flow["owner_username"],
             "network_key" => $flow["network_key"],
+            "logo" => $flow["logo"],
             
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }
-
+  
     $app->response()->header("Content-Type", "application/json");
    // print_r($resTotalRowCount);
     $resultArray = array();
@@ -664,7 +577,10 @@ $app->get("/pktempInsert_infoFirmProfile/", function () use ($app ) {
     if (isset($_GET['duns_number'])) {
         $vDunsNumber = $_GET['duns_number'];
     } 
-    
+    $vLogo  = 'logo';
+    if (isset($_GET['logo'])) {
+        $vLogo = strtolower(trim($_GET['logo']));
+    }
     
     
     $vFirmName = $_GET['firm_name'];
@@ -706,6 +622,7 @@ $app->get("/pktempInsert_infoFirmProfile/", function () use ($app ) {
             'web_address'=> $fWebAddress,
             'firm_name_short'=> $fFirmNameShort,
             'duns_number'=>$fDunsNumber,
+            'logo'=>$vLogo,
             'pktemp' => $vPkTemp,        
             ));
 
@@ -742,56 +659,7 @@ $app->get("/pktempUpdate_infoFirmProfile/", function () use ($app ) {
     $vDescription = $_GET['description'];   
     $vDescriptionEng = $_GET['description_eng'];   
      
-   
-    $validater = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
-    $validatorChainUrl = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet(array_search($_GET['url'], $_GET), 
-            new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                              $_GET['url'], 
-                                                              $validatorChainUrl->attach(
-                                                                        new Zend\Validator\StringLength(array('min' => 6,
-                                                                                                              'max' => 50)))
-                                                                              // ->attach(new Zend\I18n\Validator\Alnum())    
-                    ) );
-   
-    $validatorChainLanguageCode = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('language_code', 
-    new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vLanguageCode, 
-                                                          $validatorChainLanguageCode->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 2,
-                                                                                                          'max' => 2)))
-                                                                          ->attach(new Zend\I18n\Validator\Alpha()) 
-                                                                                 
-                ) );
-        
-    $validatorChainId = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('id', 
-    new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vID, 
-                                                          $validatorChainId->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                         // ,'max' => 2
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-                                                                                 
-                ) );
-         
-    $validatorChainProfilePublic = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('profile_public', 
-    new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vProfilePublic, 
-                                                          $validatorChainProfilePublic->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 1
-                                                                                                          ,'max' => 1
-                                                                        )))
-                                                                          ->attach(new Zend\Validator\Digits()) 
-         ) ); 
-      
-    $validater->validate();
-    $messager = $app->getServiceManager()->get('validatorMessager');  
-    print_r( $messager->getValidationMessage());
-    
+  
       
     $fID = $vID;   
     
@@ -811,12 +679,6 @@ $app->get("/pktempUpdate_infoFirmProfile/", function () use ($app ) {
     $fPkTemp = $vPkTemp ; 
    
     
-  
-    
-    /*
-     * filtre işlemleri
-     */
-    
     $resDataUpdate = $BLL->updateTemp(array(
         'id' =>$fID,         
         'language_code' => $fLanguageCode,
@@ -831,10 +693,10 @@ $app->get("/pktempUpdate_infoFirmProfile/", function () use ($app ) {
         'city_name' => $fCityName ,        
         'description' => $fDescription ,
         'description_eng' => $fDescriptionEng , 
+        'logo' => $vLogo,
         'pktemp' => $fPkTemp,
-         ));
-    
-   
+         )); 
+  
     $app->response()->header("Content-Type", "application/json");
 
 
@@ -928,6 +790,51 @@ $app->get("/pktempFillUserAddressesTypes_infoFirmProfile/", function () use ($ap
     $app->response()->body(json_encode($flows));
 });
 
+
+/**
+ *  * Okan CIRAN
+ * @since 25-01-2016
+ */
+$app->get("/fillCompanyListsGuest_infoFirmProfile/", function () use ($app ) {
+
+
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+
+    $headerParams = $app->request()->headers();
+    $vPk = $headerParams['X-Public'];
+    $vPkTemp = $headerParams['X-Public-Temp'];
+
+    $resDataGrid = $BLL->fillCompanyListsGuest(array('page' => $_GET['page'],
+        'rows' => $_GET['rows'],
+        'sort' => $_GET['sort'],
+        'order' => $_GET['order'],
+        ));
+
+    $resTotalRowCount = $BLL->fillCompanyListsGuestRtc( );
+
+    $flows = array();
+    foreach ($resDataGrid as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+            "firm_names" => $flow["firm_names"],
+            "web_address" => $flow["web_address"],
+            "firm_name_short" => $flow["firm_name_short"],
+            "country_id" => $flow["country_id"],
+            "country_names" => $flow["country_names"],
+            "logo" => $flow["logo"], 
+            "attributes" => array("notroot" => true, "active" => $flow["active"]),
+        );
+    }
+
+    $app->response()->header("Content-Type", "application/json");
+
+    $resultArray = array();
+    $resultArray['total'] = $resTotalRowCount[0]['count'];
+    $resultArray['rows'] = $flows;
+ 
+
+    $app->response()->body(json_encode($resultArray));
+});
 
 
 
