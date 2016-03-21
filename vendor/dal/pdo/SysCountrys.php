@@ -81,7 +81,8 @@ class SysCountrys extends \DAL\DalSlim {
                     COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,                     
                     a.language_parent_id,
                     a.flag_icon_road,
-                    a.country_code3,                  
+                    a.country_code2,   
+                    a.country_code3,  
                     a.user_id, 
                     u.username,
                     a.priority                  
@@ -164,7 +165,7 @@ class SysCountrys extends \DAL\DalSlim {
             $statement = $pdo->prepare("
                 INSERT INTO sys_countrys(
                         name, name_eng, language_code, language_parent_id, 
-                        user_id, flag_icon_road, country_code3, priority)
+                        user_id, flag_icon_road, country_code2,country_code3,   priority)
                 VALUES (
                         :name,
                         :name_eng, 
@@ -172,7 +173,8 @@ class SysCountrys extends \DAL\DalSlim {
                         :language_parent_id,
                         :user_id,
                         :flag_icon_road,                       
-                        :country_code3,
+                        :country_code2,
+                        :country_code3,  
                         :priority 
                                               )  ");
             $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
@@ -181,6 +183,7 @@ class SysCountrys extends \DAL\DalSlim {
             $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
             $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
             $statement->bindValue(':flag_icon_road', $params['flag_icon_road'], \PDO::PARAM_STR);
+            $statement->bindValue(':country_code2', $params['country_code2'], \PDO::PARAM_STR);
             $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
             $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);
             $result = $statement->execute();
@@ -225,6 +228,7 @@ class SysCountrys extends \DAL\DalSlim {
                     language_parent_id = :language_parent_id,
                     user_id = :user_id,
                     flag_icon_road = :flag_icon_road,                       
+                    country_code2 = :country_code2,
                     country_code3 = :country_code3,
                     priority = :priority ,
                     active = :active
@@ -236,6 +240,7 @@ class SysCountrys extends \DAL\DalSlim {
             $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);                       
             $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
             $statement->bindValue(':flag_icon_road', $params['flag_icon_road'], \PDO::PARAM_STR);
+            $statement->bindValue(':country_code2', $params['country_code2'], \PDO::PARAM_STR);
             $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
             $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);     
             $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);  
@@ -312,7 +317,8 @@ class SysCountrys extends \DAL\DalSlim {
                     COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,                     
                     a.language_parent_id,
                     a.flag_icon_road,
-                    a.country_code3,                  
+                    a.country_code2,
+                    a.country_code3,
                     a.user_id, 
                     u.username,
                     a.priority                  
@@ -493,4 +499,39 @@ class SysCountrys extends \DAL\DalSlim {
     }
 
 
+         /**     
+     * @author Okan CIRAN
+     * @ sys_countrys tablosundan id degerini getirir.  !!
+     * @version v 1.0  17.03.2016    
+     * @param array | null $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function getCountryCode($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $sql = " 
+                SELECT                    
+                   a.country_code2 AS country_code,
+                   a.id = " . intval($params['country_id']) . " AS control
+                FROM sys_countrys a                                
+                where a.deleted =0 AND a.active = 0 AND 
+                    a.id = " . intval($params['country_id']) . "
+                LIMIT 1                  
+                ";
+           //  echo debugPDO($sql, $params);   
+            $statement = $pdo->prepare($sql);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {            
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
+    
 }
