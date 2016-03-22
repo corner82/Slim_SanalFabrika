@@ -162,7 +162,7 @@ $app->get("/pkInsert_logConnection/", function () use ($app ) {
     if($stripper->offsetExists('ip')) $vIp = $stripper->offsetGet('ip')->getFilterValue();
     if($stripper->offsetExists('params')) $vParams = $stripper->offsetGet('params')->getFilterValue();
     if($stripper->offsetExists('method')) $vMethod = $stripper->offsetGet('method')->getFilterValue();
-    if($stripper->offsetExists('request_info')) $vRequestInfo = $stripper->offsetGet('request_info')->getFilterValue();
+    
     
     
     $resDataInsert = $BLL->insert(array(        
