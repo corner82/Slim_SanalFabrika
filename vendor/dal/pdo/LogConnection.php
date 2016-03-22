@@ -57,7 +57,8 @@ class LogConnection extends \DAL\DalSlim {
                 a.path, 
                 a.ip, 
                 a.params,
-                a.method
+                a.method,
+                a.request_info
             FROM connection_log a 
             INNER JOIN sys_operation_types so ON so.id = a.type_id
             INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
@@ -97,7 +98,7 @@ class LogConnection extends \DAL\DalSlim {
                     $userIdValue = $userId ['resultSet'][0]['user_id'];                    
                 }
             }              
-            print_r("===>>>".$userIdValue);
+          
             $sql = "
                 INSERT INTO connection_log(
                        pk, 
@@ -108,7 +109,8 @@ class LogConnection extends \DAL\DalSlim {
                        ip, 
                        op_user_id,
                        params,                       
-                       method                       
+                       method,
+                       request_info
                        )
                 VALUES (
                         :pk,
@@ -119,7 +121,8 @@ class LogConnection extends \DAL\DalSlim {
                         :ip, 
                         :op_user_id, 
                         :params,                        
-                        :method                       
+                        :method,
+                        :request_info
                                              )   ";
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':pk', $pk, \PDO::PARAM_STR);
@@ -131,8 +134,9 @@ class LogConnection extends \DAL\DalSlim {
             $statement->bindValue(':params', $params['params'], \PDO::PARAM_STR);
             $statement->bindValue(':op_user_id', $userIdValue, \PDO::PARAM_INT);            
             $statement->bindValue(':method', $params['method'], \PDO::PARAM_STR);
+            $statement->bindValue(':request_info', $params['request_info'], \PDO::PARAM_STR);
 
-            echo debugPDO($sql, $params);
+          //  echo debugPDO($sql, $params);
             $result = $statement->execute();
             $insertID = $pdo->lastInsertId('connection_log_id_seq');
             $errorInfo = $statement->errorInfo();
@@ -216,7 +220,8 @@ class LogConnection extends \DAL\DalSlim {
                 a.path, 
                 a.ip, 
                 a.params,
-                a.method
+                a.method,
+                a.request_info
             FROM connection_log a 
             INNER JOIN sys_operation_types so ON so.id = a.type_id
             INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 

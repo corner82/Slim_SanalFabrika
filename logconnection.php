@@ -77,6 +77,7 @@ $app->get("/pkFillGrid_logConnection/", function () use ($app ) {
             "ip" => $flow["ip"],
             "params" => $flow["params"],
             "method" =>  $flow["method"],
+            "request_info" =>  $flow["request_info"],            
             "attributes" => array("notroot" => true,  
                 ),
         );
@@ -147,7 +148,10 @@ $app->get("/pkInsert_logConnection/", function () use ($app ) {
                                                 $app,
                                                 $_GET['method']));
     } 
-    
+    $vRequestInfo = NULL;
+    if (isset($_GET['request_info'])) {
+        $vRequestInfo = $_GET['request_info'] ;
+    } 
     
     
     $stripper->strip();
@@ -158,6 +162,7 @@ $app->get("/pkInsert_logConnection/", function () use ($app ) {
     if($stripper->offsetExists('ip')) $vIp = $stripper->offsetGet('ip')->getFilterValue();
     if($stripper->offsetExists('params')) $vParams = $stripper->offsetGet('params')->getFilterValue();
     if($stripper->offsetExists('method')) $vMethod = $stripper->offsetGet('method')->getFilterValue();
+    if($stripper->offsetExists('request_info')) $vRequestInfo = $stripper->offsetGet('request_info')->getFilterValue();
     
     
     $resDataInsert = $BLL->insert(array(        
@@ -168,6 +173,7 @@ $app->get("/pkInsert_logConnection/", function () use ($app ) {
         'ip' => $vIp,
         'params' => $vParams,
         'method' =>$vMethod,
+        'request_info' => $vRequestInfo,
         'pk' => $Pk));
 
     $app->response()->header("Content-Type", "application/json"); 
@@ -201,7 +207,8 @@ $app->get("/pkGetAll_logConnection/", function () use ($app ) {
             "path" => $flow["path"],
             "ip" => $flow["ip"],
             "params" => $flow["params"],
-            "method" => $flow["method"],            
+            "method" => $flow["method"],   
+            "request_info" =>  $flow["request_info"],
             "attributes" => array("notroot" => true,  ),
         );
     }

@@ -57,7 +57,8 @@ class LogServices extends \DAL\DalSlim {
 		b.oid AS user_id ,
 		b.username,
                 a.log_datetime,
-                a.method
+                a.method,
+                a.request_info
             FROM services_log  a            
             INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
                 Or CRYPT(b.sf_private_key_value_temp,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/'))  
@@ -107,7 +108,8 @@ class LogServices extends \DAL\DalSlim {
                         params,
                         log_datetime,
                         method,
-                        op_user_id)
+                        op_user_id,
+                        request_info)
                 VALUES (
                         :pk, 
                         :op_type_id, 
@@ -117,7 +119,8 @@ class LogServices extends \DAL\DalSlim {
                         :params,
                         :log_datetime,
                         :method,
-                        :op_user_id
+                        :op_user_id,
+                        :request_info
                                              )   ";
                 $statement = $pdo->prepare($sql);
                 $statement->bindValue(':pk', $pk, \PDO::PARAM_STR);
@@ -129,6 +132,7 @@ class LogServices extends \DAL\DalSlim {
                 $statement->bindValue(':params', $params['params'], \PDO::PARAM_STR);
                 $statement->bindValue(':op_user_id', $userIdValue, \PDO::PARAM_INT);            
                 $statement->bindValue(':method', $params['method'], \PDO::PARAM_STR);
+                $statement->bindValue(':request_info', $params['request_info'], \PDO::PARAM_STR);
                // echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('services_log_id_seq');
@@ -213,7 +217,8 @@ class LogServices extends \DAL\DalSlim {
 		b.oid AS user_id ,
 		b.username,
                 a.log_datetime,
-                a.method
+                a.method,
+                a.request_info
             FROM services_log  a            
             INNER JOIN info_users b ON CRYPT(b.sf_private_key_value,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/')) 
                 Or CRYPT(b.sf_private_key_value_temp,CONCAT('_J9..',REPLACE(a.pk,'*','/'))) = CONCAT('_J9..',REPLACE(a.pk,'*','/'))  

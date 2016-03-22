@@ -78,7 +78,7 @@ $app->get("/pkFillGrid_logServices/", function () use ($app ) {
             "user_id" => $flow["user_id"], 
             "username" => $flow["username"],
             "method" => $flow["method"],
-            
+            "request_info" => $flow["request_info"], 
             "attributes" => array("notroot" => true,  
                 ),
         );
@@ -146,6 +146,12 @@ $app->get("/pkInsert_logServices/", function () use ($app ) {
                                                 $app,
                                                 $_GET['method']));
     }  
+    
+    $vRequestInfo = NULL;
+    if (isset($_GET['request_info'])) {
+        $vRequestInfo = $_GET['request_info'] ;
+    } 
+    
     $stripper->strip();    
     if($stripper->offsetExists('op_type_id')) $vOpTypeId = $stripper->offsetGet('op_type_id')->getFilterValue();
     if($stripper->offsetExists('urlx')) $vUrl = $stripper->offsetGet('urlx')->getFilterValue();
@@ -165,6 +171,7 @@ $app->get("/pkInsert_logServices/", function () use ($app ) {
         'params' => $vParams,
         'log_datetime' => $vLogDatetime,
         'method' =>$vMethod,
+        'request_info' => $vRequestInfo,
             ));
 
     $app->response()->header("Content-Type", "application/json"); 
@@ -197,6 +204,7 @@ $app->get("/pkGetAll_logServices/", function () use ($app ) {
             "params" => $flow["params"], 
             "user_id" => $flow["user_id"], 
             "username" => $flow["username"],
+            "request_info" => $flow["request_info"],            
             "attributes" => array("notroot" => true,  ),
         );
     }
