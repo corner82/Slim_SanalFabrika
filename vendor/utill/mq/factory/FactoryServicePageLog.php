@@ -16,20 +16,16 @@ class FactoryServicePageLog  implements FactoryInterface{
 
     public function createService(ServiceLocatorInterface $serviceLocator) {
         
-        $publicKey = $serviceLocator->get('servicePublicKeyReader'); 
+        $serviceLogMQ = new \Utill\MQ\restEntryMQ();
+        $slimApp = $serviceLocator->get('slimApp');
+        $request = $slimApp->container['request'];
+        $params = $request->params();
         
-        $routeMatch = $serviceLocator->get('Application')->getMvcEvent()->getRouteMatch();
-        $controller = $routeMatch->getParam('controller');
-        $action = $routeMatch->getParam('action');
+        $requestHeaderData = $request->headers();
         
-        $request = $serviceLocator->get('Request');
-        $uri = $request->getUri();
-        $scheme = $uri->getScheme();
-        $host = $uri->getHost();   
-        $base = sprintf('%s://%s', $scheme, $host);
-
-        $remoteAddr = $request->getServer('REMOTE_ADDR');
-        $params = $request->getContent();
+        $base = $request->getRootUri();
+        $path = $request->getResourceUri();
+        $ip = $request->getIp();
         $method = $request->getMethod();
         
         /**
@@ -45,7 +41,7 @@ class FactoryServicePageLog  implements FactoryInterface{
        $message->setMessageBody(array('message' => 'Kullanıcı sayfa giris log servis!', 
                                       //'s_date'  => date('l jS \of F Y h:i:s A'),
                                       'log_datetime'  => date('Y-m-d G:i:s '),
-                                      'pk' => $publicKey,
+                                      'pk' => $requestHeaderData['X-Public'],
                                       'url' => $base,
                                       'path' => $controller.'/'.$action,
                                       'method' => $method,

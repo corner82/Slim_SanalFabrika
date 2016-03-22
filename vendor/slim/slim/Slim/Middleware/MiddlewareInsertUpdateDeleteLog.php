@@ -137,7 +137,7 @@ use PhpAmqpLib\Message\AMQPMessage;
     public function call()
     {
         $this->getRequestHeaderData();
-        print_r($this->getAppRequestParams());
+        //print_r($this->getAppRequestParams());
         //print_r('--middlewareInsertUpdateDeleteLog call()--');
         //print_r($this->requestHeaderData);
         /*print_r($this->requestHeaderData['X-Updateoperationlogged']);
@@ -147,30 +147,84 @@ use PhpAmqpLib\Message\AMQPMessage;
         $MQManager = $this->app->getMQManager();
         $serviceManager = $this->app->getServiceManager();
         if($this->requestHeaderData['X-Updateoperationlogged'] == 'true') {
-          print_r('--testt1--');
-          $this->controlUrlParam('update');
+          //print_r('--testt1--');
+          $this->controlUpdate();
         }
         
         if($this->requestHeaderData['X-Insertoperationlogged'] == 'true') {
-          print_r('--testt2--');
-          $this->controlUrlParam('insert');
+          //print_r('--testt2--');
+          $this->controlInsert();
         }
         
         if($this->requestHeaderData['X-Deleteoperationlogged'] == 'true') {
-          print_r('--testt3--');
-          $this->controlUrlParam('delete');
+          //print_r('--testt3--');
+          $this->controlDelete();
         }
 
         $this->next->call();
     }
     
-    private function controlUrlParam($wordTosearch = null) {
+    /**
+     * control delete operations and make request to message queue
+     * vis MQ Manager
+     * @param type $wordTosearch
+     * @return boolean
+     * @author Mustafa Zeynel Dağlı
+     * @since 22/03/2016
+     */
+    private function controlDelete($wordTosearch = null) {
         $requestParams = $this->getAppRequestParams();
         if(isset($requestParams['url'])) {
-            $found = stripos($requestParams['url'], $wordTosearch);
+            $found = stripos($requestParams['url'], 'delete');
             if($found !== false) {
                 $MQManager = $this->app->getMQManager();
-                $MQManager->get('serviceRestEntryLog');
+                $MQManager->get('serviceRestDeleteLog');
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * control update operations and make request to message queue
+     * vis MQ Manager
+     * @param type $wordTosearch
+     * @return boolean
+     * @author Mustafa Zeynel Dağlı
+     * @since 22/03/2016
+     */
+    private function controlUpdate($wordTosearch = null) {
+        $requestParams = $this->getAppRequestParams();
+        if(isset($requestParams['url'])) {
+            $found = stripos($requestParams['url'], 'update');
+            if($found !== false) {
+                $MQManager = $this->app->getMQManager();
+                $MQManager->get('serviceRestUpdateLog');
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * control insert operations and make request to message queue
+     * vis MQ Manager
+     * @param type $wordTosearch
+     * @return boolean
+     * @author Mustafa Zeynel Dağlı
+     * @since 22/03/2016
+     */
+    private function controlInsert($wordTosearch = null) {
+        $requestParams = $this->getAppRequestParams();
+        if(isset($requestParams['url'])) {
+            $found = stripos($requestParams['url'], 'insert');
+            if($found !== false) {
+                $MQManager = $this->app->getMQManager();
+                $MQManager->get('serviceRestInsertLog');
             } else {
                 return false;
             }

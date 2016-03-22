@@ -11,6 +11,7 @@ class serverVariables {
      * get client ip adress whereever it is located
      * @return strıng
      * @author Mustafa Zeynel Dağlı
+     * @deprecated since 22/03/2016 slimm app request object has 'getIp()' function
      */
     public static function  getClientIp() {
     $ipaddress = '';
