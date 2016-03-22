@@ -31,13 +31,14 @@ $res = $app->response();
 $res->header('Access-Control-Allow-Origin', '*');
 $res->header("Access-Control-Allow-Methods: PUT, GET, POST, DELETE, OPTIONS");
 
-//$app->add(new \Slim\Middleware\MiddlewareTest());
+$app->add(new \Slim\Middleware\MiddlewareInsertUpdateDeleteLog());
 $app->add(new \Slim\Middleware\MiddlewareHMAC());
 $app->add(new \Slim\Middleware\MiddlewareSecurity());
+$app->add(new \Slim\Middleware\MiddlewareMQManager());
 $app->add(new \Slim\Middleware\MiddlewareBLLManager());
 $app->add(new \Slim\Middleware\MiddlewareDalManager());
 $app->add(new \Slim\Middleware\MiddlewareServiceManager());
-$app->add(new \Slim\Middleware\MiddlewareMQManager());
+
 
 
 $pdo = new PDO('pgsql:dbname=ecoman_01_10;host=88.249.18.205;user=postgres;password=1q2w3e4r');
