@@ -149,6 +149,59 @@ class InfoFirmProfile extends \BLL\BLLSlim {
     }
     
     
+       /**
+     * Function to get datagrid row count on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillCompanyListsGuestRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        $resultSet = $DAL->fillCompanyListsGuestRtc($params);
+        return $resultSet['resultSet'];
+    }
+    
+ 
+    
+        /**
+     * get consultant confirmation process details
+     * @param array $params
+     * @return array
+     */
+    public function fillCompanyInfoEmployeesGuest($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        return $DAL->fillCompanyInfoEmployeesGuest($params);
+    }
+    
+           /**
+     * get consultant confirmation process details
+     * @param array $params
+     * @return array
+     */
+    public function fillCompanyInfoSocialediaGuest($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        return $DAL->fillCompanyInfoSocialediaGuest($params);
+    }
+    
+       /**
+     * get consultant confirmation process details
+     * @param array $params
+     * @return array
+     */
+    public function fillCompanyInfoReferencesGuest($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        return $DAL->fillCompanyInfoReferencesGuest($params);
+    }
+    
+    
+    /**
+     * get consultant confirmation process details
+     * @param array $params
+     * @return array
+     */
+    public function fillCompanyInfoCustomersGuest($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        return $DAL->fillCompanyInfoCustomersGuest($params);
+    }
     
     
     
