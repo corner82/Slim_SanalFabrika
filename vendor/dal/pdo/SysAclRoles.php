@@ -502,4 +502,45 @@ class SysAclRoles extends \DAL\DalSlim {
         }
     }
 
+    
+      /**   
+     * @author Okan CIRAN
+     * @ combobox doldurmak için sys_acl_roles tablosundan tüm kayıtları döndürür !!
+     * @version v 1.0  28.03.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillComboBoxRoles($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
+            $statement = $pdo->prepare("
+                SELECT                    
+                    a.id, 	
+                    a.name AS name,
+                    a.parent,
+                    a.active ,
+                    CASE 
+                    (SELECT DISTINCT 1 state_type FROM sys_acl_roles WHERE parent = a.id AND deleted = 0)    
+                     WHEN 1 THEN 'closed'
+                     ELSE 'open'   
+                     END AS state_type  
+                FROM sys_acl_roles a        
+                WHERE                    
+                    a.active = 0 AND 
+                    a.deleted = 0     
+                ORDER BY name                
+                                 ");
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {    
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
 }

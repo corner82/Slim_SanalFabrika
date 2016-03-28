@@ -117,5 +117,20 @@ class SysAclRoles extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
         return $DAL->updateChild($params);
     }
+    
+        /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillComboBoxRoles($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
+        $resultSet = $DAL->fillComboBoxRoles($params);
+        return $resultSet['resultSet'];
+    }
+    
+    
+    
+    
 
 }

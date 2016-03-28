@@ -742,4 +742,55 @@ $app->get("/pkDelete_sysAclRoles/", function () use ($app ) {
     $app->response()->body(json_encode($resDataUpdate));
 });
 
+
+/**
+ *  * Okan CIRAN
+ * @since 25-01-2016
+ */
+$app->get("/pkFillComboBoxRoles_sysAclRoles/", function () use ($app ) {
+
+    $BLL = $app->getBLLManager()->get('sysAclRolesBLL');
+
+ 
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+ 
+    $resCombobox = $BLL->FillComboBoxRoles();
+    $menus = array();
+    $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+ 
+    if ($componentType == 'bootstrap') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "text" => $menu["name"],
+                "state" => $menu["state_type"], //   'closed',
+                "checked" => false,
+                "attributes" => array("notroot" => true, "active" => $menu["active"]),
+            );
+        }
+    } else if ($componentType == 'ddslick') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" => $menu["id"],
+                "selected" => false,
+                "description" => "",
+                "imageSrc" => ""
+            );
+        }
+    }
+
+    $app->response()->header("Content-Type", "application/json");
+
+
+    $app->response()->body(json_encode($menus));
+
+    //$app->response()->body(json_encode($flows));
+});
+
+
+
 $app->run();
