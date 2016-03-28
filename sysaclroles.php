@@ -777,7 +777,7 @@ $app->get("/pkFillComboBoxRoles_sysAclRoles/", function () use ($app ) {
                 "text" => $menu["name"],
                 "value" => $menu["id"],
                 "selected" => false,
-                "description" => "",
+                "description" => $menu["name_tr"],
                 "imageSrc" => ""
             );
         }

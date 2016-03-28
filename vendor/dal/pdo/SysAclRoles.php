@@ -518,6 +518,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 SELECT                    
                     a.id, 	
                     a.name AS name,
+                    a.name_tr, 
                     a.parent,
                     a.active ,                    
                     'open' AS state_type  
