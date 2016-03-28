@@ -606,4 +606,256 @@ class SysNavigationLeft extends \DAL\DalSlim {
         }
     }
 
+    
+    /**  
+     * @author Okan CIRAN
+     * @ Gridi doldurmak için sys_navigation_left tablosundan kayıtları döndürür !!
+     * @version v 1.0  28.03.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillGridForAdmin($params = array()) {
+        if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+            $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+            $limit = intval($params['rows']);
+        } else {
+            $limit = 10;
+            $offset = 0;
+        }
+
+        $sortArr = array();
+        $orderArr = array();
+        if (isset($params['sort']) && $params['sort'] != "") {
+            $sort = trim($params['sort']);
+            $sortArr = explode(",", $sort);
+            if (count($sortArr) === 1)
+                $sort = trim($params['sort']);
+        } else {            
+            $sort = "a.parent, a.z_index";
+        }
+
+        if (isset($params['order']) && $params['order'] != "") {
+            $order = trim($params['order']);
+            $orderArr = explode(",", $order);            
+            if (count($orderArr) === 1)
+                $order = trim($params['order']);
+        } else {            
+            $order = "ASC";
+        }
+        
+        $RoleId = 1;                
+        if ((isset($params['role_id']) && $params['role_id'] != "")) {                                 
+            $RoleId = $params ['role_id']; 
+        }  
+        
+        $languageId = NULL;
+        $languageIdValue = 647;
+        if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+            }
+        }  
+
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $sql = "
+              SELECT a.id, 
+                    COALESCE(NULLIF(axz.menu_name, ''), a.menu_name_eng) AS menu_name, 
+                    a.menu_name_eng,                     
+                    a.url, 
+                    a.parent, 
+                    a.icon_class, 
+                    a.page_state, 
+                    a.collapse, 
+                    a.deleted, 		                
+		    COALESCE(NULLIF(COALESCE(NULLIF(sd15x.description, ''), sd15.description_eng), ''), sd15.description) AS state_deleted,		  
+                    a.active, 		                          
+		    COALESCE(NULLIF(COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng), ''), sd16.description) AS state_active,                       
+                    a.warning, 
+                    a.warning_type, 
+                    COALESCE(NULLIF(axz.hint, ''), a.hint_eng) AS hint, 
+                    a.z_index, 
+                    a.language_parent_id, 
+                    a.hint_eng, 
+                    a.warning_class,                                      
+                    (   SELECT COALESCE(NULLIF(max(ax.active), 0),0)+COALESCE(NULLIF(max(bx.active), 0),0)+COALESCE(NULLIF(max(cx.active), 0),0)+
+                            COALESCE(NULLIF(max(dx.active), 0),0) +COALESCE(NULLIF(max(ex.active), 0),0)+ COALESCE(NULLIF(max(fx.active), 0),0)+
+                            COALESCE(NULLIF(max(gx.active), 0),0) 
+                        FROM sys_navigation_left ax 
+			LEFT JOIN sys_navigation_left bx ON ax.parent = bx.id
+			LEFT JOIN sys_navigation_left cx ON bx.parent = cx.id 
+			LEFT JOIN sys_navigation_left dx ON cx.parent = dx.id
+			LEFT JOIN sys_navigation_left ex ON dx.parent = ex.id
+			LEFT JOIN sys_navigation_left fx ON ex.parent = fx.id
+			LEFT JOIN sys_navigation_left gx ON fx.parent = gx.id
+			WHERE ax.id = a.id ) AS active_control,
+			a.menu_type as role_id,
+			sar.name as role_name 			
+                FROM sys_navigation_left a  
+                INNER JOIN sys_acl_roles sar on sar.id = a.menu_type 
+		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.deleted =0 AND lx.active =0 AND lx.id = " . intval($languageIdValue) . "
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = a.language_id AND sd15.deleted =0 AND sd15.active =0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0 AND sd16.active = 0
+                LEFT JOIN sys_navigation_left axz ON (axz.id = a.id OR axz.language_parent_id = a.id) AND axz.language_id = lx.id
+                LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= a.deleted AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
+                LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
+                WHERE a.language_parent_id = 0 AND 
+                    a.active = 0 AND 
+                    a.deleted = 0 AND
+                    a.menu_type = ". intval($RoleId)."  
+                ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            );
+            //   echo debugPDO($sql, $parameters);            
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+  
+        /**
+     * user interface datagrid fill operation get row count for widget
+     * @author Okan CIRAN
+     * @ Gridi doldurmak için sys_navigation_left tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
+     * @version v 1.0  14.12.2015
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillGridForAdminRtc($params = array()) {       
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+             $RoleId = 1;                
+            if ((isset($params['role_id']) && $params['role_id'] != "")) {                                 
+                $RoleId = $params ['role_id']; 
+            }  
+
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
+            $sql = "
+                    SELECT 
+			COUNT(a.id) AS COUNT , 
+			(SELECT COUNT(ax.id) 
+                        FROM sys_navigation_left ax  
+                        INNER JOIN sys_acl_roles sarx ON sarx.id = ax.menu_type 
+                        INNER JOIN sys_language lx ON lx.id = ax.language_id AND lx.deleted =0 AND lx.active =0                 
+                        INNER JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= ax.deleted AND sd15x.language_id = ax.language_id AND sd15x.deleted =0 AND sd15x.active =0 
+                        INNER JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= ax.active AND sd16x.language_id = ax.language_id AND sd16x.deleted = 0 AND sd16x.active = 0
+			WHERE ax.language_parent_id = 0 AND ax.menu_type = ". intval($RoleId)." AND ax.deleted =0) AS undeleted_count, 
+			(SELECT COUNT(ay.id)
+			FROM sys_navigation_left ay  
+                        INNER JOIN sys_acl_roles sary ON sary.id = ay.menu_type 
+                        INNER JOIN sys_language ly ON ly.id = ay.language_id AND ly.deleted =0 AND ly.active =0                 
+                        INNER JOIN sys_specific_definitions sd15y ON sd15y.main_group = 15 AND sd15y.first_group= ay.deleted AND sd15y.language_id = ay.language_id AND sd15y.deleted =0 AND sd15y.active =0 
+                        INNER JOIN sys_specific_definitions sd16y ON sd16y.main_group = 16 AND sd16y.first_group= ay.active AND sd16y.language_id = ay.language_id AND sd16y.deleted = 0 AND sd16y.active = 0
+			WHERE ay.language_parent_id = 0 AND ay.menu_type = ". intval($RoleId)." AND ay.deleted =1) AS deleted_count  
+		FROM sys_navigation_left a  
+                INNER JOIN sys_acl_roles sar on sar.id = a.menu_type 
+		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                 
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = a.language_id AND sd15.deleted =0 AND sd15.active =0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0 AND sd16.active = 0
+                WHERE a.menu_type = ". intval($RoleId)." AND  
+                    a.language_parent_id = 0 AND                                           
+                    a.active = 0 AND 
+                    a.deleted = 0 
+                    
+                
+                    ";
+            $statement = $pdo->prepare($sql);
+          //  $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_INT);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    
+    public function fillForAdminTree($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            
+            $RoleId = 1;                
+            if ((isset($params['role_id']) && $params['role_id'] != "")) {                                 
+                $RoleId = $params ['role_id']; 
+            }  
+
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
+
+            $sql = "
+             SELECT a.id, 
+                    COALESCE(NULLIF(axz.menu_name, ''), a.menu_name_eng) AS menu_name, 
+                    a.menu_name_eng,                                         
+                    a.active, 		                                   
+                    CASE 
+                        (SELECT DISTINCT 1 state_type FROM sys_navigation_left ax WHERE ax.parent = a.id AND ax.deleted = 0)    
+                            WHEN 1 THEN 'closed'
+                            ELSE 'open'   
+                    END AS state_type                          
+                FROM sys_navigation_left a  
+                INNER JOIN sys_acl_roles sar on sar.id = a.menu_type 
+		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.deleted =0 AND lx.active =0 AND lx.id = " . intval($languageIdValue) . "
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = a.language_id AND sd15.deleted =0 AND sd15.active =0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0 AND sd16.active = 0
+                LEFT JOIN sys_navigation_left axz ON (axz.id = a.id OR axz.language_parent_id = a.id) AND axz.language_id = lx.id
+                LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= a.deleted AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
+                LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
+                WHERE a.language_parent_id = 0 AND 
+                    a.active = 0 AND 
+                    a.deleted = 0 AND
+                    a.menu_type = ". intval($RoleId)."  
+                 
+                ORDER BY a.parent, a.z_index           
+                                 ";
+            $statement = $pdo->prepare($sql);            
+            //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
 }

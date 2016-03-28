@@ -3,7 +3,7 @@
 require 'vendor/autoload.php';
 
 
-
+use \Services\Filter\Helper\FilterFactoryNames as stripChainers;
 
 /*$app = new \Slim\Slim(array(
     'mode' => 'development',
@@ -121,76 +121,319 @@ $app->get("/pkGetLeftMenu_leftnavigation/", function () use ($app ) {
   $app->response()->body(json_encode($menus));
   
 });
-/**
- *  * zeynel daÄŸlÄ±
- * @since 11-09-2014
- */
-$app->get("/getLeftMenuFull_leftnavigation/", function () use ($app ) {
 
-    
-    $BLL = $app->getBLLManager()->get('sysNavigationLeftBLL'); 
- 
-    // Filters are called from service manager
-    //$filterHtmlAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
-  //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
-    //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
-
-    
-    
-    
-    
-     $resDataMenuFull = $BLL->getLeftMenuFull();
   
-    //print_r('--****************get parent--'.$_GET['parent']);  
-    
-    //print_r($resDataMenu);
-   
-     
-        
-        
  
-    $menusFull = array();
-    foreach ($resDataMenuFull as $menuFull){
-        $menusFull[]  = array(
-            "id" => $menuFull["id"],
-            "menu_name" => $menuFull["menu_name"],
-             "language_id" => $menuFull["language_id"],
-             "menu_name_eng" => $menuFull["menu_name_eng"],
-             "url" => $menuFull["url"],
-             "parent" => $menuFull["parent"],
-             "icon_class" => $menuFull["icon_class"],
-             "page_state" => $menuFull["page_state"],
-             "collapse" => $menuFull["collapse"],
-             "active" => $menuFull["active"],
-              "deleted" => $menuFull["deleted"],
-             "state" => $menuFull["state"],
-             "warning" => $menuFull["warning"],
-             "warning_type" => $menuFull["warning_type"],
-             "hint" => $menuFull["hint"],
-             "z_index" => $menuFull["z_index"],
-             "language_parent_id" => $menuFull["language_parent_id"],
-             "hint_eng" => $menuFull["hint_eng"],
-             "warning_class" => $menuFull["warning_class"],
-             "acl_type" => $menuFull["acl_type"],
-             
-            
-           
-        );
+/**
+ *  * Okan CIRAN
+ * @since 28-03-2016
+ */
+$app->get("/pkFillGridForAdmin_leftnavigation/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysNavigationLeftBLL');
+ 
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkGetConsConfirmationProcessDetails_sysOsbConsultants" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vRoleId = 1;
+    if (isset($_GET['role_id'])) {
+        $stripper->offsetSet('role_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['role_id']));
     }
     
+    $vPage = 1;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['page']));
+    }
+    $vRows = 10;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['rows']));
+    }
+    
+    $vfilterRules = null;
+    if(isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ALPHABETIC_ALLOWED ,
+                                                $app,
+                                                $_GET['filterRules']));
+    }
+    $vSort = null;
+    if(isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['sort']));
+    }
+    $vOrder = null;
+    if(isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['order']));
+    }
+   
+  
+     $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('role_id')) $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
+    if($stripper->offsetExists('page')) $vPage = $stripper->offsetGet('page')->getFilterValue();
+    if($stripper->offsetExists('rows')) $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    if($stripper->offsetExists('sort')) $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    if($stripper->offsetExists('order')) $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    if($stripper->offsetExists('filterRules')) $vfilterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    
+ 
+
+    $resDataGrid = $BLL->fillGridForAdmin(array('language_code' => $vLanguageCode,
+        'page' => $vPage,
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder, 
+        'role_id' => $vRoleId,
+        'pk' => $pk,        
+        'filterRules' => $vfilterRules));    
+ 
+    $resTotalRowCount = $BLL->fillGridForAdminRtc(array('pk' => $pk,
+                                                'language_code' => $vLanguageCode,
+                                                'role_id' => $vRoleId,
+                                                'filterRules' => $vfilterRules   ));
+ 
+                                            
+    $flows = array();
+    foreach ($resDataGrid['resultSet'] as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+            "menu_name" => $flow["menu_name"],
+            "menu_name_eng" => $flow["menu_name_eng"],
+            "url" => $flow["url"],
+            "parent" => $flow["parent"],
+            "icon_class" => $flow["icon_class"],            
+            
+            "page_state" => $flow["page_state"], 
+            "collapse" => $flow["collapse"], 
+            "deleted" => $flow["deleted"], 
+            "state_deleted" => $flow["state_deleted"], 
+            "active" => $flow["active"], 
+            "state_active" => $flow["state_active"], 
+            "warning" => $flow["warning"], 
+            "warning_type" => $flow["warning_type"], 
+            "warning_class" => $flow["warning_class"], 
+            "hint" => $flow["hint"], 
+            "hint_eng" => $flow["hint_eng"], 
+            "z_index" => $flow["z_index"], 
+            "language_parent_id" => $flow["language_parent_id"], 
+            
+            "active_control" => $flow["active_control"], 
+            "role_id" => $flow["role_id"], 
+            "role_name" => $flow["role_name"],  
+            "attributes" => array("notroot" => true, "active" => $flow["active"],"active_control" => $flow["active_control"]),
+        );
+    }
+
     $app->response()->header("Content-Type", "application/json");
-    
-  
-    
-    /*$app->contentType('application/json');
-    $app->halt(302, '{"error":"Something went wrong"}');
-    $app->stop();*/
-    
-  $app->response()->body(json_encode($menusFull));
-  
+
+    $resultArray = array();
+    $resultArray['total'] = 2; //$resTotalRowCount['resultSet'][0]['count'];
+    $resultArray['rows'] = $flows;
+
+    /* $app->contentType('application/json');
+      $app->halt(302, '{"error":"Something went wrong"}');
+      $app->stop(); */
+
+    $app->response()->body(json_encode($resultArray));
+
 });
 
+ 
 
+ 
+/**
+ *  * Okan CIRAN
+ * @since 28-03-2016
+ */
+$app->get("/pkFillTreeForAdmin_leftnavigation/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysNavigationLeftBLL');
+ 
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkGetConsConfirmationProcessDetails_sysOsbConsultants" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vRoleId = 1;
+    if (isset($_GET['role_id'])) {
+        $stripper->offsetSet('role_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['role_id']));
+    }
+    
+    
+     $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('role_id')) $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
+    
+    
+ 
 
+    $resDataGrid = $BLL->fillGridForAdmin(array('language_code' => $vLanguageCode,
+        'role_id' => $vRoleId,
+        'pk' => $pk,        
+        ));    
+ 
+    $resTotalRowCount = $BLL->fillGridForAdminRtc(array('pk' => $pk,
+                                                'language_code' => $vLanguageCode,
+                                                'role_id' => $vRoleId,
+                                                ));
+ 
+                                            
+    $flows = array();
+    foreach ($resDataGrid['resultSet'] as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+            "menu_name" => $flow["menu_name"],
+            "menu_name_eng" => $flow["menu_name_eng"],
+            "url" => $flow["url"],
+            "parent" => $flow["parent"],
+            "icon_class" => $flow["icon_class"],            
+            
+            "page_state" => $flow["page_state"], 
+            "collapse" => $flow["collapse"], 
+            "deleted" => $flow["deleted"], 
+            "state_deleted" => $flow["state_deleted"], 
+            "active" => $flow["active"], 
+            "state_active" => $flow["state_active"], 
+            "warning" => $flow["warning"], 
+            "warning_type" => $flow["warning_type"], 
+            "warning_class" => $flow["warning_class"], 
+            "hint" => $flow["hint"], 
+            "hint_eng" => $flow["hint_eng"], 
+            "z_index" => $flow["z_index"], 
+            "language_parent_id" => $flow["language_parent_id"], 
+            
+            "active_control" => $flow["active_control"], 
+            "role_id" => $flow["role_id"], 
+            "role_name" => $flow["role_name"],  
+            "attributes" => array("notroot" => true, "active" => $flow["active"],"active_control" => $flow["active_control"]),
+        );
+    }
 
+    $app->response()->header("Content-Type", "application/json");
+
+    $resultArray = array();    
+    $resultArray['rows'] = $flows;
+
+    /* $app->contentType('application/json');
+      $app->halt(302, '{"error":"Something went wrong"}');
+      $app->stop(); */
+
+    $app->response()->body(json_encode($resultArray));
+
+});
+
+ 
+
+ 
+/**
+ *  * Okan CIRAN
+ * @since 17-03-2016 
+ */
+$app->get("/pkFillForAdminTree_leftnavigation/", function () use ($app ) {
+
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('sysNavigationLeftBLL');
+    
+    $headerParams = $app->request()->headers();
+    
+    $componentType = 'bootstrap'; // 'easyui'    
+    if (isset($_GET['component_type'])) {
+        $componentType = $_GET['component_type']; 
+    }
+    
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillMachineToolFullProperties_sysMachineToolProperties" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+
+     $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vRoleId = 1;
+    if (isset($_GET['role_id'])) {
+        $stripper->offsetSet('role_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['role_id']));
+    }
+    
+    
+     $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('role_id')) $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
+    
+   
+   
+    $resDataGrid = $BLL->fillForAdminTree(array(
+                                            'language_code' => $vLanguageCode,                                          
+                                            'role_id' => $vRoleId,
+                                            'pk' => $pk,
+        
+                                                    ));
+                                                    
+                                                  
+ 
+                                                              
+    
+        $flows = array();
+    if (isset($resDataGrid['resultSet'][0]['id'])) {      
+        foreach ($resDataGrid['resultSet']  as $flow) {    
+            $flows[] = array(
+                "id" => $flow["id"],
+                "text" =>  $flow["menu_name"],
+                "state" => $flow["state_type"],
+                "checked" => false,
+                "attributes" => array ("notroot"=>true,"text_eng"=>$flow["menu_name_eng"]),               
+                
+            );
+        }        
+    }
+   
+      
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+  //  $resultArray['total'] = $resTotalRowCount[0]['count'];
+    $resultArray['rows'] = $flows;
+
+    
+     // $app->response()->body(json_encode($flows));
+    if($componentType == 'bootstrap'){
+        $app->response()->body(json_encode($flows));
+    }else //if($componentType == 'easyui')
+        {
+        $app->response()->body(json_encode($resultArray));
+        }
+      //  $app->response()->body(json_encode($resultArray));
+        
+ 
+});
+
+ 
 $app->run();

@@ -102,7 +102,36 @@ class SysNavigationLeft extends \BLL\BLLSlim{
         $resultSet = $DAL->getLeftMenuFull();  
         return $resultSet['resultSet'];
     }
+    /*
+     * Data update function   
+     * @param array $params
+     * @return array
+     */
+    public function fillGridForAdmin($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysNavigationLeftPDO');     
+        return $DAL->fillGridForAdmin($params);
+    }
     
+     /**
+     * Function to get datagrid row count on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillGridForAdminRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysNavigationLeftPDO');
+        $resultSet = $DAL->fillGridForAdminRtc($params);  
+        return $resultSet['resultSet'];
+    } 
     
+   
+   /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillForAdminTree($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysNavigationLeftPDO');     
+        return $DAL->fillForAdminTree($params);
+    }
     
 }
