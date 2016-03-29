@@ -397,7 +397,7 @@ $app->get("/pkDelete_leftnavigation/", function () use ($app ) {
  *  * Okan CIRAN
  * @since 29-03-2016
  */
-$app->get("/pkMakeActiveOrPassive_leftnavigation/", function () use ($app ) {
+$app->get("/pkUpdateMakeActiveOrPassive_leftnavigation/", function () use ($app ) {
 
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    

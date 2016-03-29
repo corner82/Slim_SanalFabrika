@@ -854,21 +854,10 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= a.deleted AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
                 LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
                 WHERE a.language_parent_id = 0 AND 
-                    a.active = 0 AND 
+                   
                     a.deleted = 0 AND
                     a.parent =". intval($ParentId)." AND
-                    a.menu_type = ". intval($RoleId)."  AND 
-                    (SELECT COALESCE(NULLIF(max(ax.active), 0),0)+COALESCE(NULLIF(max(bx.active), 0),0)+COALESCE(NULLIF(max(cx.active), 0),0)+
-                            COALESCE(NULLIF(max(dx.active), 0),0) +COALESCE(NULLIF(max(ex.active), 0),0)+ COALESCE(NULLIF(max(fx.active), 0),0)+
-                            COALESCE(NULLIF(max(gx.active), 0),0) 
-                        FROM sys_navigation_left ax 
-			LEFT JOIN sys_navigation_left bx ON ax.parent = bx.id
-			LEFT JOIN sys_navigation_left cx ON bx.parent = cx.id 
-			LEFT JOIN sys_navigation_left dx ON cx.parent = dx.id
-			LEFT JOIN sys_navigation_left ex ON dx.parent = ex.id
-			LEFT JOIN sys_navigation_left fx ON ex.parent = fx.id
-			LEFT JOIN sys_navigation_left gx ON fx.parent = gx.id
-			WHERE ax.id = a.id ) = 0 
+                    a.menu_type = ". intval($RoleId)." 
                 ORDER BY a.parent, a.z_index           
                                  ";
             $statement = $pdo->prepare($sql);            
@@ -1048,7 +1037,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             if (isset($params['id']) && $params['id'] != "") {
-                $statement = $pdo->prepare(" 
+                $sql = "                 
                 UPDATE sys_navigation_left
                 SET active = (  SELECT   
                                 CASE active
@@ -1058,7 +1047,9 @@ class SysNavigationLeft extends \DAL\DalSlim {
                                 FROM sys_navigation_left
                                 WHERE id = ".  intval($params['id'])."
                 )                                 
-                WHERE id = ". intval($params['id']));                
+                WHERE id = ". intval($params['id']);                
+                $statement = $pdo->prepare($sql) ; 
+              //  echo debugPDO($sql, $params);
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
