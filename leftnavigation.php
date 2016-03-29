@@ -328,7 +328,8 @@ $app->get("/pkFillForAdminTree_leftnavigation/", function () use ($app ) {
                 "text" =>  $flow["menu_name"],
                 "state" => $flow["state_type"],
                 "checked" => false,
-                "attributes" => array ("notroot"=>true,"text_eng"=>$flow["menu_name_eng"],"active" => $flow["active"], ),               
+                "attributes" => array ("notroot"=>true,"text_eng"=>$flow["menu_name_eng"],"active" => $flow["active"],
+                    "url"=>$flow["url"],"icon_class"=>$flow["icon_class"], ),               
                 
             );
         }        
@@ -432,6 +433,213 @@ $app->get("/pkUpdateMakeActiveOrPassive_leftnavigation/", function () use ($app 
 }
 ); 
 
+/**x
+ *  * Okan CIRAN
+ * @since 29-03-2016
+ */
+$app->get("/pkUpdate_leftnavigation/", function () use ($app ) {
+    
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('sysNavigationLeftBLL');
+   
+    $headerParams = $app->request()->headers();
+    $Pk = $headerParams['X-Public'];  
+   
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }   
+    
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+         $stripper->offsetSet('id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    }   
+    
+    $vRoleId = NULL;
+    if (isset($_GET['role_id'])) {
+         $stripper->offsetSet('role_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['role_id']));
+    }   
+     
+    
+    
+    $vIconClass = NULL;
+    if (isset($_GET['icon_class'])) {
+        $stripper->offsetSet('icon_class', $stripChainerFactory->get(stripChainers::FILTER_DEFAULT,
+                                                $app,
+                                                $_GET['icon_class']));
+    } 
+    $vUrl = '#';
+    if (isset($_GET['urlx'])) {
+        $stripper->offsetSet('urlx', $stripChainerFactory->get(stripChainers::FILTER_DEFAULT,
+                                                $app,
+                                                $_GET['urlx']));
+    } 
+  /*  $vMenuName = "";
+    if (isset($_GET['menu_name'])) {
+        $stripper->offsetSet('menu_name', $stripChainerFactory->get(stripChainers::FILTER_TRIM,
+                                                $app,
+                                                $_GET['menu_name']));
+    } 
+    
+    $vMenuNameEng = NULL;
+    if (isset($_GET['menu_name_eng'])) {
+        $stripper->offsetSet('menu_name_eng', $stripChainerFactory->get(stripChainers::FILTER_TRIM,
+                                                $app,
+                                                $_GET['menu_name_eng']));
+    } 
+    */
+    
+    if ($stripper->offsetExists('role_id')) {
+        $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('id')) {
+        $vId = $stripper->offsetGet('id')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('icon_class')) {
+        $vIconClass = $stripper->offsetGet('icon_class')->getFilterValue();
+    }
+    
+    if ($stripper->offsetExists('urlx')) {
+        $vUrl = $stripper->offsetGet('urlx')->getFilterValue();
+    }
+   // if ($stripper->offsetExists('menu_name')) {
+        //$vMenuName = $stripper->offsetGet('menu_name')->getFilterValue();
+          $vMenuName = $_GET['menu_name'];
+   // }
+    //if ($stripper->offsetExists('menu_name_eng')) {
+        //$vMenuNameEng = $stripper->offsetGet('menu_name_eng')->getFilterValue();
+        $vMenuNameEng = $_GET['menu_name_eng'];
+    //}
+
+    $resData = $BLL->update(array(  
+            'id' => $vId , 
+            'role_id' => $vRoleId , 
+            'language_code' => $vLanguageCode,                 
+            'icon_class' => $vIconClass , 
+            'url' => $vUrl , 
+            'menu_name' => $vMenuName ,
+            'menu_name_eng' => $vMenuNameEng ,            
+            'pk' => $Pk,        
+            ));
+
+
+    $app->response()->header("Content-Type", "application/json");
+ 
+    $app->response()->body(json_encode($resData));
+}
+); 
+
+/**x
+ *  * Okan CIRAN
+ * @since 29-03-2016
+ */
+$app->get("/pkInsert_leftnavigation/", function () use ($app ) {
+    
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('sysNavigationLeftBLL');
+   
+    $headerParams = $app->request()->headers();
+    $Pk = $headerParams['X-Public'];  
+   
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }   
+    
+    $vMenuType = NULL;
+    if (isset($_GET['role_id'])) {
+         $stripper->offsetSet('role_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['role_id']));
+    } 
+    $vParent = 0;
+    if (isset($_GET['parent'])) {
+         $stripper->offsetSet('parent',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['parent']));
+    } 
+    $vZindex = 0;
+    if (isset($_GET['z_index'])) {
+         $stripper->offsetSet('z_index',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['z_index']));
+    } 
+    
+   
+    $vIconClass = NULL;
+    if (isset($_GET['icon_class'])) {
+        $stripper->offsetSet('icon_class', $stripChainerFactory->get(stripChainers::FILTER_DEFAULT,
+                                                $app,
+                                                $_GET['icon_class']));
+    } 
+    $vUrl = '#';
+    if (isset($_GET['urlx'])) {
+        $stripper->offsetSet('urlx', $stripChainerFactory->get(stripChainers::FILTER_DEFAULT,
+                                                $app,
+                                                $_GET['urlx']));
+    } 
+    
+ 
+    
+    if ($stripper->offsetExists('role_id')) {
+        $vMenuType = $stripper->offsetGet('role_id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('parent')) {
+        $vParent = $stripper->offsetGet('parent')->getFilterValue();
+    }
+    if ($stripper->offsetExists('z_index')) {
+        $vZindex = $stripper->offsetGet('z_index')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('icon_class')) {
+        $vIconClass = $stripper->offsetGet('icon_class')->getFilterValue();
+    }
+    
+    if ($stripper->offsetExists('urlx')) {
+        $vUrl = $stripper->offsetGet('urlx')->getFilterValue();
+    }
+   // if ($stripper->offsetExists('menu_name')) {
+        //$vMenuName = $stripper->offsetGet('menu_name')->getFilterValue();
+          $vMenuName = $_GET['menu_name'];
+   // }
+    //if ($stripper->offsetExists('menu_name_eng')) {
+        //$vMenuNameEng = $stripper->offsetGet('menu_name_eng')->getFilterValue();
+        $vMenuNameEng = $_GET['menu_name_eng'];
+    //}
+
+    $resData = $BLL->insert(array(  
+            'language_code' => $vLanguageCode, 
+            'menu_type' => $vMenuType ,
+            'parent'=> $vParent, 
+            'icon_class' => $vIconClass , 
+            'url' => $vUrl , 
+            'menu_name' => $vMenuName ,
+            'menu_name_eng' => $vMenuNameEng , 
+            'z_index' => $vZindex ,
+            'pk' => $Pk,        
+            ));
+
+
+    $app->response()->header("Content-Type", "application/json");
+ 
+    $app->response()->body(json_encode($resData));
+}
+); 
 
 
 $app->run();

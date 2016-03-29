@@ -141,74 +141,79 @@ class SysNavigationLeft extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            /**
-             * table names and column names will be changed for specific use
-             */
-            $statement = $pdo->prepare("
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+
+                $Parent = 0;
+                if ((isset($params['parent']) && $params['parent'] != "")) {
+                    $Parent = $params ['parent'];
+                }
+                $Zindex = 0;
+                if ((isset($params['z_index']) && $params['z_index'] != "")) {
+                    $Zindex = $params ['z_index'];
+                }
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    }
+                }  
+                
+                $sql = "
                 INSERT INTO sys_navigation_left(
-                    menu_name, 
-                    language_code, 
+                    menu_name,                
                     menu_name_eng, 
                     url, 
                     parent, 
-                    icon_class, 
-                    page_state, 
-                    collapse, 
-                    warning, 
-                    warning_type, 
-                    hint, 
-                    z_index, 
-                    language_parent_id, 
-                    hint_eng, 
-                    warning_class,
-                    user_id,                    
-                    acl_type)    
+                    icon_class,  
+                    z_index,                  
+                    user_id,
+                    menu_type,
+                    language_id
+                    )    
                 VALUES (
-                        :menu_name, 
-                        :language_code, 
+                        :menu_name,                
                         :menu_name_eng, 
                         :url, 
                         :parent, 
-                        :icon_class, 
-                        :page_state, 
-                        :collapse, 
-                        :warning, 
-                        :warning_type, 
-                        :hint, 
-                        :z_index, 
-                        :language_parent_id, 
-                        :hint_eng, 
-                        :warning_class,
+                        :icon_class,  
+                        :z_index,                  
                         :user_id,
-                        :acl_type)
-                                                ");
-            $statement->bindValue(':menu_name', $params['menu_name'], \PDO::PARAM_STR);
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
-            $statement->bindValue(':menu_name_eng', $params['menu_name_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':url', $params['url'], \PDO::PARAM_STR);
-            $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);
-            $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
-            $statement->bindValue(':page_state', $params['page_state'], \PDO::PARAM_INT);
-            $statement->bindValue(':collapse', $params['collapse'], \PDO::PARAM_INT);
-            $statement->bindValue(':warning', $params['warning'], \PDO::PARAM_INT);
-            $statement->bindValue(':warning_type', $params['warning_type'], \PDO::PARAM_INT);
-            $statement->bindValue(':hint', $params['hint'], \PDO::PARAM_STR);
-            $statement->bindValue(':z_index', $params['z_index'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':hint_eng', $params['hint_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':warning_class', $params['warning_class'], \PDO::PARAM_STR);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':acl_type', $params['acl_type'], \PDO::PARAM_INT);
-            $result = $statement->execute();
-            $insertID = $pdo->lastInsertId('sys_navigation_left_id_seq');
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            
-            $this-> setCollapseOpen();
-            $this-> setCollapseClose();
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                        :menu_type,
+                        :language_id
+                          )
+                                                ";
+                $statement = $pdo->prepare($sql);
+                $statement->bindValue(':menu_name', $params['menu_name'], \PDO::PARAM_STR);
+                $statement->bindValue(':menu_name_eng', $params['menu_name_eng'], \PDO::PARAM_STR);
+                $statement->bindValue(':url', $params['url'], \PDO::PARAM_STR);
+                $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
+                $statement->bindValue(':parent', $Parent, \PDO::PARAM_INT);
+                $statement->bindValue(':z_index', $Zindex, \PDO::PARAM_INT);
+                $statement->bindValue(':user_id', $opUserIdValue, \PDO::PARAM_INT);
+                $statement->bindValue(':menu_type', $params['menu_type'], \PDO::PARAM_INT);
+                $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
+                
+                echo debugPDO($sql, $params);
+                $result = $statement->execute();
+                $insertID = $pdo->lastInsertId('sys_navigation_left_id_seq');
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+
+                $this->setCollapseOpen();
+                $this->setCollapseClose();
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -225,59 +230,62 @@ class SysNavigationLeft extends \DAL\DalSlim {
      */
     public function update($params = array()) {
         try {
+           
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();          
-            $statement = $pdo->prepare("
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+                
+                $addSql = null;
+                if ((isset($params['role_id']) && $params['role_id'] != "")) {
+                    $RoleId = $params ['role_id'];
+                    $addSql =  " menu_type = ". intval($RoleId).","; 
+                }
+                 
+                $sql = " 
                 UPDATE sys_navigation_left
-                SET              
+                SET                                  
+                    language_id = ". intval($languageIdValue).", 
                     menu_name = :menu_name, 
-                    language_code = :language_code, 
-                    menu_name_eng = :menu_name_eng, 
-                    parent = :parent, 
-                    icon_class = :icon_class, 
-                    page_state = :page_state, 
-                    collapse = :collapse, 
-                    active = :active, 
-                    warning = :warning, 
-                    warning_type = :warning_type, 
-                    hint = :hint, 
-                    z_index = :z_index, 
-                    language_parent_id = :language_parent_id, 
-                    hint_eng = :hint_eng, 
-                    warning_class = :warning_class ,
-                    user_id = :user_id,
-                    acl_type = :acl_type
-                WHERE id = :id");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-            //Bind our :model parameter.
-            $statement->bindValue(':menu_name', $params['menu_name'], \PDO::PARAM_STR);
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
-            $statement->bindValue(':menu_name_eng', $params['menu_name_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);
-            $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
-            $statement->bindValue(':page_state', $params['page_state'], \PDO::PARAM_INT);
-            $statement->bindValue(':collapse', $params['collapse'], \PDO::PARAM_INT);
-            $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
-            $statement->bindValue(':warning', $params['warning'], \PDO::PARAM_INT);
-            $statement->bindValue(':warning_type', $params['warning_type'], \PDO::PARAM_INT);
-            $statement->bindValue(':hint', $params['hint'], \PDO::PARAM_STR);
-            $statement->bindValue(':z_index', $params['z_index'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':hint_eng', $params['hint_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':warning_class', $params['warning_class'], \PDO::PARAM_STR);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':acl_type', $params['acl_type'], \PDO::PARAM_INT); 
-            //Execute our UPDATE statement.
-            $update = $statement->execute();
-            $affectedRows = $statement->rowCount();
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $this-> setCollapseOpen();
-            $this-> setCollapseClose();
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                    menu_name_eng = :menu_name_eng,
+                    icon_class = :icon_class,                     
+                    url = :url,
+                    ". $addSql ."
+                    user_id = ". intval($opUserIdValue)."
+                  
+                WHERE id = :id";                
+                 $statement = $pdo->prepare($sql);
+                $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);                
+                $statement->bindValue(':menu_name', $params['menu_name'], \PDO::PARAM_STR);                
+                $statement->bindValue(':menu_name_eng', $params['menu_name_eng'], \PDO::PARAM_STR);                
+                $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);                
+                $statement->bindValue(':url', $params['url'], \PDO::PARAM_STR);  
+               // echo debugPDO($sql, $params);
+                $update = $statement->execute();
+                $affectedRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                $this->setCollapseOpen();
+                $this->setCollapseClose();
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -843,7 +851,9 @@ class SysNavigationLeft extends \DAL\DalSlim {
                         (SELECT DISTINCT 1 state_type FROM sys_navigation_left ax WHERE ax.parent = a.id AND ax.deleted = 0)    
                             WHEN 1 THEN 'closed'
                             ELSE 'open'   
-                    END AS state_type                          
+                    END AS state_type,
+                    a.url,
+                    a.icon_class
                 FROM sys_navigation_left a  
                 INNER JOIN sys_acl_roles sar on sar.id = a.menu_type 
 		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
@@ -904,13 +914,13 @@ class SysNavigationLeft extends \DAL\DalSlim {
                             l.language_main_code
                         FROM sys_osb c
                         LEFT JOIN sys_language l ON l.deleted =0 AND l.active =0 
-                        WHERE c.id =".intval($params['id'])." 
+                        WHERE c.id =" . intval($params['id']) . " 
                         ) AS xy   
                         WHERE xy.language_main_code NOT IN 
                            (SELECT distinct language_code 
                            FROM sys_osb cx 
-                           WHERE (cx.language_parent_id =".intval($params['id'])."  OR cx.id =".intval($params['id'])." ) AND cx.deleted =0 AND cx.active =0)
-                ");           
+                           WHERE (cx.language_parent_id =" . intval($params['id']) . "  OR cx.id =" . intval($params['id']) . " ) AND cx.deleted =0 AND cx.active =0)
+                ");
             $result = $statement->execute();
             $insertID = $pdo->lastInsertId('sys_osb_id_seq');
             $errorInfo = $statement->errorInfo();
@@ -972,6 +982,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+
     /**
      * @author Okan CIRAN
      * @ sys_navigation_left tablosunda Collapse degerini 1 yapar. left menu deki '<' işaretini koyar !!
@@ -1022,7 +1033,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
         }
     }
 
-       /**
+    /**
 
      * @author Okan CIRAN
      * @ sys_navigation_left tablosundan parametre olarak  gelen id kaydın aktifliğini
@@ -1045,11 +1056,11 @@ class SysNavigationLeft extends \DAL\DalSlim {
                                     ELSE 0
                                 END activex
                                 FROM sys_navigation_left
-                                WHERE id = ".  intval($params['id'])."
+                                WHERE id = " . intval($params['id']) . "
                 )                                 
-                WHERE id = ". intval($params['id']);                
-                $statement = $pdo->prepare($sql) ; 
-              //  echo debugPDO($sql, $params);
+                WHERE id = " . intval($params['id']);
+                $statement = $pdo->prepare($sql);
+                //  echo debugPDO($sql, $params);
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
@@ -1064,4 +1075,6 @@ class SysNavigationLeft extends \DAL\DalSlim {
         }
     }
 
+   
+    
 }
