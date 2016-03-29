@@ -255,99 +255,6 @@ $app->get("/pkFillGridForAdmin_leftnavigation/", function () use ($app ) {
 });
 
  
-
- 
-/**
- *  * Okan CIRAN
- * @since 28-03-2016
- */
-$app->get("/pkFillTreeForAdmin_leftnavigation/", function () use ($app ) {
-    $stripper = $app->getServiceManager()->get('filterChainerCustom');
-    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
-    $BLL = $app->getBLLManager()->get('sysNavigationLeftBLL');
- 
-    $headerParams = $app->request()->headers();
-    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkGetConsConfirmationProcessDetails_sysOsbConsultants" end point, X-Public variable not found');
-    $pk = $headerParams['X-Public'];
-    
-    $vLanguageCode = 'tr';
-    if (isset($_GET['language_code'])) {
-         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
-                                                $app,
-                                                $_GET['language_code']));
-    }  
-    $vRoleId = 1;
-    if (isset($_GET['role_id'])) {
-        $stripper->offsetSet('role_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
-                                                $app,
-                                                $_GET['role_id']));
-    }
-    
-    
-     $stripper->strip();
-    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    if($stripper->offsetExists('role_id')) $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
-    
-    
- 
-
-    $resDataGrid = $BLL->fillGridForAdmin(array('language_code' => $vLanguageCode,
-        'role_id' => $vRoleId,
-        'pk' => $pk,        
-        ));    
- 
-    $resTotalRowCount = $BLL->fillGridForAdminRtc(array('pk' => $pk,
-                                                'language_code' => $vLanguageCode,
-                                                'role_id' => $vRoleId,
-                                                ));
- 
-                                            
-    $flows = array();
-    foreach ($resDataGrid['resultSet'] as $flow) {
-        $flows[] = array(
-            "id" => $flow["id"],
-            "menu_name" => $flow["menu_name"],
-            "menu_name_eng" => $flow["menu_name_eng"],
-            "url" => $flow["url"],
-            "parent" => $flow["parent"],
-            "icon_class" => $flow["icon_class"],            
-            
-            "page_state" => $flow["page_state"], 
-            "collapse" => $flow["collapse"], 
-            "deleted" => $flow["deleted"], 
-            "state_deleted" => $flow["state_deleted"], 
-            "active" => $flow["active"], 
-            "state_active" => $flow["state_active"], 
-            "warning" => $flow["warning"], 
-            "warning_type" => $flow["warning_type"], 
-            "warning_class" => $flow["warning_class"], 
-            "hint" => $flow["hint"], 
-            "hint_eng" => $flow["hint_eng"], 
-            "z_index" => $flow["z_index"], 
-            "language_parent_id" => $flow["language_parent_id"], 
-            
-            "active_control" => $flow["active_control"], 
-            "role_id" => $flow["role_id"], 
-            "role_name" => $flow["role_name"],  
-            "attributes" => array("notroot" => true, "active" => $flow["active"],"active_control" => $flow["active_control"]),
-        );
-    }
-
-    $app->response()->header("Content-Type", "application/json");
-
-    $resultArray = array();    
-    $resultArray['rows'] = $flows;
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
-    $app->response()->body(json_encode($resultArray));
-
-});
-
- 
-
  
 /**
  *  * Okan CIRAN
@@ -383,17 +290,28 @@ $app->get("/pkFillForAdminTree_leftnavigation/", function () use ($app ) {
                                                 $app,
                                                 $_GET['role_id']));
     }
+    $vParentId = 0;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    }
+    
+    
+    
     
     
      $stripper->strip();
     if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     if($stripper->offsetExists('role_id')) $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
+    if($stripper->offsetExists('id')) $vParentId = $stripper->offsetGet('id')->getFilterValue();
     
    
    
     $resDataGrid = $BLL->fillForAdminTree(array(
                                             'language_code' => $vLanguageCode,                                          
                                             'role_id' => $vRoleId,
+                                            'parent_id' => $vParentId,
                                             'pk' => $pk,
         
                                                     ));
@@ -410,7 +328,7 @@ $app->get("/pkFillForAdminTree_leftnavigation/", function () use ($app ) {
                 "text" =>  $flow["menu_name"],
                 "state" => $flow["state_type"],
                 "checked" => false,
-                "attributes" => array ("notroot"=>true,"text_eng"=>$flow["menu_name_eng"]),               
+                "attributes" => array ("notroot"=>true,"text_eng"=>$flow["menu_name_eng"],"active" => $flow["active"], ),               
                 
             );
         }        
@@ -436,4 +354,84 @@ $app->get("/pkFillForAdminTree_leftnavigation/", function () use ($app ) {
 });
 
  
+/**x
+ *  * Okan CIRAN
+ * @since 25-02-2016
+ */
+$app->get("/pkDelete_leftnavigation/", function () use ($app ) {
+
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('sysNavigationLeftBLL');
+ 
+   
+    $headerParams = $app->request()->headers();
+    $Pk = $headerParams['X-Public'];  
+   
+          
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    } 
+
+    $stripper->strip();
+ 
+    if ($stripper->offsetExists('id')) {$vId = $stripper->offsetGet('id')->getFilterValue(); }
+     
+    
+    $resDataDeleted = $BLL->Delete(array(                  
+            'id' => $vId ,    
+            'pk' => $Pk,        
+            ));
+
+
+    $app->response()->header("Content-Type", "application/json");
+ 
+    $app->response()->body(json_encode($resDataDeleted));
+}
+); 
+
+/**x
+ *  * Okan CIRAN
+ * @since 29-03-2016
+ */
+$app->get("/pkMakeActiveOrPassive_leftnavigation/", function () use ($app ) {
+
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('sysNavigationLeftBLL');
+ 
+   
+    $headerParams = $app->request()->headers();
+    $Pk = $headerParams['X-Public'];  
+   
+          
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    } 
+
+    $stripper->strip();
+ 
+    if ($stripper->offsetExists('id')) {$vId = $stripper->offsetGet('id')->getFilterValue(); }
+     
+    
+    $resData = $BLL->makeActiveOrPassive(array(                  
+            'id' => $vId ,    
+            'pk' => $Pk,        
+            ));
+
+
+    $app->response()->header("Content-Type", "application/json");
+ 
+    $app->response()->body(json_encode($resData));
+}
+); 
+
+
+
 $app->run();

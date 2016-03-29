@@ -30,20 +30,23 @@ class SysNavigationLeft extends \DAL\DalSlim {
          try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $userId = $this->getUserId(array('pk' => $params['pk']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $userIdValue = $userId ['resultSet'][0]['user_id'];
-                $statement = $pdo->prepare(" 
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];                
+                $sql =" 
                 UPDATE sys_navigation_left
                 SET  deleted= 1 , active = 1 ,
-                     op_user_id = " . $userIdValue . "     
-                WHERE id = :id");
-                //Execute our DELETE statement.
+                     user_id = " . $opUserIdValue . "     
+                WHERE id = ". intval($params['id']) ;
+                $statement = $pdo->prepare($sql) ; 
+             //  echo debugPDO($sql, $params);
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
+                $this-> setCollapseOpen();
+                $this-> setCollapseClose();
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
             } else {
@@ -116,9 +119,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                                  ");
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
+ 
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -203,6 +204,9 @@ class SysNavigationLeft extends \DAL\DalSlim {
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
+            
+            $this-> setCollapseOpen();
+            $this-> setCollapseClose();
             $pdo->commit();
             return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
         } catch (\PDOException $e /* Exception $e */) {
@@ -270,6 +274,8 @@ class SysNavigationLeft extends \DAL\DalSlim {
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
+            $this-> setCollapseOpen();
+            $this-> setCollapseClose();
             $pdo->commit();
             return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
         } catch (\PDOException $e /* Exception $e */) {
@@ -543,6 +549,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
+    
     /**
      * 
      * @return type
@@ -605,7 +612,6 @@ class SysNavigationLeft extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-
     
     /**  
      * @author Okan CIRAN
@@ -729,9 +735,8 @@ class SysNavigationLeft extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-
   
-        /**
+    /**
      * user interface datagrid fill operation get row count for widget
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_navigation_left tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
@@ -799,7 +804,15 @@ class SysNavigationLeft extends \DAL\DalSlim {
         }
     }
 
-    
+    /**
+ 
+     * @author Okan CIRAN
+     * @ tree doldurmak için sys_navigation_left tablosundan çekilen kayıtları döndürür   !!
+     * @version v 1.0  27.03.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
     public function fillForAdminTree($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -808,7 +821,10 @@ class SysNavigationLeft extends \DAL\DalSlim {
             if ((isset($params['role_id']) && $params['role_id'] != "")) {                                 
                 $RoleId = $params ['role_id']; 
             }  
-
+            $ParentId = 0;
+            if (isset($params['parent_id']) && $params['parent_id'] != "") {
+                $ParentId = intval($params['parent_id']) ;                             
+            }  
             $languageId = NULL;
             $languageIdValue = 647;
             if ((isset($params['language_code']) && $params['language_code'] != "")) {                
@@ -840,8 +856,19 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 WHERE a.language_parent_id = 0 AND 
                     a.active = 0 AND 
                     a.deleted = 0 AND
-                    a.menu_type = ". intval($RoleId)."  
-                 
+                    a.parent =". intval($ParentId)." AND
+                    a.menu_type = ". intval($RoleId)."  AND 
+                    (SELECT COALESCE(NULLIF(max(ax.active), 0),0)+COALESCE(NULLIF(max(bx.active), 0),0)+COALESCE(NULLIF(max(cx.active), 0),0)+
+                            COALESCE(NULLIF(max(dx.active), 0),0) +COALESCE(NULLIF(max(ex.active), 0),0)+ COALESCE(NULLIF(max(fx.active), 0),0)+
+                            COALESCE(NULLIF(max(gx.active), 0),0) 
+                        FROM sys_navigation_left ax 
+			LEFT JOIN sys_navigation_left bx ON ax.parent = bx.id
+			LEFT JOIN sys_navigation_left cx ON bx.parent = cx.id 
+			LEFT JOIN sys_navigation_left dx ON cx.parent = dx.id
+			LEFT JOIN sys_navigation_left ex ON dx.parent = ex.id
+			LEFT JOIN sys_navigation_left fx ON ex.parent = fx.id
+			LEFT JOIN sys_navigation_left gx ON fx.parent = gx.id
+			WHERE ax.id = a.id ) = 0 
                 ORDER BY a.parent, a.z_index           
                                  ";
             $statement = $pdo->prepare($sql);            
@@ -858,4 +885,192 @@ class SysNavigationLeft extends \DAL\DalSlim {
     }
 
     
+     /**     
+     * @author Okan CIRAN
+     * @ sys_osb tablosuna yeni bir kayıt oluşturur.  !!
+     * @version v 1.0  29.12.2015
+     * @return array
+     * @throws \PDOException
+     */
+    public function insertLanguageTemplate($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $statement = $pdo->prepare(" 
+                INSERT INTO sys_osb(
+                    country_id, name, name_eng, language_parent_id, 
+                    language_id, user_id, priority, city_id, language_code)                  
+               SELECT    
+                    country_id, name, name_eng, language_id, language_parent_id, 
+		    user_id, priority, city_id, language_main_code
+               FROM ( 
+                       SELECT c.country_id,
+                            '' AS name,                            
+                            COALESCE(NULLIF(c.name_eng, ''), c.name) as name_eng, 
+                            l.id as language_id,  
+                            (SELECT x.id FROM sys_osb x WHERE x.id =:id AND x.deleted =0 AND x.active =0 AND x.language_parent_id =0) AS language_parent_id,                            
+                            c.user_id, 
+			    c.priority,
+			    city_id, 	 
+                            l.language_main_code
+                        FROM sys_osb c
+                        LEFT JOIN sys_language l ON l.deleted =0 AND l.active =0 
+                        WHERE c.id =".intval($params['id'])." 
+                        ) AS xy   
+                        WHERE xy.language_main_code NOT IN 
+                           (SELECT distinct language_code 
+                           FROM sys_osb cx 
+                           WHERE (cx.language_parent_id =".intval($params['id'])."  OR cx.id =".intval($params['id'])." ) AND cx.deleted =0 AND cx.active =0)
+                ");           
+            $result = $statement->execute();
+            $insertID = $pdo->lastInsertId('sys_osb_id_seq');
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            $pdo->commit();
+            return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ sys_navigation_left tablosunda Collapse degerini 0 yapar. left menu deki '<' işaretinin kaldırır !!
+     * @version v 1.0  29.03.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function setCollapseOpen($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            //$pdo->beginTransaction();          
+            if (isset($params['parent_id']) && $params['parent_id'] != "") {
+                $ParentId = intval($params['parent_id']);
+                $statement = $pdo->prepare(" 
+                    UPDATE sys_navigation_left 
+                    SET collapse = 0 
+                    WHERE id IN (
+                        SELECT DISTINCT parent FROM sys_navigation_left 
+                        WHERE active = 1 AND 
+                        deleted = 1 AND
+                        parent NOT IN (
+                            SELECT parent FROM sys_navigation_left 
+                            WHERE 
+                                parent IN (SELECT DISTINCT parent FROM sys_navigation_left 
+                                        WHERE 
+                                            active = 1 AND 
+                                            deleted = 1) AND
+                                active = 0 AND 
+                                deleted = 0 
+                            GROUP BY parent  
+                        )
+                    ) AND 
+                    collapse = 1 
+                 ");
+                $update = $statement->execute();
+                $afterRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                //$pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    /**
+     * @author Okan CIRAN
+     * @ sys_navigation_left tablosunda Collapse degerini 1 yapar. left menu deki '<' işaretini koyar !!
+     * @version v 1.0  29.03.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function setCollapseClose($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            //$pdo->beginTransaction();          
+            if (isset($params['parent_id']) && $params['parent_id'] != "") {
+                $ParentId = intval($params['parent_id']);
+                $statement = $pdo->prepare(" 
+                    UPDATE sys_navigation_left 
+                    SET collapse = 1 
+                    WHERE id IN (
+                        SELECT DISTINCT id FROM sys_navigation_left 
+                            WHERE active = 0 AND 
+                            deleted = 0 AND
+                            collapse = 0 AND
+                            id IN (
+                                SELECT DISTINCT parent FROM sys_navigation_left 
+                                WHERE 
+                                     parent NOT IN (SELECT DISTINCT parent FROM sys_navigation_left 
+                                            WHERE 
+                                                active = 1 AND 
+                                                deleted = 1) AND                                          
+                                    active = 0 AND 
+                                    deleted = 0 
+                                GROUP BY parent  
+                                    )
+                        )
+                    AND collapse = 0 
+                    ");
+                $update = $statement->execute();
+                $afterRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                //$pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+       /**
+
+     * @author Okan CIRAN
+     * @ sys_navigation_left tablosundan parametre olarak  gelen id kaydın aktifliğini
+     *  0(aktif) ise 1 , 1 (pasif) ise 0  yapar. !!
+     * @version v 1.0  29.03.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function makeActiveOrPassive($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            if (isset($params['id']) && $params['id'] != "") {
+                $statement = $pdo->prepare(" 
+                UPDATE sys_navigation_left
+                SET active = (  SELECT   
+                                CASE active
+                                    WHEN 0 THEN 1
+                                    ELSE 0
+                                END activex
+                                FROM sys_navigation_left
+                                WHERE id = ".  intval($params['id'])."
+                )                                 
+                WHERE id = ". intval($params['id']));                
+                $update = $statement->execute();
+                $afterRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+            }
+            $pdo->commit();
+            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
 }
