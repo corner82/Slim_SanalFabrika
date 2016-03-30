@@ -26,6 +26,10 @@ final class FilterFactoryNames {
     const FILTER_ONLY_BOOLEAN_ALLOWED = 'onlyBoolean';
     const FILTER_ONLY_STATE_ALLOWED = 'onlyState';
     const FILTER_ONLY_LANGUAGE_CODE = 'onlyLanguageCode';
+    const FILTER_ONLY_ORDER = 'onlyOrder';
+    
+    
+    
     
     const FILTER_DEFAULT = 'onlyDefault';
     const FILTER_TRIM = 'filterTrim';

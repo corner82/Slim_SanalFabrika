@@ -124,6 +124,16 @@ class FilterChainerFactory extends \Utill\Factories\AbstractFactory {
                     \Services\Filter\FilterServiceNames::FILTER_ONLY_FALSE_ALLOWED,                                                                                             
         ));
     }
+    
+     protected function onlyOrder($app, $value) {
+        return new \Utill\Strip\Chain\StripChainer($app, $value, array(
+                    \Services\Filter\FilterServiceNames::FILTER_TRIM,
+                    \Services\Filter\FilterServiceNames::FILTER_LOWER_CASE,
+                    \Services\Filter\FilterServiceNames::FILTER_ONLY_ORDER,                                                                                             
+        ));
+    }
+    
+     
 
     protected function getUtility($identifier = null,
             $params = null) {
