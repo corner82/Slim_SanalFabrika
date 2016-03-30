@@ -68,6 +68,7 @@ class BLLManagerConfig{
                  'blAdminActivationReportBLL' => 'BLL\BLL\BlAdminActivationReport',  
                  'sysUnspscCodesBLL' => 'BLL\BLL\SysUnspscCodes',
                  'infoFirmKeysBLL' => 'BLL\BLL\InfoFirmKeys',
+                 'sysCertificationsBLL' => 'BLL\BLL\SysCertifications',
                  
                  
                  

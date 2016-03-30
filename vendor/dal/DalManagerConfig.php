@@ -73,6 +73,8 @@ class DalManagerConfig {
                 'blAdminActivationReportPDO' => 'DAL\Factory\PDO\BlAdminActivationReportFactory',
                 'sysUnspscCodesPDO' => 'DAL\Factory\PDO\SysUnspscCodesFactory', 
                 'infoFirmKeysPDO' => 'DAL\Factory\PDO\InfoFirmKeysFactory', 
+                'sysCertificationsPDO' => 'DAL\Factory\PDO\SysCertificationsFactory', 
+                
                  
                 
                 
