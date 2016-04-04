@@ -546,7 +546,8 @@ class SysUnits extends \DAL\DalSlim {
 
             $sql = "
                SELECT 
-                    a.id,                                     
+                    a.id, 
+                    a.active,
 		    CASE 
                         a.parent_id    
                             WHEN 0 THEN COALESCE(NULLIF(su.system, ''), a.system_eng)  

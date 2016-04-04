@@ -214,8 +214,7 @@ $app->get("/pkFillJustMachineToolGroups_sysMachineToolGroups/", function () use 
 $app->get("/pkFillMachineToolGroupsMachineProperties_sysMachineToolGroups/", function () use ($app ) {
 
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
-    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
-    
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
     $BLL = $app->getBLLManager()->get('sysMachineToolGroupsBLL');
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
@@ -271,6 +270,268 @@ $app->get("/pkFillMachineToolGroupsMachineProperties_sysMachineToolGroups/", fun
     $app->response()->body(json_encode($resultArray));
     
 });
+ 
+/**
+ *  * Okan CIRAN
+ * @since 01-02-2016
+ */
+$app->get("/pkFillJustMachineToolGroupsBootstrap_sysMachineToolGroups/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('sysMachineToolGroupsBLL');
+    $headerParams = $app->request()->headers();
+    $Pk = $headerParams['X-Public'];
+     
+  
+    $componentType = 'bootstrap';
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }
+    
+    
+    $vParentId = 0;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    }
+    $componentType = 'bootstrap';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+
+    
+     $stripper->strip();    
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('id')) $vParentId = $stripper->offsetGet('id')->getFilterValue();
+    
+    
+    
+    $resCombobox = $BLL->fillJustMachineToolGroupsBootstrap(array( 
+                                                        'language_code' => $vLanguageCode,
+                                                        'parent_id' => $vParentId,
+        
+                                                            ));
+ 
+    $menus = array();
+    $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+     if ($componentType == 'bootstrap') {
+        $menus = array();
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],       
+                "text" => $menu["name"],
+                "state" => $menu["state_type"],
+                "checked" => false,
+                "attributes" => array("notroot" => true, "active" => $menu["active"] ,
+                    "icon_class"=>$menu["icon_class"] ,"group_name_eng"=>$menu["group_name_eng"],
+                    "machine"=>$menu["machine"] ,)
+                
+                                
+                
+            );
+        }
+    } else if ($componentType == 'ddslick') {
+        
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" => $menu["id"],
+                "selected" => false,
+                "description" => $menu["name_eng"],
+                "imageSrc" => ""
+            );
+        }
+    }
+     
+
+    $app->response()->header("Content-Type", "application/json");
+ 
+    $app->response()->body(json_encode($menus));
+});
+ 
+
+
+/**x
+ *  * Okan CIRAN
+ * @since 31-03-2016
+ */
+$app->get("/pkUpdate_sysMachineToolGroups/", function () use ($app ) {
+    
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('sysMachineToolGroupsBLL');
+   
+    $headerParams = $app->request()->headers();
+    $Pk = $headerParams['X-Public'];  
+    
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+         $stripper->offsetSet('id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    }       
+    $vGroupName = NULL;
+    if (isset($_GET['group_name'])) {
+         $stripper->offsetSet('group_name',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['group_name']));
+    }   
+    $vGroupNameEng = NULL;
+    if (isset($_GET['group_name_eng'])) {
+         $stripper->offsetSet('group_name_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['group_name_eng']));
+    }  
+    $vIconClass = NULL;
+    if (isset($_GET['icon_class'])) {
+        $stripper->offsetSet('icon_class', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['icon_class']));
+    }     
+    if ($stripper->offsetExists('id')) {
+        $vId = $stripper->offsetGet('id')->getFilterValue();
+    }     
+    if ($stripper->offsetExists('group_name')) {
+        $vGroupName = $stripper->offsetGet('group_name')->getFilterValue();
+    }   
+    if ($stripper->offsetExists('group_name_eng')) {
+        $vGroupNameEng = $stripper->offsetGet('group_name_eng')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('icon_class')) {
+        $vIconClass = $stripper->offsetGet('icon_class')->getFilterValue();
+    } 
+
+    $resData = $BLL->update(array(  
+            'id' => $vId , 
+            'group_name' => $vGroupName , 
+            'group_name_eng' => $vGroupNameEng,                 
+            'icon_class' => $vIconClass,
+            'pk' => $Pk,        
+            ));
+
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($resData));
+}
+); 
+
+
+/**x
+ *  * Okan CIRAN
+ * @since 31-03-2016
+ */
+$app->get("/pkInsert_sysMachineToolGroups/", function () use ($app ) {
+    
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('sysMachineToolGroupsBLL');
+   
+    $headerParams = $app->request()->headers();
+    $Pk = $headerParams['X-Public'];  
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    } 
+    $vParentId = 0;
+    if (isset($_GET['parent_id'])) {
+         $stripper->offsetSet('parent_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['parent_id']));
+    }       
+    $vGroupName = NULL;
+    if (isset($_GET['group_name'])) {
+         $stripper->offsetSet('group_name',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['group_name']));
+    }   
+    $vGroupNameEng = NULL;
+    if (isset($_GET['group_name_eng'])) {
+         $stripper->offsetSet('group_name_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['group_name_eng']));
+    }  
+    $vIconClass = NULL;
+    if (isset($_GET['icon_class'])) {
+        $stripper->offsetSet('icon_class', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['icon_class']));
+    } 
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }   
+    if ($stripper->offsetExists('parent_id')) {
+        $vParentId = $stripper->offsetGet('parent_id')->getFilterValue();
+    }     
+    if ($stripper->offsetExists('group_name')) {
+        $vGroupName = $stripper->offsetGet('group_name')->getFilterValue();
+    }   
+    if ($stripper->offsetExists('group_name_eng')) {
+        $vGroupNameEng = $stripper->offsetGet('group_name_eng')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('icon_class')) {
+        $vIconClass = $stripper->offsetGet('icon_class')->getFilterValue();
+    } 
+
+    $resData = $BLL->insert(array(  
+            'parent_id' => $vParentId , 
+            'group_name' => $vGroupName , 
+            'group_name_eng' => $vGroupNameEng,                 
+            'icon_class' => $vIconClass,
+            'language_code' => $vLanguageCode,
+            'pk' => $Pk,        
+            ));
+
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($resData));
+}
+); 
+
+
+/**x
+ *  * Okan CIRAN
+ * @since 25-02-2016
+ */
+$app->get("/pkDelete_sysMachineToolGroups/", function () use ($app ) {
+
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('sysMachineToolGroupsBLL');
+ 
+   
+    $headerParams = $app->request()->headers();
+    $Pk = $headerParams['X-Public'];  
+   
+          
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    } 
+
+    $stripper->strip();
+ 
+    if ($stripper->offsetExists('id')) {$vId = $stripper->offsetGet('id')->getFilterValue(); }
+     
+    
+    $resDataDeleted = $BLL->Delete(array(                  
+            'id' => $vId ,    
+            'pk' => $Pk,        
+            ));
+
+
+    $app->response()->header("Content-Type", "application/json");
+ 
+    $app->response()->body(json_encode($resDataDeleted));
+}
+); 
+
 
 
 $app->run();

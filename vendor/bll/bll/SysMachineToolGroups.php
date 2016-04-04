@@ -129,8 +129,17 @@ class SysMachineToolGroups extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('sysMachineToolGroupsPDO');     
         return $DAL->fillMachineToolGroupsMachineProperties($params);
     }
-    
-    
+ 
+    /**
+     * Function to fill User Communications Types on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillJustMachineToolGroupsBootstrap ($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolGroupsPDO');
+        $resultSet = $DAL->fillJustMachineToolGroupsBootstrap($params);  
+        return $resultSet['resultSet'];
+    }
     
     
 }
