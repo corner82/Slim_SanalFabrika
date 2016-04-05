@@ -30,6 +30,14 @@ class FactoryServiceRestDeleteLog implements \Zend\ServiceManager\FactoryInterfa
         $ip = $request->getIp();
         $method = $request->getMethod();
         
+        $requestInfoArray = array('content_type' => $request->getContentType(),
+                                    'content_charset' => $request->getContentCharset(),
+                                    'host_with_port' => $request->getHostWithPort(),
+                                    'scheme' => $request->getScheme(),
+                                    'referrer' => $request->getReferrer(),
+                                    'user_agent' => $request->getUserAgent(),
+                                    'is_ajax' => $request->isAjax());
+        
         $serviceLogMQ->setChannelProperties(array('queue.name' => \Utill\MQ\abstractMQ::SERVICE_ENTRY_LOG_QUEUE_NAME));
         $message = new \Utill\MQ\MessageMQ\MQMessageServiceLog();
         ;
@@ -46,7 +54,8 @@ class FactoryServiceRestDeleteLog implements \Zend\ServiceManager\FactoryInterfa
                                       'ip' => \Utill\Env\serverVariables::getClientIp(),
                                       'params' => serialize($params),
                                       'type_id' => \Utill\MQ\MessageMQ\MQMessageServiceLog::SERVICE_DELETE_OPERATION,
-                                      'logFormat' => 'database'));
+                                      'logFormat' => 'database',
+                                      'request_info' =>  json_encode($requestInfoArray)));
         $message->setMessageProperties(array('delivery_mode' => 2,
                                             'content_type' => 'application/json'));
         $serviceLogMQ->setMessage($message->setMessage());
