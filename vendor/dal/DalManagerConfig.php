@@ -74,7 +74,7 @@ class DalManagerConfig {
                 'sysUnspscCodesPDO' => 'DAL\Factory\PDO\SysUnspscCodesFactory', 
                 'infoFirmKeysPDO' => 'DAL\Factory\PDO\InfoFirmKeysFactory', 
                 'sysCertificationsPDO' => 'DAL\Factory\PDO\SysCertificationsFactory', 
-                
+                'sysUnitSystemsPDO' => 'DAL\Factory\PDO\SysUnitSystemsFactory',
                  
                 
                 

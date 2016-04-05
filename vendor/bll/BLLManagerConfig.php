@@ -69,7 +69,7 @@ class BLLManagerConfig{
                  'sysUnspscCodesBLL' => 'BLL\BLL\SysUnspscCodes',
                  'infoFirmKeysBLL' => 'BLL\BLL\InfoFirmKeys',
                  'sysCertificationsBLL' => 'BLL\BLL\SysCertifications',
-                 
+                 'sysUnitSystemsBLL' => 'BLL\BLL\SysUnitSystems',
                  
                  
                  
