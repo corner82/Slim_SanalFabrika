@@ -607,10 +607,10 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                         ( 
 			SELECT DISTINCT 1 state_type FROM sys_machine_tools mtx 
 			WHERE  mtx.machine_tool_grup_id IN ( SELECT DISTINCT id FROM (
-				SELECT id, root_json::json#>>'{1}', root_json, 
-				CAST( CAST (json_array_elements(root_json) AS text) AS integer) AS ddd 
-				FROM sys_machine_tool_groups a
-				 ) AS asdasd 
+				SELECT ab.id, ab.root_json::json#>>'{1}', ab.root_json, 
+				CAST( CAST (json_array_elements(ab.root_json) AS text) AS integer) AS ddd 
+				FROM sys_machine_tool_groups ab WHERE ab.root_id = a.root_id
+				 ) AS xtable 
 				 WHERE ddd = a.id ) AND mtx.active =0 AND mtx.deleted =0 
                         )    
                         WHEN 1 THEN 1
