@@ -197,14 +197,13 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 $statement->bindValue(':menu_type', $params['menu_type'], \PDO::PARAM_INT);
                 $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
                 
-                echo debugPDO($sql, $params);
+              //  echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_navigation_left_id_seq');
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
-
-                $this->setCollapseOpen();
+                    throw new \PDOException($errorInfo[0]);            
+                $this->setCollapseOpen();             
                 $this->setCollapseClose();
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
@@ -292,18 +291,17 @@ class SysNavigationLeft extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * Datagrid fill function used for testing
-     * user interface datagrid fill operation   
+    /** 
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_navigation_left tablosundan kayıtları döndürür !!
+     * @todo su  an aktif  kullanılmıyor. language code a göre değiştirilecek oki..
      * @version v 1.0  14.12.2015
      * @param array | null $args
      * @return array
      * @throws \PDOException
      */
     public function fillGrid($args = array()) {
- /// su  an aktif  kullanılmıyor. language code a göre değiştirilecek oki..
+ 
 
         if (isset($args['page']) && $args['page'] != "" && isset($args['rows']) && $args['rows'] != "") {
             $offset = ((intval($args['page']) - 1) * intval($args['rows']));
@@ -945,10 +943,9 @@ class SysNavigationLeft extends \DAL\DalSlim {
     public function setCollapseOpen($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            //$pdo->beginTransaction();          
-            if (isset($params['parent_id']) && $params['parent_id'] != "") {
-                $ParentId = intval($params['parent_id']);
-                $statement = $pdo->prepare(" 
+            //$pdo->beginTransaction();        
+ 
+                 $sql  = " 
                     UPDATE sys_navigation_left 
                     SET collapse = 0 
                     WHERE id IN (
@@ -968,7 +965,9 @@ class SysNavigationLeft extends \DAL\DalSlim {
                         )
                     ) AND 
                     collapse = 1 
-                 ");
+                 ";
+                $statement = $pdo->prepare($sql);
+              //  echo debugPDO($sql, $params);                
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
@@ -976,7 +975,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     throw new \PDOException($errorInfo[0]);
                 //$pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
-            }
+         
         } catch (\PDOException $e /* Exception $e */) {
             //$pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -994,10 +993,9 @@ class SysNavigationLeft extends \DAL\DalSlim {
     public function setCollapseClose($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            //$pdo->beginTransaction();          
-            if (isset($params['parent_id']) && $params['parent_id'] != "") {
-                $ParentId = intval($params['parent_id']);
-                $statement = $pdo->prepare(" 
+            //$pdo->beginTransaction();    
+ 
+                $sql  = " 
                     UPDATE sys_navigation_left 
                     SET collapse = 1 
                     WHERE id IN (
@@ -1018,7 +1016,9 @@ class SysNavigationLeft extends \DAL\DalSlim {
                                     )
                         )
                     AND collapse = 0 
-                    ");
+                    " ;
+                $statement = $pdo->prepare($sql);
+              //  echo debugPDO($sql, $params);
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
@@ -1026,7 +1026,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     throw new \PDOException($errorInfo[0]);
                 //$pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
-            }
+          
         } catch (\PDOException $e /* Exception $e */) {
             //$pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
