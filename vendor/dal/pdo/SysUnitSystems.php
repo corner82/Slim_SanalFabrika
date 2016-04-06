@@ -31,32 +31,41 @@ class SysUnitSystems extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-           $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
-            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
-                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $statement = $pdo->prepare(" 
+            $UnitSystem = $this->haveUnitSystemRecords (array('id' => $params['id']));
+            if (!\Utill\Dal\Helper::haveRecord($UnitSystem)) {
+
+                $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+                if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                    $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                    $statement = $pdo->prepare(" 
                 UPDATE sys_unit_systems
                 SET  deleted= 1 , active = 1 ,
-                     op_user_id = "  . intval($opUserIdValue) . "     
-                WHERE id = " .intval($params['id'])
-                        );         
-                $update = $statement->execute();
-                $afterRows = $statement->rowCount();
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
-                $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+                     op_user_id = " . intval($opUserIdValue) . "     
+                WHERE id = " . intval($params['id'])
+                    );
+                    $update = $statement->execute();
+                    $afterRows = $statement->rowCount();
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+                } else {
+                    $errorInfo = '23502';  /// 23502  not_null_violation
+                    $pdo->rollback();
+                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                }
             } else {
-                $errorInfo = '23502';  /// 23502  not_null_violation
+                $errorInfo = '23503';   // 23503  foreign_key_violation
+                $errorInfoColumn = 'System';
                 $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
-    } 
+    }
 
     /**
      * @author Okan CIRAN
@@ -209,6 +218,54 @@ class SysUnitSystems extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+
+       /**
+     * @author Okan CIRAN
+     * @ sys_units tablosunda system id ye sahip elemanlar var mı   ?  
+     * @version v 1.0 06.03.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function haveUnitSystemRecords($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
+            $sql = " 
+           SELECT  
+                a.unitcode AS name ,             
+                a.system_id  = " . $params['id'] . " 
+                AS control,
+                'Bu Sistem Altında Unit Kaydı Bulunmakta. Lütfen Kontrol Ediniz !!!' AS message   
+            FROM sys_units  a  
+            INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+            LEFT JOIN sys_language lx ON lx.deleted =0 AND lx.active =0 AND lx.id = " . intval($languageIdValue) . "
+            LEFT JOIN sys_units ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.language_id = lx.id
+            WHERE a.system_id = ".$params['id']. "
+                AND a.language_parent_id =0                  
+                AND a.deleted =0    
+            LIMIT 1                      
+                               ";
+            $statement = $pdo->prepare($sql);
+           //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+ 
 
     /**
      * @author Okan CIRAN
