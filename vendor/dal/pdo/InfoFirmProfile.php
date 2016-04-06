@@ -1333,6 +1333,52 @@ class InfoFirmProfile extends \DAL\DalSlim {
         }
     }
 
+ 
+    
+     /**
+     * user interface fill operation   
+     * @author Okan CIRAN
+     * @ userin firm id sini döndürür  !!
+     * su an için sadece 1 firması varmış senaryosu için gecerli. 
+     * @version v 1.0  29.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getUserFirmIds($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            if (isset($params['user_id'])) {
+                $ownerUser = $params['user_id'];                
+
+                $sql = " 
+                SELECT id AS firm_id, 1=1 AS control FROM (
+                            SELECT ifp.id 
+                            FROM info_users a
+                            INNER JOIN info_firm_users ifu ON ifu.user_id = " . intval($ownerUser) . " AND ifu.language_parent_id =0 AND a.id = ifu.user_id                            
+			    INNER JOIN info_firm_profile ifp ON ifp.active =0 AND ifp.deleted =0 AND ifp.language_parent_id =0 AND ifu.firm_id = ifp.id     
+                            WHERE a.active =0 AND a.deleted =0 AND a.language_parent_id =0 
+                ) AS xtable limit 1                             
+                                 ";
+                $statement = $pdo->prepare($sql);
+                // echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
     
     
      /**
