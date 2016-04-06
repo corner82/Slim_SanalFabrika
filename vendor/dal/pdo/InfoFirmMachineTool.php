@@ -220,7 +220,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $getFirm = $this->getUserFirmId(array('user_id' => $opUserIdValue));
+                $getFirm = InfoFirmProfile :: getUserFirmIds(array('user_id' => $opUserIdValue));
                 if (\Utill\Dal\Helper::haveRecord($getFirm)) {
                     $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
 
@@ -1231,12 +1231,14 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 $ownerUser = $userId ['resultSet'][0]['user_id'];
                 $addSql = "";
 
-                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                    $languageIdValue = $languageId ['resultSet'][0]['id'];
-                } else {
-                    $languageIdValue = 647;
-                }
+               $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    }
+                }  
 
                 if (isset($params['machine_id'])) {
                     $addSql .= " AND a.sys_machine_tool_id = " . intval($params['machine_id']) . " ";
@@ -1253,10 +1255,10 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     cast(mt.model_year AS text) AS model_year ,
                     ifu.firm_id
                 FROM info_firm_machine_tool a
-		INNER JOIN sys_language lx ON lx.id =" . intval($languageIdValue) . "  AND lx.deleted =0 AND lx.active =0                      
+		LEFT JOIN sys_language lx ON lx.id =" . intval($languageIdValue) . "  AND lx.deleted =0 AND lx.active =0                      
 		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  		
 		INNER JOIN info_firm_users ifu on ifu.user_id = " . intval($ownerUser) . "  AND ifu.language_id = l.id 
-                INNER JOIN info_firm_profile ifp on (ifp.id = ifu.firm_id OR ifp.language_parent_id = ifu.firm_id)  AND ifp.active =0 AND ifp.deleted =0  AND ifp.language_id = l.id
+                INNER JOIN info_firm_profile ifp on (ifp.id = ifu.firm_id OR ifp.language_parent_id = ifu.firm_id)  AND ifp.active =0 AND ifp.deleted =0  AND ifp.language_id = l.id AND a.firm_id=ifu.firm_id
                 INNER JOIN sys_machine_tools mt ON (mt.id = a.sys_machine_tool_id OR mt.language_parent_id = a.sys_machine_tool_id )AND mt.language_id = lx.id
                 INNER JOIN sys_machine_tool_groups mtg ON (mtg.id = mt.machine_tool_grup_id OR mtg.language_parent_id = mt.machine_tool_grup_id )AND mtg.language_id = lx.id
                 INNER JOIN sys_manufacturer m ON (m.id = mt.manufactuer_id OR m.language_parent_id = mt.manufactuer_id) AND m.language_id = lx.id             
@@ -1300,12 +1302,14 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 $ownerUser = $userId ['resultSet'][0]['user_id'];
                 $addSql = "";
 
-                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                    $languageIdValue = $languageId ['resultSet'][0]['id'];
-                } else {
-                    $languageIdValue = 647;
-                }
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    }
+                }  
 
                 if (isset($params['machine_id'])) {
                     $addSql .= " AND a.sys_machine_tool_id = " . intval($params['machine_id']) . " ";
@@ -1412,8 +1416,8 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * user interface fill operation   
+        /**
+     * user interface fill operation    
      * @author Okan CIRAN
      * @ userin firm id sini döndürür döndürür !!
      * su an için sadece 1 firması varmış senaryosu için gecerli. 
@@ -1458,4 +1462,5 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
         }
     }
 
+    
 }
