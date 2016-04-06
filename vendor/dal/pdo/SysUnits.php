@@ -518,7 +518,14 @@ class SysUnits extends \DAL\DalSlim {
         }
     }
 
- 
+   /**  
+     * @author Okan CIRAN
+     * @ sys_units tablosundan unitleri döndürür   !!
+     * @version v 1.0  17.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
     public function getUnits($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -569,7 +576,14 @@ class SysUnits extends \DAL\DalSlim {
     }
 
  
- 
+    /**  
+     * @author Okan CIRAN
+     * @ tree ve grid doldurmak için sys_units tablosundan unitleri döndürür   !!
+     * @version v 1.0  17.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
     public function fillUnitsTree($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -642,6 +656,14 @@ class SysUnits extends \DAL\DalSlim {
     }
 
     
+    /**  
+     * @author Okan CIRAN
+     * @  bootsrap grid doldurmak için sys_units tablosundan unitlerin count unu döndürür !!
+     * @version v 1.0  17.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
     public function fillUnitsTreeRtc($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');

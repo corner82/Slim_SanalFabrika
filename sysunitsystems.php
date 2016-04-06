@@ -72,7 +72,9 @@ $app->get("/pkGetUnitSystems_sysUnitSystems/", function () use ($app ) {
                 ));    
 
     $menus = array();
-    $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);        
+    $menus[] = array("text" => "Lütfen Seçiniz", "value" => "999999", "selected" => true, //"imageSrc" => "",
+     "description" => "Lütfen Seçiniz",
+        );        
   
     if ($componentType == 'bootstrap') {
         foreach ($resCombobox as $menu) {
@@ -91,7 +93,7 @@ $app->get("/pkGetUnitSystems_sysUnitSystems/", function () use ($app ) {
                 "value" => $menu["id"],
                 "selected" => false,
                 "description" => $menu["system_eng"],
-                "imageSrc" => ""
+              //  "imageSrc" => ""
             );
         } 
     }
