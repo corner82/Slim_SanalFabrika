@@ -50,7 +50,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';  /// 23502  not_null_violation
                 $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -280,7 +280,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
                 $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -450,7 +450,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
                 $errorInfoColumn = 'user_id';
                  $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -681,7 +681,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
                 $errorInfoColumn = 'user_id';              
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             //$debugSQLParams = $statement->debugDumpParams();
@@ -768,7 +768,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
                 $errorInfoColumn = 'pk';            
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             //$debugSQLParams = $statement->debugDumpParams();
@@ -900,7 +900,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $errorInfo = '23505';   // 23505  unique_violation
                 $errorInfoColumn = 'pk';        
                 $result = $kontrol;
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {        
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -1145,7 +1145,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $errorInfo = '23502';  /// 23502  not_null_violation
                 $errorInfoColumn = 'pk';
                  $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -1261,7 +1261,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
                  $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -1369,7 +1369,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
                 $errorInfoColumn = 'user_id';
                  $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -1473,7 +1473,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
                 $errorInfoColumn = 'user_id';
                 $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             //$debugSQLParams = $statement->debugDumpParams();
@@ -1559,7 +1559,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
                 $errorInfoColumn = 'pk';               
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             //$debugSQLParams = $statement->debugDumpParams();
@@ -1615,7 +1615,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23505';   // 23505  unique_violation
                 $errorInfoColumn = 'pk';       
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {        
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -1737,7 +1737,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $errorInfo = '23502';  /// 23502  not_null_violation
                 $errorInfoColumn = 'pk / op_user_id';
                  $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();

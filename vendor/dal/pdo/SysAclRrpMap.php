@@ -190,7 +190,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
                 $errorInfo = '23505'; 
                  $pdo->rollback();
                 $result= $kontrol;                            
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -240,7 +240,7 @@ class SysAclRrpMap extends \DAL\DalSlim {
                 $errorInfo = '23505';
                  $pdo->rollback();
                 $result= $kontrol;            
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();

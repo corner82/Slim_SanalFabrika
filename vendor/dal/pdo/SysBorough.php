@@ -49,7 +49,7 @@ class SysBorough extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';  /// 23502  not_null_violation
                 $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -213,7 +213,7 @@ class SysBorough extends \DAL\DalSlim {
                 $errorInfo = '23505'; 
                  $pdo->rollback();
                 $result= $kontrol;  
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');                
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');                
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -269,7 +269,7 @@ class SysBorough extends \DAL\DalSlim {
                 $errorInfo = '23505';   // 23505  unique_violation
                  $pdo->rollback();
                 $result= $kontrol;            
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();

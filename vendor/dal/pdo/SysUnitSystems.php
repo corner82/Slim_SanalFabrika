@@ -53,7 +53,7 @@ class SysUnitSystems extends \DAL\DalSlim {
                 } else {
                     $errorInfo = '23502';  /// 23502  not_null_violation
                     $pdo->rollback();
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
                 }
             } else {
                 $errorInfo = '23503';   // 23503  foreign_key_violation
@@ -166,13 +166,13 @@ class SysUnitSystems extends \DAL\DalSlim {
                     $errorInfo = '23505';
                     $errorInfoColumn = 'system';
                     $pdo->rollback();                    
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);                    
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);                    
                 }
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
                 $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -317,13 +317,13 @@ class SysUnitSystems extends \DAL\DalSlim {
                     $errorInfo = '23505'; 
                     $errorInfoColumn = 'system';
                      $pdo->rollback();                  
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
                  $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();

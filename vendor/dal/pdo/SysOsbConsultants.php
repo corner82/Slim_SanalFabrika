@@ -49,7 +49,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';  /// 23502  not_null_violation
                 $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -166,7 +166,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                     $errorInfo = '23505';
                     $pdo->rollback();
                     $result = $kontrol;
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
                     //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
                 }
             } else {
@@ -174,7 +174,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 $errorInfo = '23505'; // $kontrol ['resultSet'][0]['message'];  
                 $pdo->rollback();
                 $result = $kontrol;
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -279,14 +279,14 @@ class SysOsbConsultants extends \DAL\DalSlim {
                     $errorInfo = '23505'; // $kontrol ['resultSet'][0]['message'];  
                     $pdo->rollback();
                     $result = $kontrol;
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
                 }
             } else {
                 // 23505 	unique_violation
                 $errorInfo = '23505'; // $kontrol ['resultSet'][0]['message'];  
                 $pdo->rollback();
                 $result = $kontrol;
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -745,7 +745,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
          //       $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             //$debugSQLParams = $statement->debugDumpParams();
@@ -829,7 +829,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
                 //  $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             //$debugSQLParams = $statement->debugDumpParams();
@@ -924,7 +924,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
                 //  $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             //$debugSQLParams = $statement->debugDumpParams();
@@ -1019,7 +1019,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 $errorInfo = '23502';  /// 23502 user_id not_null_violation
                 $pdo->rollback();
                 $result = $kontrol;
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -1137,7 +1137,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';             
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             //$debugSQLParams = $statement->debugDumpParams();

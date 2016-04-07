@@ -44,7 +44,7 @@ class InfoUsers extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';  /// 23502  not_null_violation
                  $pdo->rollback();           
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -375,13 +375,13 @@ class InfoUsers extends \DAL\DalSlim {
                     $errorInfo = '23502';   // 23502  not_null_violation
                     $errorInfoColumn = 'pk';
                     $pdo->rollback();
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
             } else {
                 $errorInfo = '23505';   // 23505  unique_violation
                 $errorInfoColumn = 'username';
                  $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -572,7 +572,7 @@ class InfoUsers extends \DAL\DalSlim {
                     $errorInfoColumn = 'username';
                      $pdo->rollback();
                     $result = $kontrol;
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }             
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -682,13 +682,13 @@ class InfoUsers extends \DAL\DalSlim {
                     $errorInfo = '23505';  // 23505  unique_violation 
                     $pdo->rollback();
                     $result = $kontrol;
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
                 }
             } else {
                 $errorInfo = '23502';  /// 23502 user_id not_null_violation
                 $pdo->rollback();
                 $result = $kontrol;
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -808,13 +808,13 @@ class InfoUsers extends \DAL\DalSlim {
                     $errorInfo = '23505';  // 23505  unique_violation 
                     $pdo->rollback();
                     $result = $kontrol;
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
                 }
             } else {
                 $errorInfo = '23502';  /// 23502 user_id not_null_violation
                 $pdo->rollback();
                 $result = $kontrol;
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -1159,7 +1159,7 @@ class InfoUsers extends \DAL\DalSlim {
             } else {
                 $errorInfo = '23502';  /// 23502  not_null_violation
                  $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
