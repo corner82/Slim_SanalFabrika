@@ -27,38 +27,48 @@ class SysNavigationLeft extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function delete($params = array()) {
-         try {
+        try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
-            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
-                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];                
-                $sql =" 
+            $Unit = $this->haveMenuRecords(array('id' => $params['id']));
+            if (!\Utill\Dal\Helper::haveRecord($Unit)) {
+
+                $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+                if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                    $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                    $sql = " 
                 UPDATE sys_navigation_left
                 SET  deleted= 1 , active = 1 ,
                      user_id = " . $opUserIdValue . "     
-                WHERE id = ". intval($params['id']) ;
-                $statement = $pdo->prepare($sql) ; 
-             //  echo debugPDO($sql, $params);
-                $update = $statement->execute();
-                $afterRows = $statement->rowCount();
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
-                $this-> setCollapseOpen();
-                $this-> setCollapseClose();
-                $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+                WHERE id = " . intval($params['id']);
+                    $statement = $pdo->prepare($sql);
+                    //  echo debugPDO($sql, $params);
+                    $update = $statement->execute();
+                    $afterRows = $statement->rowCount();
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $this->setCollapseOpen();
+                    $this->setCollapseClose();
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+                } else {
+                    $errorInfo = '23502';  /// 23502  not_null_violation
+                    $pdo->rollback();
+                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                }
             } else {
-                $errorInfo = '23502';  /// 23502  not_null_violation
+                $errorInfo = '23503';   // 23503  foreign_key_violation
+                $errorInfoColumn = 'Unitcode';
                 $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
-    } 
+    }
+
     /** 
      * @author Okan CIRAN
      * @ sys_navigation_left tablosundaki tüm kayıtları getirir.  !!
@@ -1075,6 +1085,54 @@ class SysNavigationLeft extends \DAL\DalSlim {
         }
     }
 
-   
+          
+   /**
+     * @author Okan CIRAN
+     * @ sys_navigation_left tablosunda parent id ye sahip alt elemanlar var mı   ?  
+     * @version v 1.0 07.03.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function haveMenuRecords($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
+            $sql = "            
+            SELECT  
+                a.menu_name AS name ,             
+                a.parent  = " . $params['id'] . " 
+                AS control,
+                'Bu Grup Altında Unit Kaydı Bulunmakta. Lütfen Kontrol Ediniz !!!' AS message  
+            FROM sys_navigation_left  a  
+            INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+            LEFT JOIN sys_language lx ON lx.deleted =0 AND lx.active =0 AND lx.id = " . intval($languageIdValue) . "
+            LEFT JOIN sys_navigation_left ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.language_id = lx.id
+            WHERE a.parent = ".$params['id']. "
+                AND a.language_parent_id =0                  
+                AND a.deleted =0    
+            LIMIT 1                       
+                               ";
+            $statement = $pdo->prepare($sql);
+           //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+ 
+
     
 }
