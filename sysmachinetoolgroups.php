@@ -318,7 +318,7 @@ $app->get("/pkFillJustMachineToolGroupsBootstrap_sysMachineToolGroups/", functio
                                                             ));
  
     $menus = array();
-    $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+    $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
      if ($componentType == 'bootstrap') {
         $menus = array();
         foreach ($resCombobox as $menu) {
@@ -340,10 +340,10 @@ $app->get("/pkFillJustMachineToolGroupsBootstrap_sysMachineToolGroups/", functio
         foreach ($resCombobox as $menu) {
             $menus[] = array(
                 "text" => $menu["name"],
-                "value" => $menu["id"],
+                "value" =>  intval($menu["id"]),
                 "selected" => false,
                 "description" => $menu["name_eng"],
-                "imageSrc" => ""
+             //   "imageSrc" => ""
             );
         }
     }

@@ -759,7 +759,7 @@ $app->get("/pkFillComboBoxRoles_sysAclRoles/", function () use ($app ) {
  
     $resCombobox = $BLL->FillComboBoxRoles();
     $menus = array();
-    $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+    $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
  
     if ($componentType == 'bootstrap') {
         foreach ($resCombobox as $menu) {
@@ -775,10 +775,10 @@ $app->get("/pkFillComboBoxRoles_sysAclRoles/", function () use ($app ) {
         foreach ($resCombobox as $menu) {
             $menus[] = array(
                 "text" => $menu["name"],
-                "value" => $menu["id"],
+                "value" =>intval($menu["id"]),
                 "selected" => false,
                 "description" => $menu["name_tr"],
-                "imageSrc" => ""
+              //  "imageSrc" => ""
             );
         }
     }

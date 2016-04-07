@@ -710,7 +710,8 @@ $app->get("/pkFillUserAddressesTypes_infoUsersAddresses/", function () use ($app
                                                         'language_code' => $vLanguageCode ));
  
     $menus = array();
-    $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+    $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
+    
      if ($componentType == 'bootstrap') {
         $menus = array();
         foreach ($resCombobox as $menu) {
@@ -722,15 +723,14 @@ $app->get("/pkFillUserAddressesTypes_infoUsersAddresses/", function () use ($app
                 "attributes" => array("notroot" => true,   ),
             );
         }
-    } else if ($componentType == 'ddslick') {
-        
+    } else if ($componentType == 'ddslick') {        
         foreach ($resCombobox as $menu) {
             $menus[] = array(
                 "text" => $menu["name"],
-                "value" => $menu["id"],
+                "value" => intval($menu["id"]),
                 "selected" => false,
                 "description" => $menu["name"],
-                "imageSrc" => ""
+               // "imageSrc" => ""
             );
         }
     }

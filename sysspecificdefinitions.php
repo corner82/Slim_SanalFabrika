@@ -65,7 +65,7 @@ $app->get("/fillMainDefinitions_sysSpecificDefinitions/", function () use ($app 
     ));
 
     $menus = array();
-    $menus[] = array( "text" => "Lütfen Bir Operasyon Tipi Seçiniz",  "value" => -1, "selected"=> true,) ;
+    $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
     if ($componentType == 'bootstrap') {
         foreach ($resCombobox as $menu) {
             $menus[] = array(
@@ -80,10 +80,10 @@ $app->get("/fillMainDefinitions_sysSpecificDefinitions/", function () use ($app 
         foreach ($resCombobox as $menu) {
             $menus[] = array(
                 "text" => $menu["name"],
-                "value" => $menu["id"],
+                "value" => intval($menu["id"]),
                 "selected" => false,
                 "description" => $menu["name_eng"],
-                "imageSrc" => ""
+               // "imageSrc" => ""
             );
         }
     }
@@ -111,7 +111,7 @@ $app->get("/fillFullDefinitions_sysSpecificDefinitions/", function () use ($app 
 
     
     $menus = array();
-    $menus[] = array( "text" => "Lütfen Bir Operasyon Tipi Seçiniz",  "value" => -1, "selected"=> true,) ;
+    $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
     if ($componentType == 'bootstrap') {
         foreach ($resCombobox as $menu) {
             $menus[] = array(
@@ -126,10 +126,10 @@ $app->get("/fillFullDefinitions_sysSpecificDefinitions/", function () use ($app 
         foreach ($resCombobox as $menu) {
             $menus[] = array(
                 "text" => $menu["name"],
-                "value" => $menu["id"],
+                "value" => intval($menu["id"]),
                 "selected" => false,
                 "description" => $menu["name_eng"],
-                "imageSrc" => ""
+              //  "imageSrc" => ""
             );
         }
     }
@@ -160,7 +160,7 @@ $app->get("/fillCommunicationsTypes_sysSpecificDefinitions/", function () use ($
     $resCombobox = $BLL->fillCommunicationsTypes(array('language_code' => $languageCode
     ));
     $menus = array();
-    $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+    $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
  
     if ($componentType == 'bootstrap') {
         foreach ($resCombobox as $menu) {
@@ -176,10 +176,10 @@ $app->get("/fillCommunicationsTypes_sysSpecificDefinitions/", function () use ($
         foreach ($resCombobox as $menu) {
             $menus[] = array(
                 "text" => $menu["name"],
-                "value" => $menu["id"],
+                "value" => intval($menu["id"]),
                 "selected" => false,
                 "description" => $menu["name_eng"],
-                "imageSrc" => ""
+            //    "imageSrc" => ""
             );
         }
     }
@@ -214,7 +214,7 @@ $app->get("/fillBuildingType_sysSpecificDefinitions/", function () use ($app ) {
     ));
 
         $menus = array();
-        $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+        $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
     if ($componentType == 'bootstrap') {
         foreach ($resCombobox as $menu) {
             $menus[] = array(
@@ -229,10 +229,10 @@ $app->get("/fillBuildingType_sysSpecificDefinitions/", function () use ($app ) {
         foreach ($resCombobox as $menu) {
             $menus[] = array(
                 "text" => $menu["name"],
-                "value" => $menu["id"],
+                "value" => intval($menu["id"]),
                 "selected" => false,
                 "description" => $menu["name_eng"],
-                "imageSrc" => ""
+                //"imageSrc" => ""
             );
         }
     }
@@ -264,7 +264,7 @@ $app->get("/fillOwnershipType_sysSpecificDefinitions/", function () use ($app ) 
     ));
 
         $menus = array();
-        $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+        $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
     if ($componentType == 'bootstrap') {
         foreach ($resCombobox as $menu) {
             $menus[] = array(
@@ -279,10 +279,10 @@ $app->get("/fillOwnershipType_sysSpecificDefinitions/", function () use ($app ) 
         foreach ($resCombobox as $menu) {
             $menus[] = array(
                 "text" => $menu["name"],
-                "value" => $menu["id"],
+                "value" => intval($menu["id"]),
                 "selected" => false,
                 "description" => $menu["name_eng"],
-                "imageSrc" => ""
+               // "imageSrc" => ""
             );
         }
     }
@@ -313,7 +313,7 @@ $app->get("/fillPersonnelTypes_sysSpecificDefinitions/", function () use ($app )
     ));
 
         $menus = array();
-        $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+        $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
     if ($componentType == 'bootstrap') {
         foreach ($resCombobox as $menu) {
             $menus[] = array(
@@ -328,10 +328,10 @@ $app->get("/fillPersonnelTypes_sysSpecificDefinitions/", function () use ($app )
         foreach ($resCombobox as $menu) {
             $menus[] = array(
                 "text" => $menu["name"],
-                "value" => $menu["id"],
+                "value" =>  intval($menu["id"]),
                 "selected" => false,
                 "description" => $menu["name_eng"],
-                "imageSrc" => ""
+                //"imageSrc" => ""
             );
         }
     }
@@ -363,7 +363,7 @@ $app->get("/fillAddressTypes_sysSpecificDefinitions/", function () use ($app ) {
     ));
 
         $menus = array();
-        $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+        $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
     if ($componentType == 'bootstrap') {
         foreach ($resCombobox as $menu) {
             $menus[] = array(
@@ -378,10 +378,10 @@ $app->get("/fillAddressTypes_sysSpecificDefinitions/", function () use ($app ) {
         foreach ($resCombobox as $menu) {
             $menus[] = array(
                 "text" => $menu["name"],
-                "value" => $menu["id"],
+                "value" =>  intval($menu["id"]),
                 "selected" => false,
                 "description" => $menu["name_eng"],
-                "imageSrc" => ""
+               // "imageSrc" => ""
             );
         }
     }

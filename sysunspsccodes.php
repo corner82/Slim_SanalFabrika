@@ -89,7 +89,7 @@ $app->get("/pkGetUnspscCodes_sysUnspscCodes/", function () use ($app ) {
     }
 
     $menus = array();
-    $menus[] = array("text" => "Lütfen Seçiniz", "value" => -1, "selected" => true,);
+    $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
         
     if (isset($_GET['id']) && $_GET['id'] != "") {
          if ($componentType == 'bootstrap') {
@@ -106,10 +106,10 @@ $app->get("/pkGetUnspscCodes_sysUnspscCodes/", function () use ($app ) {
             foreach ($resCombobox as $menu) {
                 $menus[] = array(
                     "text" => $menu["unspsc_names"],
-                    "value" => $menu["id"],
+                    "value" => intval($menu["id"]),
                     "selected" => false,
                     "description" => $menu["unspsc_name_eng"],
-                    "imageSrc" => ""
+                  //  "imageSrc" => ""
                 );
             }
         }
@@ -128,10 +128,10 @@ $app->get("/pkGetUnspscCodes_sysUnspscCodes/", function () use ($app ) {
         foreach ($resCombobox as $menu) {
             $menus[] = array(
                 "text" => $menu["unspsc_names"],
-                "value" => $menu["id"],
+                "value" => intval($menu["id"]),
                 "selected" => false,
                 "description" => $menu["unspsc_name_eng"],
-                "imageSrc" => ""
+              //  "imageSrc" => ""
             );
         }
     }
