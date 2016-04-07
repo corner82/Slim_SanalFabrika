@@ -79,7 +79,7 @@ $app->get("/pkGetConsPendingFirmProfile_sysOsbConsultants/", function () use ($a
         'pk' => $pk,
         'filterRules' => $filterRules));    
  
-    $resTotalRowCount = $BLL->getConsPendingFirmProfilertc(array('pk' => $pk));
+    $resTotalRowCount = $BLL->getConsPendingFirmProfilertc(array('pk' => $pk ,'filterRules' => $filterRules));
     //print_r($resTotalRowCount);
     //print_r($resDataGrid['resultSet']);
     $flows = array();

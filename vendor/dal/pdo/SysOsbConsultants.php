@@ -768,10 +768,10 @@ class SysOsbConsultants extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $whereSQL = " WHERE a.user_id = " . intval($opUserIdValue);
+                $sorguStr = " WHERE fpu.auth_allow_id = 0 AND a.user_id = " . intval($opUserIdValue);
 
                 // sql query dynamic for filter operations
-                $sorguStr = null;
+                //$sorguStr = null;
                 if (isset($params['filterRules'])) {
                     $filterRules = trim($params['filterRules']);
                     //print_r(json_decode($filterRules));
@@ -801,7 +801,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                         }
                     }
                 } else {
-                    $sorguStr = null;
+                 //   $sorguStr = null;
                     $filterRules = "";
                 }
 
@@ -811,12 +811,14 @@ class SysOsbConsultants extends \DAL\DalSlim {
                     COUNT(a.id) AS COUNT                           		  
 		FROM sys_osb_consultants a                                
 		LEFT JOIN info_firm_profile fp ON fp.consultant_id = a.user_id AND fp.deleted = 0 
-                INNER JOIN info_users fpu ON fpu.id = fp.op_user_id  
+                INNER JOIN info_users fpu ON fpu.id = fp.op_user_id
+
                 " . $sorguStr . "                
 
                     ";
+                                
                 $statement = $pdo->prepare($sql);
-              // echo debugPDO($sql, $params);
+            //echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
