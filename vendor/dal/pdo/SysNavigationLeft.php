@@ -30,8 +30,8 @@ class SysNavigationLeft extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $Unit = $this->haveMenuRecords(array('id' => $params['id']));
-            if (!\Utill\Dal\Helper::haveRecord($Unit)) {
+            $Menu = $this->haveMenuRecords(array('id' => $params['id']));
+            if (!\Utill\Dal\Helper::haveRecord($Menu)) {
 
                 $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
                 if (\Utill\Dal\Helper::haveRecord($opUserId)) {
@@ -55,7 +55,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 } else {
                     $errorInfo = '23502';  /// 23502  not_null_violation
                     $pdo->rollback();
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
                 }
             } else {
                 $errorInfo = '23503';   // 23503  foreign_key_violation
@@ -153,7 +153,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
             $pdo->beginTransaction();
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
-                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];           
 
                 $Parent = 0;
                 if ((isset($params['parent']) && $params['parent'] != "")) {
@@ -182,7 +182,9 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     z_index,                  
                     user_id,
                     menu_type,
-                    language_id
+                    language_id,
+                    root_id,
+                    root_json
                     )    
                 VALUES (
                         :menu_name,                
@@ -193,8 +195,28 @@ class SysNavigationLeft extends \DAL\DalSlim {
                         :z_index,                  
                         :user_id,
                         :menu_type,
-                        :language_id
-                          )
+                        :language_id,
+                         (SELECT CASE
+				WHEN (SELECT CASE 
+					WHEN (SELECT COALESCE(NULLIF(z.root_id, NULL), 0) AS root FROM sys_navigation_left z WHERE z.id = ".intval($Parent)." limit 1) > 0 THEN 
+						  (SELECT COALESCE(NULLIF(z.root_id, NULL), 0) AS root FROM sys_navigation_left z WHERE z.id = ".intval($Parent)." limit 1)		
+					END  
+				 ) > 0 THEN (SELECT COALESCE(NULLIF(z.root_id, NULL), 0) AS root FROM sys_navigation_left z WHERE z.id = ".intval($Parent)." limit 1) 	 
+				ELSE (SELECT last_value AS root FROM sys_navigation_left_id_seq) 					  
+				END) ,
+                        CASE  
+                            WHEN ".intval($Parent)." >0 THEN      
+                              array_to_json(CONCAT('{',REPLACE(REPLACE(CAST((SELECT 
+                                                                                z.root_json 
+                                                                            FROM sys_navigation_left z 
+                                                                            WHERE z.id = ".intval($Parent)." limit 1) 
+                                                                        As text),'[',''),']',''),',',
+                                                                        CAST((SELECT last_value FROM sys_navigation_left_id_seq) AS character varying(100)),'}' ) ::int[])    
+                        ELSE 
+                          array_to_json(CONCAT('{',CAST((SELECT last_value FROM sys_navigation_left_id_seq) AS character varying(100)),'}' ) ::int[])  
+                        END  
+                                             )  
+                         
                                                 ";
                 $statement = $pdo->prepare($sql);
                 $statement->bindValue(':menu_name', $params['menu_name'], \PDO::PARAM_STR);
@@ -207,7 +229,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 $statement->bindValue(':menu_type', $params['menu_type'], \PDO::PARAM_INT);
                 $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
                 
-              //  echo debugPDO($sql, $params);
+              // echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_navigation_left_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -221,7 +243,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
                 $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -293,7 +315,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
                 $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -484,71 +506,92 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     $languageIdValue = 647;
                 }          
             $sql = "
-                
-                SELECT a.id, 
-                    COALESCE(NULLIF(axz.menu_name, ''), a.menu_name_eng) AS menu_name, 
-                    a.language_id, 
-                    a.menu_name_eng, 
-                    a.url, 
-                    a.parent, 
-                    a.icon_class, 
-                    a.page_state, 
-                    a.collapse, 
-                    a.active, 
-                    a.deleted, 
-                    CASE 
-                        WHEN a.deleted = 0 THEN 'Aktif' 
-                        WHEN a.deleted = 1 THEN 'Silinmiş' 
-                    END AS state,    
-                    a.warning, 
-                    a.warning_type, 
-                    COALESCE(NULLIF(axz.hint, ''), a.hint_eng) AS hint, 
-                    a.z_index, 
-                    a.language_parent_id, 
-                    a.hint_eng, 
-                    a.warning_class,
-                    a.acl_type,
-                    a.language_code,
-                    (   SELECT COALESCE(NULLIF(max(ax.active), 0),0)+COALESCE(NULLIF(max(bx.active), 0),0)+COALESCE(NULLIF(max(cx.active), 0),0)+
-                            COALESCE(NULLIF(max(dx.active), 0),0) +COALESCE(NULLIF(max(ex.active), 0),0)+ COALESCE(NULLIF(max(fx.active), 0),0)+
-                            COALESCE(NULLIF(max(gx.active), 0),0) 
-                        FROM sys_navigation_left ax 
-			LEFT JOIN sys_navigation_left bx ON ax.parent = bx.id
-			LEFT JOIN sys_navigation_left cx ON bx.parent = cx.id 
-			LEFT JOIN sys_navigation_left dx ON cx.parent = dx.id
-			LEFT JOIN sys_navigation_left ex ON dx.parent = ex.id
-			LEFT JOIN sys_navigation_left fx ON ex.parent = fx.id
-			LEFT JOIN sys_navigation_left gx ON fx.parent = gx.id
-			WHERE ax.id = a.id ) AS active_control,
-			a.menu_type			
-                FROM sys_navigation_left a 
-                INNER JOIN info_users iu ON iu.active =0 AND iu.deleted =0	     	
-                INNER JOIN act_session ssx ON CRYPT(iu.sf_private_key_value,CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))  
-		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
-                LEFT JOIN sys_language lx ON lx.deleted =0 AND lx.active =0 AND lx.id = " . intval($languageIdValue) . "
-                LEFT JOIN sys_navigation_left axz ON (axz.id = a.id OR axz.language_parent_id = a.id) AND axz.language_id = lx.id
-                WHERE a.language_parent_id = 0 AND                        
-                    a.acl_type = 0 AND 
-                    a.active = 0 AND 
-                    a.deleted = 0 AND 
-                    a.parent = ".intval($params['parent'])." AND                    
-                     a.menu_type = CAST(
-                      (SELECT 
-                          COALESCE(NULLIF( 
-                         (SELECT COALESCE(NULLIF(sar.id, 0),az.id)  
-                                           FROM sys_acl_roles az
-					   LEFT JOIN sys_acl_roles sar ON sar.id = az.root AND sar.active =0 AND sar.deleted =0  
-                                           WHERE az.id= av.role_id),0), sarv.id ) AS Menu_type  
-                         FROM info_users av
-                         INNER JOIN sys_acl_roles sarv ON sarv.id = av.role_id AND sarv.active=0 AND sarv.deleted=0                          
-                         WHERE 
-				av.active =0 AND 
-				av.deleted =0 AND 
-				iu.id = av.id
-                      ) as integer) AND
-                      ssx.public_key = '".$params['pk']."'    
-                ORDER BY a.parent, a.z_index
- 
+                SELECT 
+                    id, menu_name, language_id, menu_name_eng, url, parent, icon_class, page_state, 
+                    collapse, active, deleted, state,warning,warning_type, hint, z_index, language_parent_id, 
+                    hint_eng,warning_class,acl_type,language_code,active_control,menu_type		
+                FROM (                
+                        SELECT a.id, 
+                            COALESCE(NULLIF(axz.menu_name, ''), a.menu_name_eng) AS menu_name, 
+                            a.language_id, 
+                            a.menu_name_eng, 
+                            a.url, 
+                            a.parent, 
+                            a.icon_class, 
+                            a.page_state, 
+                            a.collapse, 
+                            a.active, 
+                            a.deleted, 
+                            CASE 
+                                WHEN a.deleted = 0 THEN 'Aktif' 
+                                WHEN a.deleted = 1 THEN 'Silinmiş' 
+                            END AS state,    
+                            a.warning, 
+                            a.warning_type, 
+                            COALESCE(NULLIF(axz.hint, ''), a.hint_eng) AS hint, 
+                            a.z_index, 
+                            a.language_parent_id, 
+                            a.hint_eng, 
+                            a.warning_class,
+                            a.acl_type,
+                            a.language_code,
+                          /* CASE buraya gerek  yok artık sadece alan adı  donduruyoz. 
+                                ( 
+                                SELECT DISTINCT  mtx.active FROM sys_navigation_left mtx 
+                                WHERE  mtx.id IN ( 
+                                SELECT DISTINCT ddd FROM (
+                                        SELECT -- ab.id,  ab.root_json::json#>>'{1}', ab.root_json, 
+                                                CAST( CAST (json_array_elements(ab.root_json) AS text) AS integer) AS ddd 
+                                        FROM sys_navigation_left ab WHERE ab.id = a.id 				
+                                        ) AS xtable 				
+                                    ) AND mtx.active =1 AND mtx.language_id = a.language_id	 --AND mtx.deleted =0 
+                                )    
+                                WHEN 1 THEN 1
+                                ELSE 0 
+                            END */ 0 AS active_control,
+                                a.menu_type			
+                        FROM sys_navigation_left a 
+                        INNER JOIN info_users iu ON iu.active =0 AND iu.deleted =0	     	
+                        INNER JOIN act_session ssx ON CRYPT(iu.sf_private_key_value,CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))  
+                        INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                        LEFT JOIN sys_language lx ON lx.deleted =0 AND lx.active =0 AND lx.id = " . intval($languageIdValue) . "
+                        LEFT JOIN sys_navigation_left axz ON (axz.id = a.id OR axz.language_parent_id = a.id) AND axz.language_id = lx.id
+                        WHERE a.language_parent_id = 0 AND
+                            a.acl_type = 0 AND 
+                            a.active = 0 AND 
+                            a.deleted = 0 AND 
+                            a.parent = ".intval($params['parent'])." AND                    
+                            a.menu_type = CAST(
+                              (SELECT 
+                                  COALESCE(NULLIF( 
+                                 (SELECT COALESCE(NULLIF(sar.id, 0),az.id)  
+                                                   FROM sys_acl_roles az
+                                                   LEFT JOIN sys_acl_roles sar ON sar.id = az.root AND sar.active =0 AND sar.deleted =0  
+                                                   WHERE az.id= av.role_id),0), sarv.id ) AS Menu_type  
+                                 FROM info_users av
+                                 INNER JOIN sys_acl_roles sarv ON sarv.id = av.role_id AND sarv.active=0 AND sarv.deleted=0                          
+                                 WHERE 
+                                        av.active =0 AND 
+                                        av.deleted =0 AND 
+                                        iu.id = av.id
+                                ) as integer) AND
+                                ssx.public_key = '".$params['pk']."' 
+                                AND a.id in 
+                                        ( SELECT DISTINCT  mtxz.id FROM sys_navigation_left mtxz 
+                                          WHERE  mtxz.id IN ( 
+                                          SELECT DISTINCT dddz FROM (
+                                                  SELECT 
+                                                          CAST( CAST (json_array_elements(abz.root_json) AS text) AS integer) AS dddz 
+                                                  FROM sys_navigation_left abz WHERE abz.id = a.id 				
+                                                  ) AS xtable 				
+                                              ) AND mtxz.active =a.active AND mtxz.language_id = a.language_id AND mtxz.deleted = a.deleted  
+                                          )      
+
+                        ORDER BY a.parent, a.z_index
+                ) AS xtable 
+                WHERE 
+                active =0 
+
                                  ";           
             $statement = $pdo->prepare($sql);
    
@@ -866,11 +909,11 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 INNER JOIN sys_acl_roles sar on sar.id = a.menu_type 
 		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
                 LEFT JOIN sys_language lx ON lx.deleted =0 AND lx.active =0 AND lx.id = " . intval($languageIdValue) . "
-                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = a.language_id AND sd15.deleted =0 AND sd15.active =0 
-                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0 AND sd16.active = 0
+                -- INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = a.language_id AND sd15.deleted =0 AND sd15.active =0 
+                -- INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0 AND sd16.active = 0
                 LEFT JOIN sys_navigation_left axz ON (axz.id = a.id OR axz.language_parent_id = a.id) AND axz.language_id = lx.id
-                LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= a.deleted AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
-                LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
+                -- LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= a.deleted AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
+                -- LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
                 WHERE a.language_parent_id = 0 AND 
                    
                     a.deleted = 0 AND
@@ -1110,7 +1153,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 a.menu_name AS name ,             
                 a.parent  = " . $params['id'] . " 
                 AS control,
-                'Bu Grup Altında Unit Kaydı Bulunmakta. Lütfen Kontrol Ediniz !!!' AS message  
+                'Bu Menu Altında Alt Menu Kaydı Bulunmakta. Lütfen Kontrol Ediniz !!!' AS message  
             FROM sys_navigation_left  a  
             INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
             LEFT JOIN sys_language lx ON lx.deleted =0 AND lx.active =0 AND lx.id = " . intval($languageIdValue) . "
