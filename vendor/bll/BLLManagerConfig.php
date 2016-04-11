@@ -70,6 +70,7 @@ class BLLManagerConfig{
                  'infoFirmKeysBLL' => 'BLL\BLL\InfoFirmKeys',
                  'sysCertificationsBLL' => 'BLL\BLL\SysCertifications',
                  'sysUnitSystemsBLL' => 'BLL\BLL\SysUnitSystems',
+                 'infoFirmReferencesBLL' => 'BLL\BLL\InfoFirmReferences',
                  
                  
                  
