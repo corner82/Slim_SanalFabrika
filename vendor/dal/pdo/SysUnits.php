@@ -42,9 +42,9 @@ class SysUnits extends \DAL\DalSlim {
                 UPDATE sys_units
                 SET  deleted= 1 , active = 1 ,
                      op_user_id = " . intval($opUserIdValue) . "      
-                 WHERE id = " . intval($params['id']);
+                WHERE id = " . intval($params['id']);
                     $statement = $pdo->prepare($sql);
-                    //  echo debugPDO($sql, $params);
+                     // echo debugPDO($sql, $params);
                     $update = $statement->execute();
                     $afterRows = $statement->rowCount();
                     $errorInfo = $statement->errorInfo();
@@ -55,7 +55,7 @@ class SysUnits extends \DAL\DalSlim {
                 } else {
                     $errorInfo = '23502';  /// 23502  not_null_violation
                     $pdo->rollback();
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '');
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
                 }
             } else {
                 $errorInfo = '23503';   // 23503  foreign_key_violation
@@ -191,13 +191,13 @@ class SysUnits extends \DAL\DalSlim {
                     $errorInfo = '23505';
                     $errorInfoColumn = 'group_name';
                     $pdo->rollback();                    
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);                    
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);                    
                 }
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
                 $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -216,25 +216,39 @@ class SysUnits extends \DAL\DalSlim {
     public function haveRecords($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $addSql = "";
+           
+             $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
+            
+            $addSql = " a.system_id =  " . intval($params['system_id']) . " AND" ;
             if (isset($params['id'])) {
-                $addSql = " a.id != " . intval($params['id']) . " AND ";
+                $addSql .= " a.id != " . intval($params['id']) . " AND ";
+            } else 
+            {
+             //   $addSql = "a.system_id =  " . intval($params['system_id']) . " AND" ;
             }
+            
             $sql = " 
             SELECT  
                  a.unitcode AS name , 
                  '" . $params['unitcode'] . "' AS value , 
                  1 =1 AS control,
                  CONCAT( a.unitcode, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
-            FROM sys_units  a            
-            INNER JOIN sys_units su ON su.id = a.system_id AND su.active = 0 AND su.deleted =0 AND su.language_id = a.language_id                                      
+            FROM sys_units  a                      
             WHERE a.unitcode =  '" . $params['unitcode'] . "' AND
-		  a.system_id =  " . intval($params['system_id']) . " AND
+                  a.parent_id =  '" . $params['parent_id'] . "' AND
+                  a.language_id = " . intval($languageIdValue). " AND 
 		  " . $addSql . " 
 		  a.deleted =0       
                                ";
             $statement = $pdo->prepare($sql);
-            //echo debugPDO($sql, $params);
+          //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -282,7 +296,7 @@ class SysUnits extends \DAL\DalSlim {
             LIMIT 1                      
                                ";
             $statement = $pdo->prepare($sql);
-           //echo debugPDO($sql, $params);
+            echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -311,7 +325,8 @@ class SysUnits extends \DAL\DalSlim {
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
-                if (\Utill\Dal\Helper::haveRecord($kontrol)) {
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                  
                     $languageId = NULL;
                     $languageIdValue = 647;
                     if ((isset($params['language_code']) && $params['language_code'] != "")) {                
@@ -325,23 +340,23 @@ class SysUnits extends \DAL\DalSlim {
                 UPDATE sys_units
                 SET                      
                     system_id  = :system_id, 
-                    unit_eng = :unit_eng, 
-                    abbreviation_eng = :abbreviation_eng, 
-                    unitcode_eng  = :unitcode_eng, 
                     unit  = :unit,                     
+                    unit_eng = :unit_eng,                     
                     unitcode  = :unitcode, 
+                    unitcode_eng  = :unitcode_eng, 
                     abbreviation  = :abbreviation, 
-                    language_id = :language_id, 
-                    parent_id = :parent_id, 
+                    abbreviation_eng = :abbreviation_eng, 
+                    language_id = :language_id,                    
                     op_user_id = :op_user_id                    
                 WHERE id = " . intval($params['id']);
                     $statement = $pdo->prepare($sql);
-                    $statement->bindValue(':system_id', $params['system_id'], \PDO::PARAM_INT);                                        
-                    $statement->bindValue(':abbreviation_eng', $params['abbreviation_eng'], \PDO::PARAM_STR);
+                    $statement->bindValue(':system_id', $params['system_id'], \PDO::PARAM_INT);                                                            
                     $statement->bindValue(':unit', $params['unit'], \PDO::PARAM_STR);                    
+                    $statement->bindValue(':unit_eng', $params['unit_eng'], \PDO::PARAM_STR);                    
                     $statement->bindValue(':unitcode', $params['unitcode'], \PDO::PARAM_STR);
+                    $statement->bindValue(':unitcode_eng', $params['unitcode_eng'], \PDO::PARAM_STR);
                     $statement->bindValue(':abbreviation', $params['abbreviation'], \PDO::PARAM_STR);
-                    $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);                       
+                    $statement->bindValue(':abbreviation_eng', $params['abbreviation_eng'], \PDO::PARAM_STR);
                     $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
                     $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);                       
                     $update = $statement->execute();
@@ -354,15 +369,15 @@ class SysUnits extends \DAL\DalSlim {
                 } else {
                     // 23505 	unique_violation
                     $errorInfo = '23505'; 
-                    $errorInfoColumn = 'machine_tool_id,machine_tool_property_definition_id,unit_id,property_value';
-                     $pdo->rollback();                  
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                    $errorInfoColumn = 'unitcode';
+                    $pdo->rollback();                  
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
                  $pdo->rollback();
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -630,8 +645,8 @@ class SysUnits extends \DAL\DalSlim {
                     END AS state_type ,
                     CASE 
                          a.parent_id    
-                            WHEN 0 THEN 'false'
-                            ELSE 'true'   
+                            WHEN 0 THEN false
+                            ELSE true   
                     END AS notroot 
                 FROM sys_units a
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
@@ -654,7 +669,49 @@ class SysUnits extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+    
+    /*
+         * @author Okan CIRAN
+     * @ sys_units tablosundan parametre olarak  gelen id kaydın aktifliğini
+     *  0(aktif) ise 1 , 1 (pasif) ise 0  yapar. !!
+     * @version v 1.0  07.04.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function makeActiveOrPassive($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            if (isset($params['id']) && $params['id'] != "") {
+                $sql = "                 
+                UPDATE sys_units
+                SET active = (  SELECT   
+                                CASE active
+                                    WHEN 0 THEN 1
+                                    ELSE 0
+                                END activex
+                                FROM sys_units
+                                WHERE id = " . intval($params['id']) . "
+                )                                 
+                WHERE id = " . intval($params['id']);
+                $statement = $pdo->prepare($sql);
+                //  echo debugPDO($sql, $params);
+                $update = $statement->execute();
+                $afterRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+            }
+            $pdo->commit();
+            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
 
+      
     
     /**  
      * @author Okan CIRAN
@@ -707,5 +764,7 @@ class SysUnits extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+    
 
 }
+
