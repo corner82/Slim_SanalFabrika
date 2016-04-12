@@ -722,18 +722,7 @@ class SysUnits extends \DAL\DalSlim {
     public function fillUnitsTreeRtc($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $languageId = NULL;
-            $languageIdValue = 647;
-            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
-                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
-                }
-            }  
-            
             $whereSql = " WHERE a.deleted = 0 AND a.language_parent_id =0  " ; 
-          
-            
              if (isset($params['id']) && $params['id'] != "") {
                 $whereSql .= " AND a.system_id = " . intval($params['system_id'])." AND a.parent_id  = " . intval($params['id']) ;               
             } else {
@@ -741,12 +730,10 @@ class SysUnits extends \DAL\DalSlim {
             }
 
             $sql = "
-               SELECT 
+                SELECT 
                     COUNT(a.id ) as COUNT 
                 FROM sys_units a
-                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
-		LEFT JOIN sys_language lx ON lx.id =".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0                      		
-                LEFT JOIN sys_units su ON (su.id =a.id OR su.language_parent_id = a.id) AND su.deleted =0 AND su.active =0 AND lx.id = su.language_id                
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  		
                 " . $whereSql . "                
                        
                                  ";
