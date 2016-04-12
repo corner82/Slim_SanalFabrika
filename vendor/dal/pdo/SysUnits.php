@@ -288,8 +288,6 @@ class SysUnits extends \DAL\DalSlim {
                 'Bu Grup Altında Unit Kaydı Bulunmakta. Lütfen Kontrol Ediniz !!!' AS message   
             FROM sys_units  a  
             INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
-            LEFT JOIN sys_language lx ON lx.deleted =0 AND lx.active =0 AND lx.id = " . intval($languageIdValue) . "
-            LEFT JOIN sys_units ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.language_id = lx.id
             WHERE a.parent_id = ".$params['id']. "
                 AND a.language_parent_id =0                  
                 AND a.deleted =0    
