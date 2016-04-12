@@ -179,7 +179,7 @@ class SysUnits extends \DAL\DalSlim {
                     $statement->bindValue(':unitcode_eng', $params['unitcode_eng'], \PDO::PARAM_STR);
                     $statement->bindValue(':abbreviation', $params['abbreviation'], \PDO::PARAM_STR);
                     $statement->bindValue(':abbreviation_eng', $params['abbreviation_eng'], \PDO::PARAM_STR);                    
-                  //  echo debugPDO($sql, $params);
+                  // echo debugPDO($sql, $params);
                     $result = $statement->execute();                   
                     $insertID = $pdo->lastInsertId('sys_unit_id_seq');
                     $errorInfo = $statement->errorInfo();
@@ -234,6 +234,14 @@ class SysUnits extends \DAL\DalSlim {
              //   $addSql = "a.system_id =  " . intval($params['system_id']) . " AND" ;
             }
             
+            
+            if (isset($params['parent_id'])) {
+                $addSql .= " a.parent_id= " . intval($params['parent_id']) . " AND ";
+            } else 
+            {
+              $addSql .= " a.parent_id = 0 AND  " ;              
+            }
+            
             $sql = " 
             SELECT  
                  a.unitcode AS name , 
@@ -241,14 +249,13 @@ class SysUnits extends \DAL\DalSlim {
                  1 =1 AS control,
                  CONCAT( a.unitcode, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
             FROM sys_units  a                      
-            WHERE a.unitcode =  '" . $params['unitcode'] . "' AND
-                  a.parent_id =  '" . $params['parent_id'] . "' AND
+            WHERE a.unitcode =  '" . $params['unitcode'] . "' AND                
                   a.language_id = " . intval($languageIdValue). " AND 
 		  " . $addSql . " 
 		  a.deleted =0       
                                ";
             $statement = $pdo->prepare($sql);
-          //  echo debugPDO($sql, $params);
+           // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -294,7 +301,7 @@ class SysUnits extends \DAL\DalSlim {
             LIMIT 1                      
                                ";
             $statement = $pdo->prepare($sql);
-            echo debugPDO($sql, $params);
+        //    echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
