@@ -212,31 +212,31 @@ $app->get("/pkFillGridForAdmin_leftnavigation/", function () use ($app ) {
     $flows = array();
     foreach ($resDataGrid['resultSet'] as $flow) {
         $flows[] = array(
-            "id" => $flow["id"],
+            "id" => intval($flow["id"]),
             "menu_name" => $flow["menu_name"],
             "menu_name_eng" => $flow["menu_name_eng"],
             "url" => $flow["url"],
-            "parent" => $flow["parent"],
+            "parent" => intval($flow["parent"]),
             "icon_class" => $flow["icon_class"],            
             
             "page_state" => $flow["page_state"], 
-            "collapse" => $flow["collapse"], 
-            "deleted" => $flow["deleted"], 
+            "collapse" => intval($flow["collapse"]), 
+            "deleted" => intval($flow["deleted"]), 
             "state_deleted" => $flow["state_deleted"], 
-            "active" => $flow["active"], 
+            "active" => intval($flow["active"]), 
             "state_active" => $flow["state_active"], 
             "warning" => $flow["warning"], 
             "warning_type" => $flow["warning_type"], 
             "warning_class" => $flow["warning_class"], 
             "hint" => $flow["hint"], 
             "hint_eng" => $flow["hint_eng"], 
-            "z_index" => $flow["z_index"], 
-            "language_parent_id" => $flow["language_parent_id"], 
+            "z_index" => intval($flow["z_index"]), 
+            "language_parent_id" => intval($flow["language_parent_id"]), 
             
-            "active_control" => $flow["active_control"], 
-            "role_id" => $flow["role_id"], 
+            "active_control" => intval($flow["active_control"]), 
+            "role_id" => intval($flow["role_id"]), 
             "role_name" => $flow["role_name"],  
-            "attributes" => array("notroot" => true, "active" => $flow["active"],"active_control" => $flow["active_control"]),
+            "attributes" => array("notroot" => true, "active" => intval($flow["active"]),"active_control" => intval($flow["active_control"])),
         );
     }
 
