@@ -461,11 +461,14 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
             if (isset($params['id']) && $params['id'] != "") {
                 $id = $params['id'];
             }
-            if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];
-            } else {
-                $languageIdValue = 647;
-            }
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
             $statement = $pdo->prepare("             
                 SELECT                    
                     a.first_group AS id, 	
@@ -480,7 +483,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                      END AS state_type  
                 FROM sys_specific_definitions a    
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
-		LEFT JOIN sys_language lx ON lx.id =" . $languageIdValue . " AND lx.deleted =0 AND lx.active =0                      		
+		LEFT JOIN sys_language lx ON lx.id =" . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                      		
                 LEFT JOIN sys_specific_definitions sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
                 WHERE                     
                     a.parent = " . $id . " AND                   
@@ -512,11 +515,14 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
     public function fillCommunicationsTypes($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
-            if (\Utill\Dal\Helper::haveRecord($params['language_code'])) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];
-            } else {
-                $languageIdValue = 647;
-            }
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
             $statement = $pdo->prepare("             
                 SELECT                    
                     a.first_group AS id, 	
@@ -531,7 +537,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                      END AS state_type  
                 FROM sys_specific_definitions a    
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
-		LEFT JOIN sys_language lx ON lx.id =" . $languageIdValue . " AND lx.deleted =0 AND lx.active =0                      		
+		LEFT JOIN sys_language lx ON lx.id =" . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                      		
                 LEFT JOIN sys_specific_definitions sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
                 WHERE                     
                     a.main_group = 5 AND                    
@@ -563,11 +569,14 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
     public function fillBuildingType($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
-             if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];
-            } else {
-                $languageIdValue = 647;
-            }
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
             $statement = $pdo->prepare("             
                 SELECT                    
                     a.first_group AS id, 	
@@ -582,7 +591,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                      END AS state_type  
                 FROM sys_specific_definitions a    
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
-		LEFT JOIN sys_language lx ON lx.id =" . $languageIdValue . " AND lx.deleted =0 AND lx.active =0                      		
+		LEFT JOIN sys_language lx ON lx.id =" . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                      		
                 LEFT JOIN sys_specific_definitions sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
                 WHERE                     
                     a.main_group = 4 AND                    
@@ -614,11 +623,14 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
     public function fillOwnershipType($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
-             if (\Utill\Dal\Helper::haveRecord($params['language_code'])) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];
-            } else {
-                $languageIdValue = 647;
-            }
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
             $statement = $pdo->prepare("             
                 SELECT                    
                     a.first_group AS id, 	
@@ -633,7 +645,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                      END AS state_type  
                 FROM sys_specific_definitions a    
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
-		LEFT JOIN sys_language lx ON lx.id =" . $languageIdValue . " AND lx.deleted =0 AND lx.active =0                      		
+		LEFT JOIN sys_language lx ON lx.id =" . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                      		
                 LEFT JOIN sys_specific_definitions sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
                 WHERE                     
                     a.main_group = 1 AND                    
@@ -665,11 +677,14 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
     public function fillPersonnelTypes($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
-             if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];
-            } else {
-                $languageIdValue = 647;
-            }
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
             $statement = $pdo->prepare("             
                 SELECT                    
                     a.first_group AS id, 	
@@ -684,7 +699,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                      END AS state_type  
                 FROM sys_specific_definitions a    
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
-		LEFT JOIN sys_language lx ON lx.id =" . $languageIdValue . " AND lx.deleted =0 AND lx.active =0                      		
+		LEFT JOIN sys_language lx ON lx.id =" .intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                      		
                 LEFT JOIN sys_specific_definitions sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
                 WHERE                     
                     a.main_group = 10 AND                    
@@ -716,11 +731,14 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
     public function fillAddressTypes($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
-            if (\Utill\Dal\Helper::haveRecord($params['language_code'])) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];
-            } else {
-                $languageIdValue = 647;
-            }
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
             $statement = $pdo->prepare("             
                 SELECT                    
                     a.first_group AS id, 	
@@ -735,7 +753,7 @@ class SysSpecificDefinitions extends \DAL\DalSlim {
                      END AS state_type  
                 FROM sys_specific_definitions a    
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
-		LEFT JOIN sys_language lx ON lx.id =" . $languageIdValue . " AND lx.deleted =0 AND lx.active =0                      		
+		LEFT JOIN sys_language lx ON lx.id =" . intval($languageIdValue). " AND lx.deleted =0 AND lx.active =0                      		
                 LEFT JOIN sys_specific_definitions sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
                 WHERE                     
                     a.main_group = 17 AND                    
