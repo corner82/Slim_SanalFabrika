@@ -119,5 +119,13 @@ class SysUnits extends \BLL\BLLSlim {
         return $resultSet['resultSet'];
     }
 
-    
+       /**
+     * public key / private key and value update function
+     * @param array | null $params
+     * @return array
+     */
+    public function makeActiveOrPassive($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysUnitsPDO');
+        return $DAL->makeActiveOrPassive($params);
+    }  
 }

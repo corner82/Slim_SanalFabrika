@@ -688,6 +688,9 @@ class SysUnits extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
+             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
             if (isset($params['id']) && $params['id'] != "") {
                 $sql = "                 
                 UPDATE sys_units
@@ -698,7 +701,8 @@ class SysUnits extends \DAL\DalSlim {
                                 END activex
                                 FROM sys_units
                                 WHERE id = " . intval($params['id']) . "
-                )                                 
+                ),
+                op_user_id = " . intval($opUserIdValue) . "                               
                 WHERE id = " . intval($params['id']);
                 $statement = $pdo->prepare($sql);
                 //  echo debugPDO($sql, $params);
@@ -710,6 +714,12 @@ class SysUnits extends \DAL\DalSlim {
             }
             $pdo->commit();
             return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+             } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());

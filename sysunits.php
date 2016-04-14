@@ -196,14 +196,14 @@ $app->get("/pkFillUnitsTree_sysUnits/", function () use ($app ) {
     if (isset($resDataGrid['resultSet'][0]['id'])) {      
         foreach ($resDataGrid['resultSet']  as $flow) {    
             $flows[] = array(
-                "id" => $flow["id"],
+                "id" => intval( $flow["id"]) ,
                 "text" =>  $flow["unitcode"],
                 "state" => $flow["state_type"],
                 "checked" => false,
                 "attributes" => array ("notroot"=>$flow["notroot"],
                                         "unitcode_eng"=>$flow["unitcode_eng"],
-                                        "active" => $flow["active"],
-                                        "system_id" => $flow["system_id"],
+                                        "active" => intval($flow["active"]),
+                                        "system_id" => intval($flow["system_id"]),
                                         "system" => $flow["system"],
                                         "system_eng" => $flow["system_eng"],
                                         "unit" => $flow["unit"],
@@ -379,13 +379,13 @@ $app->get("/pkUpdate_sysUnits/", function () use ($app ) {
          $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
                                                 $app,
                                                 $_GET['language_code']));
-    }  
-    $vParentId = NULL;
-    if (isset($_GET['parent_id'])) {
-        $stripper->offsetSet('parent_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+    }
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
-                                                $_GET['parent_id']));
-    }    
+                                                $_GET['id']));
+    }
     $vSystemId = NULL;
     if (isset($_GET['system_id'])) {
         $stripper->offsetSet('system_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
@@ -397,24 +397,24 @@ $app->get("/pkUpdate_sysUnits/", function () use ($app ) {
          $stripper->offsetSet('unit',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
                                                 $_GET['unit']));
+    }
+    $vUnitEng = NULL;
+    if (isset($_GET['unit_eng'])) {
+         $stripper->offsetSet('unit_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['unit_eng']));
+    }       
+    $vUnitCode = NULL;
+    if (isset($_GET['unitcode'])) {
+         $stripper->offsetSet('unitcode',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['unitcode']));
     }   
     $vUnitCodeEng = NULL;
     if (isset($_GET['unitcode_eng'])) {
          $stripper->offsetSet('unitcode_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
                                                 $_GET['unitcode_eng']));
-    }   
-     $vUnitCode = NULL;
-    if (isset($_GET['unitcode'])) {
-         $stripper->offsetSet('unitcode',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['unitcode']));
-    }   
-    $vUnitEng = NULL;
-    if (isset($_GET['unit_eng'])) {
-         $stripper->offsetSet('unit_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['unit_eng']));
     }   
      $vAbbreviation = NULL;
     if (isset($_GET['abbreviation'])) {
@@ -432,7 +432,10 @@ $app->get("/pkUpdate_sysUnits/", function () use ($app ) {
     $stripper->strip();
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    }   
+    }
+    if ($stripper->offsetExists('id')) {
+        $vId = $stripper->offsetGet('id')->getFilterValue();
+    }
     if ($stripper->offsetExists('system_id')) {
         $vSystemId = $stripper->offsetGet('system_id')->getFilterValue();
     }
@@ -459,7 +462,8 @@ $app->get("/pkUpdate_sysUnits/", function () use ($app ) {
     
     $resDataInsert = $BLL->update(array(   
             'language_code' => $vLanguageCode,
-            'system_id'=> $vSystemId,                 
+            'id'=> $vId,        
+            'system_id'=> $vSystemId,    
             'unit'=> $vUnit,
             'unit_eng'=> $vUnitEng,
             'unitcode'=> $vUnitCode,
@@ -574,5 +578,45 @@ $app->get("/pkDelete_sysUnits/", function () use ($app ) {
     $app->response()->body(json_encode($resDataDeleted));
 }
 ); 
+
+/**x
+ *  * Okan CIRAN
+ * @since 29-03-2016
+ */
+$app->get("/pkUpdateMakeActiveOrPassive_sysUnits/", function () use ($app ) {
+ 
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('sysUnitsBLL');
+ 
+   
+    $headerParams = $app->request()->headers();
+    $Pk = $headerParams['X-Public'];  
+   
+          
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    } 
+
+    $stripper->strip();
+ 
+    if ($stripper->offsetExists('id')) {$vId = $stripper->offsetGet('id')->getFilterValue(); }
+     
+    
+    $resData = $BLL->makeActiveOrPassive(array(                  
+            'id' => $vId ,    
+            'pk' => $Pk,        
+            ));
+
+
+    $app->response()->header("Content-Type", "application/json");
+ 
+    $app->response()->body(json_encode($resData));
+}
+); 
+
 
 $app->run();
