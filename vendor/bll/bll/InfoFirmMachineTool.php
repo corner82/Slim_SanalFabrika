@@ -157,7 +157,15 @@ class InfoFirmMachineTool extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
 
-     
+          /**
+     * Function to get datagrid row count on user interface layer
+     * @param array | null $params
+     * @return array
+     */ 
+       public function fillFirmMachineGroupsCounts($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        return $DAL->fillFirmMachineGroupsCounts($params);
+    }
     
 }
 

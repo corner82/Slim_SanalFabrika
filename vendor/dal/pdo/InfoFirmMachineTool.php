@@ -1461,6 +1461,59 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-
     
+       /**
+     * user interface fill operation   
+     * @author Okan CIRAN
+     * @ tree doldurmak için sys_machine_tool tablosundan tüm kayıtları döndürür !!
+     * @version v 1.0  15.04.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillFirmMachineGroupsCounts($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+
+            $sql = " 
+            SELECT                     
+               DISTINCT CAST(mt.machine_tool_grup_id AS text) AS machine_grup_id,
+               COUNT(a.sys_machine_tool_id) AS machine_count,
+               COALESCE(NULLIF(COALESCE(NULLIF(mtgx.group_name, ''),  mtg.group_name_eng), ''),  mtg.group_name) AS group_name
+            FROM info_firm_machine_tool a
+            INNER JOIN info_firm_keys fk ON fk.firm_id = a.firm_id 
+            INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+            LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0
+            INNER JOIN sys_machine_tools mt ON mt.id = a.sys_machine_tool_id AND mt.deleted =0 AND mt.active =0 AND mt.language_parent_id =0 
+            INNER JOIN sys_machine_tool_groups mtg ON mtg.id = mt.machine_tool_grup_id AND mtg.deleted =0 AND mtg.active =0 AND mt.language_parent_id =0 
+            LEFT JOIN sys_machine_tool_groups mtgx ON (mtgx.id =  mt.machine_tool_grup_id  OR mtgx.language_parent_id =  mt.machine_tool_grup_id ) AND mtgx.deleted =0 AND mtgx.active =0 AND  lx.id = mtgx.language_id
+            WHERE 
+                a.deleted =0 AND a.active =0 AND
+                a.profile_public =0 AND
+                fk.network_key = '".$params['network_key']."' AND
+                a.language_parent_id =0
+            GROUP BY a.sys_machine_tool_id,mt.machine_tool_grup_id, mtg.group_name, mtgx.group_name, mtg.group_name_eng
+            ORDER BY group_name  
+                                 ";
+            $statement = $pdo->prepare($sql);
+            // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
 }
