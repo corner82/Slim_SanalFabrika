@@ -1039,7 +1039,7 @@ $app->get("/fillCompanyInfoCustomersGuest_infoFirmProfile/", function () use ($a
 
     /**
  *  * Okan CIRAN
- * @since 23-03-2016
+ * @since 15-04-2016
  */
 $app->get("/fillCompanyInfoProductsGuest_infoFirmProfile/", function () use ($app ) {
 
@@ -1085,6 +1085,54 @@ $app->get("/fillCompanyInfoProductsGuest_infoFirmProfile/", function () use ($ap
     $app->response()->header("Content-Type", "application/json");    
     $app->response()->body(json_encode($flows));
 });
+
+ 
+    /**
+ *  * Okan CIRAN
+ * @since 15-04-2016
+ */
+$app->get("/fillCompanyInfoSectorsGuest_infoFirmProfile/", function () use ($app ) {
+
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+ 
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }
+
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('npk')) $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();
+ 
+     $result = $BLL->fillCompanyInfoSectorsGuest(array('language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey,        
+        ));
+    
+  
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],    
+            "sector_name" => $flow["sector_name"],  
+            "logo" => $flow["logo"],              
+            "attributes" => array("notroot" => true,"active" => $flow["active"], ),
+        );
+    }
+ 
+    $app->response()->header("Content-Type", "application/json");    
+    $app->response()->body(json_encode($flows));
+});
+
 
 
 $app->run();

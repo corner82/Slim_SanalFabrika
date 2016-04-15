@@ -1817,4 +1817,57 @@ class InfoFirmProfile extends \DAL\DalSlim {
         }
     }
  
+        /*  
+     * @author Okan CIRAN
+     * @ quest kullanıcısı için,   info_firm_profile tablosundan kayıtları döndürür !!
+     * @version v 1.0  15.04.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillCompanyInfoSectorsGuest($params = array()) {
+        try {
+                $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');    
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    }
+                }                                 
+
+                $sql = "                    
+                SELECT 
+                   ifs.id,
+                   COALESCE(NULLIF(COALESCE(NULLIF(ssx.name, ''), ss.name_eng), ''), ss.name) AS sector_name,                 
+                   COALESCE(NULLIF(ss.logo, ''), 'image_not_found.png') AS logo,
+                   ifs.active
+                FROM info_firm_sectoral ifs                
+                INNER JOIN info_firm_profile a ON ifs.firm_id = a.id AND a.language_parent_id =0 AND a.deleted =0 AND a.active =0
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0
+                INNER JOIN info_firm_keys fk ON fk.firm_id = a.id
+                INNER JOIN sys_sectors ss ON ss.id = ifs.sector_id AND ss.language_parent_id =0 AND ss.deleted =0 AND ss.active =0
+                LEFT JOIN sys_sectors ssx ON (ssx.id = ifs.sector_id OR ssx.language_parent_id = ifs.sector_id) AND ssx.id = ifs.sector_id AND ssx.language_parent_id =0 AND ssx.deleted =0 AND ssx.active =0
+                WHERE ifs.deleted =0 AND 
+		      ifs.active =0 AND		      
+                      ifs.profile_public =0 AND                      
+                      fk.network_key = '".$params['network_key']."'  
+                ORDER BY sector_name
+                  ";                
+                $statement = $pdo->prepare($sql);
+                // echo debugPDO($sql, $params);                
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+ 
 }
