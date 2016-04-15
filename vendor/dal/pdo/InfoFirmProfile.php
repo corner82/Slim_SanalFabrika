@@ -1552,7 +1552,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     COALESCE(NULLIF(COALESCE(NULLIF(ax.firm_name, ''), a.firm_name_eng), ''), a.firm_name) AS firm_names,   
                     a.web_address,                                         
                     a.firm_name_short,
-                    a.country_id,                   
+                    a.foundation_year,
+                    a.country_id,                    
 		    COALESCE(NULLIF(cox.name, ''), co.name_eng) AS country_names,                     
                     COALESCE(NULLIF(COALESCE(NULLIF(ax.description, ''), a.description_eng), ''), a.description) AS descriptions,
                     COALESCE(NULLIF(a.logo, ''), 'image_not_found.png') AS logo,
@@ -1562,12 +1563,15 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     ifpi.number_of_engineer, 
                     ifpi.number_of_administrative_staff, 
                     ifpi.number_of_sales_staff, 
-                    ifpi.number_of_foreign_trade_staff
+                    ifpi.number_of_foreign_trade_staff,
+                    COALESCE(NULLIF(COALESCE(NULLIF(ivx.about, ''), iv.about_eng), ''), iv.about) AS about
                 FROM info_firm_profile a    
                 INNER JOIN info_firm_keys fk ON fk.firm_id = a.id
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
                 LEFT JOIN info_firm_personnel_info ifpi on ifpi.firm_id = a.id AND ifpi.profile_public =0
                 LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0 
+                INNER JOIN info_firm_verbal iv on iv.firm_id = a.id AND iv.profile_public =0 AND iv.deleted =0 AND iv.active =0
+                LEFT JOIN info_firm_verbal ivx on (ivx.firm_id = a.id OR ivx.language_parent_id = a.id) AND ivx.deleted = 0 AND ivx.active = 0 AND ivx.language_id = lx.id                
                 LEFT JOIN sys_countrys co ON co.id = a.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = a.language_id                  
                 LEFT JOIN sys_countrys cox ON (cox.id = a.country_id OR cox.language_parent_id = a.country_id) AND cox.deleted = 0 AND cox.active = 0 AND cox.language_id = lx.id                
 		LEFT JOIN info_firm_profile ax ON ax.act_parent_id = a.id AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0 AND ax.profile_public =0                 
@@ -1615,24 +1619,30 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 }                                 
 
                 $sql = "
-                SELECT                
-		   distinct COALESCE(NULLIF(COALESCE(NULLIF(ifrx.ref_name, ''), ifr.ref_name_eng), ''), ifr.ref_name) AS ref_name
-                FROM info_firm_profile a    
-                INNER JOIN info_firm_keys fk on fk.firm_id = a.id
-                INNER JOIN info_firm_references ifr on ifr.firm_id = a.id AND   ifr.deleted =0 AND ifr.active =0 
-                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                 
-                LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0                 
-		LEFT JOIN info_firm_references ifrx on (ifrx.id = ifr.id OR ifrx.language_parent_id = ifr.id) AND ifrx.language_id = lx.id AND ifrx.active =0 AND ifrx.deleted =0                                    
-                WHERE 
-                    a.deleted =0 AND 
-                    a.active =0 AND 
-                    a.language_parent_id =0 AND 
-                    a.profile_public =0 AND 
-                    fk.network_key = '".$params['network_key']."' 
+		 SELECT 
+                    a.id,
+                    COALESCE(NULLIF(COALESCE(NULLIF(fprefx.firm_name, ''),fpref.firm_name_eng), ''), fpref.firm_name) AS ref_name, 
+                    a.s_date as ref_date, 
+                    ifk.network_key AS ref_network_key, 
+                    a.active, 
+                    COALESCE(NULLIF(fpref.logo, ''), 'image_not_found.png') AS logo, 
+                    fpref.web_address
+		 FROM info_firm_profile fp 
+		 INNER JOIN info_firm_references a ON a.firm_id = fp.id AND a.active =0 AND a.deleted =0
+		 INNER JOIN info_firm_profile fpref ON fpref.id = a.ref_firm_id AND fpref.active =0 AND fpref.deleted =0 AND fpref.language_parent_id = 0 
+		 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id 
+		 INNER JOIN info_firm_keys ifkx ON ifkx.firm_id = a.firm_id 
+		 LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0 
+		 LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id 
+		 LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.active =0 AND fprefx.deleted =0 AND fprefx.language_id = lx.id 
+		 WHERE 
+                    a.deleted =0 AND
+                    a.active =0 AND
+                    ifkx.network_key = '".$params['network_key']."'                     
                 ORDER BY ref_name
                   ";                
                 $statement = $pdo->prepare($sql);
-                // echo debugPDO($sql, $params);                
+               // echo debugPDO($sql, $params);                
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -1721,7 +1731,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
 
                 $sql = "
                 SELECT                
-		    COALESCE(NULLIF(COALESCE(NULLIF(ifcx.customer_name, ''), ifc.customer_name_eng), ''), ifc.customer_name) AS customer_names
+		    COALESCE(NULLIF(COALESCE(NULLIF(ifcx.customer_name, ''), ifc.customer_name_eng), ''), ifc.customer_name) AS customer_names                                     
                 FROM info_firm_profile a    
                 INNER JOIN info_firm_keys fk on fk.firm_id = a.id
                 INNER JOIN info_firm_customers ifc on ifc.firm_id = a.id AND ifc.deleted =0 AND ifc.active =0  AND ifc.profile_public =0                
@@ -1749,5 +1759,62 @@ class InfoFirmProfile extends \DAL\DalSlim {
         }
     }
 
-     
+    
+       /*  
+     * @author Okan CIRAN
+     * @ quest kullanıcısı için,   info_firm_profile tablosundan kayıtları döndürür !!
+     * @version v 1.0  15.04.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillCompanyInfoProductsGuest($params = array()) {
+        try {
+                $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');    
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    }
+                }                                 
+
+                $sql = "
+                    
+                SELECT 
+                    ifp.id,      
+                    COALESCE(NULLIF(COALESCE(NULLIF(ifpx.product_name, ''), ifp.product_name_eng), ''), ifp.product_name) AS product_name,   
+                    COALESCE(NULLIF(COALESCE(NULLIF(ifpx.product_description, ''), ifp.product_description_eng), ''), ifp.product_description) AS product_description,   
+                    ifp.gtip_no_id,
+                    COALESCE(NULLIF(ifp.product_picture, ''), 'image_not_found.png') AS product_picture,
+                    COALESCE(NULLIF(ifp.product_video_link, ''), 'video_not_found.png') AS product_video_link,                    
+                    ifp.active
+                FROM info_firm_products ifp
+                INNER JOIN info_firm_profile a ON ifp.firm_id = a.id AND a.language_parent_id =0 AND a.deleted =0 AND a.active =0 
+                INNER JOIN info_firm_keys fk ON fk.firm_id = a.id
+                INNER JOIN sys_language l ON l.id = ifp.language_id AND l.deleted =0 AND l.active =0                 
+                LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0                 
+                LEFT JOIN info_firm_products ifpx on (ifpx.id = ifp.id OR ifpx.language_parent_id = ifp.id) AND ifpx.deleted = 0 AND ifpx.active = 0 AND ifpx.language_id = lx.id                                		
+                WHERE ifp.deleted =0 AND 
+		      ifp.active =0 AND
+		      ifp.language_parent_id =0 AND
+                      ifp.profile_public =0 AND 
+                      fk.network_key = '".$params['network_key']."'  
+                ORDER BY product_name
+                  ";                
+                $statement = $pdo->prepare($sql);
+                // echo debugPDO($sql, $params);                
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+ 
 }

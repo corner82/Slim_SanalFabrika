@@ -864,7 +864,9 @@ class InfoUsersAddresses extends \DAL\DalSlim {
 		    COALESCE(NULLIF(COALESCE(NULLIF(fprefx.firm_name, ''), fpref.firm_name_eng), ''), fpref.firm_name) AS ref_firm_names,
 		    a.s_date as ref_date,
 		    ifk.network_key AS Ref_network_key,
-                    a.active
+                    a.active,
+                    COALESCE(NULLIF(fpref.logo, ''), 'image_not_found.png') AS logo,
+                    fpref.web_address
                 FROM info_firm_profile fp                                
                 INNER JOIN info_firm_references a ON a.firm_id = fp.id AND a.active =0 AND a.deleted =0                
                 INNER JOIN info_firm_profile fpref ON  fpref.id = a.ref_firm_id AND fpref.active =0 AND fpref.deleted =0 AND fpref.language_parent_id = 0 
@@ -874,8 +876,8 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.active =0 AND fprefx.deleted =0 AND fprefx.language_id = lx.id                 
 	        WHERE  
                     fp.language_parent_id = 0 AND 
-                    fb.deleted =0 AND 
-                    fb.active =0  
+                    fp.deleted =0 AND 
+                    fp.active =0  
                    ".$addSql."
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
@@ -940,8 +942,8 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.active =0 AND fprefx.deleted =0 AND fprefx.language_id = lx.id                 
 	        WHERE  
                     fp.language_parent_id = 0 AND 
-                    fb.deleted =0 AND 
-                    fb.active =0  
+                    fp.deleted =0 AND 
+                    fp.active =0  
                    ".$addSql."
                  ";
                 $statement = $pdo->prepare($sql);
@@ -1020,7 +1022,9 @@ class InfoUsersAddresses extends \DAL\DalSlim {
 		    COALESCE(NULLIF(COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng), ''), fp.firm_name) AS firm_names,
 		    a.s_date as ref_date,
 		    ifk.network_key AS network_key,
-                    a.active
+                    a.active,
+                    COALESCE(NULLIF(fpx.logo, ''), 'image_not_found.png') AS logo,
+                    fpref.web_address
                 FROM info_firm_profile fp                                
                 INNER JOIN info_firm_references a ON a.firm_id = fp.id AND a.active =0 AND a.deleted =0                
                 INNER JOIN info_firm_profile fpref ON  fpref.id = a.ref_firm_id AND fpref.active =0 AND fpref.deleted =0 AND fpref.language_parent_id = 0 
@@ -1030,8 +1034,8 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.active =0 AND fprefx.deleted =0 AND fprefx.language_id = lx.id                 
 	        WHERE 
                     fp.language_parent_id = 0 AND 
-                    fb.deleted =0 AND 
-                    fb.active =0  
+                    fp.deleted =0 AND 
+                    fp.active =0  
                    ".$addSql."
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
@@ -1099,8 +1103,8 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.active =0 AND fprefx.deleted =0 AND fprefx.language_id = lx.id                 
 	        WHERE 
                     fp.language_parent_id = 0 AND 
-                    fb.deleted =0 AND 
-                    fb.active =0  
+                    fp.deleted =0 AND 
+                    fp.active =0  
                    ".$addSql."
                 ";
                 $statement = $pdo->prepare($sql);                
