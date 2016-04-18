@@ -72,6 +72,9 @@ $app->get("/fillComboBox_syscountrys/", function () use ($app ) {
                 "value" => intval($menu["id"]),
                 "selected" => false,
                 "description" => $menu["name_eng"],
+                "attributes" => array("citylist" => $menu["citylist"], "active" => $menu["active"],
+                 
+                ),
               //  "imageSrc" => ""
             );
         }
