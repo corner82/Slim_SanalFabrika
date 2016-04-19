@@ -77,20 +77,21 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                         a.machine_tool_name_eng, 
                         a.machine_tool_grup_id, 
                         a.manufactuer_id, 
-                        a.model, 
+                        a.model,
                         a.model_year, 
                         a.procurement, 
-                        a.qqm, 
-                        a.machine_code,	                   
-                        a.deleted, 
-                        sd.description as state_deleted,                 
+                        a.qqm,
+                        a.machine_code,
+                        a.deleted,
+                        sd.description as state_deleted,
                         a.active, 
                         sd1.description as state_active, 
                         a.op_user_id,
                         u.username AS op_user_name,
-                        a.language_id ,
-                        COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,                  
-                        a.language_code 
+                        a.language_id,
+                        COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,
+                        a.language_code,                        
+                        COALESCE(NULLIF(a.picture, ''), 'image_not_found.png') AS picture
                 FROM sys_machine_tools a
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
                 INNER JOIN sys_machine_tool_groups mtg ON mtg.id = a.machine_tool_grup_id AND mtg.active = 0 AND mtg.deleted = 0 AND mtg.language_id = a.language_id
@@ -147,7 +148,8 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                         machine_code, 
                         language_id, 
                         op_user_id, 
-                        language_code
+                        language_code,
+                        picture
                         )
                 VALUES (
                         :machine_tool_name, 
@@ -161,7 +163,8 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                         :machine_code, 
                         :language_id, 
                         :op_user_id, 
-                        :language_code
+                        :language_code,
+                        :picture
                                              )  
                     ";
                     $statement = $pdo->prepare($sql);
@@ -177,6 +180,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                     $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
                     $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_STR);
                     $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+                    $statement->bindValue(':picture', $params['picture'], \PDO::PARAM_STR);
                     // echo debugPDO($sql, $params);
                     $result = $statement->execute();
                     $insertID = $pdo->lastInsertId('sys_machine_tools_id_seq');
@@ -282,7 +286,8 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                     machine_code = :machine_code, 
                     language_id = :language_id, 
                     op_user_id = :op_user_id, 
-                    language_code = :language_code
+                    language_code = :language_code,
+                    picture = :picture
                 WHERE id = " . intval($params['id']);
                     $statement = $pdo->prepare($sql);
                     $statement->bindValue(':machine_tool_name', $params['machine_tool_name'], \PDO::PARAM_STR);
@@ -297,6 +302,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                     $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
                     $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_STR);
                     $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+                    $statement->bindValue(':picture', $params['picture'], \PDO::PARAM_STR);
                     $update = $statement->execute();
                     $affectedRows = $statement->rowCount();
                     $errorInfo = $statement->errorInfo();
@@ -393,7 +399,8 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                         u.username AS op_user_name,
                         a.language_id,
                         COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,                  
-                        a.language_code 
+                        a.language_code,
+                        COALESCE(NULLIF(a.picture, ''), 'image_not_found.png') AS picture
                 FROM sys_machine_tools a
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
                 INNER JOIN sys_machine_tool_groups mtg ON mtg.id = a.machine_tool_grup_id AND mtg.active = 0 AND mtg.deleted = 0 AND mtg.language_id = a.language_id

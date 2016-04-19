@@ -141,6 +141,7 @@ $app->get("/pkFillGrid_sysMachineTools/", function () use ($app ) {
             "language_id" => $flow["language_id"],                
             "language_name" => $flow["language_name"],  
             "language_code" => $flow["language_code"],  
+            "picture" => $flow["picture"],
                         
             
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
