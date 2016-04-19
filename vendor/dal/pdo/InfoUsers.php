@@ -1029,12 +1029,14 @@ class InfoUsers extends \DAL\DalSlim {
     public function fillGridRowTotalCount($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
-            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-            if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];
-            }else {
-                $languageIdValue = 647;
-             }
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
             $whereSql .= "  a.language_id = ".intval($languageIdValue);
             $whereSql1 .= " WHERE a1.deleted = 0 AND a1.language_id = ".intval($languageIdValue);
             $whereSql2 .= " WHERE a2.deleted = 1 AND a2.language_id = ".intval($languageIdValue);
@@ -1461,6 +1463,49 @@ class InfoUsers extends \DAL\DalSlim {
         }
     }
 
-    
+      /**
+     * user interface fill operation    
+     * @author Okan CIRAN
+     * @ userin firm id sini döndürür döndürür !!
+     * su an için sadece 1 firması varmış senaryosu için gecerli. 
+     * @version v 1.0  29.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getUserFirmId($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            if (isset($params['user_id'])) {
+                $userIdValue = $params['user_id'];
+                $addSql = " WHERE a.deleted =0 AND a.active =0 
+                AND a.language_parent_id =0 
+                limit 1 ";
+
+                $sql = " 
+                SELECT                    
+                   ifu.firm_id,
+                   1=1 control
+                FROM info_firm_machine_tool a		
+		INNER JOIN info_firm_users ifu ON ifu.user_id = " . intval($userIdValue) . " AND ifu.language_parent_id = 0 AND ifu.firm_id = a.firm_id                
+                " . $addSql . "
+                                 ";
+                $statement = $pdo->prepare($sql);
+                // echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
     
 }
