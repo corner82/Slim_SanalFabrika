@@ -49,94 +49,107 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
  * @since 09.02.2016
  */
 $app->get("/pkInsert_infoFirmProfile/", function () use ($app ) {
-
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
     $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
-    $headerParams = $app->request()->headers();
-    $vPk = $headerParams['X-Public'];
     
-    $vProfilePublic = $_GET['profile_public'];    
-    $vLanguageCode = $_GET['language_code']; 
-    $vCountryId = $_GET['country_id']; 
-    $vFirmName = $_GET['firm_name'];
-    $vWebAddress = $_GET['web_address'];
-    $vTaxOffice = $_GET['tax_office'];
-    $vTaxNo = $_GET['tax_no'];
-    $vSgkSicilNo = $_GET['sgk_sicil_no'];
-    $vOwnershipStatusId = $_GET['ownership_status_id'];
+    $headerParams = $app->request()->headers();
+    $Pk = $headerParams['X-Public'];
+    
+   
+ 
+    
+  
+    
+  
     $vFoundationYear = $_GET['foundation_year'];
     $vBagkurSicilNo = $_GET['bagkur_sicil_no'];
     $vFirmNameEng = $_GET['firm_name_eng'];
     $vFirmNameShort = $_GET['firm_name_short']; 
     
-
-    $vLanguageCode  = 'tr';
+    $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
-        $vLanguageCode = strtolower(trim($_GET['language_code']));
-    }
-    $vLogo  = 'logo';
-    if (isset($_GET['logo'])) {
-        $vLogo = strtolower(trim($_GET['logo']));
-    }
-    $vOperationTypeId = 1;
-    if (isset($_GET['operation_type_id'])) {
-        $vOperationTypeId = $_GET['operation_type_id'];
-    }         
-    $vConsAllowId = 0;
-    if (isset($_GET['cons_allow_id'])) {
-        $vConsAllowId = $_GET['cons_allow_id'];
-    }
-    $vActParentId = 0;
-    if (isset($_GET['act_parent_id'])) {
-        $vActParentId = $_GET['act_parent_id'];
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
     }  
-    $vConsultantId = 0;
-    if (isset($_GET['consultant_id'])) {
-        $vConsultantId = $_GET['consultant_id'];
+    $vProfilePublic = 0;
+    if (isset($_GET['profile_public'])) {
+        $stripper->offsetSet('profile_public', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['profile_public']));
+    } 
+    $vCountryId = 0;
+    if (isset($_GET['country_id'])) {
+        $stripper->offsetSet('country_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['country_id']));
+    } 
+    $vLogo = NULL;
+    if (isset($_GET['logo'])) {
+        $stripper->offsetSet('logo', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['logo']));
     }
-    $vConsultantConfirmTypeId = 0;
-    if (isset($_GET['consultant_confirm_type_id'])) {
-        $vConsultantConfirmTypeId = $_GET['consultant_confirm_type_id'];
+    $vFirmName = NULL;
+    if (isset($_GET['firm_name'])) {
+        $stripper->offsetSet('firm_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['firm_name']));
     }
-    $vConfirmId = 0;
-    if (isset($_GET['confirm_id'])) {
-        $vConsultantConfirmTypeId = $_GET['confirm_id'];
+    $vWebAddress = NULL;
+    if (isset($_GET['web_address'])) {
+        $stripper->offsetSet('web_address', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['web_address']));
+    }
+    $vTaxOffice = NULL;
+    if (isset($_GET['tax_office'])) {
+        $stripper->offsetSet('tax_office', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['tax_office']));
+    } 
+    $vTaxNo = 0;
+    if (isset($_GET['tax_no'])) {
+        $stripper->offsetSet('tax_no', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['tax_no']));
+    } 
+    $vSgkSicilNo = NULL;
+    if (isset($_GET['sgk_sicil_no'])) {
+        $stripper->offsetSet('sgk_sicil_no', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['sgk_sicil_no']));
+    } 
+    $vOwnershipStatusId = NULL;
+    if (isset($_GET['ownership_status_id'])) {
+        $stripper->offsetSet('ownership_status_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['ownership_status_id']));
     } 
  
-    $fOperationTypeId = $vOperationTypeId;  
-    $fActParentId =$vActParentId;
-    $fLanguageCode = $vLanguageCode;
-    $fProfilePublic = $vProfilePublic;    
-    $fConsAllowId = $vConsAllowId ; 
-    $fConsultantId = $vConsultantId;
-    $fConsultantConfirmTypeId = $vConsultantConfirmTypeId;
-    $fConfirmId = $vConfirmId ; 
     
-    $fAddressTypeId = $vAddressTypeId;
-    $fAddress1 =$vAddress1;
-    $fAddress2 = $vAddress2;
-    $fPostalCode = $vPostalCode;    
-    $fCountryId = $vCountryId;
-    $fCityId = $vCityId;
-    $fBoroughId = $vBoroughId;
-    $fCityName = $vCityName;  
-    $fDescription = $vDescription;   
-    $fDescriptionEng = $vDescriptionEng;
+ 
     
-    $fpk = $vPk ; 
+     
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('npk')) $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();
+ 
      
     
     $resDataInsert = $BLL->insert(array(  
             
-            'operation_type_id' => $fOperationTypeId,
-            'active' => $fActive,        
-            'act_parent_id' => $fActParentId,
+        //    'operation_type_id' => $fOperationTypeId,
+        //    'active' => $fActive,        
+        //    'act_parent_id' => $fActParentId,           
+        //    'cons_allow_id' => $fConsAllowId, 
+        //     'consultant_id'  => $fConsultantId,
+        //    'consultant_confirm_type_id' => $fConsultantConfirmTypeId,
+        //    'confirm_id' =>  $fConfirmId,
             'language_code' => $fLanguageCode,
-            'profile_public' => $fProfilePublic,              
-            'cons_allow_id' => $fConsAllowId, 
-            'consultant_id'  => $fConsultantId,
-            'consultant_confirm_type_id' => $fConsultantConfirmTypeId,
-            'confirm_id' =>  $fConfirmId,
-        
+            'firm_name' => $vFirmName ,             
+            'profile_public' => $fProfilePublic,   
             'address_type_id' => $fAddressTypeId , 
             'address1' => $fAddress1 , 
             'address2' => $fAddress2 ,
@@ -148,7 +161,7 @@ $app->get("/pkInsert_infoFirmProfile/", function () use ($app ) {
             'description' => $fDescription ,
             'description_eng' => $fDescriptionEng,  
             'logo' => $vLogo,
-            'pk' => $fpk,        
+            'pk' => $pk,        
             ));
 
     $app->response()->header("Content-Type", "application/json");
@@ -575,6 +588,10 @@ $app->get("/pktempInsert_infoFirmProfile/", function () use ($app ) {
     if (isset($_GET['foundation_year'])) {
         $vFoundationYear = $_GET['foundation_year'];
     } 
+    $vFoundationYearx= "";
+    if (isset($_GET['foundation_yearx'])) {
+        $vFoundationYearx = $_GET['foundation_yearx'];
+    } 
     $vDunsNumber= "";
     if (isset($_GET['duns_number'])) {
         $vDunsNumber = $_GET['duns_number'];
@@ -608,7 +625,7 @@ $app->get("/pktempInsert_infoFirmProfile/", function () use ($app ) {
     $fFirmNameShort=$vFirmNameShort;
     $fDunsNumber=$vDunsNumber;
    
-   
+    print_r($vFoundationYearx);
     $resDataInsert = $BLL->insertTemp(array(  
             'language_code' => $fLanguageCode,
             'profile_public' => $fProfilePublic,        
@@ -618,7 +635,8 @@ $app->get("/pktempInsert_infoFirmProfile/", function () use ($app ) {
             'sgk_sicil_no' => $fSgkSicilNo , 
             'ownership_status_id' => $fOwnershipStatusId,
             'country_id' => $fCountryId, 
-            'foundation_year' => $fFoundationYear ,            
+            'foundation_year' => $fFoundationYear ,      
+            'foundation_yearx' => $vFoundationYearx,   
             'description' => $fDescription ,
             'description_eng' => $fDescriptionEng , 
             'web_address'=> $fWebAddress,
@@ -1092,7 +1110,6 @@ $app->get("/fillCompanyInfoProductsGuest_infoFirmProfile/", function () use ($ap
  * @since 15-04-2016
  */
 $app->get("/fillCompanyInfoSectorsGuest_infoFirmProfile/", function () use ($app ) {
-
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
     $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
