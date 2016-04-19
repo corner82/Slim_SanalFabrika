@@ -128,12 +128,14 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                 $opUserIdValue = $userId ['resultSet'][0]['user_id'];                
                 $kontrol = $this->haveRecords($params);
                 if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                        $languageIdValue = $languageId ['resultSet'][0]['id'];
-                    } else {
-                        $languageIdValue = 647;
-                    }
+                    $languageId = NULL;
+                    $languageIdValue = 647;
+                    if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                            $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                        }
+                    }  
 
                     $sql = "
                 INSERT INTO sys_machine_tools(
@@ -368,12 +370,14 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             $order = "ASC";
         }
 
-        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-        if (\Utill\Dal\Helper::haveRecord($languageId)) {
-            $languageIdValue = $languageId ['resultSet'][0]['id'];
-        } else {
-            $languageIdValue = 647;
-        }
+        $languageId = NULL;
+        $languageIdValue = 647;
+        if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+            }
+        }  
         $whereSQL .= "  AND a.language_id = " . intval($languageIdValue);
 
         try {
