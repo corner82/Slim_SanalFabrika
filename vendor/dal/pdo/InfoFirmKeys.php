@@ -65,7 +65,13 @@ class InfoFirmKeys extends \DAL\DalSlim {
 		    fp.firm_name,
 		    a.network_key, 
 		    a.sf_private_key, 
-		    a.sf_private_key_value 
+		    a.sf_private_key_value,
+                    a.folder_name,
+                    a.machines_folder, 
+                    a.logos_folder, 
+                    a.products_folder, 
+                    a.members_folder, 
+                    a.others_folder
                 FROM info_firm_keys a 
                 INNER JOIN info_firm_profile fp on fp.act_parent_id = a.firm_id AND fp.active=0 AND fp.deleted =0 AND fp.language_parent_id =0  
                 ORDER BY fp.firm_name              
@@ -105,11 +111,23 @@ class InfoFirmKeys extends \DAL\DalSlim {
             $sql = "
                 INSERT INTO info_firm_keys(   
                         firm_id,
-                        network_key
+                        network_key,
+                        machines_folder, 
+                        logos_folder, 
+                        products_folder, 
+                        members_folder, 
+                        others_folder,
+                        folder_name
                        )
                 VALUES (
                         :firm_id, 
-                        CONCAT('".$CountryCodeValue."',ostim_id_generator())
+                        CONCAT('".$CountryCodeValue."',ostim_id_generator()),
+                        'Machines',
+                        'Logos',
+                        'Products',
+                        'Members',
+                        'Others',
+                        'x'
                                               )  ";
             $statement = $pdo->prepare($sql);       
             $statement->bindValue(':firm_id', $params['firm_id'], \PDO::PARAM_STR);           
@@ -194,7 +212,13 @@ class InfoFirmKeys extends \DAL\DalSlim {
 		    fp.firm_name,
 		    a.network_key, 
 		    a.sf_private_key, 
-		    a.sf_private_key_value 
+		    a.sf_private_key_value,
+                    a.machines_folder, 
+                    a.logos_folder, 
+                    a.products_folder, 
+                    a.members_folder, 
+                    a.others_folder,
+                    a.folder_name
                 FROM info_firm_keys a 
                 INNER JOIN info_firm_profile fp on fp.act_parent_id = a.firm_id AND fp.active=0 AND fp.deleted =0 AND fp.language_parent_id =0                  
                 ORDER BY    " . $sort . " "
