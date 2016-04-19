@@ -132,7 +132,8 @@ $app->get("/pkFillSingularFirmMachineTools_infoFirmMachineTool/", function () us
 	    "language_name" => $flow["language_name"],
             "language_parent_id" => $flow["language_parent_id"],                
             "op_user_id" => $flow["op_user_id"],  
-            "op_user_name" => $flow["op_user_name"],  
+            "op_user_name" => $flow["op_user_name"],
+            "picture" => $flow["picture"],            
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }
@@ -220,6 +221,7 @@ $app->get("/pkFillUsersFirmMachines_infoFirmMachineTool/", function () use ($app
                 "model" => $flow["model"],
                 "model_year" => $flow["model_year"],
                 "firm_id"=>$flow["firm_id"],
+                "picture" => $flow["picture"],
                 "attributes" => array("notroot" => true ),
             );
         }
@@ -246,17 +248,14 @@ $app->get("/pkFillUsersFirmMachines_infoFirmMachineTool/", function () use ($app
  * @since 23-02-2016
  */
 $app->get("/pkFillUsersFirmMachineProperties_infoFirmMachineTool/", function () use ($app ) {
-
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
-    $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');
-    
+    $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');    
     $headerParams = $app->request()->headers();
     if (!isset($headerParams['X-Public'])) {
-        throw new Exception('rest api "pkGetConsConfirmationProcessDetails_sysOsbConsultants" end point, X-Public variable not found');
+        throw new Exception('rest api "pkFillUsersFirmMachineProperties_infoFirmMachineTool" end point, X-Public variable not found');
     }
     $pk = $headerParams['X-Public'];
-
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
          $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
@@ -268,8 +267,7 @@ $app->get("/pkFillUsersFirmMachineProperties_infoFirmMachineTool/", function () 
         $stripper->offsetSet('machine_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['machine_id']));
-    }    
-    
+    }        
     $stripper->strip();
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
@@ -277,7 +275,6 @@ $app->get("/pkFillUsersFirmMachineProperties_infoFirmMachineTool/", function () 
     if ($stripper->offsetExists('machine_id')) {
         $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
     }
-
     if (isset($_GET['machine_id'])) {
     $resDataGrid = $BLL->fillUsersFirmMachineProperties(array(
                                                         'language_code' => $vLanguageCode,
@@ -291,7 +288,7 @@ $app->get("/pkFillUsersFirmMachineProperties_infoFirmMachineTool/", function () 
                                                                 ));
     }    
 
-     $flows = array();
+    $flows = array();
     if (isset($resDataGrid['resultSet'][0]['machine_id'])) {      
         foreach ($resDataGrid['resultSet']  as $flow) {
             $flows[] = array(
@@ -301,11 +298,11 @@ $app->get("/pkFillUsersFirmMachineProperties_infoFirmMachineTool/", function () 
                 "property_name_eng" => $flow["property_name_eng"],
                 "property_value" => $flow["property_value"],
                 "unit_id" => $flow["unit_id"],
-                "unitcodes" => $flow["unitcodes"],             
+                "unitcodes" => $flow["unitcodes"],
+                "picture" => $flow["picture"],   
                 "attributes" => array("notroot" => true ),
             );
-        }
-        
+        }        
     }
     $resultArray = array();
   //  $resultArray['total'] = 2;//$resTotalRowCount[0]['count'];
@@ -323,22 +320,16 @@ $app->get("/pkFillUsersFirmMachineProperties_infoFirmMachineTool/", function () 
 });
 
 
-
 /**x
  *  * Okan CIRAN
  * @since 25-02-2016
  */
 $app->get("/pkDeletedAct_infoFirmMachineTool/", function () use ($app ) {
-
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
-    $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');
- 
-   
+    $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');   
     $headerParams = $app->request()->headers();
-    $Pk = $headerParams['X-Public'];  
-   
-   
+    $Pk = $headerParams['X-Public'];    
     $vOperationTypeId = NULL;
     if (isset($_GET['operation_type_id'])) {
         $stripper->offsetSet('operation_type_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
@@ -351,9 +342,7 @@ $app->get("/pkDeletedAct_infoFirmMachineTool/", function () use ($app ) {
                                                 $app,
                                                 $_GET['id']));
     } 
-
-    $stripper->strip();
- 
+    $stripper->strip(); 
     if ($stripper->offsetExists('id')) {
         $vId = $stripper->offsetGet('id')->getFilterValue();
     }
@@ -367,9 +356,7 @@ $app->get("/pkDeletedAct_infoFirmMachineTool/", function () use ($app ) {
             'pk' => $Pk,        
             ));
 
-
-    $app->response()->header("Content-Type", "application/json");
- 
+    $app->response()->header("Content-Type", "application/json"); 
     $app->response()->body(json_encode($resDataDeleted));
 }
 ); 
@@ -379,11 +366,9 @@ $app->get("/pkDeletedAct_infoFirmMachineTool/", function () use ($app ) {
  * @since 25-02-2016
  */
 $app->get("/pkInsert_infoFirmMachineTool/", function () use ($app ) {
-
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
-    $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');
-   
+    $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');   
     $headerParams = $app->request()->headers();
     $Pk = $headerParams['X-Public'];  
    
@@ -414,13 +399,17 @@ $app->get("/pkInsert_infoFirmMachineTool/", function () use ($app ) {
                                                 $app,
                                                 $_GET['availability_id']));
     }  
-    
-   
     $vMachineId = NULL;
     if (isset($_GET['machine_id'])) {
         $stripper->offsetSet('machine_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['machine_id']));
+    }
+    $vPicture = NULL;
+    if (isset($_GET['picture'])) {
+         $stripper->offsetSet('picture',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['picture']));
     }
     
     $stripper->strip();
@@ -439,13 +428,17 @@ $app->get("/pkInsert_infoFirmMachineTool/", function () use ($app ) {
     if ($stripper->offsetExists('profile_public')) {
         $vProfilePublic = $stripper->offsetGet('profile_public')->getFilterValue();
     }
+    if ($stripper->offsetExists('picture')) {
+        $vPicture = $stripper->offsetGet('picture')->getFilterValue();
+    }
 
     $resDataInsert = $BLL->insert(array(  
             'language_code' => $vLanguageCode,
             'profile_public' => $vProfilePublic,                    
             'machine_id' => $vMachineId , 
             'availability_id' => $vAvailabilityId ,
-            'operation_type_id' => $vOperationTypeId ,            
+            'operation_type_id' => $vOperationTypeId , 
+            'picture' => $vPicture , 
             'pk' => $Pk,        
             ));
 
@@ -461,12 +454,16 @@ $app->get("/pkInsert_infoFirmMachineTool/", function () use ($app ) {
  * @since 25-02-2016
  */
 $app->get("/pkUpdate_infoFirmMachineTool/", function () use ($app ) {
-
-    $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');
-   
+    $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');   
     $headerParams = $app->request()->headers();
     $Pk = $headerParams['X-Public'];  
    
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    }    
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
          $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
@@ -503,8 +500,17 @@ $app->get("/pkUpdate_infoFirmMachineTool/", function () use ($app ) {
                                                 $app,
                                                 $_GET['machine_id']));
     }
+    $vPicture = NULL;
+    if (isset($_GET['picture'])) {
+         $stripper->offsetSet('picture',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['picture']));
+    }
     
     $stripper->strip();
+    if($stripper->offsetExists('id')) {
+        $vId = $stripper->offsetGet('id')->getFilterValue();
+    }
     if($stripper->offsetExists('machine_id')) {
         $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
     }
@@ -523,20 +529,22 @@ $app->get("/pkUpdate_infoFirmMachineTool/", function () use ($app ) {
     if ($stripper->offsetExists('profile_public')) {
         $vProfilePublic = $stripper->offsetGet('profile_public')->getFilterValue();
     }
+    if ($stripper->offsetExists('picture')) {
+        $vPicture = $stripper->offsetGet('picture')->getFilterValue();
+    }
 
-    $resDataInsert = $BLL->insertTemp(array(  
+    $resDataInsert = $BLL->update(array(  
+            'id' => $vId,
             'language_code' => $vLanguageCode,
             'profile_public' => $vProfilePublic,        
             'firm_id' => $vFirmId , 
             'machine_id' => $vMachineId , 
             'availability_id' => $vAvailabilityId ,
-            'operation_type_id' => $vOperationTypeId ,            
+            'operation_type_id' => $vOperationTypeId ,
+            'picture' => $vPicture ,       
             'pk' => $Pk,        
             ));
-
-
-    $app->response()->header("Content-Type", "application/json");
- 
+    $app->response()->header("Content-Type", "application/json"); 
     $app->response()->body(json_encode($resDataInsert));
 }
 ); 
