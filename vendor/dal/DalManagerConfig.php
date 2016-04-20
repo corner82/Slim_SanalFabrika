@@ -76,7 +76,7 @@ class DalManagerConfig {
                 'sysCertificationsPDO' => 'DAL\Factory\PDO\SysCertificationsFactory', 
                 'sysUnitSystemsPDO' => 'DAL\Factory\PDO\SysUnitSystemsFactory',
                 'infoFirmReferencesPDO' => 'DAL\Factory\PDO\InfoFirmReferencesFactory',
-                 
+                'sysProductionTypesPDO' => 'DAL\Factory\PDO\SysProductionTypesFactory',
                 
                 
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',

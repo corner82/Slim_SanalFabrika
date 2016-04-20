@@ -71,6 +71,8 @@ class BLLManagerConfig{
                  'sysCertificationsBLL' => 'BLL\BLL\SysCertifications',
                  'sysUnitSystemsBLL' => 'BLL\BLL\SysUnitSystems',
                  'infoFirmReferencesBLL' => 'BLL\BLL\InfoFirmReferences',
+                 'sysProductionTypesBLL' => 'BLL\BLL\SysProductionTypes',
+                 
                  
                  
                  
