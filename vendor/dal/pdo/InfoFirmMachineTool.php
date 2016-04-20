@@ -105,7 +105,8 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow,
                         a.availability_id ,                        
                         COALESCE(NULLIF(sd119x.description, ''), sd119.description_eng) AS state_availability,
-                        a.language_parent_id ,                        
+                        a.language_parent_id ,  
+                        a.total,
                         CASE COALESCE(NULLIF(a.picture, ''),'-') 
                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
                         ELSE CONCAT(ifk.folder_name ,'/',ifk.machines_folder,'/' ,COALESCE(NULLIF(a.picture, ''),'image_not_found.png')) END AS picture                      
@@ -283,6 +284,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                              availability_id,
                               " . $addSql . "
                              act_parent_id,
+                             total,
                              picture
                              )
                         VALUES (
@@ -294,6 +296,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                              :availability_id, 
                               " . $addSqlValue . "
                              (SELECT last_value FROM info_firm_machine_tool_id_seq),
+                             :total,
                              :picture
 
                              )";
@@ -302,6 +305,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         $statement->bindValue(':operation_type_id', $operationIdValue, \PDO::PARAM_INT);
                         $statement->bindValue(':sys_machine_tool_id', $params['machine_id'], \PDO::PARAM_INT);
                         $statement->bindValue(':availability_id', $params['availability_id'], \PDO::PARAM_INT);
+                        $statement->bindValue(':total', $params['total'], \PDO::PARAM_INT);
                         $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
                         $statement->bindValue(':picture', $params['picture'], \PDO::PARAM_STR);
                       //  echo debugPDO($sql, $params);
@@ -393,6 +397,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         sys_machine_tool_id, 
                         consultant_id, 
                         language_parent_id,
+                        total,
                         picture
                         )
                         SELECT  
@@ -406,6 +411,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                             " . intval($sysMachineToolId) . " AS sys_machine_tool_id,                            
                             consultant_id,
                             language_parent_id,
+                            " . intval($params['total']) . " AS total,
                             '" .$params['picture'] . " AS picture
                         FROM info_firm_machine_tool 
                         WHERE id =  " . intval($params['id']) . " 
@@ -517,7 +523,8 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow,
                         a.availability_id ,                        
                         COALESCE(NULLIF(sd119x.description, ''), sd119.description_eng) AS state_availability,
-                        a.language_parent_id ,                        
+                        a.language_parent_id , 
+                        a.total,
                         CASE COALESCE(NULLIF(a.picture, ''),'-') 
                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
                         ELSE CONCAT(ifk.folder_name ,'/',ifk.machines_folder,'/' ,COALESCE(NULLIF(a.picture, ''),'image_not_found.png')) END AS picture                      
@@ -859,7 +866,8 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         language_parent_id,
                         active,
                         deleted,
-                        picture
+                        picture,
+                        total
                         )
                         SELECT  
                             firm_id,
@@ -877,7 +885,8 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                             language_parent_id,
                             1,
                             1,
-                            picture
+                            picture,
+                            total
                         FROM info_firm_machine_tool 
                         WHERE id =  " . intval($params['id']) . " 
                         ";
@@ -960,7 +969,8 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow,
                         a.availability_id ,                        
                         COALESCE(NULLIF(sd119x.description, ''), sd119.description_eng) AS state_availability,
-                        a.language_parent_id,                        
+                        a.language_parent_id, 
+                        a.total,
                         CASE COALESCE(NULLIF(a.picture, ''),'-') 
                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
                         ELSE CONCAT(ifk.folder_name ,'/',ifk.machines_folder,'/' ,COALESCE(NULLIF(a.picture, ''),'image_not_found.png')) END AS picture                      
@@ -1204,6 +1214,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         smt.model,
                         cast(smt.model_year AS text) AS model_year,
                         fp.act_parent_id,
+                        a.total,
                         CASE COALESCE(NULLIF(a.picture, ''),'-')
                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
                         ELSE CONCAT(ifk.folder_name ,'/',ifk.machines_folder,'/' ,COALESCE(NULLIF(a.picture, ''),'image_not_found.png')) END AS picture
@@ -1412,27 +1423,30 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             }
 
             $sql = " 
-            SELECT                     
-               DISTINCT mt.machine_tool_grup_id AS machine_grup_id ,
-               COUNT(a.sys_machine_tool_id) AS machine_count,
-               COALESCE(NULLIF(COALESCE(NULLIF(mtgx.group_name, ''),  mtg.group_name_eng), ''),  mtg.group_name) AS group_name
-            FROM info_firm_machine_tool a
-            INNER JOIN info_firm_keys fk ON fk.firm_id = a.firm_id 
-            INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
-            LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0
-            INNER JOIN sys_machine_tools mt ON mt.id = a.sys_machine_tool_id AND mt.deleted =0 AND mt.active =0 AND mt.language_parent_id =0 
-            INNER JOIN sys_machine_tool_groups mtg ON mtg.id = mt.machine_tool_grup_id AND mtg.deleted =0 AND mtg.active =0 AND mt.language_parent_id =0 
-            LEFT JOIN sys_machine_tool_groups mtgx ON (mtgx.id =  mtg.id  OR mtgx.language_parent_id = mtg.id) AND mtgx.deleted =0 AND mtgx.active =0 AND  lx.id = mtgx.language_id
-            WHERE 
-                a.deleted =0 AND a.active =0 AND
-                a.profile_public =0 AND
-                fk.network_key = '".$params['network_key']."' AND
-                a.language_parent_id =0
-            GROUP BY a.sys_machine_tool_id,mt.machine_tool_grup_id, mtg.group_name, mtgx.group_name, mtg.group_name_eng 
+            SELECT machine_grup_id, sum(machine_count) AS machine_count ,group_name FROM (
+                SELECT                     
+                   mtg.id AS machine_grup_id ,
+                   SUM(a.total) AS machine_count,
+                   COALESCE(NULLIF(COALESCE(NULLIF(mtgx.group_name, ''),  mtg.group_name_eng), ''),  mtg.group_name) AS group_name
+                FROM info_firm_machine_tool a
+                INNER JOIN info_firm_keys fk ON fk.firm_id = a.firm_id 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0
+                INNER JOIN sys_machine_tools mt ON mt.id = a.sys_machine_tool_id AND mt.deleted =0 AND mt.active =0 AND mt.language_parent_id =0 
+                INNER JOIN sys_machine_tool_groups mtg ON mtg.id = mt.machine_tool_grup_id AND mtg.deleted =0 AND mtg.active =0 AND mt.language_parent_id =0 
+                LEFT JOIN sys_machine_tool_groups mtgx ON (mtgx.id =  mtg.id  OR mtgx.language_parent_id = mtg.id) AND mtgx.deleted =0 AND mtgx.active =0 AND  lx.id = mtgx.language_id
+                WHERE 
+                    a.deleted =0 AND a.active =0 AND
+                    a.profile_public =0 AND
+                    fk.network_key = '".$params['network_key']."' AND
+                    a.language_parent_id =0
+                GROUP BY a.sys_machine_tool_id,mtg.id, mtg.group_name, mtgx.group_name, mtg.group_name_eng 
+                ) as xtable 
+            GROUP BY machine_grup_id,group_name
             ORDER BY group_name  
                                  ";
             $statement = $pdo->prepare($sql);
-            // echo debugPDO($sql, $params);
+           // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1444,4 +1458,92 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
         }
     }
  
+    
+       /**  
+     * @author Okan CIRAN
+     * @ userin elemanı oldugu firmanın makina kayıtlarını döndürür !!
+     * @version v 1.0  19.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillUsersFirmMachinesNpk($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+           $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($userId)) {
+                $opUserIdValue = $userId ['resultSet'][0]['user_id'];
+                $addSql = "";
+
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    }
+                }  
+
+                if (isset($params['machine_id'])) {
+                    $addSql .= " AND a.sys_machine_tool_id = " . intval($params['machine_id']) . " ";
+                }
+                if (isset($params['machine_grup_id'])) {
+                    $addSql .= " AND smt.machine_tool_grup_id = " . intval($params['machine_grup_id']) . " ";
+                }
+
+                $sql = "                     
+                    SELECT 
+                        a.id,
+                        cast(a.sys_machine_tool_id AS text) AS machine_id,
+                        m.manufacturer_name,
+                        COALESCE(NULLIF(smtgx.group_name, ''), smtg.group_name_eng) AS machine_tool_grup_names,
+                        COALESCE(NULLIF(smtx.machine_tool_name, ''), smt.machine_tool_name_eng) AS machine_tool_names,
+                        smt.model,
+                        cast(smt.model_year AS text) AS model_year,
+                        smt.machine_code AS series,
+                        fp.act_parent_id AS firm_id,
+                        a.total,
+                        CASE COALESCE(NULLIF(a.picture, ''),'-')
+                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
+                        ELSE CONCAT(fk.folder_name ,'/',fk.machines_folder,'/' ,COALESCE(NULLIF(a.picture, ''),'image_not_found.png')) END AS picture
+                    FROM info_firm_machine_tool a 
+                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                    LEFT JOIN sys_language lx ON lx.id = 647 AND lx.deleted =0 AND lx.active =0                    
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
+                    INNER JOIN info_firm_keys fk ON fp.act_parent_id =  fk.firm_id                      
+                    INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
+                    LEFT JOIN sys_machine_tools smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
+		    INNER JOIN sys_machine_tool_groups smtg ON smtg.id = smt.machine_tool_grup_id AND smtg.language_id = l.id
+		    LEFT JOIN sys_machine_tool_groups smtgx ON (smtgx.id = smtg.id OR smtg.language_parent_id = smtg.id )AND smtgx.language_id = lx.id
+                    INNER JOIN sys_manufacturer m ON m.id = smt.manufactuer_id AND m.language_id = l.id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0 
+                    LEFT JOIN sys_manufacturer mx ON (mx.id = m.id OR mx.language_parent_id = m.id) AND mx.language_id = lx.id AND mx.deleted =0 AND mx.active =0        
+                    WHERE 
+                        a.deleted =0 AND a.active =0 AND
+                        a.profile_public =0 AND
+                        fk.network_key = '".$params['network_key']."' AND
+                        a.language_parent_id =0 
+                        
+                " . $addSql . "
+                ORDER BY machine_tool_grup_names, manufacturer_name,machine_tool_names     
+                ";
+                $statement = $pdo->prepare($sql);
+             //  echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
 }

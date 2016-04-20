@@ -595,4 +595,99 @@ $app->get("/pkFillFirmMachineGroupsCounts_infoFirmMachineTool/", function () use
 });
 
 
+/**
+ *  * Okan CIRAN
+ * @since 20-04-2016
+ */
+$app->get("/pkFillUsersFirmMachinesNpk_infoFirmMachineTool/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');    
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillUsersFirmMachinesNpk_infoFirmMachineTool" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vMachineId =NULL;
+    if (isset($_GET['machine_id'])) {
+        $stripper->offsetSet('machine_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['machine_id']));
+    }        
+    $vMachineGrupId = NULL;
+    if (isset($_GET['machine_grup_id'])) {
+        $stripper->offsetSet('machine_grup_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['machine_grup_id']));
+    }
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('machine_grup_id')) {
+        $vMachineGrupId = $stripper->offsetGet('machine_grup_id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('machine_id')) {
+        $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
+    }
+    if($stripper->offsetExists('npk')) {
+        $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();
+    }
+ 
+    $resDataGrid = $BLL->FillUsersFirmMachinesNpk(array(
+                                                        'pk' => $pk,
+                                                        'language_code' => $vLanguageCode,                                                        
+                                                        'machine_grup_id' => $vMachineGrupId,
+                                                        'machine_id' => $vMachineId,                                                        
+                                                        'network_key' =>$vNetworkKey,
+                                                                ));
+      
+
+    $flows = array();
+    if (isset($resDataGrid['resultSet'][0]['machine_id'])) {      
+        foreach ($resDataGrid['resultSet']  as $flow) {
+            $flows[] = array(               
+                "id" => $flow["id"],
+                "machine_id" => $flow["machine_id"],
+                "manufacturer_name" => $flow["manufacturer_name"],
+                "machine_tool_grup_names" => $flow["machine_tool_grup_names"],
+                "machine_tool_names" => $flow["machine_tool_names"],
+                "model" => $flow["model"],
+                "model_year" => $flow["model_year"],
+                "series" => $flow["series"],
+                "firm_id" => $flow["firm_id"],
+                "picture" => $flow["picture"],   
+                "attributes" => array("notroot" => true ),
+                
+            );
+        }        
+    }
+    $resultArray = array();
+  //  $resultArray['total'] = 2;//$resTotalRowCount[0]['count'];
+    $resultArray['rows'] = $flows;
+    $app->response()->header("Content-Type", "application/json");
+
+    /* $app->contentType('application/json');
+      $app->halt(302, '{"error":"Something went wrong"}');
+      $app->stop(); */
+   // if (isset($resDataGrid['resultSet']['machine_id'])) {
+    //    $app->response()->body(json_encode($flows));
+   // } else {
+        $app->response()->body(json_encode($resultArray));
+  //  }
+});
+
+
 $app->run();

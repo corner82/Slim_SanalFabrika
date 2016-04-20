@@ -167,5 +167,16 @@ class InfoFirmMachineTool extends \BLL\BLLSlim{
         return $DAL->fillFirmMachineGroupsCounts($params);
     }
     
+    /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */
+    public function fillUsersFirmMachinesNpk($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');     
+        return $DAL->fillUsersFirmMachinesNpk($params);
+    }
+    
+    
 }
 
