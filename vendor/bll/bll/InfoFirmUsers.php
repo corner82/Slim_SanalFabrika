@@ -124,9 +124,7 @@ class InfoFirmUsers extends \BLL\BLLSlim{
     public function fillGridSingularRtc($params = array()) {     
         $DAL = $this->slimApp->getDALManager()->get('infoFirmUsersPDO');
         return $DAL->fillGridSingularRtc($params);
-    }
-    
- 
+    } 
     
     /**
      * Data update function   
@@ -157,6 +155,20 @@ class InfoFirmUsers extends \BLL\BLLSlim{
     public function makeActiveOrPassive($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmUsersPDO');
         return $DAL->makeActiveOrPassive($params);
-    }  
+    } 
+    
+    /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */ 
+    public function fillUsersSocialMediaNpk ($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmUsersPDO');
+        $resultSet = $DAL->fillUsersSocialMediaNpk($params);  
+        return $resultSet['resultSet'];
+    }
+    
+    
+    
 }
 

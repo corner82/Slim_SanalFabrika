@@ -423,7 +423,74 @@ $app->get("/pkUpdateMakeActiveOrPassive_infoFirmUsers/", function () use ($app )
 }
 );
 
-
  
+/**
+ *  * Okan CIRAN
+ * @since 21-04-2016
+ */
+$app->get("/pkFillUsersSocialMediaNpk_infoFirmUsers/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('infoFirmUsersBLL');
+    $headerParams = $app->request()->headers(); 
+     if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillGridSingularNpk_infoFirmUsers" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vNetworkKey = '-1';
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }    
+    $vUserId = NULL;
+    if (isset($_GET['user_id'])) {
+        $stripper->offsetSet('user_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['user_id']));
+    } 
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }     
+    if ($stripper->offsetExists('npk')) {
+        $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('user_id')) {
+        $vUserId = $stripper->offsetGet('user_id')->getFilterValue();
+    } 
+    $resDataGrid = $BLL->fillUsersSocialMediaNpk(array(
+        'language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey,  
+        'user_id' => $vUserId,  
+        'pk'=> $pk,
+    ));
+    
+    $flows = array();
+    foreach ($resDataGrid as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+            "user_id" => $flow["user_id"],
+            "name" => $flow["name"],
+            "surname" => $flow["surname"],
+            "socialmedia_name" => $flow["socialmedia_name"],
+            "socialmedia_eng" => $flow["socialmedia_eng"],
+            "user_link" => $flow["user_link"],
+            "abbreviation" => $flow["abbreviation"], 
+            "attributes" => array("notroot" => true, "active" => $flow["active"]),
+        );
+    }
+
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();    
+    $resultArray['rows'] = $flows;
+    $app->response()->body(json_encode($resultArray));
+});
 
 $app->run();

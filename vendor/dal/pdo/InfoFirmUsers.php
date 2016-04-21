@@ -1019,6 +1019,94 @@ class InfoFirmUsers extends \DAL\DalSlim {
 
       
     
-    
+    /**  
+     * @author Okan CIRAN
+     * @ firma elemanlarının socialmedia bilgilerini kayıtlarını döndürür !!
+     * @version v 1.0  21.04.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillUsersSocialMediaNpk($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($userId)) {
+                $opUserIdValue = $userId ['resultSet'][0]['user_id'];  
+                $addSql="";
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }  
+                
+                if (isset($params['user_id']) && $params['user_id'] != "") {
+                    $addSql .= " AND iud.root_id = ".  intval($params['user_id']) ;  
+                }
+                
+                
+                $sql = "                     
+                SELECT 
+                    a.id, 
+                    iud.root_id AS user_id,
+                    iud.name,
+                    iud.surname,
+                    COALESCE(NULLIF(smx.name, ''),sm.name_eng) AS socialmedia_name,
+                    sm.name_eng AS socialmedia_eng,
+                    a.user_link,                         
+                    a.deleted,
+                    COALESCE(NULLIF(sd15x.description, ''), sd15.description_eng) AS state_deleted,
+                    a.active,
+                    COALESCE(NULLIF(sd16x.description , ''), sd16.description_eng) AS state_active,
+                    COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
+                    COALESCE(NULLIF(lx.language, ''), l.language_eng) AS language_name,			 
+                    a.op_user_id,
+                    u.username AS op_user_name,
+                    a.operation_type_id ,                        
+                    COALESCE(NULLIF(opx.operation_name, ''), op.operation_name_eng) AS operation_name,
+                   sm.abbreviation  
+                FROM info_users_socialmedia a
+                INNER JOIN info_users_detail iud on iud.root_id = a.user_id AND iud.deleted =0 AND iud.active =0 
+		INNER JOIN info_firm_users ifu ON ifu.user_id = a.user_id AND ifu.active = 0 AND ifu.deleted = 0 AND ifu.language_parent_id =0   
+                INNER JOIN info_firm_profile fp ON fp.act_parent_id = ifu.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
+                INNER JOIN info_firm_keys fk ON  ifu.firm_id =  fk.firm_id  
+                INNER JOIN sys_language l ON l.id = iud.language_id AND l.deleted =0 AND l.active = 0 
+                LEFT JOIN sys_language lx ON lx.id = 647 /*".intval($languageIdValue)." */  AND lx.deleted =0 AND lx.active =0
+                INNER JOIN sys_socialmedia sm ON sm.id = a.sys_socialmedia_id AND sm.deleted =0 AND sm.active =0 AND sm.language_id = l.id
+		LEFT JOIN sys_socialmedia smx ON (smx.id = sm.id OR smx.language_parent_id = sm.id) AND smx.language_id = lx.id AND smx.active =0 AND smx.deleted =0                   
+                INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id =l.id  AND op.deleted =0 AND op.active =0
+                LEFT JOIN sys_operation_types opx ON (opx.id = a.operation_type_id OR opx.language_parent_id = a.operation_type_id) and opx.language_id =lx.id  AND opx.deleted =0 AND opx.active =0
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = l.id AND sd15.deleted = 0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = l.id AND sd16.deleted = 0
+                INNER JOIN info_users u ON u.id = a.op_user_id    
+                LEFT JOIN sys_specific_definitions sd15x ON (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
+                LEFT JOIN sys_specific_definitions sd16x ON (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0                
+                WHERE a.deleted =0 AND iud.language_parent_id =0
+			AND fk.network_key = '" . $params['network_key'] . "'
+                ".$addSql." 
+                ORDER BY iud.language_id, iud.root_id
+                ";
+                $statement = $pdo->prepare($sql);
+                //  echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+     
 
 }
