@@ -73,7 +73,7 @@ class BLLManagerConfig{
                  'infoFirmReferencesBLL' => 'BLL\BLL\InfoFirmReferences',
                  'sysProductionTypesBLL' => 'BLL\BLL\SysProductionTypes',
                  'infoFirmUsersBLL' => 'BLL\BLL\InfoFirmUsers',
-                 
+                 'sysMachineToolDefinitionAttributeBLL' => 'BLL\BLL\SysMachineToolDefinitionAttribute',
                  
                  
                  
