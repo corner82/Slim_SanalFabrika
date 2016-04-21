@@ -77,6 +77,8 @@ class DalManagerConfig {
                 'sysUnitSystemsPDO' => 'DAL\Factory\PDO\SysUnitSystemsFactory',
                 'infoFirmReferencesPDO' => 'DAL\Factory\PDO\InfoFirmReferencesFactory',
                 'sysProductionTypesPDO' => 'DAL\Factory\PDO\SysProductionTypesFactory',
+                'infoFirmUsersPDO' => 'DAL\Factory\PDO\InfoFirmUsersFactory',
+                
                 
                 
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',

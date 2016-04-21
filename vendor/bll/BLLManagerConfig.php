@@ -72,6 +72,7 @@ class BLLManagerConfig{
                  'sysUnitSystemsBLL' => 'BLL\BLL\SysUnitSystems',
                  'infoFirmReferencesBLL' => 'BLL\BLL\InfoFirmReferences',
                  'sysProductionTypesBLL' => 'BLL\BLL\SysProductionTypes',
+                 'infoFirmUsersBLL' => 'BLL\BLL\InfoFirmUsers',
                  
                  
                  
