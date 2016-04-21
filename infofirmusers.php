@@ -428,7 +428,7 @@ $app->get("/pkUpdateMakeActiveOrPassive_infoFirmUsers/", function () use ($app )
  *  * Okan CIRAN
  * @since 21-04-2016
  */
-$app->get("/pkFillUsersSocialMediaNpk_infoFirmUsers/", function () use ($app ) {
+$app->get("/pkFillCompanyUsersSocialMediaNpk_infoFirmUsers/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
     $BLL = $app->getBLLManager()->get('infoFirmUsersBLL');
@@ -465,7 +465,7 @@ $app->get("/pkFillUsersSocialMediaNpk_infoFirmUsers/", function () use ($app ) {
     if ($stripper->offsetExists('user_id')) {
         $vUserId = $stripper->offsetGet('user_id')->getFilterValue();
     } 
-    $resDataGrid = $BLL->fillUsersSocialMediaNpk(array(
+    $resDataGrid = $BLL->fillCompanyUsersSocialMediaNpk(array(
         'language_code' => $vLanguageCode,
         'network_key' => $vNetworkKey,  
         'user_id' => $vUserId,  

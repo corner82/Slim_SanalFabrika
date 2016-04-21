@@ -162,9 +162,9 @@ class InfoFirmUsers extends \BLL\BLLSlim{
      * @param array $params
      * @return array
      */ 
-    public function fillUsersSocialMediaNpk ($params = array()) {
+    public function fillCompanyUsersSocialMediaNpk ($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmUsersPDO');
-        $resultSet = $DAL->fillUsersSocialMediaNpk($params);  
+        $resultSet = $DAL->fillCompanyUsersSocialMediaNpk($params);  
         return $resultSet['resultSet'];
     }
     

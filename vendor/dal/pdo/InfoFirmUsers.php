@@ -1027,7 +1027,7 @@ class InfoFirmUsers extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function fillUsersSocialMediaNpk($params = array()) {
+    public function fillCompanyUsersSocialMediaNpk($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
