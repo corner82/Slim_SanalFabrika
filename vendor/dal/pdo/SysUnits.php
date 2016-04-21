@@ -301,7 +301,7 @@ class SysUnits extends \DAL\DalSlim {
             LIMIT 1                      
                                ";
             $statement = $pdo->prepare($sql);
-        //    echo debugPDO($sql, $params);
+         //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -330,8 +330,7 @@ class SysUnits extends \DAL\DalSlim {
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
-                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                  
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {                  
                     $languageId = NULL;
                     $languageIdValue = 647;
                     if ((isset($params['language_code']) && $params['language_code'] != "")) {                
@@ -340,22 +339,25 @@ class SysUnits extends \DAL\DalSlim {
                             $languageIdValue = $languageId ['resultSet'][0]['id'];                    
                         }
                     }  
-
+                    $systemIdValue =0 ;
+                    if ((isset($params['system_id']) && $params['system_id'] != "")) {
+                            $systemIdValue = $params['system_id']; 
+                    }  
                     $sql = "
-                UPDATE sys_units
-                SET                      
-                    system_id  = :system_id, 
-                    unit  = :unit,                     
-                    unit_eng = :unit_eng,                     
-                    unitcode  = :unitcode, 
-                    unitcode_eng  = :unitcode_eng, 
-                    abbreviation  = :abbreviation, 
-                    abbreviation_eng = :abbreviation_eng, 
-                    language_id = :language_id,                    
-                    op_user_id = :op_user_id                    
-                WHERE id = " . intval($params['id']);
+                    UPDATE sys_units
+                    SET                      
+                        system_id  = :system_id, 
+                        unit  = :unit,                     
+                        unit_eng = :unit_eng,                     
+                        unitcode  = :unitcode, 
+                        unitcode_eng  = :unitcode_eng, 
+                        abbreviation  = :abbreviation, 
+                        abbreviation_eng = :abbreviation_eng, 
+                        language_id = :language_id,                    
+                        op_user_id = :op_user_id                    
+                    WHERE id = " . intval($params['id']);
                     $statement = $pdo->prepare($sql);
-                    $statement->bindValue(':system_id', $params['system_id'], \PDO::PARAM_INT);                                                            
+                    $statement->bindValue(':system_id',$systemIdValue, \PDO::PARAM_INT);                                                            
                     $statement->bindValue(':unit', $params['unit'], \PDO::PARAM_STR);                    
                     $statement->bindValue(':unit_eng', $params['unit_eng'], \PDO::PARAM_STR);                    
                     $statement->bindValue(':unitcode', $params['unitcode'], \PDO::PARAM_STR);

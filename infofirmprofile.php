@@ -951,6 +951,7 @@ $app->get("/fillCompanyInfoSocialediaGuest_infoFirmProfile/", function () use ($
         $flows[] = array(
             "socialmedia" => $flow["socialmedia"],
             "firm_link" => $flow["firm_link"],      
+            "abbreviation" => $flow["abbreviation"],  
             "attributes" => array("notroot" => true, ),
         );
     }
@@ -1142,6 +1143,67 @@ $app->get("/fillCompanyInfoSectorsGuest_infoFirmProfile/", function () use ($app
             "id" => $flow["id"],    
             "sector_name" => $flow["sector_name"],  
             "logo" => $flow["logo"],              
+            "attributes" => array("notroot" => true,"active" => $flow["active"], ),
+        );
+    }
+ 
+    $app->response()->header("Content-Type", "application/json");    
+    $app->response()->body(json_encode($flows));
+});
+
+
+
+
+    /**
+ *  * Okan CIRAN
+ * @since 15-04-2016
+ */
+$app->get("/pkFillCompanyInfoBuildingNpk_infoFirmProfile/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+ 
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }
+    $vBuildingTypeId = NULL;
+    if (isset($_GET['building_type_id'])) {
+        $stripper->offsetSet('building_type_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['building_type_id']));
+    }
+    
+  
+
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('npk')) $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();
+    if($stripper->offsetExists('building_type_id')) $vBuildingTypeId = $stripper->offsetGet('building_type_id')->getFilterValue();
+ 
+     $result = $BLL->fillCompanyInfoBuildingNpk(array('language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey,
+         'building_type_id' => $vBuildingTypeId,
+        ));
+    
+  
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],  
+            "firm_id" => $flow["firm_id"],   
+            "building_type" => $flow["building_type"],  
+            "firm_building_name" => $flow["firm_building_name"],   
+            "osb_name" => $flow["osb_name"],
+            "building_address" => $flow["building_address"],
             "attributes" => array("notroot" => true,"active" => $flow["active"], ),
         );
     }

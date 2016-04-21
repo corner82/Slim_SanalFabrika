@@ -1767,14 +1767,15 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 $sql = "
                 SELECT                
 		    COALESCE(NULLIF(COALESCE(NULLIF(smx.name, ''), sm.name_eng), ''), sm.name) AS socialmedia,                   
-                    fsm.firm_link                   
+                    fsm.firm_link,
+                    sm.abbreviation
                 FROM info_firm_profile a    
 		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                 
                 LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0                 
-                INNER JOIN info_firm_keys fk on fk.firm_id = a.act_parent_id 
-                INNER JOIN info_firm_socialmedia fsm on fsm.firm_id = a.id AND   fsm.deleted =0 AND fsm.active =0 AND fsm.profile_public =0
-                INNER JOIN sys_socialmedia sm on sm.id = fsm.sys_socialmedia_id AND sm.deleted =0 AND sm.active =0 
-		LEFT JOIN sys_socialmedia smx on (smx.id = sm.id OR smx.language_parent_id = fsm.sys_socialmedia_id) AND smx.language_id = lx.id AND smx.active =0 AND smx.deleted =0                   
+                INNER JOIN info_firm_keys fk ON fk.firm_id = a.act_parent_id 
+                INNER JOIN info_firm_socialmedia fsm ON fsm.firm_id = a.id AND   fsm.deleted =0 AND fsm.active =0 AND fsm.profile_public =0
+                INNER JOIN sys_socialmedia sm ON sm.id = fsm.sys_socialmedia_id AND sm.deleted =0 AND sm.active =0 
+		LEFT JOIN sys_socialmedia smx ON (smx.id = sm.id OR smx.language_parent_id = fsm.sys_socialmedia_id) AND smx.language_id = lx.id AND smx.active =0 AND smx.deleted =0                   
                 WHERE 
                     a.deleted =0 AND 
                     a.active =0 AND 
@@ -1956,5 +1957,93 @@ class InfoFirmProfile extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
- 
+    
+       /*  
+     * @author Okan CIRAN
+     * @ quest kullanıcısı için,   info_firm_profile tablosundan kayıtları döndürür !!
+     * @version v 1.0  15.04.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillCompanyInfoBuildingNpk($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $addSql = "";
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+            if ((isset($params['building_type_id']) && $params['building_type_id'] != "")) {
+                $buildingTypeIdValue = $params['building_type_id'];
+                $addSql .= " AND ifs.firm_building_type_id = " . intval($buildingTypeIdValue);
+            }
+            $sql = " 
+		SELECT 
+                   firm_id,
+                   id, 
+                   building_type,
+                   firm_building_name,
+                   osb_name,
+                   osb_name_eng,
+                   CONCAT(address,' ', borough_name,'/',  city_name, ' ', country_name) AS building_address,
+                   active 
+                   FROM ( 
+			SELECT 
+			   a.act_parent_id as firm_id,
+			   ifs.id, 
+			   COALESCE(NULLIF(COALESCE(NULLIF(sd4x.description, ''), sd4.description_eng), ''), sd4.description) AS building_type,                 
+			   COALESCE(NULLIF(COALESCE(NULLIF(ifsx.firm_building_name, ''), ifs.firm_building_name_eng), ''), ifs.firm_building_name) AS firm_building_name,                   
+			   COALESCE(NULLIF(sox.name, ''), so.name_eng) AS osb_name,
+			   so.name_eng AS osb_name_eng,
+			   ifs.address,
+			   ifs.borough_id,                      
+			   COALESCE(NULLIF(COALESCE(NULLIF(box.name, ''), bo.name_eng), ''), bo.name) AS borough_name,
+			   ifs.city_id,                     
+			   COALESCE(NULLIF(COALESCE(NULLIF(ctx.name, ''), ct.name_eng), ''), ct.name) AS city_name,
+			   ifs.country_id,
+			   COALESCE(NULLIF(COALESCE(NULLIF(cox.name, ''), co.name_eng), ''), co.name) AS country_name,
+			   ifs.active
+			FROM info_firm_address ifs
+			INNER JOIN info_firm_profile a ON ifs.firm_id = a.act_parent_id   AND a.language_parent_id =0 AND a.deleted =0 AND a.active =0
+			INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+			LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND l.deleted =0 AND l.active =0
+			INNER JOIN info_firm_keys fk ON fk.firm_id = a.id
+			INNER JOIN sys_osb so ON so.id = ifs.osb_id AND so.deleted =0 AND so.active =0 AND l.id = so.language_id
+			LEFT JOIN sys_osb sox ON (sox.id = so.id OR sox.language_parent_id = so.id) AND sox.deleted =0 AND sox.active =0 AND lx.id = sox.language_id
+			LEFT JOIN info_firm_address ifsx ON (ifsx.id = ifs.id OR ifsx.language_parent_id = ifs.id) AND ifsx.language_id = lx.id AND ifsx.deleted =0 AND ifsx.active =0
+			INNER JOIN sys_specific_definitions sd4 ON sd4.main_group = 4 AND sd4.first_group= ifs.firm_building_type_id AND sd4.language_id = a.language_id AND sd4.deleted = 0 AND sd4.active = 0
+			LEFT JOIN sys_specific_definitions sd4x ON sd4x.main_group = 4 AND sd4x.id= sd4.id AND sd4x.language_id = lx.id AND sd4x.deleted = 0 AND sd4x.active = 0
+			LEFT JOIN sys_countrys co ON co.id = ifs.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = ifs.language_id
+			LEFT JOIN sys_city ct ON ct.id = ifs.city_id AND ct.deleted = 0 AND ct.active = 0 AND ct.language_id = ifs.language_id
+			LEFT JOIN sys_borough bo ON bo.id = ifs.borough_id AND bo.deleted = 0 AND bo.active = 0 AND bo.language_id = ifs.language_id
+			LEFT JOIN sys_countrys cox ON (cox.id = co.id OR cox.language_parent_id = co.id) AND cox.deleted = 0 AND cox.active = 0 AND cox.language_id = lx.id
+			LEFT JOIN sys_city ctx ON (ctx.id = ct.id OR ctx.language_parent_id = ct.id) AND ctx.deleted = 0 AND ctx.active = 0 AND ctx.language_id = lx.id
+			LEFT JOIN sys_borough box ON (box.id = bo.id OR box.language_parent_id = bo.id) AND box.deleted = 0 AND box.active = 0 AND box.language_id = lx.id 
+			WHERE ifs.deleted =0 AND 
+			      ifs.active =0 AND
+			      ifs.profile_public =0 
+			     AND fk.network_key = '" . $params['network_key'] . "'  
+                             " . $addSql . " 
+                 ) as xtable    
+                ORDER BY id 
+                  ";
+            $statement = $pdo->prepare($sql);
+            // echo debugPDO($sql, $params);                
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
 }

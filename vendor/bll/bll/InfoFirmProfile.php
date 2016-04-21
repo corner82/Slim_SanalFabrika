@@ -211,7 +211,7 @@ class InfoFirmProfile extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
         return $DAL->fillCompanyInfoProductsGuest($params);
     }
-        /**
+    /**
      * get consultant confirmation process details
      * @param array $params
      * @return array
@@ -219,6 +219,16 @@ class InfoFirmProfile extends \BLL\BLLSlim {
     public function fillCompanyInfoSectorsGuest($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
         return $DAL->fillCompanyInfoSectorsGuest($params);
+    }
+    
+    /**
+     * get consultant confirmation process details
+     * @param array $params
+     * @return array
+     */
+    public function fillCompanyInfoBuildingNpk($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        return $DAL->fillCompanyInfoBuildingNpk($params);
     }
     
      
