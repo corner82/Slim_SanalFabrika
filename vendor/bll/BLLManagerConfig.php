@@ -74,6 +74,7 @@ class BLLManagerConfig{
                  'sysProductionTypesBLL' => 'BLL\BLL\SysProductionTypes',
                  'infoFirmUsersBLL' => 'BLL\BLL\InfoFirmUsers',
                  'sysMachineToolDefinitionAttributeBLL' => 'BLL\BLL\SysMachineToolDefinitionAttribute',
+                 'infoUsersSocialmediaBLL' => 'BLL\BLL\InfoUsersSocialmedia',
                  
                  
                  

@@ -79,6 +79,9 @@ class DalManagerConfig {
                 'sysProductionTypesPDO' => 'DAL\Factory\PDO\SysProductionTypesFactory',
                 'infoFirmUsersPDO' => 'DAL\Factory\PDO\InfoFirmUsersFactory',
                 'sysMachineToolDefinitionAttributePDO' => 'DAL\Factory\PDO\SysMachineToolDefinitionAttributeFactory',
+                'infoUsersSocialmediaPDO' => 'DAL\Factory\PDO\InfoUsersSocialmediaFactory',
+                
+                
                 
                 
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
