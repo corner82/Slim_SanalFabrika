@@ -80,7 +80,7 @@ class DalManagerConfig {
                 'infoFirmUsersPDO' => 'DAL\Factory\PDO\InfoFirmUsersFactory',
                 'sysMachineToolDefinitionAttributePDO' => 'DAL\Factory\PDO\SysMachineToolDefinitionAttributeFactory',
                 'infoUsersSocialmediaPDO' => 'DAL\Factory\PDO\InfoUsersSocialmediaFactory',
-                
+                'infoFirmVerbalPDO' => 'DAL\Factory\PDO\InfoFirmVerbalFactory',
                 
                 
                 
