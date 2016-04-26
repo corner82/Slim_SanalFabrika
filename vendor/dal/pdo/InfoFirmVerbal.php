@@ -113,8 +113,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                         COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow,
                         a.language_parent_id,
                         ifk.network_key
-                    FROM info_firm_verbal a 
-                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
+                    FROM info_firm_verbal a                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     LEFT JOIN info_firm_verbal ax ON (ax.id = a.id OR ax.language_parent_id=a.id)  AND ax.active = 0 AND ax.deleted = 0 AND ax.language_id =lx.id  
@@ -571,8 +570,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                         COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow,
                         a.language_parent_id,
                         ifk.network_key
-                    FROM info_firm_verbal a 
-                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
+                    FROM info_firm_verbal a                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     LEFT JOIN info_firm_verbal ax ON (ax.id = a.id OR ax.language_parent_id=a.id)  AND ax.active = 0 AND ax.deleted = 0 AND ax.language_id =lx.id  
@@ -642,8 +640,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
             $sql = "
                  SELECT 
                     COUNT(a.id) AS COUNT
-                    FROM info_firm_verbal a 
-                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
+                    FROM info_firm_verbal a                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                    
                     INNER JOIN info_users u ON u.id = a.op_user_id
                     INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
@@ -1059,8 +1056,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                         COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow,
                         a.language_parent_id,
                         ifk.network_key
-                    FROM info_firm_verbal a 
-                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
+                    FROM info_firm_verbal a                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     LEFT JOIN info_firm_verbal ax ON (ax.id = a.id OR ax.language_parent_id=a.id)  AND ax.active = 0 AND ax.deleted = 0 AND ax.language_id =lx.id  
@@ -1155,8 +1151,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
 			a.verbal3_eng, 
                         COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
 		        COALESCE(NULLIF(lx.language, ''), 'en') AS language_name                        
-                    FROM info_firm_verbal a 
-                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
+                    FROM info_firm_verbal a                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     LEFT JOIN info_firm_verbal ax ON (ax.id = a.id OR ax.language_parent_id=a.id)  AND ax.active = 0 AND ax.deleted = 0 AND ax.language_id =lx.id  
