@@ -116,7 +116,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     INNER JOIN info_users u ON u.id = a.op_user_id
                     INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
-                    LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id=a.firm_id)  AND fp.active = 0 AND fp.deleted = 0 AND fp.language_id =lx.id  
+                    LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
                     INNER JOIN info_users own ON own.id = fp.owner_user_id 
                     INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id =l.id  AND op.deleted =0 AND op.active =0
@@ -177,6 +177,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                    " . $addSql . "                  
                                ";
             $statement = $pdo->prepare($sql);
+            // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1182,15 +1183,12 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
            $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $opUserIdValue = $userId ['resultSet'][0]['user_id'];
-                
+                $addSql = "";
                 $firmIdValue=-1;                
                 $firmId = InfoUsers::getUserFirmId(array('user_id' =>$opUserIdValue));
                 if (\Utill\Dal\Helper::haveRecord($firmId)) {
                     $firmIdValue = $firmId ['resultSet'][0]['firm_id'];
-                } 
-                
-                $addSql = "";
-
+                }  
                 $languageId = NULL;
                 $languageIdValue = 647;
                 if ((isset($params['language_code']) && $params['language_code'] != "")) {                
@@ -1238,7 +1236,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 ORDER BY machine_tool_grup_names, manufacturer_name,machine_tool_names                
                 ";
                 $statement = $pdo->prepare($sql);
-             //  echo debugPDO($sql, $params);
+               //echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -1471,10 +1469,8 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
            $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $opUserIdValue = $userId ['resultSet'][0]['user_id'];
+            if (\Utill\Dal\Helper::haveRecord($userId)) {               
                 $addSql = "";
-
                 $languageId = NULL;
                 $languageIdValue = 647;
                 if ((isset($params['language_code']) && $params['language_code'] != "")) {                
@@ -1528,7 +1524,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 ORDER BY machine_tool_grup_names, manufacturer_name,machine_tool_names     
                 ";
                 $statement = $pdo->prepare($sql);
-             //  echo debugPDO($sql, $params);
+              // echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -1544,6 +1540,68 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+      /**  
+     * @author Okan CIRAN
+     * @ userin elemanı oldugu firmanın makina kayıtları sayısını döndürür !!
+     * @version v 1.0  25.04.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillUsersFirmMachinesNpkRtc($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($userId)) {               
+                $addSql = "";
+
+                 if (isset($params['machine_id'])) {
+                    $addSql .= " AND a.sys_machine_tool_id = " . intval($params['machine_id']) . " ";
+                }
+                if (isset($params['machine_grup_id'])) {
+                    $addSql .= " AND smt.machine_tool_grup_id = " . intval($params['machine_grup_id']) . " ";
+                }
+
+                $sql = " 
+                    SELECT 
+                         COUNT(a.id ) AS COUNT                      
+                     FROM info_firm_machine_tool a 
+                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                    LEFT JOIN sys_language lx ON lx.id = 647 AND lx.deleted =0 AND lx.active =0                    
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
+                    INNER JOIN info_firm_keys fk ON fp.act_parent_id =  fk.firm_id                      
+                    INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
+                    LEFT JOIN sys_machine_tools smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
+		    INNER JOIN sys_machine_tool_groups smtg ON smtg.id = smt.machine_tool_grup_id AND smtg.language_id = l.id
+		    LEFT JOIN sys_machine_tool_groups smtgx ON (smtgx.id = smtg.id OR smtg.language_parent_id = smtg.id )AND smtgx.language_id = lx.id
+                    INNER JOIN sys_manufacturer m ON m.id = smt.manufactuer_id AND m.language_id = l.id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0 
+                    LEFT JOIN sys_manufacturer mx ON (mx.id = m.id OR mx.language_parent_id = m.id) AND mx.language_id = lx.id AND mx.deleted =0 AND mx.active =0        
+                    WHERE 
+                        a.deleted =0 AND a.active =0 AND
+                        a.profile_public =0 AND
+                        fk.network_key = '".$params['network_key']."' AND
+                        a.language_parent_id =0 
+                         " . $addSql . "
+                                 ";
+                $statement = $pdo->prepare($sql);
+                // echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
 
     
 }

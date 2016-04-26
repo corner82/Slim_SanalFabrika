@@ -96,7 +96,7 @@ class InfoFirmMachineTool extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
     
-     /**
+    /**
      * Data delete action function
      * @param array | null $params
      * @return array
@@ -130,10 +130,11 @@ class InfoFirmMachineTool extends \BLL\BLLSlim{
      * Data update function   
      * @param array $params
      * @return array
-     */
-    public function fillUsersFirmMachines($params = array()) {        
-        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');     
-        return $DAL->fillUsersFirmMachines($params);
+     */ 
+     public function fillUsersFirmMachines($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        $resultSet = $DAL->fillUsersFirmMachines($params);  
+        return $resultSet['resultSet'];
     }
      
          /**
@@ -171,12 +172,22 @@ class InfoFirmMachineTool extends \BLL\BLLSlim{
      * Data update function   
      * @param array $params
      * @return array
-     */
-    public function fillUsersFirmMachinesNpk($params = array()) {        
-        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');     
-        return $DAL->fillUsersFirmMachinesNpk($params);
+     */ 
+    public function fillUsersFirmMachinesNpk($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        $resultSet = $DAL->fillUsersFirmMachinesNpk($params);  
+        return $resultSet['resultSet'];
     }
     
-    
+        /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */ 
+    public function fillUsersFirmMachinesNpkRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        $resultSet = $DAL->fillUsersFirmMachinesNpkRtc($params);  
+        return $resultSet['resultSet'];
+    }
 }
 
