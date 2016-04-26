@@ -231,7 +231,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                AND a.deleted =0    
                                ";
             $statement = $pdo->prepare($sql);
-           //echo debugPDO($sql, $params);
+          // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -260,7 +260,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
               
                 $kontrol = $this->haveRecords($params);
-                if (\Utill\Dal\Helper::haveRecord($kontrol)) {
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                     $languageId = NULL;
                     $languageIdValue = 647;
                     if ((isset($params['language_code']) && $params['language_code'] != "")) {
