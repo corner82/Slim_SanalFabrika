@@ -112,6 +112,77 @@ $app->get("/pkFillMachineToolGroupPropertyDefinitions_sysMachineToolPropertyDefi
  
 /**
  *  * Okan CIRAN
+ * @since 22-04-2016
+ */
+$app->get("/pkFillMachineGroupPropertyDefinitions_sysMachineToolPropertyDefinition/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysMachineToolPropertyDefinitionBLL');
+
+    
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkGetConsConfirmationProcessDetails_sysOsbConsultants" end point, X-Public variable not found');
+    //$pk = $headerParams['X-Public'];
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vMachineGrupId = NULL;
+    if (isset($_GET['machine_grup_id'])) {
+         $stripper->offsetSet('machine_grup_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['machine_grup_id']));
+    } 
+    $vUnitGrupId = NULL;
+    if (isset($_GET['unit_grup_id'])) {
+         $stripper->offsetSet('unit_grup_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['unit_grup_id']));
+    }
+    
+    
+     $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('machine_grup_id')) $vMachineGrupId = $stripper->offsetGet('machine_grup_id')->getFilterValue();
+    if($stripper->offsetExists('unit_grup_id')) $vUnitGrupId = $stripper->offsetGet('unit_grup_id')->getFilterValue();
+     
+    
+    
+    $resCombobox = $BLL->fillMachineGroupPropertyDefinitions(array(
+                                    'machine_grup_id' => $vMachineGrupId,
+                                    'unit_grup_id' =>$vUnitGrupId,
+                                    'language_code' => $vLanguageCode,
+                        ));    
+
+    $flows = array();
+    foreach ($resCombobox as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+            //"text" => strtolower($flow["name"]),
+            "text" => $flow["property_name"],
+            "state" => $flow["state_type"], //   'closed',
+            "checked" => false,
+            "icon_class"=>"icon_class", 
+            "attributes" => array("root" => $flow["root_type"], "active" => $flow["active"],
+                "machine_grup_id" => $flow["machine_grup_id"], "unitgroup" => $flow["unitgroup"],  
+                "property_name_eng" => $flow["property_name_eng"],
+                ),
+        );
+    }
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($flows));
+});
+ 
+
+/**
+ *  * Okan CIRAN
  * @since 15-02-2016
  */
 $app->get("/pkInsert_sysMachineToolPropertyDefinition/", function () use ($app ) {    

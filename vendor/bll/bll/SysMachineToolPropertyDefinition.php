@@ -108,5 +108,15 @@ class SysMachineToolPropertyDefinition extends \BLL\BLLSlim {
         return $DAL->makeActiveOrPassive($params);
     }
     
-    
+    /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillMachineGroupPropertyDefinitions($params = array()) {
+
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertyDefinitionPDO');
+        $resultSet = $DAL->fillMachineGroupPropertyDefinitions($params);
+        return $resultSet['resultSet'];
+    }
 }

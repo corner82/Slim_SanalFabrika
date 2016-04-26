@@ -28,7 +28,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function delete($params = array()) {
-     try {
+        try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $userId = $this->getUserId(array('pk' => $params['pk']));
@@ -56,7 +56,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
-    } 
+    }
 
     /**
      * @author Okan CIRAN
@@ -117,7 +117,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
     public function insert($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();            
+            $pdo->beginTransaction();
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
@@ -146,7 +146,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                                              )   ";
                     $statement = $pdo->prepare($sql);
                     $statement->bindValue(':property_name', $params['property_name'], \PDO::PARAM_STR);
-                    $statement->bindValue(':property_name_eng', $params['property_name_eng'], \PDO::PARAM_STR);                    
+                    $statement->bindValue(':property_name_eng', $params['property_name_eng'], \PDO::PARAM_STR);
                     $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
                     $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
                     // echo debugPDO($sql, $params);
@@ -155,17 +155,17 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                     $errorInfo = $statement->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
-                   
+
                     if ((isset($params['machine_grup_id']) && $params['machine_grup_id'] != "")) {
-                    $this->insertPropertyMachineGroup(array('property_id' => $insertID,
-                        'machine_grup_id' => $params['machine_grup_id'],
-                        'opUserIdValue' => $opUserIdValue,
-                            ));
+                        $this->insertPropertyMachineGroup(array('property_id' => $insertID,
+                            'machine_grup_id' => $params['machine_grup_id'],
+                            'opUserIdValue' => $opUserIdValue,
+                        ));
                     }
                     if ((isset($params['unit_grup_id']) && $params['unit_grup_id'] != "")) {
-                    $this->insertPropertyUnitGroup(array('property_id' => $insertID,
-                        'unit_grup_id' => $params['unit_grup_id'],
-                         'opUserIdValue' => $opUserIdValue,));
+                        $this->insertPropertyUnitGroup(array('property_id' => $insertID,
+                            'unit_grup_id' => $params['unit_grup_id'],
+                            'opUserIdValue' => $opUserIdValue,));
                     }
 
                     $pdo->commit();
@@ -199,7 +199,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
     public function insertPropertyMachineGroup($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-           // $pdo->beginTransaction();
+            // $pdo->beginTransaction();
             $opUserIdValue = intval($params['opUserIdValue']);
             $kontrol = $this->haveRecordsMachineGroup($params);
             if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
@@ -212,27 +212,27 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 SELECT " . intval($params['property_id']) . ",  id AS machine_grup_id,  " . intval($opUserIdValue) . "
                 FROM sys_machine_tool_groups 
                 WHERE       
-                    id IN (SELECT CAST( CAST( json_array_elements('".$params['machine_grup_id']. "') AS text) AS integer) )    
+                    id IN (SELECT CAST( CAST( json_array_elements('" . $params['machine_grup_id'] . "') AS text) AS integer) )    
 
                                                 ";
                 //id IN (" . intval($params['machine_grup_id']) . ")   
                 $statement = $pdo->prepare($sql);
-                 echo debugPDO($sql, $params);
+                echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_machine_groups_property_definition_id_seq');
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
-            //    $pdo->commit();
+                //    $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
             } else {
                 $errorInfo = '23505';
                 $errorInfoColumn = 'machine_grup_id';
-            //    $pdo->rollback();
+                //    $pdo->rollback();
                 return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
-         //   $pdo->rollback();
+            //   $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -261,7 +261,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 SELECT " . intval($params['property_id']) . ",  id AS unit_grup_id,  " . intval($opUserIdValue) . "
                 FROM sys_units 
                 WHERE                            
-                    id IN (SELECT CAST( CAST( json_array_elements( '".$params['unit_grup_id']. "') AS text) AS integer) )    
+                    id IN (SELECT CAST( CAST( json_array_elements( '" . $params['unit_grup_id'] . "') AS text) AS integer) )    
                                      
                                                 ";
                 $statement = $pdo->prepare($sql);
@@ -271,16 +271,16 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
-            //    $pdo->commit();
+                //    $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
             } else {
                 $errorInfo = '23505';
                 $errorInfoColumn = 'unit_grup_id';
-             //   $pdo->rollback();
+                //   $pdo->rollback();
                 return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
-          //  $pdo->rollback();
+            //  $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -349,7 +349,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             FROM sys_machine_groups_property_definition a
             WHERE 
                 a.property_id =   " . intval($params['property_id']) . " AND                
-                a.machine_grup_id IN (SELECT CAST( CAST( json_array_elements( '".$params['machine_grup_id']. "') AS text) AS integer) )
+                a.machine_grup_id IN (SELECT CAST( CAST( json_array_elements( '" . $params['machine_grup_id'] . "') AS text) AS integer) )
                   " . $addSql . "
                 AND a.deleted =0
                                ";
@@ -391,13 +391,13 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             FROM sys_unit_groups_property_definition  a                          
             WHERE 
                 a.property_id =   " . intval($params['property_id']) . " AND                
-                a.unit_grup_id IN (SELECT CAST( CAST( json_array_elements( '".$params['unit_grup_id']. "') AS text) AS integer) )
+                a.unit_grup_id IN (SELECT CAST( CAST( json_array_elements( '" . $params['unit_grup_id'] . "') AS text) AS integer) )
                   " . $addSql . " 
                 AND a.deleted =0    
                                ";
             //a.unit_grup_id =  " . intval($params['unit_grup_id']) . "                                 
             $statement = $pdo->prepare($sql);
-           //   echo debugPDO($sql, $params);
+            //   echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -485,7 +485,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
     public function updatePropertyMachineGroup($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-           // $pdo->beginTransaction();
+            // $pdo->beginTransaction();
             $opUserIdValue = intval($params['opUserIdValue']);
             $kontrol = $this->haveRecordsUnitGroup($params);
             if (\Utill\Dal\Helper::haveRecord($kontrol)) {
@@ -495,7 +495,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                     machine_grup_id = :machine_grup_id,
                     op_user_id = :op_user_id                                                      
                 WHERE id = " . intval($params['id']);
-                $statement = $pdo->prepare($sql);                
+                $statement = $pdo->prepare($sql);
                 $statement->bindValue(':machine_grup_id', $params['machine_grup_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
                 $update = $statement->execute();
@@ -503,20 +503,21 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
-              //  $pdo->commit();
+                //  $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
             } else {
                 // 23505 	unique_violation
                 $errorInfo = '23505';
                 $errorInfoColumn = 'group_name';
-            //    $pdo->rollback();
+                //    $pdo->rollback();
                 return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
-           // $pdo->rollback();
+            // $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+
     /**
      * @author Okan CIRAN
      * sys_unit_groups_property_definition tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
@@ -528,7 +529,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
     public function updatePropertyUnitGroup($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-         //   $pdo->beginTransaction();
+            //   $pdo->beginTransaction();
             $opUserIdValue = intval($params['opUserIdValue']);
             $kontrol = $this->haveRecordsUnitGroup($params);
             if (\Utill\Dal\Helper::haveRecord($kontrol)) {
@@ -538,7 +539,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                     unit_grup_id = :unit_grup_id,
                     op_user_id = :op_user_id                                                      
                 WHERE id = " . intval($params['id']);
-                $statement = $pdo->prepare($sql);                
+                $statement = $pdo->prepare($sql);
                 $statement->bindValue(':unit_grup_id', $params['unit_grup_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
                 $update = $statement->execute();
@@ -546,17 +547,17 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
-           //     $pdo->commit();
+                //     $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
             } else {
                 // 23505 	unique_violation
                 $errorInfo = '23505';
                 $errorInfoColumn = 'group_name';
-           //     $pdo->rollback();
+                //     $pdo->rollback();
                 return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
-           // $pdo->rollback();
+            // $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -601,13 +602,13 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
 
         $languageId = NULL;
         $languageIdValue = 647;
-        if ((isset($params['language_code']) && $params['language_code'] != "")) {                
-            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+        if ((isset($args['language_code']) && $args['language_code'] != "")) {
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $args['language_code']));
             if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
             }
-        }  
-      
+        }
+
 
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -630,7 +631,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                         u.username AS op_user_name     
                 FROM sys_machine_tool_property_definition  a                                
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
-                LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0       
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0       
                 INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = a.language_id AND sd15.deleted = 0 AND sd15.active = 0
                 INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0 AND sd16.active = 0                             
 		INNER JOIN sys_specific_definitions sd18 ON sd18.main_group = 18 AND sd18.first_group= a.algorithmic_id AND sd18.language_id = a.language_id AND sd18.deleted = 0 AND sd18.active = 0                                                             
@@ -676,7 +677,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
     public function fillGridRowTotalCount($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            
+
             $sql = "
                SELECT 
                     COUNT(a.id) AS COUNT  
@@ -717,32 +718,33 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $machineToolGrupId = 0;
             $innerSql = NULL;
-            $whereSql ="  WHERE a.deleted =0 AND a.language_parent_id =0 ";
-            
+            $whereSql = "  WHERE a.deleted =0 AND a.language_parent_id =0 ";
+
             if (isset($params['machine_grup_id']) && $params['machine_grup_id'] != "") {
                 $machineToolGrupId = $params['machine_grup_id'];
                 $innerSql .=" INNER JOIN sys_machine_groups_property_definition mpd ON mpd.property_id = a.id AND mpd.active =0 AND mpd.deleted =0 ";
-                $whereSql .= " AND mpd.machine_grup_id = " . $machineToolGrupId  ;
-            } 
+                $whereSql .= " AND mpd.machine_grup_id = " . $machineToolGrupId;
+            }
             if (isset($params['unit_grup_id']) && $params['unit_grup_id'] != "") {
                 $UnitGrupId = $params['unit_grup_id'];
                 $innerSql .=" INNER JOIN sys_unit_groups_property_definition upd ON upd.property_id = a.id AND upd.active =0 AND upd.deleted =0  ";
-                $whereSql .= " AND upd.unit_grup_id = " . $UnitGrupId  ;
-            }  
-            
+                $whereSql .= " AND upd.unit_grup_id = " . $UnitGrupId;
+            }
+
             $languageId = NULL;
             $languageIdValue = 647;
-            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
                 $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
                 }
-            }  
-            
+            }
+
 
             $statement = $pdo->prepare("                
                 SELECT
                     a.id,
+                    mpd.machine_grup_id ,
                     COALESCE(NULLIF(su.property_name, ''), a.property_name_eng) AS property_name,            
                     a.property_name_eng,
                     a.active,
@@ -758,11 +760,11 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
 		    ELSE false END AS unitgroup
 		FROM sys_machine_tool_property_definition a
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
-                LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0                       
-                ".$innerSql."    
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                       
+                " . $innerSql . "    
                 LEFT JOIN sys_machine_tool_property_definition su ON (su.id = a.id  OR su.language_parent_id = a.id) AND su.deleted =0 AND su.active =0 AND lx.id = su.language_id                                          
-                ".$whereSql."
-                ORDER BY name      
+                " . $whereSql . "
+                ORDER BY property_name      
                            
                                  ");
             $statement->execute();
@@ -776,8 +778,6 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
         }
     }
 
- 
-    
     /**
 
      * @author Okan CIRAN
@@ -827,6 +827,75 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ sys_machine_tool_property_definition tablosundan machine_grup_id si 
+     * verilen kayıtları döndürür !!  machine_grup_id boş ise tüm kayıtları döndürür.
+     * @version v 1.0  22.04.2016 
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillMachineGroupPropertyDefinitions($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $machineToolGrupId = 0;
+            $innerSql = NULL;
+            $whereSql = "  WHERE a.deleted =0 AND a.language_parent_id =0 ";
+
+            if (isset($params['machine_grup_id']) && $params['machine_grup_id'] != "") {
+                $machineToolGrupId = $params['machine_grup_id'];
+                $innerSql .=" INNER JOIN sys_machine_groups_property_definition mpd ON mpd.property_id = a.id AND mpd.active =0 AND mpd.deleted =0 ";
+                $whereSql .= " AND mpd.machine_grup_id = " . $machineToolGrupId;
+            }
+            if (isset($params['unit_grup_id']) && $params['unit_grup_id'] != "") {
+                $UnitGrupId = $params['unit_grup_id'];
+                $innerSql .=" INNER JOIN sys_unit_groups_property_definition upd ON upd.property_id = a.id AND upd.active =0 AND upd.deleted =0  ";
+                $whereSql .= " AND upd.unit_grup_id = " . $UnitGrupId;
+            }
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+
+            $statement = $pdo->prepare("                
+                SELECT
+                    a.id,
+                    mpd.machine_grup_id ,
+                    COALESCE(NULLIF(su.property_name, ''), a.property_name_eng) AS property_name,            
+                    a.property_name_eng,
+                    a.active,
+                    'open' AS state_type,
+                    false AS root_type,
+                   
+		    CASE
+                        (SELECT COUNT(id) FROM sys_unit_groups_property_definition WHERE property_id = a.id) 
+		    WHEN 1 THEN true
+		    ELSE false END AS unitgroup
+		FROM sys_machine_tool_property_definition a
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                       
+                " . $innerSql . "    
+                LEFT JOIN sys_machine_tool_property_definition su ON (su.id = a.id  OR su.language_parent_id = a.id) AND su.deleted =0 AND su.active =0 AND lx.id = su.language_id                                          
+                " . $whereSql . "
+                ORDER BY property_name      
+                           
+                                 ");
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
