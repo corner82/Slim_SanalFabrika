@@ -728,6 +728,8 @@ $app->get("/fillUsersFirmVerbalNpkGuest_infoFirmVerbal/", function () use ($app 
             
             "language_id" => $flow["language_id"],
             "language_name" => $flow["language_name"],
+            "logo" => $flow["logo"],
+           
             
         
 	 

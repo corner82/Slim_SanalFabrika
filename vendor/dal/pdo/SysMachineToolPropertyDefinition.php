@@ -172,7 +172,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
                     $errorInfo = '23505';
-                    $errorInfoColumn = 'group_name';
+                    $errorInfoColumn = 'property_name';
                     $pdo->rollback();
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
@@ -212,12 +212,10 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 SELECT " . intval($params['property_id']) . ",  id AS machine_grup_id,  " . intval($opUserIdValue) . "
                 FROM sys_machine_tool_groups 
                 WHERE       
-                    id IN (SELECT CAST( CAST( json_array_elements('" . $params['machine_grup_id'] . "') AS text) AS integer) )    
-
-                                                ";
-                //id IN (" . intval($params['machine_grup_id']) . ")   
+                    id IN (SELECT CAST( CAST((SELECT VALUE FROM json_each('" . $params['machine_grup_id'] . "')) AS text) AS integer) )    
+                                                ";                
                 $statement = $pdo->prepare($sql);
-                echo debugPDO($sql, $params);
+              //  echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_machine_groups_property_definition_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -261,11 +259,11 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 SELECT " . intval($params['property_id']) . ",  id AS unit_grup_id,  " . intval($opUserIdValue) . "
                 FROM sys_units 
                 WHERE                            
-                    id IN (SELECT CAST( CAST( json_array_elements( '" . $params['unit_grup_id'] . "') AS text) AS integer) )    
+                    id IN (SELECT CAST( CAST((SELECT VALUE FROM json_each( '" . $params['unit_grup_id'] . "')) AS text) AS integer) )    
                                      
                                                 ";
                 $statement = $pdo->prepare($sql);
-                echo debugPDO($sql, $params);
+              //  echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_unit_groups_property_definition_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -348,8 +346,8 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 CONCAT(a.machine_grup_id , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
             FROM sys_machine_groups_property_definition a
             WHERE 
-                a.property_id =   " . intval($params['property_id']) . " AND                
-                a.machine_grup_id IN (SELECT CAST( CAST( json_array_elements( '" . $params['machine_grup_id'] . "') AS text) AS integer) )
+                a.property_id =   " . intval($params['property_id']) . " AND                                
+                a.machine_grup_id IN (SELECT CAST( CAST((SELECT VALUE FROM json_each( '" . $params['machine_grup_id'] . "')) AS text) AS integer) ) 
                   " . $addSql . "
                 AND a.deleted =0
                                ";
@@ -390,8 +388,8 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 CONCAT(a.unit_grup_id , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
             FROM sys_unit_groups_property_definition  a                          
             WHERE 
-                a.property_id =   " . intval($params['property_id']) . " AND                
-                a.unit_grup_id IN (SELECT CAST( CAST( json_array_elements( '" . $params['unit_grup_id'] . "') AS text) AS integer) )
+                a.property_id =   " . intval($params['property_id']) . " AND                                
+                a.unit_grup_id IN (SELECT CAST( CAST((SELECT VALUE FROM json_each( '" . $params['unit_grup_id'] . "')) AS text) AS integer) )                     
                   " . $addSql . " 
                 AND a.deleted =0    
                                ";
@@ -458,7 +456,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 } else {
                     // 23505 	unique_violation
                     $errorInfo = '23505';
-                    $errorInfoColumn = 'group_name';
+                    $errorInfoColumn = 'property_name';
                     $pdo->rollback();
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
