@@ -210,7 +210,7 @@ class SysMachineToolDefinitionAttribute extends \DAL\DalSlim {
                AND a.deleted =0    
                                ";
             $statement = $pdo->prepare($sql);
-            //   echo debugPDO($sql, $params);
+            // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -249,15 +249,15 @@ class SysMachineToolDefinitionAttribute extends \DAL\DalSlim {
                     }
 
                     $sql = "
-                UPDATE sys_machine_tool_definition_attribute
-                SET 
-                    attribute_name = :attribute_name,
-                    attribute_name_eng = :attribute_name_eng,
-                    description = :description,
-                    description_eng = :description_eng,
-                    language_id = :language_id,
-                    op_user_id = :op_user_id
-                WHERE id = " . intval($params['id']);
+                    UPDATE sys_machine_tool_definition_attribute
+                    SET 
+                        attribute_name = :attribute_name,
+                        attribute_name_eng = :attribute_name_eng,
+                        description = :description,
+                        description_eng = :description_eng,
+                        language_id = :language_id,
+                        op_user_id = :op_user_id
+                    WHERE id = " . intval($params['id']);
                     $statement = $pdo->prepare($sql);
                     $statement->bindValue(':attribute_name', $params['attribute_name'], \PDO::PARAM_STR);
                     $statement->bindValue(':attribute_name_eng', $params['attribute_name_eng'], \PDO::PARAM_STR);
@@ -265,6 +265,7 @@ class SysMachineToolDefinitionAttribute extends \DAL\DalSlim {
                     $statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
                     $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
                     $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
+                    //echo debugPDO($sql, $params);
                     $update = $statement->execute();
                     $affectedRows = $statement->rowCount();
                     $errorInfo = $statement->errorInfo();
@@ -290,7 +291,7 @@ class SysMachineToolDefinitionAttribute extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-   
+
     /**
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_machine_tool_definition_attribute tablosundan kayıtları döndürür !!
