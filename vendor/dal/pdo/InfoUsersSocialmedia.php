@@ -37,7 +37,7 @@ class InfoUsersSocialmedia extends \DAL\DalSlim {
                 $statement = $pdo->prepare(" 
                 UPDATE info_users_socialmedia
                 SET deleted= 1, active = 1,
-                     op_user_id = " . intval($opUserIdValue) . "     
+                     op_user_id = " . intval($opUserIdValue) . "  
                 WHERE id = " . intval($params['id']));
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
@@ -828,10 +828,9 @@ class InfoUsersSocialmedia extends \DAL\DalSlim {
                         $languageIdValue = $languageId ['resultSet'][0]['id'];
                     }
                 } 
-                $addSql ="";
+                $networkKey ="-1";
                 if (isset($params['network_key']) && $params['network_key'] != "") {
-                    $networkKey = $params['network_key'] ;  
-                    $addSql .= " fk.network_key= '". $params['network_key']. "' AND " ;
+                    $networkKey = $params['network_key'] ;                    
                 }
                 $sql = "                     
                 SELECT 
@@ -844,10 +843,7 @@ class InfoUsersSocialmedia extends \DAL\DalSlim {
                     a.user_link,                         
                     COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
                     COALESCE(NULLIF(lx.language, ''), l.language_eng) AS language_name,			                                      
-                    sm.abbreviation,
-                    a.act_parent_id,
-                    a.s_date,
-                    a.c_date,
+                    sm.abbreviation,               
                     fk.network_key 
                 FROM info_users_socialmedia a
                 INNER JOIN info_users_detail iud on iud.root_id = a.user_id AND iud.deleted =0 AND iud.active =0 		
@@ -858,9 +854,9 @@ class InfoUsersSocialmedia extends \DAL\DalSlim {
 		INNER JOIN info_firm_users ifu ON ifu.user_id = a.user_id AND ifu.active = 0 AND ifu.deleted = 0 AND ifu.language_parent_id =0   
 		INNER JOIN info_firm_profile fp ON fp.act_parent_id = ifu.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
 	 	INNER JOIN info_firm_keys fk ON fp.act_parent_id =  fk.firm_id   
-                WHERE 	a.deleted =0 AND 
-                        a.active =0 AND
-                ".$addSql."
+                WHERE 	
+                        a.cons_allow_id=2 AND 
+                        fk.network_key= '".$networkKey."' AND
                         iud.language_parent_id =0
                 ORDER BY iud.language_id, iud.name, iud.surname                 
                 ";
@@ -897,8 +893,9 @@ class InfoUsersSocialmedia extends \DAL\DalSlim {
             $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {                
                  $addSql ="";
-                if (isset($params['network_key']) && $params['network_key'] != "") {                    
-                    $addSql .= " fk.network_key= '". $params['network_key']. "' AND " ;
+               $networkKey ="-1";
+                if (isset($params['network_key']) && $params['network_key'] != "") {
+                    $networkKey = $params['network_key'] ;                    
                 }
                 
                 $sql = "                     
@@ -911,10 +908,10 @@ class InfoUsersSocialmedia extends \DAL\DalSlim {
 		INNER JOIN info_firm_users ifu ON ifu.user_id = a.user_id AND ifu.active = 0 AND ifu.deleted = 0 AND ifu.language_parent_id =0   
 		INNER JOIN info_firm_profile fp ON fp.act_parent_id = ifu.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
 	 	INNER JOIN info_firm_keys fk ON fp.act_parent_id =  fk.firm_id   
-                WHERE 	a.deleted =0 AND 
-                        a.active =0 AND
-                ".$addSql."
-                        iud.language_parent_id =0
+                WHERE 	
+                    a.cons_allow_id=2 AND 
+                    fk.network_key= '".$networkKey."' AND
+                    iud.language_parent_id =0
                 ";
                 $statement = $pdo->prepare($sql);
                 //  echo debugPDO($sql, $params);

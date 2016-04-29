@@ -625,7 +625,7 @@ $app->get("/pktempInsert_infoFirmProfile/", function () use ($app ) {
     $fFirmNameShort=$vFirmNameShort;
     $fDunsNumber=$vDunsNumber;
    
-    print_r($vFoundationYearx);
+  //  print_r($vFoundationYearx);
     $resDataInsert = $BLL->insertTemp(array(  
             'language_code' => $fLanguageCode,
             'profile_public' => $fProfilePublic,        
@@ -818,11 +818,12 @@ $app->get("/pktempFillUserAddressesTypes_infoFirmProfile/", function () use ($ap
 $app->get("/fillCompanyListsGuest_infoFirmProfile/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
-
+    $vLanguageCode =$_GET['language_code'] ; 
     $resDataGrid = $BLL->fillCompanyListsGuest(array('page' => $_GET['page'],
         'rows' => $_GET['rows'],
         'sort' => $_GET['sort'],
         'order' => $_GET['order'],
+        'language_code' => $vLanguageCode,
         ));
 
     $resTotalRowCount = $BLL->fillCompanyListsGuestRtc( );

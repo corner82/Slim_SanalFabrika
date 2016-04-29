@@ -68,16 +68,18 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
     public function getAll($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-            if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];
-            } else {
-                $languageIdValue = 647;
-            }
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
             $statement = $pdo->prepare("                    
                     SELECT 
                         a.id,
-                        a.firm_id,                        
+                        a.firm_id,
                         COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng) AS firm_name,
                         fp.firm_name_eng,
 			a.s_date,
@@ -92,7 +94,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
 			a.act_parent_id,  
                         a.language_code, 
                         COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
-		        COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,		                                                                     
+		        COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,
                         a.active,                         
                         COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng) AS state_active,
                         a.deleted,			
@@ -118,21 +120,23 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
                     LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
-                    INNER JOIN info_users own ON own.id = fp.owner_user_id 
-                    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id =l.id  AND op.deleted =0 AND op.active =0
-                    LEFT JOIN sys_operation_types opx ON (opx.id = a.operation_type_id OR opx.language_parent_id = a.operation_type_id) and opx.language_id =lx.id  AND opx.deleted =0 AND opx.active =0
+                    INNER JOIN info_users own ON own.id = fp.owner_user_id                     
+		    LEFT JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.deleted =0 AND op.active =0 AND op.language_parent_id =0
+                    LEFT JOIN sys_operation_types opx ON (opx.id = a.operation_type_id OR opx.language_parent_id = a.operation_type_id) and opx.language_id =lx.id  AND opx.deleted =0 AND opx.active =0 		                        
                     INNER JOIN sys_machine_tools smt ON smt.id = sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
-                    LEFT JOIN sys_machine_tools smtx ON (smtx.id = sys_machine_tool_id OR smtx.language_parent_id = a.sys_machine_tool_id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
-		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.language_id = l.id  AND a.cons_allow_id = sd14.first_group  AND sd14.deleted =0 AND sd14.active =0
-		    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = l.id AND sd15.deleted =0 AND sd15.active =0 
-		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = l.id AND sd16.deleted = 0 AND sd16.active = 0
-		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.language_id = l.id AND sd19.deleted = 0 AND sd19.active = 0
-                    INNER JOIN sys_specific_definitions sd119 ON sd119.main_group = 19 AND sd119.first_group=a.availability_id  AND sd119.language_id = l.id AND sd119.deleted = 0 AND sd119.active = 0
+                    LEFT JOIN sys_machine_tools smtx ON (smtx.id = sys_machine_tool_id OR smtx.language_parent_id = a.sys_machine_tool_id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id		    
+		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.deleted =0 AND sd15.active =0 AND sd15.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd119 ON sd119.main_group = 19 AND sd119.first_group= a.availability_id AND sd119.deleted = 0 AND sd119.active = 0 AND sd119.language_parent_id =0
+                  
                     LEFT JOIN sys_specific_definitions sd14x ON sd14x.main_group = 14 AND sd14x.language_id = lx.id AND (sd14x.id = sd14.id OR sd14x.language_parent_id = sd14.id) AND sd14x.deleted =0 AND sd14x.active =0
-                    LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.language_id =lx.id AND (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15.deleted =0 AND sd15x.active =0 
-                    LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16.deleted = 0 AND sd16x.active = 0
+                    LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.language_id =lx.id AND (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15x.deleted =0 AND sd15x.active =0 
+                    LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.deleted = 0 AND sd16x.active = 0
                     LEFT JOIN sys_specific_definitions sd19x ON sd19x.main_group = 19 AND sd19x.language_id = lx.id AND (sd19x.id = sd19.id OR sd19x.language_parent_id = sd19.id) AND sd19x.deleted = 0 AND sd19x.active = 0
-                    LEFT JOIN sys_specific_definitions sd119x ON sd119x.main_group = 19 AND sd119x.language_id = lx.id AND (sd119x.id = sd119.id OR sd119x.language_parent_id = sd119.id) AND sd119x.deleted = 0 AND sd119x.active = 0
+                    LEFT JOIN sys_specific_definitions sd119x ON sd119x.main_group = 19 AND sd119x.language_id = lx.id AND (sd119x.id = sd19.id OR sd119x.language_parent_id = sd119.id) AND sd119x.deleted = 0 AND sd119x.active = 0
+		                        
 		    ORDER BY l.priority	  
                           ");
             $statement->execute();
@@ -496,7 +500,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             $sql = "                      
                     SELECT 
                         a.id,
-                        a.firm_id,                        
+                        a.firm_id,
                         COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng) AS firm_name,
                         fp.firm_name_eng,
 			a.s_date,
@@ -511,7 +515,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
 			a.act_parent_id,  
                         a.language_code, 
                         COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
-		        COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,		                                                                     
+		        COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,
                         a.active,                         
                         COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng) AS state_active,
                         a.deleted,			
@@ -524,7 +528,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow,
                         a.availability_id ,                        
                         COALESCE(NULLIF(sd119x.description, ''), sd119.description_eng) AS state_availability,
-                        a.language_parent_id , 
+                        a.language_parent_id ,  
                         a.total,
                         CASE COALESCE(NULLIF(a.picture, ''),'-') 
                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
@@ -535,23 +539,26 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     INNER JOIN info_users u ON u.id = a.op_user_id
                     INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
-                    LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id=a.firm_id)  AND fp.active = 0 AND fp.deleted = 0 AND fp.language_id =lx.id  
+                    LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
-                    INNER JOIN info_users own ON own.id = fp.owner_user_id 
-                    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id =l.id  AND op.deleted =0 AND op.active =0
-                    LEFT JOIN sys_operation_types opx ON (opx.id = a.operation_type_id OR opx.language_parent_id = a.operation_type_id) and opx.language_id =lx.id  AND opx.deleted =0 AND opx.active =0
+                    INNER JOIN info_users own ON own.id = fp.owner_user_id                     
+		    LEFT JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.deleted =0 AND op.active =0 AND op.language_parent_id =0
+                    LEFT JOIN sys_operation_types opx ON (opx.id = a.operation_type_id OR opx.language_parent_id = a.operation_type_id) and opx.language_id =lx.id  AND opx.deleted =0 AND opx.active =0 		                        
                     INNER JOIN sys_machine_tools smt ON smt.id = sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
                     LEFT JOIN sys_machine_tools smtx ON (smtx.id = sys_machine_tool_id OR smtx.language_parent_id = a.sys_machine_tool_id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
-		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.language_id = l.id  AND a.cons_allow_id = sd14.first_group  AND sd14.deleted =0 AND sd14.active =0
-		    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = l.id AND sd15.deleted =0 AND sd15.active =0 
-		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = l.id AND sd16.deleted = 0 AND sd16.active = 0
-		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.language_id = l.id AND sd19.deleted = 0 AND sd19.active = 0
-                    INNER JOIN sys_specific_definitions sd119 ON sd119.main_group = 19 AND sd119.first_group=a.availability_id  AND sd119.language_id = l.id AND sd119.deleted = 0 AND sd119.active = 0
+		    
+		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.deleted =0 AND sd15.active =0 AND sd15.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd119 ON sd119.main_group = 19 AND sd119.first_group= a.availability_id AND sd119.deleted = 0 AND sd119.active = 0 AND sd119.language_parent_id =0
+                  
                     LEFT JOIN sys_specific_definitions sd14x ON sd14x.main_group = 14 AND sd14x.language_id = lx.id AND (sd14x.id = sd14.id OR sd14x.language_parent_id = sd14.id) AND sd14x.deleted =0 AND sd14x.active =0
-                    LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.language_id =lx.id AND (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15.deleted =0 AND sd15x.active =0 
-                    LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16.deleted = 0 AND sd16x.active = 0
+                    LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.language_id =lx.id AND (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15x.deleted =0 AND sd15x.active =0 
+                    LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.deleted = 0 AND sd16x.active = 0
                     LEFT JOIN sys_specific_definitions sd19x ON sd19x.main_group = 19 AND sd19x.language_id = lx.id AND (sd19x.id = sd19.id OR sd19x.language_parent_id = sd19.id) AND sd19x.deleted = 0 AND sd19x.active = 0
-                    LEFT JOIN sys_specific_definitions sd119x ON sd119x.main_group = 19 AND sd119x.language_id = lx.id AND (sd119x.id = sd119.id OR sd119x.language_parent_id = sd119.id) AND sd119x.deleted = 0 AND sd119x.active = 0
+                    LEFT JOIN sys_specific_definitions sd119x ON sd119x.main_group = 19 AND sd119x.language_id = lx.id AND (sd119x.id = sd19.id OR sd119x.language_parent_id = sd119.id) AND sd119x.deleted = 0 AND sd119x.active = 0		     
+		   
                     WHERE a.language_parent_id = 0 AND a.deleted =0
                     ORDER BY    " . $sort . " "
                     . "" . $order . " "
@@ -601,22 +608,22 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
 
             $sql = "
                  SELECT 
-                    COUNT(a.id) AS COUNT
+                    COUNT(a.id) AS COUNT                    
                     FROM info_firm_machine_tool a 
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                    
                     INNER JOIN info_users u ON u.id = a.op_user_id
                     INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
-                    INNER JOIN info_users own ON own.id = fp.owner_user_id 
-                    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id =l.id  AND op.deleted =0 AND op.active =0                    
-                    INNER JOIN sys_machine_tools smt ON smt.id = sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
-		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.language_id = l.id  AND a.cons_allow_id = sd14.first_group  AND sd14.deleted =0 AND sd14.active =0
-		    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = l.id AND sd15.deleted =0 AND sd15.active =0 
-		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = l.id AND sd16.deleted = 0 AND sd16.active = 0
-		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.language_id = l.id AND sd19.deleted = 0 AND sd19.active = 0
-                    INNER JOIN sys_specific_definitions sd119 ON sd119.main_group = 19 AND sd119.first_group=a.availability_id  AND sd119.language_id = l.id AND sd119.deleted = 0 AND sd119.active = 0
-                     
+                    INNER JOIN info_users own ON own.id = fp.owner_user_id                     		                        
+                    INNER JOIN sys_machine_tools smt ON smt.id = sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id                   
+		    
+		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.deleted =0 AND sd15.active =0 AND sd15.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd119 ON sd119.main_group = 19 AND sd119.first_group= a.availability_id AND sd119.deleted = 0 AND sd119.active = 0 AND sd119.language_parent_id =0
+		   
                  " . $whereSQL . "'
                     ";
             $statement = $pdo->prepare($sql);
@@ -914,7 +921,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
 
     /** 
      * @author Okan CIRAN
-     * @ Gridi doldurmak için info_firm_machine_tool tablosundan kayıtları döndürür !!
+     * @ Gridi doldurmak için info_firm_machine_tool tablosundan user in firmasının kayıtlarını döndürür !!
      * @version v 1.0  09.02.2016
      * @param array | null $args
      * @return array
@@ -942,7 +949,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 $sql = "
                     SELECT 
                         a.id,
-                        a.firm_id,                        
+                        a.firm_id,
                         COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng) AS firm_name,
                         fp.firm_name_eng,
 			a.s_date,
@@ -957,20 +964,20 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
 			a.act_parent_id,  
                         a.language_code, 
                         COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
-		        COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,		                                                                     
+		        COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,
                         a.active,                         
                         COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng) AS state_active,
                         a.deleted,			
 			COALESCE(NULLIF(sd15x.description, ''), sd15.description_eng) AS state_deleted,
                         a.op_user_id,
                         u.username AS op_user,  
-                        fp.owner_user_id AS owner_id,
+                        fp.owner_user_id AS owner_id ,
                         own.username as owner_username,
                         a.cons_allow_id,                        
                         COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow,
                         a.availability_id ,                        
                         COALESCE(NULLIF(sd119x.description, ''), sd119.description_eng) AS state_availability,
-                        a.language_parent_id, 
+                        a.language_parent_id ,  
                         a.total,
                         CASE COALESCE(NULLIF(a.picture, ''),'-') 
                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
@@ -981,24 +988,26 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     INNER JOIN info_users u ON u.id = a.op_user_id
                     INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
-                    LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id=a.firm_id)  AND fp.active = 0 AND fp.deleted = 0 AND fp.language_id =lx.id  
+                    LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
-                    INNER JOIN info_users own ON own.id = fp.owner_user_id 
-                    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id =l.id  AND op.deleted =0 AND op.active =0
-                    LEFT JOIN sys_operation_types opx ON (opx.id = a.operation_type_id OR opx.language_parent_id = a.operation_type_id) and opx.language_id =lx.id  AND opx.deleted =0 AND opx.active =0
+                    INNER JOIN info_users own ON own.id = fp.owner_user_id                     
+		    LEFT JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.deleted =0 AND op.active =0 AND op.language_parent_id =0
+                    LEFT JOIN sys_operation_types opx ON (opx.id = a.operation_type_id OR opx.language_parent_id = a.operation_type_id) and opx.language_id =lx.id  AND opx.deleted =0 AND opx.active =0 		                        
                     INNER JOIN sys_machine_tools smt ON smt.id = sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
                     LEFT JOIN sys_machine_tools smtx ON (smtx.id = sys_machine_tool_id OR smtx.language_parent_id = a.sys_machine_tool_id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
-		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.language_id = l.id  AND a.cons_allow_id = sd14.first_group  AND sd14.deleted =0 AND sd14.active =0
-		    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = l.id AND sd15.deleted =0 AND sd15.active =0 
-		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = l.id AND sd16.deleted = 0 AND sd16.active = 0
-		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.language_id = l.id AND sd19.deleted = 0 AND sd19.active = 0
-                    INNER JOIN sys_specific_definitions sd119 ON sd119.main_group = 19 AND sd119.first_group=a.availability_id  AND sd119.language_id = l.id AND sd119.deleted = 0 AND sd119.active = 0
+		    
+		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.deleted =0 AND sd15.active =0 AND sd15.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd119 ON sd119.main_group = 19 AND sd119.first_group= a.availability_id AND sd119.deleted = 0 AND sd119.active = 0 AND sd119.language_parent_id =0
+                  
                     LEFT JOIN sys_specific_definitions sd14x ON sd14x.main_group = 14 AND sd14x.language_id = lx.id AND (sd14x.id = sd14.id OR sd14x.language_parent_id = sd14.id) AND sd14x.deleted =0 AND sd14x.active =0
-                    LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.language_id =lx.id AND (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15.deleted =0 AND sd15x.active =0 
-                    LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16.deleted = 0 AND sd16x.active = 0
+                    LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.language_id =lx.id AND (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15x.deleted =0 AND sd15x.active =0 
+                    LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.deleted = 0 AND sd16x.active = 0
                     LEFT JOIN sys_specific_definitions sd19x ON sd19x.main_group = 19 AND sd19x.language_id = lx.id AND (sd19x.id = sd19.id OR sd19x.language_parent_id = sd19.id) AND sd19x.deleted = 0 AND sd19x.active = 0
-                    LEFT JOIN sys_specific_definitions sd119x ON sd119x.main_group = 19 AND sd119x.language_id = lx.id AND (sd119x.id = sd119.id OR sd119x.language_parent_id = sd119.id) AND sd119x.deleted = 0 AND sd119x.active = 0
-                    WHERE a.language_parent_id = 0 AND
+                    LEFT JOIN sys_specific_definitions sd119x ON sd119x.main_group = 19 AND sd119x.language_id = lx.id AND (sd119x.id = sd19.id OR sd119x.language_parent_id = sd119.id) AND sd119x.deleted = 0 AND sd119x.active = 0		     
+		    WHERE a.language_parent_id = 0 AND
                         a.deleted =0 AND 
                         a.firm_id = ".  intval($firmIdValue)."
 		    ORDER BY l.priority                       
@@ -1027,7 +1036,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
     /**
      * user interface datagrid fill operation get row count for widget
      * @author Okan CIRAN
-     * @ Gridi doldurmak için info_firm_machine_tool tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
+     * @ Gridi doldurmak için info_firm_machine_tool tablosundan user in firmasının çekilen kayıtlarının kaç tane olduğunu döndürür   !!
      * @version v 1.0  18.02.2016
      * @param array | null $args
      * @return array
@@ -1038,26 +1047,16 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $opUserIdValue = $userId ['resultSet'][0]['user_id'];
-                
+                $opUserIdValue = $userId ['resultSet'][0]['user_id'];                
                 $firmIdValue=-1;                
                 $firmId = InfoUsers::getUserFirmId(array('user_id' =>$opUserIdValue));
                 if (\Utill\Dal\Helper::haveRecord($firmId)) {
                     $firmIdValue = $firmId ['resultSet'][0]['firm_id'];
-                } 
-                
-                $languageId = NULL;
-                $languageIdValue = 647;
-                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
-                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
-                    }
                 }  
+                
                 $whereSQL = " WHERE a.language_parent_id = 0 AND
                                     a.deleted =0 AND 
-                                    a.firm_id = ". intval($firmIdValue);
-               
+                                    a.firm_id = ". intval($firmIdValue);              
 
                 $sql = "
                     SELECT 
@@ -1068,15 +1067,15 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     INNER JOIN info_users u ON u.id = a.op_user_id
                     INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
-                    INNER JOIN info_users own ON own.id = fp.owner_user_id 
-                    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id =l.id  AND op.deleted =0 AND op.active =0                    
-                    INNER JOIN sys_machine_tools smt ON smt.id = sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id                    
-		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.language_id = l.id  AND a.cons_allow_id = sd14.first_group  AND sd14.deleted =0 AND sd14.active =0
-		    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = l.id AND sd15.deleted =0 AND sd15.active =0 
-		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = l.id AND sd16.deleted = 0 AND sd16.active = 0
-		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.language_id = l.id AND sd19.deleted = 0 AND sd19.active = 0
-                    INNER JOIN sys_specific_definitions sd119 ON sd119.main_group = 19 AND sd119.first_group=a.availability_id  AND sd119.language_id = l.id AND sd119.deleted = 0 AND sd119.active = 0                    
-                    " . $whereSQL . " 
+                    INNER JOIN info_users own ON own.id = fp.owner_user_id                     		                        
+                    INNER JOIN sys_machine_tools smt ON smt.id = sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id                   
+		    
+		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.deleted =0 AND sd15.active =0 AND sd15.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd119 ON sd119.main_group = 19 AND sd119.first_group= a.availability_id AND sd119.deleted = 0 AND sd119.active = 0 AND sd119.language_parent_id =0
+		    " . $whereSQL . " 
                     ";
                 $statement = $pdo->prepare($sql);
                 //   echo debugPDO($sql, $params);  
@@ -1219,14 +1218,14 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     FROM info_firm_machine_tool a 
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
-                    LEFT JOIN sys_language lx ON lx.id =" . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                    
+                    LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                    
                     INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id                      
-                    INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
+                    INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_parent_id =0
                     LEFT JOIN sys_machine_tools smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
-		    INNER JOIN sys_machine_tool_groups smtg ON smtg.id = smt.machine_tool_grup_id AND smtg.language_id = l.id
-		    LEFT JOIN sys_machine_tool_groups smtgx ON (smtgx.id = smtg.id OR smtg.language_parent_id = smtg.id )AND smtgx.language_id = lx.id
-                    INNER JOIN sys_manufacturer m ON m.id = smt.manufactuer_id AND m.language_id = l.id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0 
+		    INNER JOIN sys_machine_tool_groups smtg ON smtg.active =0 AND smtg.deleted = 0 AND smtg.id = smt.machine_tool_grup_id AND smtg.language_parent_id =0
+		    LEFT JOIN sys_machine_tool_groups smtgx ON smtgx.active =0 AND smtgx.deleted = 0 AND (smtgx.id = smtg.id OR smtgx.language_parent_id = smtg.id )AND smtgx.language_id = lx.id
+                    INNER JOIN sys_manufacturer m ON m.id = smt.manufactuer_id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0 AND m.language_parent_id =0
                     LEFT JOIN sys_manufacturer mx ON (mx.id = m.id OR mx.language_parent_id = m.id) AND mx.language_id = lx.id AND mx.deleted =0 AND mx.active =0        
                     WHERE a.language_parent_id = 0 AND
                         a.deleted =0 AND 
@@ -1402,7 +1401,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
     /**
      * user interface fill operation   
      * @author Okan CIRAN
-     * @ tree doldurmak için sys_machine_tool tablosundan tüm kayıtları döndürür !!
+     * @ Guest için, tree doldurmak için firma makina sayılarını ve gruplarını sys_machine_tool tablosundan döndürür !!
      * @version v 1.0  15.04.2016
      * @param array | null $args
      * @return array
@@ -1438,6 +1437,63 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     a.profile_public =0 AND
                     fk.network_key = '".$params['network_key']."' AND
                     a.language_parent_id =0
+                GROUP BY a.sys_machine_tool_id,mtg.id, mtg.group_name, mtgx.group_name, mtg.group_name_eng 
+                ) as xtable 
+            GROUP BY machine_grup_id,group_name
+            ORDER BY group_name  
+                                 ";
+            $statement = $pdo->prepare($sql);
+       //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+ 
+        /**
+     * user interface fill operation   
+     * @author Okan CIRAN
+     * @ tree doldurmak için firma makina sayılarını ve gruplarını sys_machine_tool tablosundan döndürür !!
+     * @version v 1.0  15.04.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillFirmMachineGroupsCountsGuests($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+
+            $sql = " 
+            SELECT machine_grup_id, sum(machine_count) AS machine_count ,group_name FROM (
+                SELECT                     
+                   mtg.id AS machine_grup_id ,
+                   SUM(a.total) AS machine_count,
+                   COALESCE(NULLIF(COALESCE(NULLIF(mtgx.group_name, ''),  mtg.group_name_eng), ''),  mtg.group_name) AS group_name
+                FROM info_firm_machine_tool a
+                INNER JOIN info_firm_keys fk ON fk.firm_id = a.firm_id 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0
+                INNER JOIN sys_machine_tools mt ON mt.id = a.sys_machine_tool_id AND mt.deleted =0 AND mt.active =0 AND mt.language_parent_id =0 
+                INNER JOIN sys_machine_tool_groups mtg ON mtg.id = mt.machine_tool_grup_id AND mtg.deleted =0 AND mtg.active =0 AND mt.language_parent_id =0 
+                LEFT JOIN sys_machine_tool_groups mtgx ON (mtgx.id =  mtg.id  OR mtgx.language_parent_id = mtg.id) AND mtgx.deleted =0 AND mtgx.active =0 AND  lx.id = mtgx.language_id
+                WHERE 
+                    a.language_parent_id =0 AND 
+                    a.profile_public =0 AND 
+                    a.cons_allow_id =2 AND
+                    fk.network_key = '".$params['network_key']."'                    
                 GROUP BY a.sys_machine_tool_id,mtg.id, mtg.group_name, mtgx.group_name, mtg.group_name_eng 
                 ) as xtable 
             GROUP BY machine_grup_id,group_name
@@ -1505,9 +1561,9 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     FROM info_firm_machine_tool a 
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
-                    LEFT JOIN sys_language lx ON lx.id = 647 AND lx.deleted =0 AND lx.active =0                    
+                    LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0                    
                     INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
-                    INNER JOIN info_firm_keys fk ON fp.act_parent_id =  fk.firm_id                      
+                    INNER JOIN info_firm_keys fk ON fp.act_parent_id = fk.firm_id                      
                     INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
                     LEFT JOIN sys_machine_tools smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
 		    INNER JOIN sys_machine_tool_groups smtg ON smtg.id = smt.machine_tool_grup_id AND smtg.language_id = l.id
@@ -1518,13 +1574,12 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         a.deleted =0 AND a.active =0 AND
                         a.profile_public =0 AND
                         fk.network_key = '".$params['network_key']."' AND
-                        a.language_parent_id =0 
-                        
+                        a.language_parent_id =0                         
                 " . $addSql . "
                 ORDER BY machine_tool_grup_names, manufacturer_name,machine_tool_names     
                 ";
                 $statement = $pdo->prepare($sql);
-              // echo debugPDO($sql, $params);
+             // echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
