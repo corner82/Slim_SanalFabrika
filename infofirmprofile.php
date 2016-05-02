@@ -56,10 +56,6 @@ $app->get("/pkInsert_infoFirmProfile/", function () use ($app ) {
     $headerParams = $app->request()->headers();
     $Pk = $headerParams['X-Public'];
     
-   
- 
-    
-  
     
   
     $vFoundationYear = $_GET['foundation_year'];
@@ -266,9 +262,7 @@ $app->get("/pkUpdate_infoFirmProfile/", function () use ($app ) {
     $fDescription = $vDescription;   
     $fDescriptionEng = $vDescriptionEng;    
     $fpk = $vpk ; 
-    
-  
-    
+     
     /*
      * filtre işlemleri
      */
@@ -769,7 +763,6 @@ $app->get("/pktempDeletedAct_infoFirmProfile/", function () use ($app ) {
     $app->response()->body(json_encode($resDataUpdate));
 });
  
-
 /** x 
  *  * Okan CIRAN
  * @since 02-02-2016
@@ -809,14 +802,12 @@ $app->get("/pktempFillUserAddressesTypes_infoFirmProfile/", function () use ($ap
 
     $app->response()->body(json_encode($flows));
 });
-
   
-    /**
+ /**
  *  * Okan CIRAN
  * @since 25-01-2016
  */
 $app->get("/fillCompanyListsGuest_infoFirmProfile/", function () use ($app ) {
-
     $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
     $vLanguageCode =$_GET['language_code'] ; 
     $resDataGrid = $BLL->fillCompanyListsGuest(array('page' => $_GET['page'],
@@ -827,7 +818,6 @@ $app->get("/fillCompanyListsGuest_infoFirmProfile/", function () use ($app ) {
         ));
 
     $resTotalRowCount = $BLL->fillCompanyListsGuestRtc( );
-
     $flows = array();
     foreach ($resDataGrid as $flow) {
         $flows[] = array(
@@ -852,8 +842,101 @@ $app->get("/fillCompanyListsGuest_infoFirmProfile/", function () use ($app ) {
     $app->response()->body(json_encode($resultArray));
 });
 
+/**
+ *  * Okan CIRAN
+ * @since 02-05-2016
+ */
+$app->get("/pkFillCompanyLists_infoFirmProfile/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+    $headerParams = $app->request()->headers();  
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillCompanyLists_infoFirmProfile" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+     $vPage = NULL;
+    if (isset($_GET['page'])) {
+         $stripper->offsetSet('page',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['page']));
+    }       
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+         $stripper->offsetSet('rows',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['rows']));
+    }   
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER,
+                                                $app,
+                                                $_GET['order']));
+    }    
+ 
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }        
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }    
+   
+    $resDataGrid = $BLL->fillCompanyListsGuest(array( 
+        'page' => $vPage,
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,  
+        'language_code' => $vLanguageCode,
+        'pk' => $pk,
+        ));
 
-    /**
+    $resTotalRowCount = $BLL->fillCompanyListsGuestRtc( );
+    $flows = array();
+    foreach ($resDataGrid as $flow) {
+        $flows[] = array(
+            "pk" => $flow["pk"],
+            "firm_names" => $flow["firm_names"],
+            "web_address" => $flow["web_address"],
+            "firm_name_short" => $flow["firm_name_short"],
+            "country_id" => $flow["country_id"],
+            "country_names" => $flow["country_names"],
+            "descriptions" => $flow["descriptions"],            
+            "logo" => $flow["logo"], 
+            "attributes" => array("notroot" => true, ),
+        );
+    }
+
+    $app->response()->header("Content-Type", "application/json");
+
+    $resultArray = array();
+    $resultArray['total'] = $resTotalRowCount[0]['count'];
+    $resultArray['rows'] = $flows;
+    
+    $app->response()->body(json_encode($resultArray));
+});
+
+/**
  *  * Okan CIRAN
  * @since 23-03-2016
  */
@@ -911,11 +994,70 @@ $app->get("/fillCompanyInfoEmployeesGuest_infoFirmProfile/", function () use ($a
     $app->response()->header("Content-Type", "application/json");    
     $app->response()->body(json_encode($flows));
 });
+/**
+ *  * Okan CIRAN
+* @since 02-05-2016
+ */
+$app->get("/pkFillCompanyInfoEmployees_infoFirmProfile/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+    $headerParams = $app->request()->headers();  
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillCompanyInfoEmployees_infoFirmProfile" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }
 
-
-
-
-    /**
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('npk')) $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();
+ 
+     $result = $BLL->fillCompanyInfoEmployeesGuest(array('language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey,    
+        'pk' => $pk,    
+        ));    
+  
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array(
+            "firm_names" => $flow["firm_names"],
+            "web_address" => $flow["web_address"],             
+            "firm_name_short" => $flow["firm_name_short"],
+            "foundation_year" => $flow["foundation_year"],  
+            "country_id" => $flow["country_id"],
+            "country_names" => $flow["country_names"],
+            "descriptions" => $flow["descriptions"],            
+            "logo" => $flow["logo"], 
+            "number_of_employees" => $flow["number_of_employees"],
+            "number_of_worker" => $flow["number_of_worker"], 
+            "number_of_technician" => $flow["number_of_technician"], 
+            "number_of_engineer" => $flow["number_of_engineer"], 
+            "number_of_administrative_staff" => $flow["number_of_administrative_staff"], 
+            "number_of_sales_staff" => $flow["number_of_sales_staff"], 
+            "number_of_foreign_trade_staff" => $flow["number_of_foreign_trade_staff"],
+            "about" => $flow["about"], 
+            "attributes" => array("notroot" => true, ),
+        );
+    }
+ 
+    $app->response()->header("Content-Type", "application/json");    
+    $app->response()->body(json_encode($flows));
+});
+  
+/**
  *  * Okan CIRAN
  * @since 23-03-2016
  */
@@ -961,9 +1103,56 @@ $app->get("/fillCompanyInfoSocialediaGuest_infoFirmProfile/", function () use ($
     $app->response()->body(json_encode($flows));
 });
 
+/**
+ *  * Okan CIRAN
+* @since 02-05-2016
+ */
+$app->get("/pkFillCompanyInfoSocialedia_infoFirmProfile/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+    $headerParams = $app->request()->headers(); 
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillCompanyInfoSocialedia_infoFirmProfile" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }
 
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('npk')) $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();
+ 
+     $result = $BLL->fillCompanyInfoSocialediaGuest(array('language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey,     
+        'pk' => $pk,  
+        ));    
+  
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array(
+            "socialmedia" => $flow["socialmedia"],
+            "firm_link" => $flow["firm_link"],      
+            "abbreviation" => $flow["abbreviation"],  
+            "attributes" => array("notroot" => true, ),
+        );
+    }
+ 
+    $app->response()->header("Content-Type", "application/json");    
+    $app->response()->body(json_encode($flows));
+});
 
-    /**
+/**
  *  * Okan CIRAN
  * @since 23-03-2016
  */
@@ -1010,9 +1199,60 @@ $app->get("/fillCompanyInfoReferencesGuest_infoFirmProfile/", function () use ($
     $app->response()->header("Content-Type", "application/json");    
     $app->response()->body(json_encode($flows));
 });
-
-
     /**
+ *  * Okan CIRAN
+* @since 02-05-2016
+ */
+$app->get("/pkFillCompanyInfoReferences_infoFirmProfile/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+    $headerParams = $app->request()->headers(); 
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillCompanyInfoReferences_infoFirmProfile" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+ 
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }
+
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('npk')) $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();
+ 
+     $result = $BLL->fillCompanyInfoReferencesGuest(array('language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey, 
+        'pk' => $pk,       
+        ));
+    
+  
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array(
+            "ref_name" => $flow["ref_name"],    
+            "ref_date" => $flow["ref_date"],    
+            "network_key" => $flow["ref_network_key"],    
+            "logo" => $flow["logo"],   
+            "web_address" => $flow["web_address"],   
+            "attributes" => array("notroot" => true,"active" => $flow["active"], ),
+        );
+    }
+ 
+    $app->response()->header("Content-Type", "application/json");    
+    $app->response()->body(json_encode($flows));
+});
+
+/**
  *  * Okan CIRAN
  * @since 23-03-2016
  */
@@ -1056,8 +1296,55 @@ $app->get("/fillCompanyInfoCustomersGuest_infoFirmProfile/", function () use ($a
     $app->response()->body(json_encode($flows));
 });
 
+/**
+ *  * Okan CIRAN
+* @since 02-05-2016
+ */
+$app->get("/pkFillCompanyInfoCustomers_infoFirmProfile/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+    $headerParams = $app->request()->headers(); 
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillCompanyInfoCustomers_infoFirmProfile" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public']; 
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }
 
-    /**
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('npk')) $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();
+ 
+     $result = $BLL->fillCompanyInfoCustomersGuest(array('language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey,    
+        'pk' => $pk,  
+        ));
+    
+  
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array(
+            "customer_names" => $flow["customer_names"],            
+            "attributes" => array("notroot" => true, ),
+        );
+    }
+ 
+    $app->response()->header("Content-Type", "application/json");    
+    $app->response()->body(json_encode($flows));
+});
+
+/**
  *  * Okan CIRAN
  * @since 15-04-2016
  */
@@ -1105,9 +1392,59 @@ $app->get("/fillCompanyInfoProductsGuest_infoFirmProfile/", function () use ($ap
     $app->response()->header("Content-Type", "application/json");    
     $app->response()->body(json_encode($flows));
 });
+/**
+ *  * Okan CIRAN
+* @since 02-05-2016
+ */
+$app->get("/pkFillCompanyInfoProducts_infoFirmProfile/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+    $headerParams = $app->request()->headers(); 
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillCompanyInfoProducts_infoFirmProfile" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }
 
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('npk')) $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();
  
-    /**
+     $result = $BLL->fillCompanyInfoProductsGuest(array('language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey,  
+         'pk' => $pk,
+        ));    
+  
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],    
+            "product_name" => $flow["product_name"],    
+            "product_description" => $flow["product_description"],    
+            "gtip_no_id" => $flow["gtip_no_id"],   
+            "product_picture" => $flow["product_picture"],  
+            "product_video_link" => $flow["product_video_link"],              
+            "attributes" => array("notroot" => true,"active" => $flow["active"], ),
+        );
+    }
+ 
+    $app->response()->header("Content-Type", "application/json");    
+    $app->response()->body(json_encode($flows));
+});
+ 
+/**
  *  * Okan CIRAN
  * @since 15-04-2016
  */
@@ -1152,10 +1489,54 @@ $app->get("/fillCompanyInfoSectorsGuest_infoFirmProfile/", function () use ($app
     $app->response()->body(json_encode($flows));
 });
 
-
-
-
-    /**
+/**
+ *  * Okan CIRAN
+* @since 02-05-2016
+ */
+$app->get("/pkFillCompanyInfoSectors_infoFirmProfile/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+    $headerParams = $app->request()->headers(); 
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillCompanyInfoSectors_infoFirmProfile" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('npk')) $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();
+ 
+     $result = $BLL->fillCompanyInfoSectorsGuest(array('language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey,  
+        'pk' => $pk,
+        ));    
+  
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],    
+            "sector_name" => $flow["sector_name"],  
+            "logo" => $flow["logo"],              
+            "attributes" => array("notroot" => true,"active" => $flow["active"], ),
+        );
+    } 
+    $app->response()->header("Content-Type", "application/json");    
+    $app->response()->body(json_encode($flows));
+});
+  
+/**
  *  * Okan CIRAN
  * @since 15-04-2016
  */
@@ -1163,7 +1544,12 @@ $app->get("/pkFillCompanyInfoBuildingNpk_infoFirmProfile/", function () use ($ap
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
     $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
- 
+    $headerParams = $app->request()->headers();     
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillCompanyInfoBuildingNpk_infoFirmProfile" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
          $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
@@ -1181,9 +1567,7 @@ $app->get("/pkFillCompanyInfoBuildingNpk_infoFirmProfile/", function () use ($ap
         $stripper->offsetSet('building_type_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['building_type_id']));
-    }
-    
-  
+    } 
 
     $stripper->strip();
     if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
@@ -1192,7 +1576,8 @@ $app->get("/pkFillCompanyInfoBuildingNpk_infoFirmProfile/", function () use ($ap
  
      $result = $BLL->fillCompanyInfoBuildingNpk(array('language_code' => $vLanguageCode,
         'network_key' => $vNetworkKey,
-         'building_type_id' => $vBuildingTypeId,
+        'building_type_id' => $vBuildingTypeId,
+        'pk' => $pk,
         ));
     
   
