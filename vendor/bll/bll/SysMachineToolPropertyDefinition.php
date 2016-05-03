@@ -119,4 +119,17 @@ class SysMachineToolPropertyDefinition extends \BLL\BLLSlim {
         $resultSet = $DAL->fillMachineGroupPropertyDefinitions($params);
         return $resultSet['resultSet'];
     }
+        /**
+     * Data update function
+     * @param array $params
+     * @return array
+     */
+    public function deletePropertyMachineGroup($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertyDefinitionPDO');
+        return $DAL->deletePropertyMachineGroup($params);
+    }
+    
+    
+    
+    
 }

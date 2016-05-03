@@ -118,8 +118,6 @@ $app->get("/pkFillMachineGroupPropertyDefinitions_sysMachineToolPropertyDefiniti
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
     $BLL = $app->getBLLManager()->get('sysMachineToolPropertyDefinitionBLL');
-
-    
     $componentType = 'ddslick';
     if (isset($_GET['component_type'])) {
         $componentType = strtolower(trim($_GET['component_type']));
@@ -148,7 +146,7 @@ $app->get("/pkFillMachineGroupPropertyDefinitions_sysMachineToolPropertyDefiniti
     }
     
     
-     $stripper->strip();
+    $stripper->strip();
     if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     if($stripper->offsetExists('machine_grup_id')) $vMachineGrupId = $stripper->offsetGet('machine_grup_id')->getFilterValue();
     if($stripper->offsetExists('unit_grup_id')) $vUnitGrupId = $stripper->offsetGet('unit_grup_id')->getFilterValue();
@@ -209,19 +207,19 @@ $app->get("/pkInsert_sysMachineToolPropertyDefinition/", function () use ($app )
                                                 $app,
                                                 $_GET['property_name_eng']));
     }      
-    $vMachineGrupId = 0;
+    $vMachineGrupId = NULL;
     if (isset($_GET['machine_grup_id'])) {
-         $stripper->offsetSet('machine_grup_id',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+         $stripper->offsetSet('machine_grup_id',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1,
                                                 $app,
                                                 $_GET['machine_grup_id']));
     } 
      $vUnitGrupId = NULL;
     if (isset($_GET['unit_grup_id'])) {
-         $stripper->offsetSet('unit_grup_id',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+         $stripper->offsetSet('unit_grup_id',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1,
                                                 $app,
                                                 $_GET['unit_grup_id']));
     }  
-    
+    $stripper->strip(); 
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     }  
@@ -237,7 +235,9 @@ $app->get("/pkInsert_sysMachineToolPropertyDefinition/", function () use ($app )
     if ($stripper->offsetExists('unit_grup_id')) {
         $vUnitGrupId = $stripper->offsetGet('unit_grup_id')->getFilterValue();
     }
-    
+   // print_r('//'.$vMachineGrupId.'//\\'.$vUnitGrupId);
+   // $vMachineGrupId = $_GET['machine_grup_id'];
+   // $vUnitGrupId = $_GET['unit_grup_id'];
     $resData = $BLL->insert(array(  
             'language_code' => $vLanguageCode, 
             'property_name' => $vPropertyName ,
@@ -293,7 +293,7 @@ $app->get("/pkUpdate_sysMachineToolPropertyDefinition/", function () use ($app )
                                                 $app,
                                                 $_GET['unit_grup_id']));
     }  
-    
+    $stripper->strip(); 
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     }  
@@ -443,5 +443,54 @@ $app->get("/pkDelete_sysMachineToolPropertyDefinition/", function () use ($app )
     $app->response()->body(json_encode($resDataDeleted));
 }
 ); 
+
+
+
+ 
+/**
+ *  * Okan CIRAN
+ * @since 02-05-2016
+ */
+$app->get("/pkDeletePropertyMachineGroup_sysMachineToolPropertyDefinition/", function () use ($app ) {    
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('sysMachineToolPropertyDefinitionBLL');   
+    $headerParams = $app->request()->headers();
+    $Pk = $headerParams['X-Public'];     
+   
+    $vMachineGrupId = -1;
+    if (isset($_GET['machine_grup_id'])) {
+         $stripper->offsetSet('machine_grup_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['machine_grup_id']));
+    } 
+     $vPropertyId = NULL;
+    if (isset($_GET['property_id'])) {
+         $stripper->offsetSet('property_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['property_id']));
+    }      
+    $stripper->strip(); 
+    if ($stripper->offsetExists('machine_grup_id')) {
+        $vMachineGrupId = $stripper->offsetGet('machine_grup_id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('property_id')) {
+        $vPropertyId = $stripper->offsetGet('property_id')->getFilterValue();
+    }
+    
+    $resData = $BLL->deletePropertyMachineGroup(array(      
+            'machine_grup_id' => $vMachineGrupId , 
+            'property_id' => $vPropertyId ,
+            'pk' => $Pk,        
+            ));
+
+
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($resData));
+}
+); 
+
+
+
 
 $app->run();
