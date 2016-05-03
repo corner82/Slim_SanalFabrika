@@ -81,7 +81,7 @@ class DalManagerConfig {
                 'sysMachineToolDefinitionAttributePDO' => 'DAL\Factory\PDO\SysMachineToolDefinitionAttributeFactory',
                 'infoUsersSocialmediaPDO' => 'DAL\Factory\PDO\InfoUsersSocialmediaFactory',
                 'infoFirmVerbalPDO' => 'DAL\Factory\PDO\InfoFirmVerbalFactory',
-                
+                'infoFirmUserDescForCompanyPDO' => 'DAL\Factory\PDO\InfoFirmUserDescForCompanyFactory',
                 
                 
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
