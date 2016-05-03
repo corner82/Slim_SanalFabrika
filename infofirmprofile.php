@@ -1189,9 +1189,10 @@ $app->get("/fillCompanyInfoReferencesGuest_infoFirmProfile/", function () use ($
         $flows[] = array(
             "ref_name" => $flow["ref_name"],    
             "ref_date" => $flow["ref_date"],    
-            "network_key" => $flow["ref_network_key"],    
-            "logo" => $flow["logo"],   
-            "web_address" => $flow["web_address"],   
+            "ref_network_key" => $flow["ref_network_key"],    
+            "ref_logo" => $flow["ref_logo"],   
+            "firm_logo" => $flow["firm_logo"],  
+             
             "attributes" => array("notroot" => true,"active" => $flow["active"], ),
         );
     }
@@ -1241,9 +1242,9 @@ $app->get("/pkFillCompanyInfoReferences_infoFirmProfile/", function () use ($app
         $flows[] = array(
             "ref_name" => $flow["ref_name"],    
             "ref_date" => $flow["ref_date"],    
-            "network_key" => $flow["ref_network_key"],    
-            "logo" => $flow["logo"],   
-            "web_address" => $flow["web_address"],   
+            "ref_network_key" => $flow["ref_network_key"],    
+            "ref_logo" => $flow["ref_logo"],   
+            "firm_logo" => $flow["firm_logo"],    
             "attributes" => array("notroot" => true,"active" => $flow["active"], ),
         );
     }
