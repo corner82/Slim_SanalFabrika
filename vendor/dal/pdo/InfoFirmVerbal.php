@@ -1019,19 +1019,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                 $sql = "                     
                     SELECT * FROM (
                             SELECT  
-                                CAST(random()*(    
-                                        CAST((SELECT COUNT(azz.id)
-                                        FROM info_firm_verbal azz                                         
-                                        INNER JOIN sys_language lzz ON lzz.id = azz.language_id AND lzz.deleted =0 AND lzz.active =0
-                                        LEFT JOIN sys_language lxzz ON lxzz.id = " . intval($languageIdValue) . " AND lxzz.deleted =0 AND lxzz.active =0
-                                        LEFT JOIN info_firm_verbal axzz ON (axzz.id = azz.id OR axzz.language_parent_id=azz.id)  AND axzz.active = 0 AND 
-                                                                                axzz.deleted = 0 AND axzz.language_id =lxzz.id AND axzz.cons_allow_id =2
-                                        WHERE 
-                                            azz.cons_allow_id=2 AND 
-                                            a.language_parent_id =0 AND
-                                            a.firm_id = 1
-                                             ) as int)
-                                      -1)+1 AS int) AS ccc,
+                                CAST(random()*100-1 AS int) AS ccc,
                                 a.id,
                                 a.firm_id,
                                 COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng) AS firm_name,
@@ -1163,22 +1151,10 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                     $networkKey = $params['network_key'] ;
                 }                               
                 
-                $sql = "         
+                $sql = "           
                         SELECT * FROM (
                             SELECT  
-                                CAST(random()*(    
-                                        CAST((SELECT COUNT(azz.id)
-                                        FROM info_firm_verbal azz                                         
-                                        INNER JOIN sys_language lzz ON lzz.id = azz.language_id AND lzz.deleted =0 AND lzz.active =0
-                                        LEFT JOIN sys_language lxzz ON lxzz.id = " . intval($languageIdValue) . " AND lxzz.deleted =0 AND lxzz.active =0
-                                        LEFT JOIN info_firm_verbal axzz ON (axzz.id = azz.id OR axzz.language_parent_id=azz.id)  AND axzz.active = 0 AND 
-                                                                                axzz.deleted = 0 AND axzz.language_id =lxzz.id AND axzz.cons_allow_id =2
-                                        WHERE 
-                                            azz.cons_allow_id=2 AND 
-                                            a.language_parent_id =0 AND
-                                            a.firm_id = 1
-                                             ) as int)
-                                      -1)+1 AS int) AS ccc,
+                                CAST(random()*100-1 AS int) AS ccc,
                                 a.id,
                                 a.firm_id,
                                 COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng) AS firm_name,

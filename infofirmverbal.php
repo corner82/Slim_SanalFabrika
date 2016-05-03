@@ -612,7 +612,7 @@ $app->get("/pkFillUsersFirmVerbalNpk_infoFirmVerbal/", function () use ($app ) {
         'network_key' => $vNetworkKey,  
         'pk'=> $pk,
     ));
-    
+     
     $flows = array();
     foreach ($resDataGrid as $flow) {
         $flows[] = array(
@@ -621,41 +621,22 @@ $app->get("/pkFillUsersFirmVerbalNpk_infoFirmVerbal/", function () use ($app ) {
             "firm_name" => $flow["firm_name"],
             "firm_name_eng" => $flow["firm_name_eng"],
             "about" => $flow["about"],
-            "about_eng" => $flow["about_eng"],
-            
+            "about_eng" => $flow["about_eng"],            
             "verbal1_title" => $flow["verbal1_title"],
             "verbal1_title_eng" => $flow["verbal1_title_eng"],
             "verbal1" => $flow["verbal1"],         
-            "verbal1_eng" => $flow["verbal1_eng"],
-            
+            "verbal1_eng" => $flow["verbal1_eng"],            
             "verbal2_title" => $flow["verbal2_title"],
             "verbal2_title_eng" => $flow["verbal2_title_eng"],
             "verbal2" => $flow["verbal2"],         
             "verbal2_eng" => $flow["verbal2_eng"],
-            
-            
             "verbal3_title" => $flow["verbal3_title"],
             "verbal3_title_eng" => $flow["verbal3_title_eng"],
             "verbal3" => $flow["verbal3"],
-            "verbal3_eng" => $flow["verbal3_eng"],
-            
-            "profile_public" => $flow["profile_public"],
-            "state_profile_public" => $flow["state_profile_public"],                     
-            "network_key" => $flow["network_key"],
-            "s_date" => $flow["s_date"],
-            "c_date" => $flow["c_date"],
-            "consultant_id" => $flow["consultant_id"],
-            "operation_type_id" => $flow["operation_type_id"],
-            "operation_name" => $flow["operation_name"],            
-            "deleted" => $flow["deleted"],
-            "state_deleted" => $flow["state_deleted"],
-            "active" => $flow["active"],
-            "state_active" => $flow["state_active"],
+            "verbal3_eng" => $flow["verbal3_eng"],           
             "language_id" => $flow["language_id"],
-            "language_name" => $flow["language_name"],
-            "op_user_id" => $flow["op_user_id"],
-            "op_user_name" => $flow["op_user_name"],
-            "attributes" => array("notroot" => true, "active" => $flow["active"]),
+            "language_name" => $flow["language_name"],            
+            "attributes" => array("notroot" => true, ),
         );
     }
 

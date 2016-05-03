@@ -125,7 +125,16 @@ class InfoFirmVerbal extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
     
-  
+      /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */     
+    public function fillUsersFirmVerbalNpk ($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmVerbalPDO');
+        $resultSet = $DAL->fillUsersFirmVerbalNpk($params);  
+        return $resultSet['resultSet'];
+    }
 
     
 
