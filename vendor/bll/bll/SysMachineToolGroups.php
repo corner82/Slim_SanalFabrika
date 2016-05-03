@@ -141,5 +141,14 @@ class SysMachineToolGroups extends \BLL\BLLSlim {
         return $resultSet['resultSet'];
     }
     
-    
+    /**
+     * Function to fill User Communications Types on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillJustMachineToolGroupsNotInProperty ($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolGroupsPDO');
+        $resultSet = $DAL->fillJustMachineToolGroupsNotInProperty($params);  
+        return $resultSet['resultSet'];
+    } 
 }

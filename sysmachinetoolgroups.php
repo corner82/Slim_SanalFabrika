@@ -355,7 +355,86 @@ $app->get("/pkFillJustMachineToolGroupsBootstrap_sysMachineToolGroups/", functio
 });
  
 
-
+/**
+ *  * Okan CIRAN
+ * @since 03-05-2016
+ */
+$app->get("/pkFillJustMachineToolGroupsNotInProperty_sysMachineToolGroups/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('sysMachineToolGroupsBLL');
+    $headerParams = $app->request()->headers();  
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillJustMachineToolGroupsNotInProperty_sysMachineToolGroups" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];  
+    $componentType = 'bootstrap';
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }
+    $vPropertyId = 0;
+    if (isset($_GET['property_id'])) {
+        $stripper->offsetSet('property_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['property_id']));
+    }
+     $vParentId = 0;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    }
+    $componentType = 'bootstrap';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+    
+    $stripper->strip();    
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('id')) $vParentId = $stripper->offsetGet('id')->getFilterValue();
+    if($stripper->offsetExists('property_id')) $vPropertyId = $stripper->offsetGet('property_id')->getFilterValue();
+    
+    $resCombobox = $BLL->fillJustMachineToolGroupsNotInProperty(array( 
+                                                        'language_code' => $vLanguageCode,
+                                                        'parent_id' => $vParentId,
+                                                        'property_id' => $vPropertyId,      
+        
+                                                            ));
+ 
+    $menus = array();
+    $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
+     if ($componentType == 'bootstrap') {
+        $menus = array();
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],       
+                "text" => $menu["name"],
+                "state" => $menu["state_type"],
+                "checked" => false,
+                "attributes" => array("notroot" => true, "active" => $menu["active"] ,
+                    "icon_class"=>$menu["icon_class"] ,"group_name_eng"=>$menu["group_name_eng"],
+                    "machine"=>$menu["machine"] ,) 
+            );
+        }
+    } else if ($componentType == 'ddslick') {        
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" =>  intval($menu["id"]),
+                "selected" => false,
+                "description" => $menu["name_eng"],
+             //   "imageSrc" => ""
+            );
+        }
+    }
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($menus));
+});
+ 
 /**x
  *  * Okan CIRAN
  * @since 31-03-2016
