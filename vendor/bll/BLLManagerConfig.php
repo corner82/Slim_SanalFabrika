@@ -76,7 +76,7 @@ class BLLManagerConfig{
                  'sysMachineToolDefinitionAttributeBLL' => 'BLL\BLL\SysMachineToolDefinitionAttribute',
                  'infoUsersSocialmediaBLL' => 'BLL\BLL\InfoUsersSocialmedia',
                  'infoFirmVerbalBLL' => 'BLL\BLL\InfoFirmVerbal',
-                 'infoFirmUserDescForCompanyBLL' => 'BLL\BLL\InfoFirmUserDescForCompany',
+                 
                  
                  
                  'logConnectionBLL' => 'BLL\BLL\LogConnection',  

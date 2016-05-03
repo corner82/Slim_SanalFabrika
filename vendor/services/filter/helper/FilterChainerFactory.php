@@ -70,13 +70,7 @@ class FilterChainerFactory extends \Utill\Factories\AbstractFactory {
                             \Services\Filter\FilterServiceNames::FILTER_JAVASCRIPT_FUNCTIONS,
         ));
     } 
-    protected function onlyParanoidJasonLvl1($app, $value) {
-        return new \Utill\Strip\Chain\StripChainer($app, $value, array(
-                            \Services\Filter\FilterServiceNames::FILTER_LOWER_CASE,
-                            \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,            
-                            \Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED,                            
-        ));
-    }
+    
     
     protected function onlyState($app, $value) {
         return new \Utill\Strip\Chain\StripChainer($app, $value, array(

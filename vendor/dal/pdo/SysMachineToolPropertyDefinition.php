@@ -157,19 +157,17 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                         throw new \PDOException($errorInfo[0]);
 
                     if ((isset($params['machine_grup_id']) && $params['machine_grup_id'] != "")) {
-                      $xc= $this->insertPropertyMachineGroup(array('property_id' => $insertID,
+                        $this->insertPropertyMachineGroup(array('property_id' => $insertID,
                             'machine_grup_id' => $params['machine_grup_id'],
                             'opUserIdValue' => $opUserIdValue,
                         ));
                     }
                     if ((isset($params['unit_grup_id']) && $params['unit_grup_id'] != "")) {
-                        $xc= $this->insertPropertyUnitGroup(array('property_id' => $insertID,
+                        $this->insertPropertyUnitGroup(array('property_id' => $insertID,
                             'unit_grup_id' => $params['unit_grup_id'],
                             'opUserIdValue' => $opUserIdValue,));
                     }
-                   if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
-                        throw new \PDOException($xc['errorInfo']);
-                  
+
                     $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
