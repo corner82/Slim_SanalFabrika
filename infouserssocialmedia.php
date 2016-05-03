@@ -396,8 +396,7 @@ $app->get("/pkFillCompanyUsersSocialMediaNpk_infoUsersSocialmedia/", function ()
     if (isset($resDataGrid[0]['id'])) {      
         foreach ($resDataGrid as $flow) {
             $flows[] = array(
-                "id" => intval($flow["id"]),
-                "act_parent_id" => intval($flow["act_parent_id"]),
+                "id" => intval($flow["id"]),                
                 "user_id" => intval($flow["user_id"]),
                 "name" => $flow["name"],
                 "surname" => $flow["surname"],
