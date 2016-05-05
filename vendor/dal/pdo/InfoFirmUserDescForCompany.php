@@ -973,30 +973,34 @@ class InfoFirmUserDescForCompany extends \DAL\DalSlim {
                 SELECT * FROM (
                             SELECT  
                                 CAST(random()*100-1 AS int) AS ccc,
-                                a.user_id,
+                                 a.user_id,
                                 ud.name, 
-                                ud.surname,
-                                a.firm_id,  
-				COALESCE(NULLIF(ax.verbal1_title, ''), a.verbal1_title_eng) AS verbal1_title,
-				a.verbal1_title_eng,
-				COALESCE(NULLIF(ax.verbal1, ''), a.verbal1_eng) AS verbal1,
-				a.verbal1_eng,
-				COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
-				COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,
+                                ud.surname, 
+                                COALESCE(NULLIF(ifux.title, ''), ifu.title_eng) AS title,
+                                ifu.title_eng,   
+                                a.firm_id,
+                                COALESCE(NULLIF(ax.verbal1_title, ''), a.verbal1_title_eng) AS verbal1_title,
+                                a.verbal1_title_eng,
+                                COALESCE(NULLIF(ax.verbal1, ''), a.verbal1_eng) AS verbal1,
+                                a.verbal1_eng,
+                                COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
+                                COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,
                                 CASE COALESCE(NULLIF(ud.picture, ''),'-')
                                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(CONCAT(sps.folder_road,'/'), '/'),''),sps.members_folder,'/'  ,'image_not_found.png')
                                         ELSE
                                         CONCAT(ifks.folder_name ,'/',ifks.members_folder,'/' ,COALESCE(NULLIF(ud.picture, ''),'image_not_found.png')) END AS picture
                             FROM info_firm_user_desc_for_company a  
-                            INNER JOIN info_users_detail ud ON ud.root_id = a.user_id AND ud.cons_allow_id = 2                   
+                            INNER JOIN info_firm_users ifu ON ifu.user_id = a.user_id AND ifu.cons_allow_id = 2
+                            LEFT JOIN info_firm_users ifux ON ifux.id = ifu.id AND ifu.cons_allow_id = 2
+                            INNER JOIN info_users_detail ud ON ud.root_id = a.user_id AND ud.cons_allow_id = 2
                             INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                    
                             INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
-                            LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+                            LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . "  AND lx.deleted =0 AND lx.active =0
                             LEFT JOIN info_firm_user_desc_for_company ax ON (ax.id = a.id OR ax.language_parent_id=a.id) AND ax.language_id =lx.id AND ax.cons_allow_id =2
                             INNER JOIN info_firm_keys ifks ON ifks.firm_id =1 
                             WHERE 
                                 a.cons_allow_id=2 AND 
-                                a.language_parent_id =0 AND				 
+                                a.language_parent_id =0 AND
                                 a.firm_id = 1
                             ORDER BY ccc DESC
                             limit 2   
@@ -1008,7 +1012,9 @@ class InfoFirmUserDescForCompany extends \DAL\DalSlim {
                                 a.user_id,
                                 ud.name, 
                                 ud.surname, 
-                                a.firm_id,                                              
+                                COALESCE(NULLIF(ifux.title, ''), ifu.title_eng) AS title,
+                                ifu.title_eng,
+                                a.firm_id,
                                 COALESCE(NULLIF(ax.verbal1_title, ''), a.verbal1_title_eng) AS verbal1_title,
                                 a.verbal1_title_eng,
                                 COALESCE(NULLIF(ax.verbal1, ''), a.verbal1_eng) AS verbal1,
@@ -1019,8 +1025,10 @@ class InfoFirmUserDescForCompany extends \DAL\DalSlim {
                                     WHEN '-' THEN CONCAT(COALESCE(NULLIF(CONCAT(sps.folder_road,'/'), '/'),''),sps.members_folder,'/'  ,'image_not_found.png')
                                     ELSE CONCAT(ifk.folder_name ,'/',ifk.members_folder,'/' ,COALESCE(NULLIF(ud.picture, ''),'image_not_found.png')) END AS picture 
                             FROM info_firm_user_desc_for_company a 
-                            INNER JOIN info_users_detail ud ON ud.root_id = a.user_id  AND ud.cons_allow_id = 2
-                            INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                                        
+                            INNER JOIN info_firm_users ifu ON ifu.user_id = a.user_id AND ifu.cons_allow_id = 2
+                            LEFT JOIN info_firm_users ifux ON ifux.id = ifu.id AND ifu.cons_allow_id = 2
+                            INNER JOIN info_users_detail ud ON ud.root_id = a.user_id AND ud.cons_allow_id = 2
+                            INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
                             INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                             LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                             LEFT JOIN info_firm_user_desc_for_company ax ON (ax.id = a.id OR ax.language_parent_id=a.id) AND ax.language_id =lx.id AND ax.cons_allow_id =2
@@ -1033,7 +1041,7 @@ class InfoFirmUserDescForCompany extends \DAL\DalSlim {
                             ORDER BY ccc DESC
                         ) 
                 ORDER BY firm_id DESC
-                limit 2                 
+                limit 2       
                         ";
             $statement = $pdo->prepare($sql);
            // echo debugPDO($sql, $params);

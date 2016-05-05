@@ -406,18 +406,20 @@ $app->get("/pkFillUsersDescForFirmVerbalNpk_infoFirmUserDescForCompany/", functi
      
     $flows = array();
     foreach ($resDataGrid as $flow) {
-        $flows[] = array(           
+        $flows[] = array(
             "firm_id" => $flow["firm_id"],
             "user_id" => $flow["user_id"],
             "name" => $flow["name"],
-            "surname" => $flow["surname"],            
+            "surname" => $flow["surname"],  
+            "title" => $flow["title"],
+            "title_eng" => $flow["title_eng"],
             "verbal1_title" => $flow["verbal1_title"],
             "verbal1_title_eng" => $flow["verbal1_title_eng"],
-            "verbal1" => $flow["verbal1"],         
-            "verbal1_eng" => $flow["verbal1_eng"],     
+            "verbal1" => $flow["verbal1"], 
+            "verbal1_eng" => $flow["verbal1_eng"],
             "picture" => $flow["picture"], 
             "language_id" => $flow["language_id"],
-            "language_name" => $flow["language_name"],            
+            "language_name" => $flow["language_name"],
             "attributes" => array("notroot" => true, ),
         );
     }
@@ -469,11 +471,13 @@ $app->get("/fillUsersDescForFirmVerbalNpkGuest_infoFirmUserDescForCompany/", fun
             "firm_id" => $flow["firm_id"],
             "user_id" => $flow["user_id"],
             "name" => $flow["name"],
-            "surname" => $flow["surname"],            
+            "surname" => $flow["surname"], 
+            "title" => $flow["title"],
+            "title_eng" => $flow["title_eng"],
             "verbal1_title" => $flow["verbal1_title"],
             "verbal1_title_eng" => $flow["verbal1_title_eng"],
-            "verbal1" => $flow["verbal1"],         
-            "verbal1_eng" => $flow["verbal1_eng"],     
+            "verbal1" => $flow["verbal1"], 
+            "verbal1_eng" => $flow["verbal1_eng"],
             "picture" => $flow["picture"], 
             "language_id" => $flow["language_id"],
             "language_name" => $flow["language_name"],    
