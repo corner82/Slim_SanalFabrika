@@ -82,6 +82,8 @@ class DalManagerConfig {
                 'infoUsersSocialmediaPDO' => 'DAL\Factory\PDO\InfoUsersSocialmediaFactory',
                 'infoFirmVerbalPDO' => 'DAL\Factory\PDO\InfoFirmVerbalFactory',
                 'infoFirmUserDescForCompanyPDO' => 'DAL\Factory\PDO\InfoFirmUserDescForCompanyFactory',
+                'sysSocialMediaPDO' => 'DAL\Factory\PDO\SysSocialMediaFactory',
+                
                 
                 
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
