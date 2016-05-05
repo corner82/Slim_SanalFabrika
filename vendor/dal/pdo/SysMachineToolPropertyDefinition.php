@@ -121,8 +121,9 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $kontrol = $this->haveRecords($params);
-                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                $kontrol = $this->haveRecords($params);                     
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {             
+                  
                     $languageId = NULL;
                     $languageIdValue = 647;
                     if ((isset($params['language_code']) && $params['language_code'] != "")) {
@@ -131,6 +132,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                             $languageIdValue = $languageId ['resultSet'][0]['id'];
                         }
                     }
+                 
                     $sql = "
                 INSERT INTO sys_machine_tool_property_definition(                        
                          property_name,
@@ -149,7 +151,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                     $statement->bindValue(':property_name_eng', $params['property_name_eng'], \PDO::PARAM_STR);
                     $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
                     $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
-                    // echo debugPDO($sql, $params);
+                   // echo debugPDO($sql, $params);
                     $result = $statement->execute();
                     $insertID = $pdo->lastInsertId('sys_machine_tool_property_definition_id_seq');
                     $errorInfo = $statement->errorInfo();
@@ -205,7 +207,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             $opUserIdValue = intval($params['opUserIdValue']);
             $kontrol = $this->haveRecordsMachineGroup($params);
             if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                $sql = "
+                $sql = "  
                 INSERT INTO sys_machine_groups_property_definition(                        
                          property_id,
                          machine_grup_id,
@@ -214,10 +216,10 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 SELECT " . intval($params['property_id']) . ",  id AS machine_grup_id,  " . intval($opUserIdValue) . "
                 FROM sys_machine_tool_groups 
                 WHERE       
-                    id IN (SELECT CAST( CAST((SELECT VALUE FROM json_each('" . $params['machine_grup_id'] . "')) AS text) AS integer) )    
+                    id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each('" . $params['machine_grup_id'] . "')) 
                                                 ";                
                 $statement = $pdo->prepare($sql);
-              //  echo debugPDO($sql, $params);
+                // echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_machine_groups_property_definition_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -261,11 +263,11 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 SELECT " . intval($params['property_id']) . ",  id AS unit_grup_id,  " . intval($opUserIdValue) . "
                 FROM sys_units 
                 WHERE                            
-                    id IN (SELECT CAST( CAST((SELECT VALUE FROM json_each( '" . $params['unit_grup_id'] . "')) AS text) AS integer) )    
+                   id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each( '" . $params['unit_grup_id'] . "')) 
                                      
                                                 ";
                 $statement = $pdo->prepare($sql);
-              //  echo debugPDO($sql, $params);
+             //  echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_unit_groups_property_definition_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -313,7 +315,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                AND a.deleted =0    
                                ";
             $statement = $pdo->prepare($sql);
-            //   echo debugPDO($sql, $params);
+           //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -340,20 +342,19 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             if (isset($params['id'])) {
                 $addSql = " AND a.id != " . intval($params['id']) . " ";
             }
-            $sql = "             	 
+            $sql = "
             SELECT  
                a.machine_grup_id AS name,
                 machine_grup_id AS value, 
                machine_grup_id = machine_grup_id AS control,
-                CONCAT(a.machine_grup_id , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
+                CONCAT(a.machine_grup_id, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
             FROM sys_machine_groups_property_definition a
             WHERE 
-                a.property_id =   " . intval($params['property_id']) . " AND                                
-                a.machine_grup_id IN (SELECT CAST( CAST((SELECT VALUE FROM json_each( '" . $params['machine_grup_id'] . "')) AS text) AS integer) ) 
+                a.property_id =   " . intval($params['property_id']) . " AND
+                a.machine_grup_id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each('" . $params['machine_grup_id'] . "'))
                   " . $addSql . "
                 AND a.deleted =0
-                               ";
-            //
+                               ";            
             $statement = $pdo->prepare($sql);
             // echo debugPDO($sql, $params);
             $statement->execute();
@@ -382,20 +383,19 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             if (isset($params['id'])) {
                 $addSql = " AND a.id != " . intval($params['id']) . " ";
             }
-            $sql = "             	 
+            $sql = "
             SELECT  
-               a.unit_grup_id AS name,
+                a.unit_grup_id AS name,
                 a.unit_grup_id AS value, 
-               a.unit_grup_id =  a.unit_grup_id AS control,
-                CONCAT(a.unit_grup_id , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
-            FROM sys_unit_groups_property_definition  a                          
+                a.unit_grup_id = a.unit_grup_id AS control,
+                CONCAT(a.unit_grup_id, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
+            FROM sys_unit_groups_property_definition a
             WHERE 
-                a.property_id =   " . intval($params['property_id']) . " AND                                
-                a.unit_grup_id IN (SELECT CAST( CAST((SELECT VALUE FROM json_each( '" . $params['unit_grup_id'] . "')) AS text) AS integer) )                     
+                a.property_id =   " . intval($params['property_id']) . " AND
+                a.unit_grup_id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each( '" . $params['unit_grup_id'] . "'))
                   " . $addSql . " 
-                AND a.deleted =0    
-                               ";
-            //a.unit_grup_id =  " . intval($params['unit_grup_id']) . "                                 
+                AND a.deleted =0
+                               ";            
             $statement = $pdo->prepare($sql);
             //   echo debugPDO($sql, $params);
             $statement->execute();

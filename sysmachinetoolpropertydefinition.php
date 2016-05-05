@@ -123,7 +123,7 @@ $app->get("/pkFillMachineGroupPropertyDefinitions_sysMachineToolPropertyDefiniti
         $componentType = strtolower(trim($_GET['component_type']));
     }
     $headerParams = $app->request()->headers();
-    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkGetConsConfirmationProcessDetails_sysOsbConsultants" end point, X-Public variable not found');
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkFillMachineGroupPropertyDefinitions_sysMachineToolPropertyDefinition" end point, X-Public variable not found');
     //$pk = $headerParams['X-Public'];
     
     $vLanguageCode = 'tr';
@@ -178,7 +178,7 @@ $app->get("/pkFillMachineGroupPropertyDefinitions_sysMachineToolPropertyDefiniti
     $app->response()->body(json_encode($flows));
 });
  
-
+ 
 /**
  *  * Okan CIRAN
  * @since 15-02-2016
@@ -235,7 +235,7 @@ $app->get("/pkInsert_sysMachineToolPropertyDefinition/", function () use ($app )
     if ($stripper->offsetExists('unit_grup_id')) {
         $vUnitGrupId = $stripper->offsetGet('unit_grup_id')->getFilterValue();
     }
-   // print_r('//'.$vMachineGrupId.'//\\'.$vUnitGrupId);
+   //  print_r('//'.$vMachineGrupId.'//\\'.$vUnitGrupId);
    // $vMachineGrupId = $_GET['machine_grup_id'];
    // $vUnitGrupId = $_GET['unit_grup_id'];
     $resData = $BLL->insert(array(  
