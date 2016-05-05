@@ -45,7 +45,7 @@ $app->add(new \Slim\Middleware\MiddlewareServiceManager());
  * @since 26-04-2016
  */
 $app->get("/pkInsert_infoFirmVerbal/", function () use ($app ) {  
-   $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
     $BLL = $app->getBLLManager()->get('infoFirmVerbalBLL');    
     $headerParams = $app->request()->headers();  
@@ -635,7 +635,8 @@ $app->get("/pkFillUsersFirmVerbalNpk_infoFirmVerbal/", function () use ($app ) {
             "verbal3" => $flow["verbal3"],
             "verbal3_eng" => $flow["verbal3_eng"],           
             "language_id" => $flow["language_id"],
-            "language_name" => $flow["language_name"],            
+            "language_name" => $flow["language_name"],    
+            "logo" => $flow["logo"],  
             "attributes" => array("notroot" => true, ),
         );
     }
