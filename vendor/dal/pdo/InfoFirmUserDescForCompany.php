@@ -882,7 +882,7 @@ class InfoFirmUserDescForCompany extends \DAL\DalSlim {
                             INNER JOIN info_users_detail ud ON ud.root_id = a.user_id AND ud.cons_allow_id = 2                   
                             INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                    
                             INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
-                            LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . "*/  AND lx.deleted =0 AND lx.active =0
+                            LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . "  AND lx.deleted =0 AND lx.active =0
                             LEFT JOIN info_firm_user_desc_for_company ax ON (ax.id = a.id OR ax.language_parent_id=a.id)  AND ax.active = 0 AND ax.deleted = 0 AND ax.language_id =lx.id AND ax.cons_allow_id =2
                             INNER JOIN info_firm_keys ifks ON  ifks.firm_id =1 
                             WHERE 
@@ -927,7 +927,7 @@ class InfoFirmUserDescForCompany extends \DAL\DalSlim {
                 limit 2                 
                         ";
             $statement = $pdo->prepare($sql);
-            // echo debugPDO($sql, $params);
+           // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
