@@ -72,15 +72,14 @@ $app->get("/pkFillSocicalMediaDdList_sysSocialMedia/", function () use ($app ) {
 
     $flows = array();
     foreach ($resCombobox as $flow) {
-        $flows[] = array(
-            "id" => $flow["id"],            
+        $flows[] = array(            
             "text" => $flow["name"],
-            "state" => $flow["state_type"], //   'closed',
-            "checked" => false,
-            "imageSrc"=>$flow["logo"], 
+            "value" =>  intval($flow["id"]),
+            "selected" => false,
+            "description" => $flow["name_eng"],
+            "imageSrc"=>$flow["logo"],             
             "attributes" => array(  "abbreviation" => $flow["abbreviation"], 
-                                    "active" => $flow["active"],                
-                                    "name_eng" => $flow["name_eng"],
+                                    "active" => $flow["active"],                                                    
                                     "link" => $flow["link"]
                 ),
         );

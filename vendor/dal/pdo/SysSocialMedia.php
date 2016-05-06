@@ -464,9 +464,8 @@ class SysSocialMedia extends \DAL\DalSlim {
                     $languageIdValue = $languageId ['resultSet'][0]['id'];                    
                 }
             }  
-            $statement = $pdo->prepare("             
-                
-SELECT                    
+            $statement = $pdo->prepare("        
+                SELECT                    
                     a.id, 	
                     COALESCE(NULLIF(sd.name, ''), a.name_eng) AS name,  
                     a.name_eng,
