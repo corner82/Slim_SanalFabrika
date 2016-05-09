@@ -476,7 +476,7 @@ class SysSocialMedia extends \DAL\DalSlim {
                     'open' AS state_type ,
                      CASE COALESCE(NULLIF(a.logo, ''),'-')
                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/'  ,'image_not_found.png')
-                        ELSE CONCAT(sps.folder_road ,'/',sps.logos_folder,'/' ,COALESCE(NULLIF(a.logo, ''),'image_not_found.png2')) END AS logo 
+                        ELSE CONCAT(sps.folder_road ,'/',sps.logos_folder,'/' ,COALESCE(NULLIF(a.logo, ''),'image_not_found.png')) END AS logo 
                 FROM sys_socialmedia a   
                 INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                                     
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  

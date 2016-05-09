@@ -31,13 +31,13 @@ class InfoUsersAddresses extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $userId = $this->getUserId(array('pk' => $params['pk']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $userIdValue = $userId ['resultSet'][0]['user_id'];
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $statement = $pdo->prepare(" 
                 UPDATE info_firm_references
                 SET  deleted= 1 , active = 1 ,
-                     op_user_id = " . $userIdValue . "     
+                     op_user_id = " . $opUserIdValue . "     
                 WHERE id = ". intval($params['id']));         
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
@@ -76,44 +76,49 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 }
             }   
             $statement = $pdo->prepare("
-                SELECT 
-                    a.id,                     	    
-		    COALESCE(NULLIF(COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng), ''), fp.firm_name) AS firm_names,		  
-		    COALESCE(NULLIF(COALESCE(NULLIF(fprefx.firm_name, ''), fpref.firm_name_eng), ''), fpref.firm_name) AS ref_names,		  		    
-                    a.deleted, 		                
-		    COALESCE(NULLIF(COALESCE(NULLIF(sd15x.description, ''), sd15.description_eng), ''), sd15.description) AS state_deleted,		  
-                    a.active, 		                          
-		    COALESCE(NULLIF(COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng), ''), sd16.description) AS state_active,                    
+                SELECT
+                    a.id,
+		    COALESCE(NULLIF(COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng), ''), fp.firm_name) AS firm_names,
+		    COALESCE(NULLIF(COALESCE(NULLIF(fprefx.firm_name, ''), fpref.firm_name_eng), ''), fpref.firm_name) AS ref_names,
+                    a.deleted,
+		    COALESCE(NULLIF(COALESCE(NULLIF(sd15x.description, ''), sd15.description_eng), ''), sd15.description) AS state_deleted,
+                    a.active,
+		    COALESCE(NULLIF(COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng), ''), sd16.description) AS state_active,
 		    COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
-		    COALESCE(NULLIF(lx.language, ''), 'en') AS language_names,		                       
-                    a.op_user_id,                    
-                    u.username AS op_username  ,
+		    COALESCE(NULLIF(lx.language, ''), 'en') AS language_names,
+                    a.op_user_id,
+                    u.username AS op_username,
                     a.operation_type_id,
-                    op.operation_name ,                                                         
+                    COALESCE(NULLIF(opx.operation_name, ''), op.operation_name_eng) AS operation_name,                    
                     a.s_date,
                     a.c_date,
-                    a.consultant_id,
-                    a.consultant_confirm_type_id,
-		    copx.operation_name AS consultant_confirm_type,   
-                    a.confirm_id,                  
-                    ifk.network_key AS Ref_network_key                   
+                    a.consultant_id,		    
+                    a.confirm_id,
+                    a.cons_allow_id,
+                    COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow,
+                    ifk.network_key AS Ref_network_key ,
+                    CASE COALESCE(NULLIF(fpref.logo, ''),'-')
+                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/'  ,'image_not_found.png')
+                        ELSE CONCAT(sps.folder_road ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(fpref.logo, ''),'image_not_found.png')) END AS logo                   
                 FROM info_firm_profile fp                                
-                INNER JOIN info_firm_references a ON a.firm_id = fp.id AND a.active =0 AND a.deleted =0
+                INNER JOIN info_firm_references a ON a.firm_id = fp.act_parent_id AND a.cons_allow_id=2
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                                     
                 INNER JOIN info_users u ON u.id = a.op_user_id
-                INNER JOIN info_firm_profile fpref ON  fpref.id = a.ref_firm_id AND fpref.active =0 AND fpref.deleted =0 AND fpref.language_parent_id = 0 
+                INNER JOIN info_firm_profile fpref ON  fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id=2 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
-                LEFT JOIN sys_language lx ON lx.id =".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0 
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id
-                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.active =0 AND fprefx.deleted =0 AND fprefx.language_id = lx.id 
-                INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0
-                INNER JOIN sys_operation_types cop ON cop.id = a.operation_type_id AND cop.language_id = 647 AND cop.deleted =0 AND cop.active =0 
-                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted =0 AND sd15.active =0 
-                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
-		LEFT JOIN sys_operation_types opx ON opx.id = a.operation_type_id AND opx.language_id = lx.id AND opx.deleted =0 AND opx.active =0
-                LEFT JOIN sys_operation_types copx ON copx.id = a.operation_type_id AND copx.language_id = lx.id AND copx.deleted =0 AND opx.active =0
-                LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= a.deleted AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
-                LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
-	        WHERE fp.language_parent_id = 0                 
+                LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0 
+                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
+                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.cons_allow_id=2 AND fprefx.language_id = lx.id 
+                INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0                
+                INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_parent_id =0 AND sd15.deleted =0 AND sd15.active =0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_parent_id =0 AND sd16.deleted = 0 AND sd16.active = 0
+
+		LEFT JOIN sys_operation_types opx ON opx.id = op.id AND opx.language_id = lx.id AND opx.deleted =0 AND opx.active =0
+		LEFT JOIN sys_specific_definitions sd14x ON (sd14x.id = sd14.id OR sd14x.language_parent_id = sd14.id) AND sd14x.language_id = lx.id  AND sd14x.deleted = 0 AND sd14x.active = 0                
+                LEFT JOIN sys_specific_definitions sd15x ON (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
+                LEFT JOIN sys_specific_definitions sd16x ON (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0                
+	        WHERE fp.language_parent_id = 0 
                ORDER BY firm_names  
                                  ");               
             $statement->execute();
@@ -180,7 +185,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                     $operationId = SysOperationTypes::getTypeIdToGoOperationId(
                                     array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 27, 'type_id' => 1,));
                     if (\Utill\Dal\Helper::haveRecord($operationId)) {
-                        $operationIdValue = $opUserId ['resultSet'][0]['id'];
+                        $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
 
                     $getConsultant = SysOsbConsultants::getConsultantIdForUsers(array('category_id' => 1));
@@ -213,7 +218,6 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                                 :unsuccessful_project,
                                 (SELECT last_value FROM info_firm_references_id_seq)
                                                ) ");
-
                     $statement->bindValue(':firm_id', $params['firm_id'], \PDO::PARAM_INT);
                     $statement->bindValue(':ref_firm_id', $params['ref_firm_id'], \PDO::PARAM_INT);
                     $statement->bindValue(':total_project', $params['total_project'], \PDO::PARAM_INT);
@@ -300,53 +304,55 @@ class InfoUsersAddresses extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $userIdValue = $userId ['resultSet'][0]['user_id'];               
-                 $this->makePassive(array('id' => $params['id']));
-            
-                $operationIdValue = -2;  
-                $operationId = SysOperationTypes::getTypeIdToGoOperationId(
-                            array('parent_id' =>3,'main_group' =>3,'sub_grup_id' =>27,'type_id'=>2, ));                
-                if (\Utill\Dal\Helper::haveRecord($operationId)) {
-                    $operationIdValue = $opUserId ['resultSet'][0]['id'];
-                }
-                $active = 0;
-                if ((isset($params['active']) && $params['active'] != "")) {
-                    $active = intval($params['active']);
-                }  
-                
-                $languageId = NULL;
-                $languageIdValue = 647;
-                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
-                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+            $kontrol = $this->haveRecords($params);
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
+                if (\Utill\Dal\Helper::haveRecord($userId)) {
+                    $userIdValue = $userId ['resultSet'][0]['user_id'];
+                    $this->makePassive(array('id' => $params['id']));
+
+                    $operationIdValue = -2;
+                    $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                                    array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 27, 'type_id' => 2,));
+                    if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                        $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
-                }    
-                
-                $FirmId = 0;
-                if ((isset($params['firm_id']) && $params['firm_id'] != "")) {
-                    $active = intval($params['firm_id']);
-                }
-                $RefFirmId = 0;
-                if ((isset($params['ref_firm_id']) && $params['ref_firm_id'] != "")) {
-                    $active = intval($params['ref_firm_id']);
-                }
-                 $Totalproject = 0;
-                if ((isset($params['total_project']) && $params['total_project'] != "")) {
-                    $active = intval($params['total_project']);
-                }
-                 $ContinuingProject = 0;
-                if ((isset($params['continuing_project']) && $params['continuing_project'] != "")) {
-                    $active = intval($params['continuing_project']);
-                }
-                 $UnsuccessfulProject = 0;
-                if ((isset($params['unsuccessful_project']) && $params['unsuccessful_project'] != "")) {
-                    $active = intval($params['unsuccessful_project']);
-                }
-                
-                $statementInsert = $pdo->prepare("
+                    $active = 0;
+                    if ((isset($params['active']) && $params['active'] != "")) {
+                        $active = intval($params['active']);
+                    }
+
+                    $languageId = NULL;
+                    $languageIdValue = 647;
+                    if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                            $languageIdValue = $languageId ['resultSet'][0]['id'];
+                        }
+                    }
+
+                    $FirmId = 0;
+                    if ((isset($params['firm_id']) && $params['firm_id'] != "")) {
+                        $active = intval($params['firm_id']);
+                    }
+                    $RefFirmId = 0;
+                    if ((isset($params['ref_firm_id']) && $params['ref_firm_id'] != "")) {
+                        $active = intval($params['ref_firm_id']);
+                    }
+                    $Totalproject = 0;
+                    if ((isset($params['total_project']) && $params['total_project'] != "")) {
+                        $active = intval($params['total_project']);
+                    }
+                    $ContinuingProject = 0;
+                    if ((isset($params['continuing_project']) && $params['continuing_project'] != "")) {
+                        $active = intval($params['continuing_project']);
+                    }
+                    $UnsuccessfulProject = 0;
+                    if ((isset($params['unsuccessful_project']) && $params['unsuccessful_project'] != "")) {
+                        $active = intval($params['unsuccessful_project']);
+                    }
+
+                    $statementInsert = $pdo->prepare("
                 INSERT INTO info_firm_references (
                         active,
                         deleted,
@@ -377,22 +383,25 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                     consultant_confirm_type_id, 
                     confirm_id    
                 FROM info_firm_references
-                WHERE id  =" . intval($params['id']) . " 
-                 
+                WHERE id  =" . intval($params['id']) . "                  
                                                 ");
-
-                $result = $statementInsert->execute();
-                $insertID = $pdo->lastInsertId('info_firm_references_id_seq');
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
-
-                $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                    $result = $statementInsert->execute();
+                    $insertID = $pdo->lastInsertId('info_firm_references_id_seq');
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                } else {
+                    $errorInfo = '23502';   // 23502  user_id not_null_violation
+                    $errorInfoColumn = 'user_id';
+                    $pdo->rollback();
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
             } else {
-                $errorInfo = '23502';   // 23502  user_id not_null_violation
-                $errorInfoColumn = 'user_id';
-                 $pdo->rollback();
+                $errorInfo = '23505';
+                $errorInfoColumn = 'ref_firm_id';
+                $pdo->rollback();
                 return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -438,8 +447,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $order = trim($args['order']);
         } else {
             $order = "ASC";
-        }        
-      
+        }
         $languageId = NULL;
         $languageIdValue = 647;
         if ((isset($args['language_code']) && $args['language_code'] != "")) {                
@@ -447,50 +455,53 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             if (\Utill\Dal\Helper::haveRecord($languageId)) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];                    
             }
-        }
- 
+        } 
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-                SELECT 
-                    a.id,                     	    
-		    COALESCE(NULLIF(COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng), ''), fp.firm_name) AS firm_names,		  
-		    COALESCE(NULLIF(COALESCE(NULLIF(fprefx.firm_name, ''), fpref.firm_name_eng), ''), fpref.firm_name) AS ref_names,		  		    
-                    a.deleted, 		                
-		    COALESCE(NULLIF(COALESCE(NULLIF(sd15x.description, ''), sd15.description_eng), ''), sd15.description) AS state_deleted,		  
-                    a.active, 		                          
-		    COALESCE(NULLIF(COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng), ''), sd16.description) AS state_active,                    
+                SELECT
+                    a.id,
+		    COALESCE(NULLIF(COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng), ''), fp.firm_name) AS firm_names,
+		    COALESCE(NULLIF(COALESCE(NULLIF(fprefx.firm_name, ''), fpref.firm_name_eng), ''), fpref.firm_name) AS ref_names,
+                    a.deleted,
+		    COALESCE(NULLIF(COALESCE(NULLIF(sd15x.description, ''), sd15.description_eng), ''), sd15.description) AS state_deleted,
+                    a.active,
+		    COALESCE(NULLIF(COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng), ''), sd16.description) AS state_active,
 		    COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
-		    COALESCE(NULLIF(lx.language, ''), 'en') AS language_names,		                       
-                    a.op_user_id,                    
-                    u.username AS op_username  ,
+		    COALESCE(NULLIF(lx.language, ''), 'en') AS language_names,
+                    a.op_user_id,
+                    u.username AS op_username,
                     a.operation_type_id,
-                    op.operation_name ,                                                         
+                    COALESCE(NULLIF(opx.operation_name, ''), op.operation_name_eng) AS operation_name,                    
                     a.s_date,
                     a.c_date,
-                    a.consultant_id,
-                    a.consultant_confirm_type_id,
-		    copx.operation_name AS consultant_confirm_type,   
-                    a.confirm_id,                  
-                    ifk.network_key AS Ref_network_key                   
+                    a.consultant_id,		    
+                    a.confirm_id,
+                    a.cons_allow_id,
+                    COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow,
+                    ifk.network_key AS Ref_network_key ,
+                    CASE COALESCE(NULLIF(fpref.logo, ''),'-')
+                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/'  ,'image_not_found.png')
+                        ELSE CONCAT(sps.folder_road ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(fpref.logo, ''),'image_not_found.png')) END AS logo                   
                 FROM info_firm_profile fp                                
-                INNER JOIN info_firm_references a ON a.firm_id = fp.id AND a.active =0 AND a.deleted =0
+                INNER JOIN info_firm_references a ON a.firm_id = fp.act_parent_id AND a.cons_allow_id=2
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                                     
                 INNER JOIN info_users u ON u.id = a.op_user_id
-                INNER JOIN info_firm_profile fpref ON  fpref.id = a.ref_firm_id AND fpref.active =0 AND fpref.deleted =0 AND fpref.language_parent_id = 0 
+                INNER JOIN info_firm_profile fpref ON  fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id=2 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
-                LEFT JOIN sys_language lx ON lx.id =".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0 
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id
-                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.active =0 AND fprefx.deleted =0 AND fprefx.language_id = lx.id 
-                INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0
-                INNER JOIN sys_operation_types cop ON cop.id = a.operation_type_id AND cop.language_id = 647 AND cop.deleted =0 AND cop.active =0 
-                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted =0 AND sd15.active =0 
-                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
-		LEFT JOIN sys_operation_types opx ON opx.id = a.operation_type_id AND opx.language_id = lx.id AND opx.deleted =0 AND opx.active =0
-                LEFT JOIN sys_operation_types copx ON copx.id = a.operation_type_id AND copx.language_id = lx.id AND copx.deleted =0 AND opx.active =0
-                LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= a.deleted AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
-                LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
-	        WHERE fp.language_parent_id = 0  
-            
+                LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0 
+                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
+                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.cons_allow_id=2 AND fprefx.language_id = lx.id 
+                INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0                
+                INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_parent_id =0 AND sd15.deleted =0 AND sd15.active =0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_parent_id =0 AND sd16.deleted = 0 AND sd16.active = 0
+
+		LEFT JOIN sys_operation_types opx ON opx.id = op.id AND opx.language_id = lx.id AND opx.deleted =0 AND opx.active =0
+		LEFT JOIN sys_specific_definitions sd14x ON (sd14x.id = sd14.id OR sd14x.language_parent_id = sd14.id) AND sd14x.language_id = lx.id  AND sd14x.deleted = 0 AND sd14x.active = 0                
+                LEFT JOIN sys_specific_definitions sd15x ON (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
+                LEFT JOIN sys_specific_definitions sd16x ON (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0                
+	        WHERE fp.language_parent_id = 0 AND fp.cons_allow_id=2
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -528,8 +539,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $userId = InfoUsers::getUserId(array('pk' => $args['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $whereSql = " AND a.op_user_id = " . $userId ['resultSet'][0]['user_id'];
-                 
+                $whereSql = " AND a.op_user_id = " . $userId ['resultSet'][0]['user_id'];    
                 $languageId = NULL;
                 $languageIdValue = 647;
                 if ((isset($params['language_code']) && $params['language_code'] != "")) {                
@@ -538,53 +548,55 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                         $languageIdValue = $languageId ['resultSet'][0]['id'];                    
                     }
                 }  
-                          
-                
                 $sql = "
-                SELECT 
-                    a.id,                     	    
-		    COALESCE(NULLIF(COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng), ''), fp.firm_name) AS firm_names,		  
-		    COALESCE(NULLIF(COALESCE(NULLIF(fprefx.firm_name, ''), fpref.firm_name_eng), ''), fpref.firm_name) AS ref_names,		  		    
-                    a.deleted, 		                
-		    COALESCE(NULLIF(COALESCE(NULLIF(sd15x.description, ''), sd15.description_eng), ''), sd15.description) AS state_deleted,		  
-                    a.active, 		                          
-		    COALESCE(NULLIF(COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng), ''), sd16.description) AS state_active,                    
+                SELECT
+                    a.id,
+		    COALESCE(NULLIF(COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng), ''), fp.firm_name) AS firm_names,
+		    COALESCE(NULLIF(COALESCE(NULLIF(fprefx.firm_name, ''), fpref.firm_name_eng), ''), fpref.firm_name) AS ref_names,
+                    a.deleted,
+		    COALESCE(NULLIF(COALESCE(NULLIF(sd15x.description, ''), sd15.description_eng), ''), sd15.description) AS state_deleted,
+                    a.active,
+		    COALESCE(NULLIF(COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng), ''), sd16.description) AS state_active,
 		    COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
-		    COALESCE(NULLIF(lx.language, ''), 'en') AS language_names,		                       
-                    a.op_user_id,                    
-                    u.username AS op_username  ,
+		    COALESCE(NULLIF(lx.language, ''), 'en') AS language_names,
+                    a.op_user_id,
+                    u.username AS op_username,
                     a.operation_type_id,
-                    op.operation_name ,                                                         
+                    COALESCE(NULLIF(opx.operation_name, ''), op.operation_name_eng) AS operation_name,                    
                     a.s_date,
                     a.c_date,
-                    a.consultant_id,
-                    a.consultant_confirm_type_id,
-		    copx.operation_name AS consultant_confirm_type,   
-                    a.confirm_id ,                  
-                    ifk.network_key AS Ref_network_key                   
+                    a.consultant_id,		    
+                    a.confirm_id,
+                    a.cons_allow_id,
+                    COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow,
+                    ifk.network_key AS Ref_network_key ,
+                    CASE COALESCE(NULLIF(fpref.logo, ''),'-')
+                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/'  ,'image_not_found.png')
+                        ELSE CONCAT(sps.folder_road ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(fpref.logo, ''),'image_not_found.png')) END AS logo                   
                 FROM info_firm_profile fp                                
-                INNER JOIN info_firm_references a ON a.firm_id = fp.id AND a.active =0 AND a.deleted =0
+                INNER JOIN info_firm_references a ON a.firm_id = fp.act_parent_id AND a.cons_allow_id=2
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                                     
                 INNER JOIN info_users u ON u.id = a.op_user_id
-                INNER JOIN info_firm_profile fpref ON  fpref.id = a.ref_firm_id AND fpref.active =0 AND fpref.deleted =0 AND fpref.language_parent_id = 0 
+                INNER JOIN info_firm_profile fpref ON  fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id=2 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
-                LEFT JOIN sys_language lx ON lx.id =".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0 
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id
-                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.active =0 AND fprefx.deleted =0 AND fprefx.language_id = lx.id 
-                INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0
-                INNER JOIN sys_operation_types cop ON cop.id = a.operation_type_id AND cop.language_id = 647 AND cop.deleted =0 AND cop.active =0 
-                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted =0 AND sd15.active =0 
-                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
-		LEFT JOIN sys_operation_types opx ON opx.id = a.operation_type_id AND opx.language_id = lx.id AND opx.deleted =0 AND opx.active =0
-                LEFT JOIN sys_operation_types copx ON copx.id = a.operation_type_id AND copx.language_id = lx.id AND copx.deleted =0 AND opx.active =0
-                LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= a.deleted AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
-                LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
-	        WHERE fp.language_parent_id = 0  
+                LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0 
+                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
+                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.cons_allow_id=2 AND fprefx.language_id = lx.id 
+                INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0                
+                INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_parent_id =0 AND sd15.deleted =0 AND sd15.active =0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_parent_id =0 AND sd16.deleted = 0 AND sd16.active = 0
+
+		LEFT JOIN sys_operation_types opx ON opx.id = op.id AND opx.language_id = lx.id AND opx.deleted =0 AND opx.active =0
+		LEFT JOIN sys_specific_definitions sd14x ON (sd14x.id = sd14.id OR sd14x.language_parent_id = sd14.id) AND sd14x.language_id = lx.id  AND sd14x.deleted = 0 AND sd14x.active = 0                
+                LEFT JOIN sys_specific_definitions sd15x ON (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
+                LEFT JOIN sys_specific_definitions sd16x ON (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0                
+	        WHERE fp.language_parent_id = 0 AND fp.cons_allow_id=2
                 " . $whereSql . "
                 ORDER BY sd6.first_group 
                 ";
                 $statement = $pdo->prepare($sql);
-                //  echo debugPDO($sql, $parameters);
-                $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_STR);
+                //  echo debugPDO($sql, $parameters);                
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -615,24 +627,22 @@ class InfoUsersAddresses extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $userId = InfoUsers::getUserId(array('pk' => $args['pk']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) {            
-                
+            if (\Utill\Dal\Helper::haveRecord($userId)) { 
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
-                $whereSql = " AND a.op_user_id = " . $userIdValue;                
-                
+                $whereSql = " AND a.op_user_id = " . $userIdValue;                                
                 $sql = "                              
                 SELECT 
-                    COUNT(a.id) AS COUNT
-                FROM info_firm_profile fp                                
-                INNER JOIN info_firm_references a ON a.firm_id = fp.id AND a.active =0 AND a.deleted =0
+                    COUNT(a.id) AS COUNT      
+                INNER JOIN info_firm_references a ON a.firm_id = fp.act_parent_id AND a.cons_allow_id=2
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                                     
                 INNER JOIN info_users u ON u.id = a.op_user_id
-                INNER JOIN info_firm_profile fpref ON  fpref.id = a.ref_firm_id AND fpref.active =0 AND fpref.deleted =0 AND fpref.language_parent_id = 0 
-                INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
-                INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0
-                INNER JOIN sys_operation_types cop ON cop.id = a.operation_type_id AND cop.language_id = 647 AND cop.deleted =0 AND cop.active =0 
-                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted =0 AND sd15.active =0 
-                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
-		WHERE fp.language_parent_id = 0  
+                INNER JOIN info_firm_profile fpref ON  fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id=2 AND fpref.language_parent_id = 0 
+                INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id                
+                INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0                
+                INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_parent_id =0 AND sd15.deleted =0 AND sd15.active =0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_parent_id =0 AND sd16.deleted = 0 AND sd16.active = 0
+	        WHERE fp.language_parent_id = 0 AND fp.cons_allow_id=2
                 " . $whereSql . "
                     ";
                 $statement = $pdo->prepare($sql);
@@ -664,50 +674,21 @@ class InfoUsersAddresses extends \DAL\DalSlim {
      */
     public function fillGridRowTotalCount($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');  
-             
-            $whereSql = " WHERE fp.language_parent_id = 0  = ";  
-            $whereSql1 = " WHERE ax.deleted =0 AND fpx.language_parent_id = 0 ";  
-            $whereSql2 = " WHERE ay.deleted =1 AND fpy.language_parent_id = 0 ";  
-        
-
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
                 SELECT 
-                        COUNT(a.id) AS COUNT ,  
-                        (SELECT COUNT(ax.id)  
-                        FROM info_firm_profile fpx 
-			INNER JOIN info_firm_references ax ON ax.firm_id = fpx.id AND ax.active =0 AND ax.deleted =0
-			INNER JOIN info_users ux ON ux.id = ax.op_user_id
-			INNER JOIN info_firm_profile fprefx ON fprefx.id = ax.ref_firm_id AND fprefx.active =0 AND fprefx.deleted =0 AND fprefx.language_parent_id = 0                 
-                        INNER JOIN info_firm_keys ifkx ON ifkx.firm_id = ax.ref_firm_id
-			INNER JOIN sys_operation_types opx ON opx.id = ax.operation_type_id AND opx.language_id = 647 AND opx.deleted =0 AND opx.active =0
-			INNER JOIN sys_operation_types copx ON copx.id = ax.operation_type_id AND copx.language_id = 647 AND copx.deleted =0 AND copx.active =0 
-			INNER JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= ax.deleted AND sd15x.language_id = 647 AND sd15x.deleted =0 AND sd15x.active =0 
-			INNER JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= ax.active AND sd16x.language_id = 647 AND sd16x.deleted = 0 AND sd16x.active = 0			
-                           " . $whereSql1 . "
-                           ) AS undeleted_count, 		
-                        (SELECT COUNT(ay.id)
-                        FROM info_firm_profile fpy
-			INNER JOIN info_firm_references ay ON ay.firm_id = fpy.id AND ay.active =0 AND ay.deleted =0
-			INNER JOIN info_users uy ON uy.id = ay.op_user_id
-			INNER JOIN info_firm_profile fprefy ON fprefy.id = ay.ref_firm_id AND fprefy.active =0 AND fprefy.deleted =0 AND fprefy.language_parent_id = 0                 
-                        INNER JOIN info_firm_keys ifky ON ifky.firm_id = ay.ref_firm_id
-			INNER JOIN sys_operation_types opy ON opy.id = ay.operation_type_id AND opy.language_id = 647 AND opy.deleted =0 AND opy.active =0
-			INNER JOIN sys_operation_types copy ON copy.id = ay.operation_type_id AND copy.language_id = 647 AND copy.deleted =0 AND copy.active =0 
-			INNER JOIN sys_specific_definitions sd15y ON sd15y.main_group = 15 AND sd15y.first_group= ay.deleted AND sd15y.language_id = 647 AND sd15y.deleted =0 AND sd15y.active =0 
-			INNER JOIN sys_specific_definitions sd16y ON sd16y.main_group = 16 AND sd16y.first_group= ay.active AND sd16y.language_id = 647 AND sd16y.deleted = 0 AND sd16y.active = 0    
-                         " . $whereSql2 . "
-                          )  AS deleted_count   		  
-                FROM info_firm_profile fp                                
+                        COUNT(a.id) AS COUNT  
+                FROM info_firm_profile fp 
                 INNER JOIN info_firm_references a ON a.firm_id = fp.id AND a.active =0 AND a.deleted =0
                 INNER JOIN info_users u ON u.id = a.op_user_id
-                INNER JOIN info_firm_profile fpref ON  fpref.id = a.ref_firm_id AND fpref.active =0 AND fpref.deleted =0 AND fpref.language_parent_id = 0                 
+                INNER JOIN info_firm_profile fpref ON  fpref.id = a.ref_firm_id AND fpref.active =0 AND fpref.deleted =0 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0
                 INNER JOIN sys_operation_types cop ON cop.id = a.operation_type_id AND cop.language_id = 647 AND cop.deleted =0 AND cop.active =0 
-                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted =0 AND sd15.active =0 
-                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
-		    " . $whereSql . "
+                INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_parent_id =0 AND sd15.deleted =0 AND sd15.active =0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_parent_id =0 AND sd16.deleted = 0 AND sd16.active = 0
+		WHERE fp.language_parent_id = 0 AND fp.cons_allow_id=2
                     ";
             $statement = $pdo->prepare($sql);
             //echo debugPDO($sql, $params);
@@ -744,7 +725,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $operationId = SysOperationTypes::getTypeIdToGoOperationId(
                             array('parent_id' =>3,'main_group' =>3,'sub_grup_id' =>27,'type_id'=>3, ));                
                 if (\Utill\Dal\Helper::haveRecord($operationId)) {
-                    $operationIdValue = $opUserId ['resultSet'][0]['id'];
+                    $operationIdValue = $operationId ['resultSet'][0]['id'];
                 }
                  
                 $this->makePassive(array('id' => $params['id']));
@@ -782,7 +763,6 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 FROM info_firm_references
                 WHERE id  =" . intval($params['id']) . "  
                      ");
-
                 $insertAct = $statementInsert->execute();
                 $affectedRows = $statementInsert->rowCount();
                 $errorInfo = $statementInsert->errorInfo();
@@ -814,7 +794,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
     public function fillWithReference($params = array()) {
         try {
                 $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
-                 if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
                 $offset = ((intval($params['page']) - 1) * intval($params['rows']));
                 $limit = intval($params['rows']);
                 } else {
@@ -864,20 +844,22 @@ class InfoUsersAddresses extends \DAL\DalSlim {
 		    COALESCE(NULLIF(COALESCE(NULLIF(fprefx.firm_name, ''), fpref.firm_name_eng), ''), fpref.firm_name) AS ref_firm_names,
 		    a.s_date as ref_date,
 		    ifk.network_key AS Ref_network_key,
-                    a.active,
-                    COALESCE(NULLIF(fpref.logo, ''), 'image_not_found.png') AS logo,
-                    fpref.web_address
-                FROM info_firm_profile fp                                
-                INNER JOIN info_firm_references a ON a.firm_id = fp.id AND a.active =0 AND a.deleted =0                
-                INNER JOIN info_firm_profile fpref ON  fpref.id = a.ref_firm_id AND fpref.active =0 AND fpref.deleted =0 AND fpref.language_parent_id = 0 
+                    a.active,                    
+                    fpref.web_address,
+                    CASE COALESCE(NULLIF(fpref.logo, ''),'-')
+                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/'  ,'image_not_found.png')
+                        ELSE CONCAT(sps.folder_road ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(fpref.logo, ''),'image_not_found.png')) END AS logo 
+                FROM info_firm_profile fp
+                INNER JOIN info_firm_references a ON a.firm_id = fp.act_parent_id AND a.cons_allow_id =2
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
+                INNER JOIN info_firm_profile fpref ON fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id =2 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
-                LEFT JOIN sys_language lx ON lx.id =". intval($languageIdValue)."  AND lx.deleted =0 AND lx.active =0 
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id
-                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.active =0 AND fprefx.deleted =0 AND fprefx.language_id = lx.id                 
+                LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0 
+                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.cons_allow_id =2 AND fpx.language_id = lx.id
+                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.cons_allow_id =2 AND fprefx.language_id = lx.id
 	        WHERE  
                     fp.language_parent_id = 0 AND 
-                    fp.deleted =0 AND 
-                    fp.active =0  
+                    fp.cons_allow_id =2
                    ".$addSql."
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
@@ -889,8 +871,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                     'order' => $order,
                     'limit' => $pdo->quote($limit),
                     'offset' => $pdo->quote($offset),
-                );
-             
+                );             
                 //  echo debugPDO($sql, $parameters);                
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -904,7 +885,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-   /**   
+    /**   
      * @author Okan CIRAN
      * @ info_firm_references tablosundan firmalara referans olan firmaların sayısını döndürür!!
      * firm_id gönderirseniz o firmaya referans olan firmaların sayısını döndürür.
@@ -915,35 +896,23 @@ class InfoUsersAddresses extends \DAL\DalSlim {
      */
     public function fillWithReferenceRtc($params = array()) {
         try {
-                $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
-                $languageId = NULL;
-                $languageIdValue = 647;
-                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
-                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
-                    }
-                }                         
+                $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                                    
                 $FirmId = NULL;                
                 if ((isset($params['firm_id']) && $params['firm_id'] != "")) {                                 
                         $FirmId = $params ['firm_id'];   
                         $addSql =" AND a.firm_id = ". intval($FirmId);
                 }  
-
                 $sql = "                                 
                 SELECT 
 		     COUNT(a.id) AS COUNT 
-                FROM info_firm_profile fp                                
-                INNER JOIN info_firm_references a ON a.firm_id = fp.id AND a.active =0 AND a.deleted =0                
-                INNER JOIN info_firm_profile fpref ON  fpref.id = a.ref_firm_id AND fpref.active =0 AND fpref.deleted =0 AND fpref.language_parent_id = 0 
-                INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
-                LEFT JOIN sys_language lx ON lx.id =". intval($languageIdValue)."  AND lx.deleted =0 AND lx.active =0 
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id
-                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.active =0 AND fprefx.deleted =0 AND fprefx.language_id = lx.id                 
+                FROM info_firm_profile fp
+                INNER JOIN info_firm_references a ON a.firm_id = fp.act_parent_id AND a.cons_allow_id =2
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
+                INNER JOIN info_firm_profile fpref ON fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id =2 AND fpref.language_parent_id = 0 
+                INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id                
 	        WHERE  
                     fp.language_parent_id = 0 AND 
-                    fp.deleted =0 AND 
-                    fp.active =0  
+                    fp.cons_allow_id =2
                    ".$addSql."
                  ";
                 $statement = $pdo->prepare($sql);
@@ -982,7 +951,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
 
                 $sortArr = array();
                 $orderArr = array();
-                $whereSql = "";
+                $addSql = "";
                 if (isset($params['sort']) && $params['sort'] != "") {
                     $sort = trim($params['sort']);
                     $sortArr = explode(",", $sort);
@@ -1017,26 +986,28 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 }  
 
                 $sql = "                 
-                SELECT 
-		    a.id,
-		    COALESCE(NULLIF(COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng), ''), fp.firm_name) AS firm_names,
-		    a.s_date as ref_date,
-		    ifk.network_key AS network_key,
-                    a.active,
-                    COALESCE(NULLIF(fpx.logo, ''), 'image_not_found.png') AS logo,
-                    fpref.web_address
+               SELECT 
+		    a.id,		    
+		    COALESCE(NULLIF(COALESCE(NULLIF(fprefx.firm_name, ''), fpref.firm_name_eng), ''), fpref.firm_name) AS ref_firm_names,
+		    a.s_date AS ref_date,
+		    ifk.network_key AS Ref_network_key,
+                    a.active,                    
+                    fpref.web_address,
+                    CASE COALESCE(NULLIF(fpref.logo, ''),'-')
+                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/'  ,'image_not_found.png')
+                        ELSE CONCAT(sps.folder_road ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(fpref.logo, ''),'image_not_found.png')) END AS logo 
                 FROM info_firm_profile fp                                
-                INNER JOIN info_firm_references a ON a.firm_id = fp.id AND a.active =0 AND a.deleted =0                
-                INNER JOIN info_firm_profile fpref ON  fpref.id = a.ref_firm_id AND fpref.active =0 AND fpref.deleted =0 AND fpref.language_parent_id = 0 
-                INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.firm_id
+                INNER JOIN info_firm_references a ON a.firm_id = fp.act_parent_id AND a.cons_allow_id =2 
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                                     
+                INNER JOIN info_firm_profile fpref ON  fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id =2 AND fpref.language_parent_id = 0 
+                INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
                 LEFT JOIN sys_language lx ON lx.id =". intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0 
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id
-                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.active =0 AND fprefx.deleted =0 AND fprefx.language_id = lx.id                 
-	        WHERE 
+                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
+                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.cons_allow_id =2 AND fprefx.language_id = lx.id                 
+	        WHERE  
                     fp.language_parent_id = 0 AND 
-                    fp.deleted =0 AND 
-                    fp.active =0  
-                   ".$addSql."
+                    fp.cons_allow_id =2
+                    ".$addSql."
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -1047,8 +1018,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                     'order' => $order,
                     'limit' => $pdo->quote($limit),
                     'offset' => $pdo->quote($offset),
-                );
-             
+                );             
                 //  echo debugPDO($sql, $parameters);                
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -1075,36 +1045,24 @@ class InfoUsersAddresses extends \DAL\DalSlim {
      */
     public function fillBeReferencedRtc($params = array()) {
         try {
-                $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');   
-                $languageId = NULL;
-                $languageIdValue = 647;
-                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
-                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
-                    }
-                }         
-                
+                $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                   
+                $addSql = "";
                 $FirmId = NULL;                
                 if ((isset($params['ref_firm_id']) && $params['ref_firm_id'] != "")) {                                 
                         $FirmId = $params ['ref_firm_id'];   
                         $addSql =" AND a.ref_firm_id = ". intval($FirmId);
                 }  
-
                 $sql = "                 
                 SELECT 
 		     COUNT(a.id) AS COUNT                 
                 FROM info_firm_profile fp                                
-                INNER JOIN info_firm_references a ON a.firm_id = fp.id AND a.active =0 AND a.deleted =0                
-                INNER JOIN info_firm_profile fpref ON  fpref.id = a.ref_firm_id AND fpref.active =0 AND fpref.deleted =0 AND fpref.language_parent_id = 0 
-                INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.firm_id
-                LEFT JOIN sys_language lx ON lx.id =". intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0 
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id
-                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.active =0 AND fprefx.deleted =0 AND fprefx.language_id = lx.id                 
-	        WHERE 
+                INNER JOIN info_firm_references a ON a.firm_id = fp.act_parent_id AND a.cons_allow_id =2 
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                                     
+                INNER JOIN info_firm_profile fpref ON fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id =2 AND fpref.language_parent_id = 0 
+                INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id               
+	        WHERE  
                     fp.language_parent_id = 0 AND 
-                    fp.deleted =0 AND 
-                    fp.active =0  
+                    fp.cons_allow_id =2
                    ".$addSql."
                 ";
                 $statement = $pdo->prepare($sql);                
