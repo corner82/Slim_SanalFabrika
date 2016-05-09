@@ -162,8 +162,8 @@ class InfoFirmSocialmedia extends \DAL\DalSlim {
                 if (\Utill\Dal\Helper::haveRecord($firmId)) {
                     $firmIdValue = $firmId ['resultSet'][0]['firm_id'];
                 }
-
-                if ($firmIdValue === $userfirmIdValue) {
+ 
+                if ($firmIdValue == $userfirmIdValue) {
                     $kontrol = $this->haveRecords(array('firm_link' => $params['firm_link'],));
                     if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                         $operationIdValue = -1;
@@ -206,7 +206,7 @@ class InfoFirmSocialmedia extends \DAL\DalSlim {
                         $statement->bindValue(':firm_id', $firmIdValue, \PDO::PARAM_INT);
                         $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
                         $statement->bindValue(':firm_link', $params['firm_link'], \PDO::PARAM_STR);
-                        // echo debugPDO($sql, $params);
+                       //  echo debugPDO($sql, $params);
                         $result = $statement->execute();
                         $insertID = $pdo->lastInsertId('info_firm_socialmedia_id_seq');
                         $errorInfo = $statement->errorInfo();
@@ -269,7 +269,7 @@ class InfoFirmSocialmedia extends \DAL\DalSlim {
                     AND a.active = 0
                ";
             $statement = $pdo->prepare($sql);
-            // echo debugPDO($sql, $params);
+          //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
