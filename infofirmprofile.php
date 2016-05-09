@@ -970,14 +970,7 @@ $app->get("/fillCompanyInfoEmployeesGuest_infoFirmProfile/", function () use ($a
   
     $flows = array();
     foreach ($result['resultSet'] as $flow) {
-        $flows[] = array(
-            "firm_names" => $flow["firm_names"],
-            "web_address" => $flow["web_address"],             
-            "firm_name_short" => $flow["firm_name_short"],
-            "foundation_year" => $flow["foundation_year"],  
-            "country_id" => $flow["country_id"],
-            "country_names" => $flow["country_names"],
-            "descriptions" => $flow["descriptions"],            
+        $flows[] = array(            
             "logo" => $flow["logo"], 
             "number_of_employees" => $flow["number_of_employees"],
             "number_of_worker" => $flow["number_of_worker"], 
@@ -985,8 +978,7 @@ $app->get("/fillCompanyInfoEmployeesGuest_infoFirmProfile/", function () use ($a
             "number_of_engineer" => $flow["number_of_engineer"], 
             "number_of_administrative_staff" => $flow["number_of_administrative_staff"], 
             "number_of_sales_staff" => $flow["number_of_sales_staff"], 
-            "number_of_foreign_trade_staff" => $flow["number_of_foreign_trade_staff"],
-            "about" => $flow["about"], 
+            "number_of_foreign_trade_staff" => $flow["number_of_foreign_trade_staff"],            
             "attributes" => array("notroot" => true, ),
         );
     }
@@ -1032,14 +1024,7 @@ $app->get("/pkFillCompanyInfoEmployees_infoFirmProfile/", function () use ($app 
   
     $flows = array();
     foreach ($result['resultSet'] as $flow) {
-        $flows[] = array(
-            "firm_names" => $flow["firm_names"],
-            "web_address" => $flow["web_address"],             
-            "firm_name_short" => $flow["firm_name_short"],
-            "foundation_year" => $flow["foundation_year"],  
-            "country_id" => $flow["country_id"],
-            "country_names" => $flow["country_names"],
-            "descriptions" => $flow["descriptions"],            
+        $flows[] = array(            
             "logo" => $flow["logo"], 
             "number_of_employees" => $flow["number_of_employees"],
             "number_of_worker" => $flow["number_of_worker"], 
@@ -1047,8 +1032,7 @@ $app->get("/pkFillCompanyInfoEmployees_infoFirmProfile/", function () use ($app 
             "number_of_engineer" => $flow["number_of_engineer"], 
             "number_of_administrative_staff" => $flow["number_of_administrative_staff"], 
             "number_of_sales_staff" => $flow["number_of_sales_staff"], 
-            "number_of_foreign_trade_staff" => $flow["number_of_foreign_trade_staff"],
-            "about" => $flow["about"], 
+            "number_of_foreign_trade_staff" => $flow["number_of_foreign_trade_staff"],            
             "attributes" => array("notroot" => true, ),
         );
     }
