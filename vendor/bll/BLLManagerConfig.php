@@ -78,6 +78,7 @@ class BLLManagerConfig{
                  'infoFirmVerbalBLL' => 'BLL\BLL\InfoFirmVerbal',
                  'infoFirmUserDescForCompanyBLL' => 'BLL\BLL\InfoFirmUserDescForCompany',
                  'sysSocialMediaBLL' => 'BLL\BLL\SysSocialMedia',
+                 'infoFirmSocialmediaBLL' => 'BLL\BLL\InfoFirmSocialmedia',
                  
                  
                  
