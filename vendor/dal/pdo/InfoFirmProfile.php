@@ -1407,19 +1407,18 @@ class InfoFirmProfile extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             if (isset($params['user_id'])) {
-                $ownerUser = $params['user_id'];                
-
+                $user = $params['user_id'];  
                 $sql = " 
                 SELECT id AS firm_id, 1=1 AS control FROM (
                             SELECT ifp.id 
                             FROM info_users a
-                            INNER JOIN info_firm_users ifu ON ifu.user_id = " . intval($ownerUser) . " AND ifu.language_parent_id =0 AND a.id = ifu.user_id                            
-			    INNER JOIN info_firm_profile ifp ON ifp.active =0 AND ifp.deleted =0 AND ifp.language_parent_id =0 AND ifu.firm_id = ifp.id     
-                            WHERE a.active =0 AND a.deleted =0 AND a.language_parent_id =0 
+                            INNER JOIN info_firm_users ifu ON ifu.user_id = " . intval($user) . " AND ifu.language_parent_id =0 AND a.id = ifu.user_id                            
+			    INNER JOIN info_firm_profile ifp ON ifp.active =0 AND ifp.deleted =0 AND ifp.language_parent_id =0 AND ifu.firm_id = ifp.act_parent_id     
+                            WHERE a.active =0 AND a.deleted =0  
                 ) AS xtable limit 1                             
                                  ";
                 $statement = $pdo->prepare($sql);
-                // echo debugPDO($sql, $params);
+               //echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -1436,6 +1435,45 @@ class InfoFirmProfile extends \DAL\DalSlim {
         }
     }
   
+     /**  
+     * @author Okan CIRAN
+     * @ network key den firm id sini döndürür  !!     
+     * @version v 1.0  09.05.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getFirmIdsForNetworkKey($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            if (isset($params['network_key'])) {
+                $npk = $params['network_key'];  
+                $sql = " 
+                SELECT firm_id, 1=1 AS control FROM (
+                            SELECT a.firm_id 
+                            FROM info_firm_keys a                            			    
+                            WHERE
+                             a.network_key = '".$npk."'
+                ) AS xtable limit 1                             
+                                 ";
+                $statement = $pdo->prepare($sql);
+               // echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  network_key not_null_violation
+                $errorInfoColumn = 'network_key';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+   
     /**
    
      * @author Okan CIRAN
