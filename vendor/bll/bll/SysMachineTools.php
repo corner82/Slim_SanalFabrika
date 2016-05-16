@@ -68,7 +68,6 @@ class SysMachineTools extends \BLL\BLLSlim {
      * @return array
      */
     public function fillGrid($params = array()) {
-
         $DAL = $this->slimApp->getDALManager()->get('sysMachineToolsPDO');
         $resultSet = $DAL->fillGrid($params);
         return $resultSet['resultSet'];
@@ -85,7 +84,34 @@ class SysMachineTools extends \BLL\BLLSlim {
         return $resultSet['resultSet'];
     }
 
-  
+    /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function getMachineTools($params = array()) {      
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolsPDO');     
+        $resultSet = $DAL->getMachineTools($params);
+        return $resultSet['resultSet'];
+    }
 
-    
+      /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function getMachineToolsRtc($params = array()) {      
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolsPDO');
+        $resultSet = $DAL->getMachineToolsRtc($params);
+        return $resultSet['resultSet'];
+    } 
+    /**
+     * public key / private key and value update function
+     * @param array | null $params
+     * @return array
+     */
+    public function makeActiveOrPassive($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolsPDO');
+        return $DAL->makeActiveOrPassive($params);
+    } 
 }

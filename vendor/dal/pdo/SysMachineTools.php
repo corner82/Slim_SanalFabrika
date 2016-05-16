@@ -17,7 +17,7 @@ namespace DAL\PDO;
  * @author Okan CIRAN
  * @since 15.02.2016
  */
-class SysMachineToolGroups extends \DAL\DalSlim {
+class SysMachineTools extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
@@ -481,4 +481,204 @@ class SysMachineToolGroups extends \DAL\DalSlim {
         }
     }
 
+    /**
+     * @author Okan CIRAN
+     * @ Gridi doldurmak için sys_machine_tools tablosundan kayıtları döndürür !!
+     * @version v 1.0  16.05.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getMachineTools($args = array()) {
+       
+        if (isset($args['page']) && $args['page'] != "" && isset($args['rows']) && $args['rows'] != "") {
+            $offset = ((intval($args['page']) - 1) * intval($args['rows']));
+            $limit = intval($args['rows']);
+        } else {
+            $limit = 10;
+            $offset = 0;
+        }
+
+        $sortArr = array();
+        $orderArr = array();
+        $addSql = NULL;
+        if (isset($args['sort']) && $args['sort'] != "") {
+            $sort = trim($args['sort']);
+            $sortArr = explode(",", $sort);
+            if (count($sortArr) === 1)
+                $sort = trim($args['sort']);
+        } else {
+            $sort = " machine_tool_name, group_name, m.manufacturer_name";
+        }
+
+        if (isset($args['order']) && $args['order'] != "") {
+            $order = trim($args['order']);
+            $orderArr = explode(",", $order);
+            //print_r($orderArr);
+            if (count($orderArr) === 1)
+                $order = trim($args['order']);
+        } else {
+            $order = "ASC";
+        }
+
+        $languageId = NULL;
+        $languageIdValue = 647;
+        if ((isset($args['language_code']) && $args['language_code'] != "")) {                
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $args['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+            }
+        }  
+        
+        if ((isset($args['machine_groups_id']) && $args['machine_groups_id'] != "")) {
+            $addSql =  " AND a.id = " .intval($args['machine_groups_id']) ; 
+        }  
+        if ((isset($args['manufacturer_id']) && $args['manufacturer_id'] != "")) {
+            $addSql =  " AND m.id = " .intval($args['manufacturer_id']) ; 
+        }  
+
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $sql = "
+                 SELECT                    
+                    mt.id, 
+                    COALESCE(NULLIF( (mtx.machine_tool_name), ''), mt.machine_tool_name_eng) AS machine_tool_name,   
+                    mt.machine_tool_name_eng,
+                    COALESCE(NULLIF((ax.group_name), ''), a.group_name_eng) AS group_name,   
+                    a.group_name_eng,		   
+                    m.manufacturer_name,             
+                    a.active               
+                FROM sys_machine_tool_groups a 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0   
+		INNER join sys_machine_tools mt On mt.machine_tool_grup_id = a.id AND mt.language_id = l.id AND mt.active =0 AND mt.deleted =0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
+		LEFT join sys_machine_tools mtx ON (mtx.id = mt.id OR mtx.language_parent_id =mt.id) AND mtx.language_id = lx.id AND mtx.deleted =0 AND mtx.active =0 
+		LEFT join sys_machine_tool_groups ax ON (ax.id = a.id OR ax.language_parent_id =a.id) AND ax.language_id = lx.id AND ax.deleted =0 AND ax.active =0 
+		LEFT JOIN sys_manufacturer m ON m.id = mt.manufactuer_id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0                 
+                WHERE            
+                    a.deleted = 0 AND                    
+                    mt.language_parent_id =0 
+                " . $addSql . "
+                ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            );
+             //  echo debugPDO($sql, $parameters);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+    /**
+     * @author Okan CIRAN
+     * @ Gridi doldurmak için sys_machine_tools tablosundan kayıtları döndürür !!
+     * @version v 1.0  16.05.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getMachineToolsRtc($params = array()) {         
+        $addSql = NULL;  
+        if ((isset($params['machine_groups_id']) && $params['machine_groups_id'] != "")) {
+            $addSql =  " AND a.id = " .intval($params['machine_groups_id']) ; 
+        }  
+        if ((isset($params['manufacturer_id']) && $params['manufacturer_id'] != "")) {
+            $addSql =  " AND m.id = " .intval($params['manufacturer_id']) ; 
+        }  
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $sql = "
+                 SELECT                    
+                    count(mt.id) AS count    
+                FROM sys_machine_tool_groups a 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0   
+		INNER JOIN sys_machine_tools mt On mt.machine_tool_grup_id = a.id AND mt.language_id = l.id AND mt.active =0 AND mt.deleted =0                 
+		LEFT JOIN sys_manufacturer m ON m.id = mt.manufactuer_id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0                 
+                WHERE            
+                    a.deleted =0 AND
+                    a.active =0 AND 
+                    mt.language_parent_id =0 
+                " . $addSql;
+            $statement = $pdo->prepare($sql);           
+           //    echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    
+        /**
+
+     * @author Okan CIRAN
+     * @ sys_machine_tools tablosundan parametre olarak  gelen id kaydın aktifliğini
+     *  0(aktif) ise 1 , 1 (pasif) ise 0  yapar. !!
+     * @version v 1.0  16.05.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function makeActiveOrPassive($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                if (isset($params['id']) && $params['id'] != "") {
+
+                    $sql = "                 
+                UPDATE sys_machine_tools
+                SET active = (  SELECT   
+                                CASE active
+                                    WHEN 0 THEN 1
+                                    ELSE 0
+                                END activex
+                                FROM sys_machine_tools
+                                WHERE id = " . intval($params['id']) . "
+                ),
+                op_user_id = " . intval($opUserIdValue) . "
+                WHERE id = " . intval($params['id']);
+                    $statement = $pdo->prepare($sql);
+                    //  echo debugPDO($sql, $params);
+                    $update = $statement->execute();
+                    $afterRows = $statement->rowCount();
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                }
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
 }
