@@ -217,7 +217,17 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
         $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER,
                                                 $app,
                                                 $_GET['order']));
-    }    
+    }  
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
+                                                $app,
+                                                $_GET['filterRules']));
+    }  
+ 
+    
+    
+    
  
     $stripper->strip();
     if ($stripper->offsetExists('language_code')) {
@@ -241,7 +251,11 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
     if ($stripper->offsetExists('order')) {
         $vOrder = $stripper->offsetGet('order')->getFilterValue();
     }
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    }
  
+    if(isset($_GET['filterRules'])) $filterRules = $_GET['filterRules'];
     $resDataGrid = $BLL->getMachineTools(array(
         'language_code' => $vLanguageCode,
         'page' => $vPage,
@@ -250,12 +264,14 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
         'order' => $vOrder, 
         'machine_groups_id' => $vMachineGroupsId,
         'manufacturer_id' => $vManufacturerId,
+        'filterRules' => $filterRules,
        
     ));
     $resTotalRowCount = $BLL->getMachineToolsRtc(array(
         'language_code' => $vLanguageCode,
         'machine_groups_id' => $vMachineGroupsId,
         'manufacturer_id' => $vManufacturerId,
+        'filterRules' => $filterRules,
         
     ));
  
