@@ -184,7 +184,7 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
     }  
     $vMachineGroupsId = NULL;
     if (isset($_GET['machine_groups_id'])) {
-         $stripper->offsetSet('machine_groups_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+         $stripper->offsetSet('machine_groups_id',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1,
                                                 $app,
                                                 $_GET['machine_groups_id']));
     }  
@@ -220,14 +220,10 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
     }  
     $filterRules = null;
     if (isset($_GET['filterRules'])) {
-        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1,
                                                 $app,
                                                 $_GET['filterRules']));
-    }  
- 
-    
-    
-    
+    }   
  
     $stripper->strip();
     if ($stripper->offsetExists('language_code')) {
@@ -255,7 +251,8 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
         $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
     }
  
-    if(isset($_GET['filterRules'])) $filterRules = $_GET['filterRules'];
+  //  if(isset($_GET['filterRules'])) $filterRules = $_GET['filterRules'];
+    
     $resDataGrid = $BLL->getMachineTools(array(
         'language_code' => $vLanguageCode,
         'page' => $vPage,

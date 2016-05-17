@@ -531,7 +531,8 @@ class SysMachineTools extends \DAL\DalSlim {
         }  
         
         if ((isset($args['machine_groups_id']) && $args['machine_groups_id'] != "")) {
-            $addSql =  " AND a.id = " .intval($args['machine_groups_id']) ; 
+         //   $addSql =  " AND a.id = " .intval($args['machine_groups_id']) ; 
+            $addSql =  " AND a.id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each('" . $args['machine_groups_id'] . "'))"; 
         }  
         if ((isset($args['manufacturer_id']) && $args['manufacturer_id'] != "")) {
             $addSql =  " AND m.id = " .intval($args['manufacturer_id']) ; 
@@ -598,7 +599,7 @@ class SysMachineTools extends \DAL\DalSlim {
                     a.deleted = 0 AND                    
                     mt.language_parent_id =0 
                 " . $addSql . "
-                ".$sorguStr."    
+                " . $sorguStr . " 
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -639,9 +640,10 @@ class SysMachineTools extends \DAL\DalSlim {
             if (\Utill\Dal\Helper::haveRecord($languageId)) {
                 $languageIdValue = $languageId ['resultSet'][0]['id'];                    
             }
-        }
+        }        
         if ((isset($params['machine_groups_id']) && $params['machine_groups_id'] != "")) {
-            $addSql =  " AND a.id = " .intval($params['machine_groups_id']) ; 
+         //   $addSql =  " AND a.id = " .intval($args['machine_groups_id']) ; 
+            $addSql =  " AND a.id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each('" . $params['machine_groups_id'] . "'))"; 
         }  
         if ((isset($params['manufacturer_id']) && $params['manufacturer_id'] != "")) {
             $addSql =  " AND m.id = " .intval($params['manufacturer_id']) ; 
