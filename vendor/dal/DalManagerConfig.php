@@ -84,6 +84,8 @@ class DalManagerConfig {
                 'infoFirmUserDescForCompanyPDO' => 'DAL\Factory\PDO\InfoFirmUserDescForCompanyFactory',
                 'sysSocialMediaPDO' => 'DAL\Factory\PDO\SysSocialMediaFactory',
                 'infoFirmSocialmediaPDO' => 'DAL\Factory\PDO\InfoFirmSocialmediaFactory',
+                'infoFirmAddressPDO' => 'DAL\Factory\PDO\InfoFirmAddressFactory',
+                'sysManufacturerPDO' => 'DAL\Factory\PDO\SysManufacturerFactory',
                 
                 
                 

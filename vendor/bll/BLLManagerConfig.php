@@ -79,7 +79,8 @@ class BLLManagerConfig{
                  'infoFirmUserDescForCompanyBLL' => 'BLL\BLL\InfoFirmUserDescForCompany',
                  'sysSocialMediaBLL' => 'BLL\BLL\SysSocialMedia',
                  'infoFirmSocialmediaBLL' => 'BLL\BLL\InfoFirmSocialmedia',
-                 
+                 'infoFirmAddressBLL' => 'BLL\BLL\InfoFirmAddress',
+                 'sysManufacturerBLL' => 'BLL\BLL\SysManufacturer',
                  
                  
                  'logConnectionBLL' => 'BLL\BLL\LogConnection',  
