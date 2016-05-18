@@ -323,13 +323,13 @@ $app->get("/pkFillSingularFirmSocialMedia_infoFirmSocialmedia/", function () use
     if ($stripper->offsetExists('npk'))
         $vNpk = $stripper->offsetGet('npk')->getFilterValue();
 
-    $resDataGrid = $BLL->fillCompanyUsersSocialMediaNpk(array(
+    $resDataGrid = $BLL->fillSingularFirmSocialMedia(array(
         'language_code' => $vLanguageCode,
         'network_key' => $vNpk,
         'pk' => $pk,
     ));
    
-    $resTotalRowCount = $BLL->fillCompanyUsersSocialMediaNpkRtc(array(
+    $resTotalRowCount = $BLL->fillSingularFirmSocialMediaRtc(array(
         'network_key' => $vNpk,
         'pk' => $pk,
     ));
@@ -338,18 +338,18 @@ $app->get("/pkFillSingularFirmSocialMedia_infoFirmSocialmedia/", function () use
     if (isset($resDataGrid[0]['id'])) {      
         foreach ($resDataGrid as $flow) {
             $flows[] = array(
-                "id" => $menu["id"],
-                "firm_id" => $menu["firm_id"],
-                "firm_name" => $menu["firm_name"],
-                "firm_name_eng" => $menu["firm_name_eng"],
-                "socialmedia_name" => $menu["socialmedia_name"],
-                "socialmedia_eng" => $menu["socialmedia_eng"],
-                "firm_link" => $menu["user_link"],     
-                "network_key" => $menu["network_key"],
-                "logo" => $menu["logo"],         
-                "language_id" => $menu["language_id"],
-                "language_name" => $menu["language_name"],
-                "attributes" => array("notroot" => true,),
+                "id" => $flow["id"],
+                "firm_id" => $flow["firm_id"],
+                "firm_name" => $flow["firm_name"],
+                "firm_name_eng" => $flow["firm_name_eng"],
+                "socialmedia_name" => $flow["socialmedia_name"],
+                "socialmedia_eng" => $flow["socialmedia_eng"],
+                "firm_link" => $flow["firm_link"],     
+                "network_key" => $flow["network_key"],
+                "logo" => $flow["logo"],         
+                "language_id" => $flow["language_id"],
+                "language_name" => $flow["language_name"],
+                "attributes" => array("notroot" => true,"active" => $flow["active"],  ),
             );
         }
        $counts = $resTotalRowCount[0]['count'];

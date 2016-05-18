@@ -71,6 +71,8 @@ $app->get("/pkFillManufacturerList_sysManufacturer/", function () use ($app ) {
                         ));    
 
     $flows = array();
+ 
+    $flows[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Please Choose",); 
     foreach ($resCombobox as $flow) {
         $flows[] = array(            
             "text" => $flow["manufacturer_name"],

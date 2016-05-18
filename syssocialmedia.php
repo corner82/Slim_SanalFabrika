@@ -331,9 +331,10 @@ $app->get("/pkUpdateMakeActiveOrPassive_sysSocialMedia/", function () use ($app 
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
     $BLL = $app->getBLLManager()->get('sysSocialMediaBLL');
-    if(!isset($headerParams['X-Public'])) 
-       throw new Exception ('rest api "pkUpdateMakeActiveOrPassive_sysSocialMedia" end point, X-Public variable not found');
-    $pk = $headerParams['X-Public'];          
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkUpdateMakeActiveOrPassive_sysSocialMedia" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];     
     $vId = NULL;
     if (isset($_GET['id'])) {
         $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
@@ -360,7 +361,9 @@ $app->get("/pkDelete_sysSocialMedia/", function () use ($app ) {
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
     $BLL = $app->getBLLManager()->get('sysSocialMediaBLL');   
     $headerParams = $app->request()->headers();
-    $Pk = $headerParams['X-Public'];  
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkDelete_sysSocialMedia" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];   
     $vId = NULL;
     if (isset($_GET['id'])) {
         $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
@@ -373,7 +376,7 @@ $app->get("/pkDelete_sysSocialMedia/", function () use ($app ) {
         
     $resDataDeleted = $BLL->Delete(array(                  
             'id' => $vId ,    
-            'pk' => $Pk,        
+            'pk' => $pk,        
             ));
     $app->response()->header("Content-Type", "application/json"); 
     $app->response()->body(json_encode($resDataDeleted));
