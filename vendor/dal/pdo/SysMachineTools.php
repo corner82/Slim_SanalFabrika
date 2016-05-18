@@ -31,14 +31,14 @@ class SysMachineTools extends \DAL\DalSlim {
        try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $userId = $this->getUserId(array('pk' => $params['pk']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $userIdValue = $userId ['resultSet'][0]['user_id'];
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id']; 
                 $statement = $pdo->prepare(" 
                 UPDATE sys_machine_tools
                 SET  deleted= 1 , active = 1 ,
-                     op_user_id = " . $userIdValue . "     
-                WHERE id = :id");
+                     op_user_id = " . intval($opUserIdValue) . "     
+                WHERE id = " . intval($params['id']));
                 //Execute our DELETE statement.
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
@@ -122,10 +122,10 @@ class SysMachineTools extends \DAL\DalSlim {
     public function insert($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
-            $userId = $this->getUserId(array('pk' => $params['pk']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $opUserIdValue = $userId ['resultSet'][0]['user_id'];                
+            $pdo->beginTransaction();            
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];                
                 $kontrol = $this->haveRecords($params);
                 if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                     $languageId = NULL;
@@ -144,13 +144,10 @@ class SysMachineTools extends \DAL\DalSlim {
                         machine_tool_grup_id, 
                         manufactuer_id, 
                         model, 
-                        model_year, 
-                        procurement, 
-                        qqm, 
+                        model_year,                     
                         machine_code, 
                         language_id, 
-                        op_user_id, 
-                        language_code,
+                        op_user_id,                    
                         picture
                         )
                 VALUES (
@@ -159,13 +156,10 @@ class SysMachineTools extends \DAL\DalSlim {
                         :machine_tool_grup_id, 
                         :manufactuer_id, 
                         :model, 
-                        :model_year, 
-                        :procurement, 
-                        :qqm, 
+                        :model_year,                    
                         :machine_code, 
                         :language_id, 
-                        :op_user_id, 
-                        :language_code,
+                        :op_user_id,                    
                         :picture
                                              )  
                     ";
@@ -175,13 +169,10 @@ class SysMachineTools extends \DAL\DalSlim {
                     $statement->bindValue(':machine_tool_grup_id', $params['machine_tool_grup_id'], \PDO::PARAM_INT);
                     $statement->bindValue(':manufactuer_id', $params['manufactuer_id'], \PDO::PARAM_INT);
                     $statement->bindValue(':model', $params['model'], \PDO::PARAM_STR);
-                    $statement->bindValue(':model_year', $params['model_year'], \PDO::PARAM_INT);
-                    $statement->bindValue(':procurement', $params['procurement'], \PDO::PARAM_INT);
-                    $statement->bindValue(':qqm', $params['qqm'], \PDO::PARAM_INT);
+                    $statement->bindValue(':model_year', $params['model_year'], \PDO::PARAM_INT);                    
                     $statement->bindValue(':machine_code', $params['machine_code'], \PDO::PARAM_STR);
                     $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
-                    $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_STR);
-                    $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+                    $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_STR);                    
                     $statement->bindValue(':picture', $params['picture'], \PDO::PARAM_STR);
                     // echo debugPDO($sql, $params);
                     $result = $statement->execute();
@@ -238,7 +229,7 @@ class SysMachineTools extends \DAL\DalSlim {
                     AND a.deleted =0    
                                ";
             $statement = $pdo->prepare($sql);
-            //   echo debugPDO($sql, $params);
+             // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -262,11 +253,11 @@ class SysMachineTools extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $userId = $this->getUserId(array('pk' => $params['pk'], 'id' => $params['id']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $opUserIdValue = $userId ['resultSet'][0]['user_id'];
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
-                if (\Utill\Dal\Helper::haveRecord($kontrol)) {
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                     $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                     if (\Utill\Dal\Helper::haveRecord($languageId)) {
                         $languageIdValue = $languageId ['resultSet'][0]['id'];
@@ -282,13 +273,10 @@ class SysMachineTools extends \DAL\DalSlim {
                     machine_tool_grup_id = :machine_tool_grup_id, 
                     manufactuer_id = :manufactuer_id, 
                     model = :model, 
-                    model_year = :model_year, 
-                    procurement = :procurement, 
-                    qqm = :qqm, 
+                    model_year = :model_year,                    
                     machine_code = :machine_code, 
                     language_id = :language_id, 
-                    op_user_id = :op_user_id, 
-                    language_code = :language_code,
+                    op_user_id = :op_user_id,                  
                     picture = :picture
                 WHERE id = " . intval($params['id']);
                     $statement = $pdo->prepare($sql);
@@ -297,13 +285,10 @@ class SysMachineTools extends \DAL\DalSlim {
                     $statement->bindValue(':machine_tool_grup_id', $params['machine_tool_grup_id'], \PDO::PARAM_INT);
                     $statement->bindValue(':manufactuer_id', $params['manufactuer_id'], \PDO::PARAM_INT);
                     $statement->bindValue(':model', $params['model'], \PDO::PARAM_STR);
-                    $statement->bindValue(':model_year', $params['model_year'], \PDO::PARAM_INT);
-                    $statement->bindValue(':procurement', $params['procurement'], \PDO::PARAM_INT);
-                    $statement->bindValue(':qqm', $params['qqm'], \PDO::PARAM_INT);
+                    $statement->bindValue(':model_year', $params['model_year'], \PDO::PARAM_INT);                    
                     $statement->bindValue(':machine_code', $params['machine_code'], \PDO::PARAM_STR);
                     $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
-                    $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_STR);
-                    $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+                    $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_STR);                    
                     $statement->bindValue(':picture', $params['picture'], \PDO::PARAM_STR);
                     $update = $statement->execute();
                     $affectedRows = $statement->rowCount();
@@ -312,9 +297,8 @@ class SysMachineTools extends \DAL\DalSlim {
                         throw new \PDOException($errorInfo[0]);
                     $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
-                } else {
-                    // 23505 	unique_violation
-                    $errorInfo = '23505'; // $kontrol ['resultSet'][0]['message'];  
+                } else {                    
+                    $errorInfo = '23505';  // 23505 	unique_violation
                     $pdo->rollback();                   
                     $errorInfoColumn = 'machine_tool_name';
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
