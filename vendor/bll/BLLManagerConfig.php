@@ -81,6 +81,9 @@ class BLLManagerConfig{
                  'infoFirmSocialmediaBLL' => 'BLL\BLL\InfoFirmSocialmedia',
                  'infoFirmAddressBLL' => 'BLL\BLL\InfoFirmAddress',
                  'sysManufacturerBLL' => 'BLL\BLL\SysManufacturer',
+                 'infoFirmProductsBLL' => 'BLL\BLL\InfoFirmProducts',
+                 
+                 
                  
                  
                  'logConnectionBLL' => 'BLL\BLL\LogConnection',  
