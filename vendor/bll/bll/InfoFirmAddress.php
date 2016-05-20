@@ -117,18 +117,7 @@ class InfoFirmAddress extends \BLL\BLLSlim{
         $resultSet = $DAL->fillSingularFirmAddress($params);  
         return $resultSet['resultSet'];
     }
-    
-    /**
-     * Function to get datagrid row count on user interface layer
-     * @param array | null $params
-     * @return array
-     */
-    public function fillSingularFirmAddressRtc($params = array()) {
-        $DAL = $this->slimApp->getDALManager()->get('infoFirmAddressPDO');
-        $resultSet = $DAL->fillSingularFirmAddressRtc($params);  
-        return $resultSet['resultSet'];
-    }
-        
+       
      /**
      * Data update function   
      * @param array $params
