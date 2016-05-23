@@ -178,7 +178,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                    " . $addSql . "                  
                                ";
             $statement = $pdo->prepare($sql);
-            // echo debugPDO($sql, $params);
+           // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -207,8 +207,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                 SET                         
                     c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                     
                     active = 1                    
-                WHERE id = :id");
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
+                WHERE id = " .intval($params['id']) );            
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
@@ -237,36 +236,69 @@ class InfoFirmVerbal extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                
+                $getFirm = InfoFirmProfile :: getFirmIdsForNetworkKey(array('network_key' => $params['network_key']));
+                if (\Utill\Dal\Helper::haveRecord($getFirm)) {
+                    $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
                     $kontrol = $this->haveRecords(array('firm_id' => $getFirmId,));
-                    if (!\Utill\Dal\Helper::haveRecord($kontrol)) {                                    
+                    if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                         $operationIdValue = -1;
                         $operationId = SysOperationTypes::getTypeIdToGoOperationId(
-                                    array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 32, 'type_id' => 1,));
+                                        array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 32, 'type_id' => 1,));
                         if (\Utill\Dal\Helper::haveRecord($operationId)) {
-                        $operationIdValue = $operationId ['resultSet'][0]['id'];
+                            $operationIdValue = $operationId ['resultSet'][0]['id'];
                         }
-                        
+
                         $ConsultantId = 1001;
                         $getConsultant = SysOsbConsultants::getConsultantIdForCompany(array('category_id' => 1));
                         if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                             $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
-                        } 
-                        
-                        $profilePublic =0 ;
-                        if ((isset($params['profile_public']) && $params['profile_public'] != "")) { 
-                           $profilePublic = intval($params['profile_public']);
+                        }
+
+                        $profilePublic = 0;
+                        if ((isset($params['profile_public']) && $params['profile_public'] != "")) {
+                            $profilePublic = intval($params['profile_public']);
+                        }
+                         $countryId = 91;
+                        if ((isset($params['country_id']) && $params['country_id'] != "")) {
+                            $countryId = intval($params['country_id']);
                         }
 
                         $languageId = NULL;
                         $languageIdValue = 647;
-                        if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                        if ((isset($params['language_code']) && $params['language_code'] != "")) {
                             $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                             if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                                $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                                $languageIdValue = $languageId ['resultSet'][0]['id'];
                             }
-                        } 
-                     
+                        }
+                        
+                       
+                        $xc= InfoFirmProfile::updateVerbal(array(
+                            'op_user_id' => $opUserIdValue, 
+                            'firm_id' => $getFirmId,
+                            'profile_public' => $profilePublic,
+                            'language_id' =>$languageIdValue,                            
+                            'foundation_yearx' => $params['foundation_yearx'],
+                            'country_id' =>  $countryId,
+                            'firm_name' =>  $params['firm_name'],
+                            'firm_name_eng' => $params['firm_name_eng'],
+                            'firm_name_short' => $params['firm_name_short'],
+                            'firm_name_short_eng' => $params['firm_name_short_eng'],
+                            'web_address' => $params['web_address'],
+                            'tax_office' => $params['tax_office'],
+                            'tax_no' => $params['tax_no'],
+                            'description' => $params['description'],
+                            'description_eng' => $params['description_eng'],
+                            'sgk_sicil_no' => $params['sgk_sicil_no'],
+                            'duns_number' => $params['duns_number'],
+                            'logo' => $params['logo'], 
+                            )   
+                                );
+                        
+                        if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                            throw new \PDOException($xc['errorInfo']);
+                        
+                        
                         $sql = " 
                         INSERT INTO info_firm_verbal(
                             firm_id, 
@@ -299,20 +331,20 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                             " . intval($opUserIdValue) . ", 
                             " . intval($profilePublic) . ",                         
                             (SELECT last_value FROM info_firm_verbal_id_seq),
-                            :about,
-                            :about_eng,
-                            :verbal1_title, 
-                            :verbal1, 
-                            :verbal2_title, 
-                            :verbal2, 
-                            :verbal3_title, 
-                            :verbal3, 
-                            :verbal1_title_eng, 
-                            :verbal1_eng, 
-                            :verbal2_title_eng, 
-                            :verbal2_eng, 
-                            :verbal3_title_eng, 
-                            :verbal3_eng
+                            cast(:about AS character varying(3000)),
+                            cast(:about_eng AS character varying(3000)),
+                            cast(:verbal1_title AS character varying(150)),
+                            cast(:verbal1 AS character varying(2000)),
+                            cast(:verbal2_title AS character varying(150)),
+                            cast(:verbal2 AS character varying(2000)),
+                            cast(:verbal3_title AS character varying(150)),
+                            cast(:verbal3 AS character varying(2000)),
+                            cast(:verbal1_title_eng AS character varying(150)),
+                            cast(:verbal1_eng AS character varying(2000)), 
+                            cast(:verbal2_title_eng AS character varying(150)),
+                            cast(:verbal2_eng AS character varying(2000)),
+                            cast(:verbal3_title_eng AS character varying(150)),
+                            cast(:verbal3_eng AS character varying(2000))
                              )";
                         $statement = $pdo->prepare($sql);
                         $statement->bindValue(':firm_id', $getFirmId, \PDO::PARAM_INT);
@@ -330,7 +362,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                         $statement->bindValue(':verbal2_eng', $params['verbal2_eng'], \PDO::PARAM_STR);
                         $statement->bindValue(':verbal3_title_eng', $params['verbal3_title_eng'], \PDO::PARAM_STR);
                         $statement->bindValue(':verbal3_eng', $params['verbal3_eng'], \PDO::PARAM_STR);
-                      //  echo debugPDO($sql, $params);
+                        //  echo debugPDO($sql, $params);
                         $result = $statement->execute();
                         $insertID = $pdo->lastInsertId('info_firm_verbal_id_seq');
                         $errorInfo = $statement->errorInfo();
@@ -339,10 +371,15 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                         $pdo->commit();
 
                         return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
-                    
+                    } else {
+                        $errorInfo = '23502';   // 23502  not_null_violation
+                        $errorInfoColumn = 'firm_id';
+                        $pdo->rollback();
+                        return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                    }
                 } else {
                     $errorInfo = '23502';   // 23502  not_null_violation
-                    $errorInfoColumn = 'firm_id';
+                    $errorInfoColumn = 'npk';
                     $pdo->rollback();
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
@@ -397,7 +434,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                     }
                     $active= 0;
                     if ((isset($params['active']) && $params['active'] != "")) {                      
-                        $profilePublic =  intval($params['active']);
+                        $active =  intval($params['active']);
                     }
                     
                  $sql = " 
@@ -434,20 +471,20 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                             " . intval($opUserIdValue) . " AS op_user_id, 
                             " . intval($profilePublic) . " AS profile_public, 
                             act_parent_id,                            
-                            '" . $params['about'] . "' AS about,
-                            '" . $params['about_eng'] . "' AS about_eng,
-                            '" . $params['verbal1_title'] . "' AS verbal1_title,
-                            '" . $params['verbal1'] . "' AS verbal1,
-                            '" . $params['verbal2_title'] . "' AS verbal2_title,
-                            '" . $params['verbal2'] . "' AS verbal2,
-                            '" . $params['verbal3_title'] . "' AS verbal3_title,
-                            '" . $params['verbal3'] . "' AS verbal3,
-                            '" . $params['verbal1_title_eng'] . "' AS verbal1_title_eng,
-                            '" . $params['verbal1_eng'] . "' AS verbal1_eng,
-                            '" . $params['verbal2_title_eng'] . "' AS verbal2_title_eng,
-                            '" . $params['verbal2_eng'] . "' AS verbal2_eng,
-                            '" . $params['verbal3_title_eng'] . "' AS verbal3_title_eng,
-                            '" . $params['verbal3_eng'] . "' AS verbal3_eng,                            
+                            CAST('" . $params['about'] . "' AS character varying(3000)) AS about,
+                            CAST('" . $params['about_eng'] . "' AS character varying(3000)) AS about_eng,
+                            CAST('" . $params['verbal1_title'] . "' AS character varying(150)) AS verbal1_title,
+                            CAST('" . $params['verbal1'] . "' AS character varying(2000)) AS verbal1,
+                            CAST('" . $params['verbal2_title'] . "' AS character varying(150)) AS verbal2_title,
+                            CAST('" . $params['verbal2'] . "' AS character varying(2000)) AS verbal2,
+                            CAST('" . $params['verbal3_title'] . "' AS character varying(150)) AS verbal3_title,
+                            CAST('" . $params['verbal3'] . "' AS character varying(2000)) AS verbal3,
+                            CAST('" . $params['verbal1_title_eng'] . "' AS character varying(150)) AS verbal1_title_eng,
+                            CAST('" . $params['verbal1_eng'] . "' AS character varying(2000)) AS verbal1_eng,
+                            CAST('" . $params['verbal2_title_eng'] . "' AS character varying(150)) AS verbal2_title_eng,
+                            CAST('" . $params['verbal2_eng'] . "' AS character varying(2000)) AS verbal2_eng,
+                            CAST('" . $params['verbal3_title_eng'] . "' AS character varying(150)) AS verbal3_title_eng,
+                            CAST('" . $params['verbal3_eng'] . "' AS character varying(2000)) AS verbal3_eng,                            
                             language_parent_id,
                             " . intval($active) . " AS active
                         FROM info_firm_verbal 
@@ -1255,5 +1292,79 @@ class InfoFirmVerbal extends \DAL\DalSlim {
         }
     }
     
+        /**
+     * @author Okan CIRAN
+     * @ firmanın sözel verilerinin danısman bilgisini döndürür !!
+     * @version v 1.0  23.05.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getFirmVerbalConsultant($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $getFirmIdValue = -1;
+            $getFirm = InfoFirmProfile :: getFirmIdsForNetworkKey(array('network_key' => $params['network_key']));
+            if (\Utill\Dal\Helper::haveRecord($getFirm)) {
+                $getFirmIdValue = $getFirm ['resultSet'][0]['firm_id'];
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+
+                $sql = "
+                SELECT DISTINCT 
+                    a.id AS firm_id,                          
+                    ifv.consultant_id,                   
+                    iud.name, 
+                    iud.surname,
+                    iud.auth_email,
+                    iuc.communications_type_id, 
+		    COALESCE(NULLIF(sd5x.description, ''), sd5.description_eng) AS communications_type_name,  
+                    iuc.communications_no,
+                    ifk.network_key,
+		    CASE COALESCE(NULLIF(TRIM(iud.picture), ''),'-') 
+                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' ,'image_not_found.png')
+                        ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' ,TRIM(iud.picture)) END AS cons_picture 
+                FROM info_firm_profile a
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0 
+                INNER JOIN info_firm_keys ifk ON ifk.firm_id =  a.act_parent_id 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND l.deleted =0 AND l.active =0 
+		LEFT JOIN info_firm_profile ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0
+		INNER JOIN info_firm_verbal ifv ON ifv.firm_id = ifk.firm_id AND ifv.deleted = 0 AND ifv.active =0 AND ifv.language_parent_id=0  
+		LEFT JOIN info_firm_verbal ifvx ON (ifvx.id = ifv.id OR ifvx.language_parent_id = ifv.id) AND ifvx.deleted = 0 AND ifvx.active =0 AND ifvx.language_id = lx.id
+                INNER JOIN info_users u ON u.id = ifv.consultant_id AND u.role_id in (1,2,6)
+                INNER JOIN info_users_detail iud ON iud.root_id = u.id AND iud.cons_allow_id = 2    
+                INNER JOIN info_users_communications iuc ON iuc.user_id = u.id AND iuc.cons_allow_id = 2  
+                INNER JOIN sys_specific_definitions sd5 ON sd5.main_group = 5 AND sd5.first_group = iuc.communications_type_id AND sd5.deleted =0 AND sd5.active =0 AND l.id = sd5.language_id   
+		LEFT JOIN sys_specific_definitions sd5x ON (sd5x.id =sd5.id OR sd5x.language_parent_id = sd5.id) AND sd5x.deleted =0 AND sd5x.active =0 AND lx.id = sd5x.language_id 
+                WHERE    
+                    a.act_parent_id = " . intval($getFirmIdValue) . "  
+                ORDER BY  iud.name, iud.surname 
+                ";
+                $statement = $pdo->prepare($sql);
+                //  echo debugPDO($sql, $params);                
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'network_key';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
  
 }
