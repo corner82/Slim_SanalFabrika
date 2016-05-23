@@ -1583,6 +1583,173 @@ $app->get("/pkFillCompanyInfoBuildingNpk_infoFirmProfile/", function () use ($ap
     $app->response()->body(json_encode($flows));
 });
 
+  
+/**
+ *  * Okan CIRAN
+ * @since 23-05-2016
+ */
+$app->get("/pkFillFirmFullVerbal_infoFirmProfile/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+    $headerParams = $app->request()->headers();     
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillFirmFullVerbal_infoFirmProfile" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }
+     
+
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('npk')) $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();    
+ 
+     $result = $BLL->fillFirmFullVerbal(array(
+        'language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey,        
+        'pk' => $pk,
+        ));
+    
+  
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],  
+            "verbal_id" => $flow["verbal_id"], 
+            "firm_id" => $flow["act_parent_id"],   
+            "profile_public" => $flow["profile_public"],  
+            "s_date" => $flow["s_date"],   
+            "c_date" => $flow["c_date"],
+            "firm_name" => $flow["firm_name"],
+            "firm_name_eng" => $flow["firm_name_eng"],
+            "firm_name_short" => $flow["firm_name_short"],
+            "firm_name_short_eng" => $flow["firm_name_short_eng"],
+            "web_address" => $flow["web_address"],
+            "country_id" => $flow["country_id"],
+            "country_name" => $flow["country_name"],
+            "country_name_eng" => $flow["country_name_eng"],
+            "about" => $flow["about"],
+            "about_eng" => $flow["about_eng"],
+            "verbal1_title" => $flow["verbal1_title"],
+            "verbal1_title_eng" => $flow["verbal1_title_eng"],
+            "verbal1" => $flow["verbal1"],
+            "verbal1_eng" => $flow["verbal1_eng"],            
+            "verbal2_title" => $flow["verbal2_title"],
+            "verbal2_title_eng" => $flow["verbal2_title_eng"],
+            "verbal2" => $flow["verbal2"],
+            "verbal2_eng" => $flow["verbal2_eng"],            
+            "verbal3_title" => $flow["verbal3_title"],
+            "verbal3_title_eng" => $flow["verbal3_title_eng"],
+            "verbal3" => $flow["verbal3"],
+            "verbal3_eng" => $flow["verbal3_eng"],            
+            "duns_number" => $flow["duns_number"],
+            "tax_office" => $flow["tax_office"],
+            "tax_no" => $flow["tax_no"],
+            "foundation_yearx" => $flow["foundation_yearx"],            
+            "language_id" => $flow["language_id"],
+            "language_name" => $flow["language_name"],
+            "operation_type_id" => $flow["operation_type_id"],
+            "operation_name" => $flow["operation_name"],            
+            "operation_name_eng" => $flow["operation_name_eng"],
+            "active" => $flow["active"],
+            "state_active" => $flow["state_active"],
+            "deleted" => $flow["deleted"],
+            "state_deleted" => $flow["state_deleted"],
+            "op_user_id" => $flow["op_user_id"],
+            "username" => $flow["username"],
+            "auth_allow_id" => $flow["auth_allow_id"],
+            "auth_alow" => $flow["auth_alow"],
+            "cons_allow_id" => $flow["cons_allow_id"], 
+            "cons_allow" => $flow["cons_allow"],
+            "language_parent_id" => $flow["language_parent_id"],
+            "network_key" => $flow["network_key"],
+            "logo" => $flow["logo"],
+            "place_point" => $flow["place_point"],        
+            
+            "attributes" => array("notroot" => true,"active" => $flow["active"], ),
+        );
+    }
+ 
+    $app->response()->header("Content-Type", "application/json");    
+    $app->response()->body(json_encode($flows));
+});
+
+
+/**
+ *  * Okan CIRAN
+ * @since 23-05-2016
+ */
+$app->get("/pkGetFirmProfileConsultant_infoFirmProfile/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+    $headerParams = $app->request()->headers();     
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkgetFirmProfileConsultant_infoFirmProfile" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }
+     
+
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('npk')) $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();    
+ 
+     $result = $BLL->getFirmProfileConsultant(array(
+        'language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey,        
+        'pk' => $pk,
+        ));
+    
+  
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array(
+            "firm_id" => $flow["firm_id"],
+            "consultant_id" => $flow["consultant_id"],  
+            "name" => $flow["name"],   
+            "surname" => $flow["surname"],
+            "auth_email" => $flow["auth_email"],
+            "communications_type_id" => $flow["communications_type_id"],
+            "communications_type_name" => $flow["communications_type_name"],             
+            "communications_no" => $flow["communications_no"],
+            "cons_picture" => $flow["cons_picture"],
+            "npk" => $flow["network_key"],
+            
+             
+            "attributes" => array(),
+        );
+    }
+ 
+    $app->response()->header("Content-Type", "application/json");    
+    $app->response()->body(json_encode($flows));
+});
+
+
 
 
 $app->run();

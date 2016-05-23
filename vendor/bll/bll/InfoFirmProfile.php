@@ -41,6 +41,15 @@ class InfoFirmProfile extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
         return $DAL->update($params);
     }
+       /**
+     * Data update function
+     * @param array | null $params
+     * @return array
+     */
+    public function updateVerbal($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        return $DAL->updateVerbal($params);
+    }
 
     /**
      * Data delete function
@@ -299,8 +308,35 @@ class InfoFirmProfile extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
         return $DAL->fillCompanyInfoBuildingNpk($params);
     }
-    
+     /**
+     * get consultant confirmation process details
+     * @param array $params
+     * @return array
+     */
+    public function fillFirmFullVerbal($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        return $DAL->fillFirmFullVerbal($params);
+    }
+    /**
+     * get consultant confirmation process details
+     * @param array $params
+     * @return array
+     */
+    public function getFirmEndOfId($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        return $DAL->getFirmEndOfId($params);
+    }
      
+             /**
+     * get consultant confirmation process details
+     * @param array $params
+     * @return array
+     */
+    public function getFirmProfileConsultant($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        return $DAL->getFirmProfileConsultant($params);
+    }
+      
     
     
     
