@@ -571,16 +571,23 @@ class SysMachineTools extends \DAL\DalSlim {
                     COALESCE(NULLIF((ax.group_name), ''), a.group_name_eng) AS group_name,   
                     a.group_name_eng,		   
                     m.manufacturer_name,             
-                    a.active               
+                    mt.active,                    
+                    mt.machine_tool_grup_id, 
+                    mt.manufactuer_id, 
+                    mt.model, 
+                    mt.model_year,                     
+                    mt.machine_code, 
+                    mt.language_id,                     
+                    mt.picture
                 FROM sys_machine_tool_groups a 
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0   
-		INNER JOIN sys_machine_tools mt On mt.machine_tool_grup_id = a.id AND mt.language_id = l.id AND mt.active =0 AND mt.deleted =0 
+		INNER JOIN sys_machine_tools mt ON mt.machine_tool_grup_id = a.id AND mt.language_id = l.id AND mt.deleted =0 
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
-		LEFT JOIN sys_machine_tools mtx ON (mtx.id = mt.id OR mtx.language_parent_id =mt.id) AND mtx.language_id = lx.id AND mtx.deleted =0 AND mtx.active =0 
-		LEFT JOIN sys_machine_tool_groups ax ON (ax.id = a.id OR ax.language_parent_id =a.id) AND ax.language_id = lx.id AND ax.deleted =0 AND ax.active =0 
+		LEFT JOIN sys_machine_tools mtx ON (mtx.id = mt.id OR mtx.language_parent_id = mt.id) AND mtx.language_id = lx.id AND mtx.deleted =0 
+		LEFT JOIN sys_machine_tool_groups ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.language_id = lx.id AND ax.deleted =0  
 		LEFT JOIN sys_manufacturer m ON m.id = mt.manufactuer_id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0                 
                 WHERE            
-                    a.deleted = 0 AND                    
+                    a.deleted = 0 AND                  
                     mt.language_parent_id =0 
                 " . $addSql . "
                 " . $sorguStr . " 

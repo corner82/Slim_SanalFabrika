@@ -260,10 +260,22 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
             "group_name" => $flow["group_name"],
             "group_name_eng" => $flow["group_name_eng"],
             "manufacturer_name" => $flow["manufacturer_name"],
-            "attributes" => array("notroot" => true, "active" => $flow["active"]),
+            "attributes" => array(
+                        "notroot" => true, 
+                        "active" => $flow["active"],
+                        "machine_tool_grup_id" => $flow["machine_tool_grup_id"],
+                        "manufactuer_id" => $flow["manufactuer_id"],
+                        "model" => $flow["model"],
+                        "model_year" => $flow["model_year"],
+                        "machine_tool_grup_id" => $flow["machine_tool_grup_id"],
+                        "machine_code" => $flow["machine_code"],
+                        "language_id" => $flow["language_id"],
+                        "picture" => $flow["picture"],
+ 
+                ),
         );
-    }
-
+    }                      
+                
     $app->response()->header("Content-Type", "application/json");
     $resultArray = array();
     $resultArray['total'] = $resTotalRowCount[0]['count'];
