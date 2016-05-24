@@ -82,7 +82,7 @@ class BLLManagerConfig{
                  'infoFirmAddressBLL' => 'BLL\BLL\InfoFirmAddress',
                  'sysManufacturerBLL' => 'BLL\BLL\SysManufacturer',
                  'infoFirmProductsBLL' => 'BLL\BLL\InfoFirmProducts',
-                 
+                 'sysMailServerBLL' => 'BLL\BLL\SysMailServer',
                  
                  
                  
