@@ -65,4 +65,5 @@ return array(
     'Utill\\Factories\\ResulSetHelpers\\' => array($vendorDir . '/utill/factories/resultsethelpers'),
     'Utill\\Helpers\\' => array($vendorDir . '/utill/helpers'),
     'Utill\\Helpers\\ResulSetHelpers\\' => array($vendorDir . '/utill/helpers/resultsethelpers'),
+    'Utill\\Mail\\PhpMailer\\' => array($vendorDir . '/utill/mail/phpmailer'),
 );
