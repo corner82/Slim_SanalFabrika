@@ -19,7 +19,8 @@
         "zendframework/zend-filter": "2.*",
         "zendframework/zend-db": "2.*",
         "videlalvaro/php-amqplib": "2.2.*",
-        "panique/pdo-debug": "0.1"
+        "panique/pdo-debug": "0.1",
+        "phpmailer/phpmailer": "~5.2"
         
     }
 }
