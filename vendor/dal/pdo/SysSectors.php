@@ -37,8 +37,7 @@ class SysSectors extends \DAL\DalSlim {
                 UPDATE sys_sectors
                 SET  deleted= 1 , active = 1 ,
                      op_user_id = " . $userIdValue . "     
-                WHERE id = :id");
-                //Execute our DELETE statement.
+                WHERE id = :id");                
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
@@ -81,22 +80,18 @@ class SysSectors extends \DAL\DalSlim {
                     a.language_parent_id,
                     a.description,
                     a.description_eng,                   
-                    a.user_id,
+                    a.op_user_id,
                     u.username    
                 FROM sys_sectors  a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0                
                 INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
-		INNER JOIN info_users u ON u.id = a.user_id 
-                WHERE a.deleted =0 AND a.language_code = :language_code                    
+		INNER JOIN info_users u ON u.id = a.op_user_id 
+                WHERE a.deleted =0                 
                 ORDER BY a.name                
-                                 ");
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);             
+                                 ");               
             $statement->execute();
-            $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
-            /* while ($row = $statement->fetch()) {
-              print_r($row);
-              } */
+            $result = $statement->fetcAll(\PDO::FETCH_ASSOC);   
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
@@ -116,54 +111,110 @@ class SysSectors extends \DAL\DalSlim {
     public function insert($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-             $sql = " 
-            SELECT  
-                name as name , 
-                '" . $params['name'] . "' as value , 
-                name ='" . $params['name'] . "' as control,
-                concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
-            FROM sys_sectors        
-            WHERE name = '" . $params['name'] . "'               
-                               ";
-            $statement = $pdo->prepare($sql);            
-            $statement->execute();
-            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);        
-            if (!isset($kontrol[0]['control'])) {              
             $pdo->beginTransaction();
-            /**
-             * table names and column names will be changed for specific use
-             */
-            $statement = $pdo->prepare("
-                INSERT INTO sys_sectors(
-                        name, name_eng, language_code, ordr ,description,description_eng,user_id    )
-                VALUES (
-                        :name,
-                        :name_eng, 
-                        :language_code,
-                        :ordr,
-                        :description,
-                        :description_eng,                       
-                        :user_id  
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];            
+                $kontrol = $this->haveRecords($params);
+                if (!\Utill\Dal\Helper::haveRecord($params)) {
+                    if (!isset($kontrol[0]['control'])) {                       
+                        $languageId = NULL;
+                        $languageIdValue = 647;
+                        if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                                $languageIdValue = $languageId ['resultSet'][0]['id'];
+                            }
+                        }
+
+                        $statement = $pdo->prepare("
+                        INSERT INTO sys_sectors(
+                                name, 
+                                name_eng, 
+                                language_id, 
+                                ordr,
+                                description,
+                                description_eng,
+                                op_user_id                               
+                                )
+                        VALUES (
+                                :name,
+                                :name_eng, 
+                                :language_id,
+                                :ordr,
+                                :description,
+                                :description_eng,
+                                :op_user_id                                
                                                 ");
-            $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-            $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
-            $statement->bindValue(':ordr', $params['ordr'], \PDO::PARAM_INT);
-            $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
-            $statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-            $result = $statement->execute();
-            $insertID = $pdo->lastInsertId('sys_sectors_id_seq');
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
-            } else {           
-                 $pdo->rollback();
+                        $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
+                        $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
+                        $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
+                        $statement->bindValue(':ordr', $params['ordr'], \PDO::PARAM_INT);
+                        $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
+                        $statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
+                        $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
+                        $result = $statement->execute();
+                        $insertID = $pdo->lastInsertId('sys_sectors_id_seq');
+                        $errorInfo = $statement->errorInfo();
+                        if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                            throw new \PDOException($errorInfo[0]);
+                        $pdo->commit();
+                        return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                    } else {
+                        $pdo->rollback();
+                    }
+                } else {
+                    // 23505  unique_violation
+                    $errorInfo = '23505';
+                    $errorInfoColumn = 'machine_id';
+                    $pdo->rollback();
+                    // $result = $kontrol;
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ sys_sectors tablosunda name sutununda daha önce oluşturulmuş mu? 
+     * @version v 1.0 15.03.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function haveRecords($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $addSql = " AND a.deleted =0  ";
+            if (isset($params['id'])) {
+                $addSql .= " AND a.id != " . intval($params['id']);
+            }
+            $sql = " 
+            SELECT  
+                    name AS name,
+                    '" . $params['name'] . "' AS value ,
+                    name ='" . $params['name'] . "' AS control,
+                    CONCAT(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message
+            FROM sys_sectors
+            WHERE name = '" . $params['name'] . "' 
+            " . $addSql . " 
+                               ";
+            $statement = $pdo->prepare($sql);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -180,34 +231,61 @@ class SysSectors extends \DAL\DalSlim {
     public function update($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();        
-            $statement = $pdo->prepare("
-                UPDATE sys_sectors
-                SET              
-                    name = :name, 
-                    name_eng = :name_eng, 
-                    language_code = :language_code, 
-                    ordr = :ordr,
-                    description = :description,
-                    description_eng = :description_eng,                       
-                    user_id= :user_id  
-                WHERE id = :id");
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-            $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-            $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
-            $statement->bindValue(':ordr', $params['ordr'], \PDO::PARAM_INT);                       
-            $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
-            $statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-            //Execute our UPDATE statement.
-            $update = $statement->execute();
-            $affectedRows = $statement->rowCount();
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $kontrol = $this->haveRecords($params);
+                if (\Utill\Dal\Helper::haveRecord($kontrol)) {
+                    $languageId = NULL;
+                    $languageIdValue = 647;
+                    if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                            $languageIdValue = $languageId ['resultSet'][0]['id'];
+                        }
+                    }
+
+                    $statement = $pdo->prepare("
+                    UPDATE sys_sectors
+                    SET              
+                        name = :name, 
+                        name_eng = :name_eng, 
+                        language_id = :language_id, 
+                        ordr = :ordr,
+                        description = :description,
+                        description_eng = :description_eng,                       
+                        op_user_id= :op_user_id  
+                    WHERE id = :id");
+                    $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
+                    $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
+                    $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
+                    $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
+                    $statement->bindValue(':ordr', $params['ordr'], \PDO::PARAM_INT);
+                    $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
+                    $statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
+                    $statement->bindValue(':op_user_id',$opUserIdValue, \PDO::PARAM_INT);               
+                    $update = $statement->execute();
+                    $affectedRows = $statement->rowCount();
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                } else {
+                    // 23505  unique_violation
+                    $errorInfoColumn = 'name';
+                    $errorInfo = '23505';
+                    $pdo->rollback();
+                    $result = $kontrol;
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -242,7 +320,7 @@ class SysSectors extends \DAL\DalSlim {
                 $sort = trim($args['sort']);
         } else {
             //$sort = "id";
-            $sort = "r_date";
+            $sort = "name";
         }
 
         if (isset($args['order']) && $args['order'] != "") {
@@ -255,6 +333,14 @@ class SysSectors extends \DAL\DalSlim {
             //$order = "desc";
             $order = "ASC";
         }
+        $languageId = NULL;
+        $languageIdValue = 647;
+        if ((isset($args['language_code']) && $args['language_code'] != "")) {
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $args['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            }
+        }
 
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -264,32 +350,28 @@ class SysSectors extends \DAL\DalSlim {
                     COALESCE(NULLIF(a.name, ''), a.name_eng) AS name, 
                     a.name_eng, 
                     a.deleted, 
-		    sd.description as state_deleted,                 
+		    sd.description AS state_deleted,                 
                     a.active, 
-		    sd1.description as state_active,                      
-                    a.language_code, 
+		    sd1.description AS state_active,                      
+                    a.language_id, 
 		    COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,
-                    a.ordr as siralama,
+                    a.ordr AS siralama,
                     a.language_parent_id,
                     a.description,
                     a.description_eng,                  
-                    a.user_id,
+                    a.op_user_id,
                     u.username    
-                FROM sys_sectors  a
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
-                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0                
-                INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
-		INNER JOIN info_users u ON u.id = a.user_id 
-                WHERE a.language_code = :language_code
+                FROM sys_sectors a
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0
+		INNER JOIN info_users u ON u.id = a.op_user_id 
+                WHERE a.language_id = ". intval($languageIdValue)." AND a.deleted = 0 
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
                     . "OFFSET " . $pdo->quote($offset) . " ";
-            $statement = $pdo->prepare($sql);
-            /**
-             * For debug purposes PDO statement sql
-             * uses 'Panique' library located in vendor directory
-             */
+            $statement = $pdo->prepare($sql); 
             $parameters = array(
                 'sort' => $sort,
                 'order' => $order,
@@ -297,7 +379,7 @@ class SysSectors extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
           //  echo debugPDO($sql, $parameters);
-            $statement->bindValue(':language_code', $args['language_code'], \PDO::PARAM_INT);  
+            $statement->bindValue(':language_id',$languageIdValue, \PDO::PARAM_INT);  
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -310,8 +392,7 @@ class SysSectors extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * user interface datagrid fill operation get row count for widget
+    /**     
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_sectors tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
      * @version v 1.0  08.12.2015
@@ -324,26 +405,14 @@ class SysSectors extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
                 SELECT 
-			COUNT(a.id) AS COUNT ,    
-			( SELECT COUNT(a1.id) FROM sys_sectors a1
-			INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 15 AND sd1.first_group= a1.deleted AND sd1.language_code = a1.language_code AND sd1.deleted = 0 AND sd1.active = 0
-			INNER JOIN sys_specific_definitions sd11 ON sd11.main_group = 16 AND sd11.first_group= a1.active AND sd11.language_code = a1.language_code AND sd11.deleted = 0 AND sd11.active = 0                
-			INNER JOIN sys_language l1 ON l1.id = a1.language_code AND l1.deleted =0 AND l1.active = 0 
-			INNER JOIN info_users u1 ON u1.language_main_code = a1.user_id  
-			WHERE a1.language_code = '" . $params['language_code'] . "' AND a1.deleted =0) AS undeleted_count, 
-			 
-			(SELECT COUNT(a2.id) FROM sys_sectors a2			
-			INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_code = a2.language_code AND sd2.deleted = 0 AND sd2.active = 0
-			INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group= a2.active AND sd12.language_code = a2.language_code AND sd12.deleted = 0 AND sd12.active = 0                
-			INNER JOIN sys_language l2 ON l2.language_main_code = a2.language_code AND l2.deleted =0 AND l2.active = 0 
-			INNER JOIN info_users u2 ON u2.id = a2.user_id  
-			WHERE a2.language_code = '" . $params['language_code'] . "' AND a2.deleted =1) AS deleted_count 			
-                FROM sys_sectors  a
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
-                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0                
-                INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
-		INNER JOIN info_users u ON u.id = a.user_id  
-                WHERE a.language_code = '" . $params['language_code'] . "'
+			COUNT(a.id) AS COUNT 
+                FROM sys_sectors a
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+		INNER JOIN info_users u ON u.id = a.op_user_id  
+                WHERE a.language_id = " .intval($params['language_id']) . "
+                    AND a.deleted = 0
                     ";
             $statement = $pdo->prepare($sql);          
             $statement->execute();
@@ -358,7 +427,7 @@ class SysSectors extends \DAL\DalSlim {
         }
     }
     
-      public function fillComboBox() {
+    public function fillComboBox() {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
              if (\Utill\Dal\Helper::haveRecord($languageId)) {
@@ -448,7 +517,7 @@ class SysSectors extends \DAL\DalSlim {
         }
     }
 
-  /**
+    /**
      * 
      * @author Okan CIRAN
      * @ text alanları doldurmak için sys_sectors tablosundan tek kayıt döndürür !! 

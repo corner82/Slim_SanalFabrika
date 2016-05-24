@@ -258,7 +258,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                         if ((isset($params['profile_public']) && $params['profile_public'] != "")) {
                             $profilePublic = intval($params['profile_public']);
                         }
-                         $countryId = 91;
+                        $countryId = 91;
                         if ((isset($params['country_id']) && $params['country_id'] != "")) {
                             $countryId = intval($params['country_id']);
                         }
@@ -410,34 +410,64 @@ class InfoFirmVerbal extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $kontrol = $this->haveRecords($params);
-                if (\Utill\Dal\Helper::haveRecord($kontrol)) {
-                    $this->makePassive(array('id' => $params['id']));               
-                    $operationIdValue = -2;
-                    $operationId = SysOperationTypes::getTypeIdToGoOperationId(
-                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 32, 'type_id' => 2,));
-                    if (\Utill\Dal\Helper::haveRecord($operationId)) {
-                    $operationIdValue = $operationId ['resultSet'][0]['id'];
-                    }
-                    $languageId = NULL;
-                    $languageIdValue = 647;
-                    if ((isset($params['language_code']) && $params['language_code'] != "")) {
-                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                            $languageIdValue = $languageId ['resultSet'][0]['id'];
+                $getFirm = InfoFirmProfile :: getFirmIdsForNetworkKey(array('network_key' => $params['network_key']));
+                if (\Utill\Dal\Helper::haveRecord($getFirm)) {
+                    $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
+                    $kontrol = $this->haveRecords($params);
+                    if (\Utill\Dal\Helper::haveRecord($kontrol)) {
+                        $this->makePassive(array('id' => $params['id']));
+                        $operationIdValue = -2;
+                        $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                                        array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 32, 'type_id' => 2,));
+                        if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                            $operationIdValue = $operationId ['resultSet'][0]['id'];
                         }
-                    } 
-                    
-                    $profilePublic= 0;
-                    if ((isset($params['profile_public']) && $params['profile_public'] != "")) {                      
-                        $profilePublic =  intval($params['profile_public']);
-                    }
-                    $active= 0;
-                    if ((isset($params['active']) && $params['active'] != "")) {                      
-                        $active =  intval($params['active']);
-                    }
-                    
-                 $sql = " 
+                        $languageId = NULL;
+                        $languageIdValue = 647;
+                        if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                                $languageIdValue = $languageId ['resultSet'][0]['id'];
+                            }
+                        }
+                        $profilePublic = 0;
+                        if ((isset($params['profile_public']) && $params['profile_public'] != "")) {
+                            $profilePublic = intval($params['profile_public']);
+                        }
+                        $countryId = 91;
+                        if ((isset($params['country_id']) && $params['country_id'] != "")) {
+                            $countryId = intval($params['country_id']);
+                        }
+                        $active = 0;
+                        if ((isset($params['active']) && $params['active'] != "")) {
+                            $active = intval($params['active']);
+                        }
+                        $xc = InfoFirmProfile::updateVerbal(array(
+                                    'op_user_id' => $opUserIdValue,
+                                    'firm_id' => $getFirmId,
+                                    'profile_public' => $profilePublic,
+                                    'language_id' => $languageIdValue,
+                                    'foundation_yearx' => $params['foundation_yearx'],
+                                    'country_id' => $countryId,
+                                    'firm_name' => $params['firm_name'],
+                                    'firm_name_eng' => $params['firm_name_eng'],
+                                    'firm_name_short' => $params['firm_name_short'],
+                                    'firm_name_short_eng' => $params['firm_name_short_eng'],
+                                    'web_address' => $params['web_address'],
+                                    'tax_office' => $params['tax_office'],
+                                    'tax_no' => $params['tax_no'],
+                                    'description' => $params['description'],
+                                    'description_eng' => $params['description_eng'],
+                                    'sgk_sicil_no' => $params['sgk_sicil_no'],
+                                    'duns_number' => $params['duns_number'],
+                                    'logo' => $params['logo'],
+                                        )
+                        );
+
+                        if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                            throw new \PDOException($xc['errorInfo']);
+
+                        $sql = " 
                         INSERT INTO info_firm_verbal(
                             firm_id, 
                             consultant_id,
@@ -467,7 +497,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                             firm_id, 
                             consultant_id,                            
                             " . intval($operationIdValue) . " AS operation_type_id,
-                            " . intval($languageIdValue). " AS language_id,   
+                            " . intval($languageIdValue) . " AS language_id,   
                             " . intval($opUserIdValue) . " AS op_user_id, 
                             " . intval($profilePublic) . " AS profile_public, 
                             act_parent_id,                            
@@ -489,21 +519,27 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                             " . intval($active) . " AS active
                         FROM info_firm_verbal 
                         WHERE id =  " . intval($params['id']) . " 
-                        "; 
-                    $statement_act_insert = $pdo->prepare($sql); 
-                    $insert_act_insert = $statement_act_insert->execute();
-                    $affectedRows = $statement_act_insert->rowCount();
-                    $errorInfo = $statement_act_insert->errorInfo();
-                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                        throw new \PDOException($errorInfo[0]);
-                    $pdo->commit();
-                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                        ";
+                        $statement_act_insert = $pdo->prepare($sql);
+                        $insert_act_insert = $statement_act_insert->execute();
+                        $affectedRows = $statement_act_insert->rowCount();
+                        $errorInfo = $statement_act_insert->errorInfo();
+                        if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                            throw new \PDOException($errorInfo[0]);
+                        $pdo->commit();
+                        return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                    } else {
+                        // 23505  unique_violation
+                        $errorInfo = '23505';
+                        $pdo->rollback();
+                        $result = $kontrol;
+                        return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
+                    }
                 } else {
-                    // 23505  unique_violation
-                    $errorInfo = '23505';
+                    $errorInfo = '23502';   // 23502  not_null_violation
+                    $errorInfoColumn = 'npk';
                     $pdo->rollback();
-                    $result = $kontrol;
-                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
