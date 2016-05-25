@@ -15,4 +15,17 @@ class MailWrapper extends AbstractMailWrapper{
     public function __construct() {  
         
     }
+    
+    public function mailServerConfig() {
+        
+    }
+    
+    public function sendAuthorizingMail() {            
+    }
+    
+    public function sendUserProblemMail() {            
+    }
+    
+    
+    
 }

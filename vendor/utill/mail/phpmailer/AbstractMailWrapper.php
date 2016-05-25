@@ -13,4 +13,29 @@ require_once '../../../phpmailer/phpmailer/PhpMailerAutoload.php';
 
 abstract  class AbstractMailWrapper{
     
+      protected $parameters = array();
+       
+    /**
+     * mailServerConfig
+     */
+    abstract public function mailServerConfig();
+    
+    /**
+     * sendAuthorizingMail
+     */
+    abstract public function sendAuthorizingMail();
+    /**
+     * sendUserProblemMail
+     */
+    abstract public function sendUserProblemMail();
+      
+    /**
+     * to set mail server prameters
+     * @param array | null $parameters
+     * @author Okan CIRAN
+     * @since version 0.1 25.05.2016
+     */
+    public function setParameters($parameters = array()) {
+        $this->parameters = $parameters;
+    }
 }
