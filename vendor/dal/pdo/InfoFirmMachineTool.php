@@ -257,7 +257,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         }
                         
                         $ConsultantId = 1001;
-                        $getConsultant = SysOsbConsultants::getConsultantIdForCompany(array('category_id' => 1));
+                        $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_machine_tool' , 'operation_type_id' => $operationIdValue));
                         if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                             $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                         } 

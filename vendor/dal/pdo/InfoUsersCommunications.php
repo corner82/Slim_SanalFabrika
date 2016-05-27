@@ -211,7 +211,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                     }
                 }
 
-                $getConsultant = SysOsbConsultants::getConsultantIdForUsers(array('category_id' => 1));
+                $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users_communications' , 'operation_type_id' => $operationIdValue));
                 if (!\Utill\Dal\Helper::haveRecord($getConsultant)) {
                     $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                 } else {
@@ -1097,7 +1097,7 @@ class InfoUsersCommunications extends \DAL\DalSlim {
                     $addSqlValue .= " 1,";
                 }
 
-                $getConsultant = SysOsbConsultants::getConsultantIdForUsers(array('category_id' => 1));
+                $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users_communications' , 'operation_type_id' => $operationIdValue));
                 if (\Utill\Dal\Helper::haveRecord($getConsultant['resultSet'][0]['consultant_id'])) {
                     $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                 } else {

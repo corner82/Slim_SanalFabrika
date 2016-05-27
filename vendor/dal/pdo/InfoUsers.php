@@ -307,7 +307,7 @@ class InfoUsers extends \DAL\DalSlim {
                         $languageIdValue = $params['preferred_language'];
                     }
                    //uzerinde az iş olan consultantı alalım.  
-                   $getConsultant = SysOsbConsultants::getConsultantIdForUsers();              
+                   $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users' , 'operation_type_id' => $operationIdValue));
                     if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                         $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                     } else {
@@ -498,7 +498,7 @@ class InfoUsers extends \DAL\DalSlim {
                 $kontrol = $this->haveRecords($params);
                 if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                     $ConsultantId = 1001;
-                    $getConsultant = SysOsbConsultants::getConsultantIdForUsers(array('category_id' => 0));              
+                    $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users' , 'operation_type_id' => $operationIdValue));
                     if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                         $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                     }
