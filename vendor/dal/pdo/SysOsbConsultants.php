@@ -1207,12 +1207,11 @@ class SysOsbConsultants extends \DAL\DalSlim {
     public function getConsultantIdForCompany($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $addSql = "  ";
+            $addSql = " AND cons.category_id = 0 ";
 
             if ((isset($params['category_id']) && $params['category_id'] != "")) {
-                $addSql .= " AND cons.category_id = " . intval($params['category_id'])  ;
-            }
-            $addSql .= " AND cons.category_id = 0 "; 
+                $addSql = " AND cons.category_id = " . intval($params['category_id'])  ;
+            }            
                $sql = "              
                 SELECT consultant_id, 1=1 AS control FROM ( 
                     SELECT 
@@ -1239,6 +1238,234 @@ class SysOsbConsultants extends \DAL\DalSlim {
         } catch (\PDOException $e /* Exception $e */) {
           
             return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
+    /**
+     * @author Okan CIRAN
+     * info_firm_profile tablosunda üzerinde en az iş olan consultant id sini döndürür    !!
+     * yeni kayıt edilen consultant varsa onu da işleme alır.
+     * @version v 1.0  
+     * @since 27.05.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function getConsultantIdForTableName($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $addSql = "  AND sos.redirectmap IS NULL ";
+
+            if ((isset($params['redirectmap']) && $params['redirectmap'] != "")) {
+                $addSql = " AND sos.redirectmap = '" . $params['redirectmap']."'";                        
+            }        
+            
+            $tableName = 'info_firm_profile';
+            if ((isset($params['table_name']) && $params['table_name'] != "")) {
+                $addSql = " AND sos.table_name = '" . $params['table_name']."'";  
+                $tableName = $params['table_name'];
+            }
+            if ((isset($params['operation_type_id']) && $params['operation_type_id'] != "")) {
+                $addSql .= " AND sos.id = " . intval($params['operation_type_id']);                        
+            }
+            
+               $sql = "              
+                SELECT consultant_id, 1=1 AS control FROM ( 
+                    SELECT 
+                        cons.user_id AS consultant_id , 
+                        count(ifp.id) AS adet , 
+                        MAX(ifp.s_date) 
+                    FROM sys_osb_consultants cons
+                    INNER JOIN sys_operation_types sos ON sos.active =0 AND sos.deleted =0 ".$addSql." 
+                    LEFT JOIN ".$tableName." ifp ON ifp.consultant_id = cons.user_id AND ifp.cons_allow_id = 0  
+                    WHERE cons.active = 0 AND cons.deleted =0 AND cons.osb_id = 5                     
+                        AND sos.category_id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_array_elements(category_json))                    
+                    GROUP BY cons.user_id
+                    ORDER BY adet, max  
+                    LIMIT 1 
+                ) AS tempx                    
+                                 ";
+               $statement = $pdo->prepare($sql);
+           //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+          
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+
+    /**
+     * @author Okan CIRAN
+     * @ Gridi doldurmak için consultant ların yaptığı operasyon kayıtlarını döndürür !!
+     * @version v 1.0  08.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getAllFirmCons($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $getFirm = InfoFirmProfile :: getFirmIdsForNetworkKey(array('network_key' => $params['network_key']));
+                if (\Utill\Dal\Helper::haveRecord($getFirm)) {
+                    $getFirmIdValue = $getFirm ['resultSet'][0]['firm_id'];
+
+                    $languageId = NULL;
+                    $languageIdValue = 647;
+                    if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                            $languageIdValue = $languageId ['resultSet'][0]['id'];
+                        }
+                    }                    
+                    
+                    $sql = "                
+                SELECT DISTINCT
+                    a.id AS firm_id,
+                    u.id AS consultant_id,
+                    iud.name, 
+                    iud.surname,
+                    iud.auth_email,                
+                    CASE COALESCE(NULLIF(TRIM(iud.picture), ''),'-') 
+                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' ,'image_not_found.png')
+                        ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' ,TRIM(iud.picture)) END AS cons_picture,
+                    a.consultant_id  = u.id AS firm_consultant,
+                    COALESCE(NULLIF(ifux.title, ''), ifux.title_eng) AS title,
+                    ifu.title_eng,
+                    COALESCE(NULLIF(soc.title, ''), soc.title_eng) AS osb_title,
+                    soc.title_eng osb_title_eng,
+                    ifk.network_key
+                FROM info_firm_profile a   
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0 
+                INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.act_parent_id 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND l.deleted =0 AND l.active =0 
+		LEFT JOIN info_firm_profile ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0
+                INNER JOIN info_users u ON u.role_id in (1,2,6) AND u.deleted =0  
+                INNER JOIN sys_osb_consultants soc ON soc.active = 0 AND soc.deleted =0 AND soc.user_id = u.id
+                INNER JOIN info_users_detail iud ON iud.root_id = u.id AND iud.cons_allow_id = 2
+                INNER JOIN info_users_communications iuc ON iuc.user_id = u.id AND iuc.cons_allow_id = 2
+                INNER JOIN info_firm_users ifu ON ifu.user_id = u.id AND ifu.firm_id = 1 AND ifu.cons_allow_id = 2
+                LEFT JOIN info_firm_users ifux ON (ifux.id = ifu.id OR ifux.language_parent_id = ifu.id) AND ifu.cons_allow_id = 2 AND ifux.language_id = lx.id
+                INNER JOIN sys_specific_definitions sd5 ON sd5.main_group = 5 AND sd5.first_group = iuc.communications_type_id AND sd5.deleted =0 AND sd5.active =0 AND l.id = sd5.language_id
+		LEFT JOIN sys_specific_definitions sd5x ON (sd5x.id =sd5.id OR sd5x.language_parent_id = sd5.id) AND sd5x.deleted =0 AND sd5x.active =0 AND lx.id = sd5x.language_id
+                WHERE
+                    a.act_parent_id = " . intval($getFirmIdValue) . " AND                          
+                        u.id IN (
+                            SELECT DISTINCT consultant_id FROM info_firm_profile WHERE act_parent_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_academics WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_socialmedia WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_address WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_arge WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_building WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_certificate WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_clusters where firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_building WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_commercial_activity WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_communications WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_customers WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_energy_efficiency WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_fair WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_financial WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_green_energy_plant WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_language_info WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_machine_tool WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_machine_tool_work_schedule WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_membership WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_other_devices WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_personnel_info WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_potential WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_process WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_process_allocation WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_products WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_products_services WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_raw_materials WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_quality WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_recycling_plant WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_references WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_sectoral WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_university WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_user_desc_for_company WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_users WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_verbal WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_waste WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_work_safety WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_workflow_definition WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_workflow_materials WHERE firm_id = " . intval($getFirmIdValue) . " 
+                            UNION
+                            SELECT DISTINCT consultant_id FROM info_firm_workflow_process WHERE firm_id = " . intval($getFirmIdValue) . " 
+                        )
+                        ORDER BY firm_consultant DESC,iud.name,iud.surname 
+                        ";
+                    $statement = $pdo->prepare($sql);
+                    // echo debugPDO($sql, $params);
+                    $statement->execute();
+                    $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                    $errorInfo = $statement->errorInfo();
+
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+                } else {
+                    $errorInfo = '23502';   // 23502  not_null_violation
+                    $errorInfoColumn = 'npk';
+                    $pdo->rollback();
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
 

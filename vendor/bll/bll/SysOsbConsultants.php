@@ -68,7 +68,6 @@ class SysOsbConsultants extends \BLL\BLLSlim {
      * @return array
      */
     public function fillGrid($params = array()) {
-
         $DAL = $this->slimApp->getDALManager()->get('sysOsbConsultantsPDO');
         $resultSet = $DAL->fillGrid($params);
         return $resultSet['resultSet'];
@@ -115,5 +114,17 @@ class SysOsbConsultants extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('sysOsbConsultantsPDO');
         return $DAL->getConsConfirmationProcessDetails($params);
     }
+    
+    /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */
+    public function getAllFirmCons($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysOsbConsultantsPDO');
+        return $DAL->getAllFirmCons($params);
+    }
+    
+    
 
 }

@@ -4,7 +4,7 @@
 require 'vendor/autoload.php';
 
 
-
+use \Services\Filter\Helper\FilterFactoryNames as stripChainers;
 
 /* $app = new \Slim\Slim(array(
   'mode' => 'development',
@@ -48,9 +48,7 @@ $app->add(new \Slim\Middleware\MiddlewareServiceManager());
  * @since 07-01-2016
  */
 $app->get("/pkGetConsPendingFirmProfile_sysOsbConsultants/", function () use ($app ) {
-
-   
-
+ 
     $BLL = $app->getBLLManager()->get('sysOsbConsultantsBLL');
 
     $headerParams = $app->request()->headers();
@@ -169,6 +167,67 @@ $app->get("/pkGetConsConfirmationProcessDetails_sysOsbConsultants/", function ()
 
  
  
+/**
+ *  * Okan CIRAN
+ * @since 23-05-2016
+ */
+$app->get("/pkGetAllFirmCons_sysOsbConsultants/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('sysOsbConsultantsBLL');
+    $headerParams = $app->request()->headers();     
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkGetAllFirmCons_sysOsbConsultants" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }
+     
+
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('npk')) $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();    
+ 
+     $result = $BLL->getAllFirmCons(array(
+        'language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey,        
+        'pk' => $pk,
+        ));
+    
+  
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array(
+            "firm_id" => $flow["firm_id"],
+            "consultant_id" => $flow["consultant_id"],  
+            "name" => $flow["name"],   
+            "surname" => $flow["surname"],
+            "auth_email" => $flow["auth_email"],            
+            "title" => $flow["title"],             
+            "title_eng" => $flow["title_eng"],
+            "osb_title" => $flow["title"],             
+            "osb_title_eng" => $flow["title_eng"],
+            "cons_picture" => $flow["cons_picture"],
+            "npk" => $flow["network_key"],         
+            "attributes" => array("firm_consultant" => $flow["firm_consultant"],),
+        );
+    }
+ 
+    $app->response()->header("Content-Type", "application/json");    
+    $app->response()->body(json_encode($flows));
+});
+
 
 
 $app->run();
