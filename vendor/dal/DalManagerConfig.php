@@ -91,8 +91,9 @@ class DalManagerConfig {
                 'infoFirmProductsServicesPDO' => 'DAL\Factory\PDO\InfoFirmProductsServicesFactory',
                 'infoFirmCertificatePDO' => 'DAL\Factory\PDO\InfoFirmCertificateFactory',
                 'infoFirmQualityPDO' => 'DAL\Factory\PDO\InfoFirmQualityFactory',
+                'infoFirmSectoralPDO' => 'DAL\Factory\PDO\InfoFirmSectoralFactory',
                                 
-                
+               
                 
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
                 'logServicesPDO' => 'DAL\Factory\PDO\LogServicesFactory',

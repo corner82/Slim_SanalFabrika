@@ -86,6 +86,7 @@ class BLLManagerConfig{
                  'infoFirmProductsServicesBLL' => 'BLL\BLL\InfoFirmProductsServices',
                  'infoFirmCertificateBLL' => 'BLL\BLL\InfoFirmCertificate',
                  'infoFirmQualityBLL' => 'BLL\BLL\InfoFirmQuality',
+                 'infoFirmSectoralBLL' => 'BLL\BLL\InfoFirmSectoral',
                  
                  
                  
