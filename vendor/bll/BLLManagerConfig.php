@@ -85,6 +85,8 @@ class BLLManagerConfig{
                  'sysMailServerBLL' => 'BLL\BLL\SysMailServer',                 
                  'infoFirmProductsServicesBLL' => 'BLL\BLL\InfoFirmProductsServices',
                  'infoFirmCertificateBLL' => 'BLL\BLL\InfoFirmCertificate',
+                 'infoFirmQualityBLL' => 'BLL\BLL\InfoFirmQuality',
+                 
                  
                  
                  'logConnectionBLL' => 'BLL\BLL\LogConnection',  
