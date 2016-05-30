@@ -88,6 +88,7 @@ class DalManagerConfig {
                 'sysManufacturerPDO' => 'DAL\Factory\PDO\SysManufacturerFactory',
                 'infoFirmProductsPDO' => 'DAL\Factory\PDO\InfoFirmProductsFactory',
                 'sysMailServerPDO' => 'DAL\Factory\PDO\SysMailServerFactory',
+                'infoFirmProductsServicesPDO' => 'DAL\Factory\PDO\InfoFirmProductsServicesFactory',
                 
                   
                 

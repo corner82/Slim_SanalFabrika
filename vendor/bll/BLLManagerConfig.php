@@ -82,9 +82,8 @@ class BLLManagerConfig{
                  'infoFirmAddressBLL' => 'BLL\BLL\InfoFirmAddress',
                  'sysManufacturerBLL' => 'BLL\BLL\SysManufacturer',
                  'infoFirmProductsBLL' => 'BLL\BLL\InfoFirmProducts',
-                 'sysMailServerBLL' => 'BLL\BLL\SysMailServer',
-                 
-                 
+                 'sysMailServerBLL' => 'BLL\BLL\SysMailServer',                 
+                 'infoFirmProductsServicesBLL' => 'BLL\BLL\InfoFirmProductsServices',
                  
                  'logConnectionBLL' => 'BLL\BLL\LogConnection',  
                  'logServicesBLL' => 'BLL\BLL\LogServices',
