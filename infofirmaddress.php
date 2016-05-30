@@ -497,6 +497,84 @@ $app->get("/pkFillUsersFirmAddressNpk_infoFirmAddress/", function () use ($app )
                 "network_key" => $flow["network_key"],
                 "language_id" => $flow["language_id"],
                 "language_name" => $flow["language_name"],
+                "email" => $flow["email"],
+                "tel" => $flow["tel"],
+                "fax" => $flow["fax"],
+                "web_address" => $flow["web_address"],
+        
+                
+                "attributes" => array("notroot" => true,),
+            );
+        }       
+     }    
+
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();  
+    $resultArray['rows'] = $flows;
+    $app->response()->body(json_encode($resultArray));
+});
+
+
+  
+/**
+ *  * Okan CIRAN
+ * @since 27-05-2016
+ */
+$app->get("/FillUsersFirmAddressNpkQuest_infoFirmAddress/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('infoFirmAddressBLL');  
+
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
+    }
+    $vNpk = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['npk']));
+    }
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code'))
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();    
+    if ($stripper->offsetExists('npk'))
+        $vNpk = $stripper->offsetGet('npk')->getFilterValue();
+
+    $resDataGrid = $BLL->fillUsersFirmAddressNpk(array(
+        'language_code' => $vLanguageCode,
+        'network_key' => $vNpk,
+  
+    ));    
+  
+    $flows = array();            
+    if (isset($resDataGrid[0]['id'])) {      
+        foreach ($resDataGrid as $flow) {
+            $flows[] = array(
+               // "id" => $flow["id"],
+                //"firm_id" => $flow["firm_id"],
+                "firm_name" => $flow["firm_name"],
+                "firm_name_eng" => $flow["firm_name_eng"],
+                //"firm_building_type_id" => $flow["firm_building_type_id"],
+                "firm_building_type" => $flow["firm_building_type"],
+                "firm_building_name" => $flow["firm_building_name"],
+                "firm_building_name_eng" => $flow["firm_building_name_eng"],
+                "address" => $flow["address"],
+                //"country_id" => $flow["country_id"],
+                "country_name" => $flow["country_name"],
+                //"city_id" => $flow["city_id"],
+                "city_name" => $flow["city_name"],
+                //"borough_id" => $flow["borough_id"],
+                "borough_name" => $flow["borough_name"],
+                //"osb_id" => $flow["osb_id"],
+                "osb_name" => $flow["osb_name"],
+                "network_key" => $flow["network_key"],
+                //"language_id" => $flow["language_id"],
+                "language_name" => $flow["language_name"],
+                 "tel" => $flow["tel"],
+                "fax" => $flow["fax"],
+                "email" => $flow["email"],
+                "web_address" => $flow["web_address"],
                 "attributes" => array("notroot" => true,),
             );
         }       
