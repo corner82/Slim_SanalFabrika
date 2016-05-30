@@ -89,8 +89,9 @@ class DalManagerConfig {
                 'infoFirmProductsPDO' => 'DAL\Factory\PDO\InfoFirmProductsFactory',
                 'sysMailServerPDO' => 'DAL\Factory\PDO\SysMailServerFactory',
                 'infoFirmProductsServicesPDO' => 'DAL\Factory\PDO\InfoFirmProductsServicesFactory',
+                'infoFirmCertificatePDO' => 'DAL\Factory\PDO\InfoFirmCertificateFactory',
+                                
                 
-                  
                 
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
                 'logServicesPDO' => 'DAL\Factory\PDO\LogServicesFactory',
