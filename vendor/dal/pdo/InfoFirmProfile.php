@@ -259,7 +259,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
 
-                    $getConsultant = SysOsbConsultants::getConsultantIdForCompany(array('category_id' => 1));
+                    $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_profile' , 'operation_type_id' => $operationIdValue));
                     if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                         $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                     } else {
@@ -520,8 +520,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     $endOfId= InfoFirmProfile::getFirmEndOfId(array('firm_id' => $params['firm_id']));
                     if (\Utill\Dal\Helper::haveRecord($endOfId)) {
                     $endOfIdValue = $endOfId ['resultSet'][0]['firm_id'];
-                    }  
-                    $this->makePassive(array('id' => $endOfIdValue)); 
+                    }
+                    InfoFirmProfile::makePassive(array('id' => $endOfIdValue)); 
                     $addSql = NULL;
                     $addSqlValue = NULL ;
                     $operationIdValue = -2;
@@ -1374,7 +1374,6 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
                     
-                    $getConsultant = SysOsbConsultants::getConsultantIdForCompany(array('category_id' => 1));
                     if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                         $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                     } else {
@@ -2338,9 +2337,6 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     iud.name, 
                     iud.surname,
                     iud.auth_email,
-                    iuc.communications_type_id, 
-		    COALESCE(NULLIF(sd5x.description, ''), sd5.description_eng) AS communications_type_name,
-                    iuc.communications_no,
                     ifk.network_key,
                     CASE COALESCE(NULLIF(TRIM(iud.picture), ''),'-') 
                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' ,'image_not_found.png')

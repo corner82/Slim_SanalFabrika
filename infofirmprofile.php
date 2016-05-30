@@ -1734,9 +1734,9 @@ $app->get("/pkGetFirmProfileConsultant_infoFirmProfile/", function () use ($app 
             "name" => $flow["name"],   
             "surname" => $flow["surname"],
             "auth_email" => $flow["auth_email"],
-            "communications_type_id" => $flow["communications_type_id"],
-            "communications_type_name" => $flow["communications_type_name"],             
-            "communications_no" => $flow["communications_no"],
+            //"communications_type_id" => $flow["communications_type_id"],
+           // "communications_type_name" => $flow["communications_type_name"],             
+         //   "communications_no" => $flow["communications_no"],
             "cons_picture" => $flow["cons_picture"],
             "npk" => $flow["network_key"],
             
