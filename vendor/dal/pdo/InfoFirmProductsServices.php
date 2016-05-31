@@ -598,7 +598,7 @@ class InfoFirmProductsServices extends \DAL\DalSlim {
                 $this->makePassive(array('id' => $params['id']));
                 $operationIdValue = -3;
                 $operationId = SysOperationTypes::getTypeIdToGoOperationId(
-                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 41, 'type_id' => 3,));
+                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 46, 'type_id' => 3,));
                 if (\Utill\Dal\Helper::haveRecord($operationId)) {
                     $operationIdValue = $operationId ['resultSet'][0]['id'];
                 }
