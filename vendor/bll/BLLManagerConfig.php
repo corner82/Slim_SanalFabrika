@@ -87,6 +87,7 @@ class BLLManagerConfig{
                  'infoFirmCertificateBLL' => 'BLL\BLL\InfoFirmCertificate',
                  'infoFirmQualityBLL' => 'BLL\BLL\InfoFirmQuality',
                  'infoFirmSectoralBLL' => 'BLL\BLL\InfoFirmSectoral',
+                 'infoFirmLanguageInfoBLL' => 'BLL\BLL\InfoFirmLanguageInfo',
                  
                  
                  

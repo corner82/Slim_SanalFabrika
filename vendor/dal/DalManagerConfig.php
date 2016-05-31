@@ -92,7 +92,7 @@ class DalManagerConfig {
                 'infoFirmCertificatePDO' => 'DAL\Factory\PDO\InfoFirmCertificateFactory',
                 'infoFirmQualityPDO' => 'DAL\Factory\PDO\InfoFirmQualityFactory',
                 'infoFirmSectoralPDO' => 'DAL\Factory\PDO\InfoFirmSectoralFactory',
-                                
+                'infoFirmLanguageInfoPDO' => 'DAL\Factory\PDO\InfoFirmLanguageInfoFactory',
                
                 
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
