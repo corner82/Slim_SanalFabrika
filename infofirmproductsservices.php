@@ -276,7 +276,7 @@ $app->get("/pkInsert_infoFirmProductsServices/", function () use ($app ) {
     } 
   
 
-    $resData = $BLL->update(array(  
+    $resData = $BLL->insert(array(  
             'network_key' => $vNetworkKey,             
             'language_code' => $vLanguageCode,    
             'profile_public' => $vProfilePublic ,                         
