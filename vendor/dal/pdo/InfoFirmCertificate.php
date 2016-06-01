@@ -602,7 +602,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                 $this->makePassive(array('id' => $params['id']));
                 $operationIdValue = -3;
                 $operationId = SysOperationTypes::getTypeIdToGoOperationId(
-                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 41, 'type_id' => 3,));
+                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 46, 'type_id' => 3,));
                 if (\Utill\Dal\Helper::haveRecord($operationId)) {
                     $operationIdValue = $operationId ['resultSet'][0]['id'];
                 }
@@ -616,7 +616,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                             profile_public,
                             act_parent_id,                         
                             
-                            unspsc_codes_id,                            
+                            certificate_id,                            
                             
                             consultant_confirm_type_id,
                             confirm_id,                         
@@ -634,7 +634,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                             profile_public,
                             act_parent_id,
                             
-                            unspsc_codes_id,                            
+                            certificate_id,                            
                          
                             consultant_confirm_type_id,
                             confirm_id,                        
