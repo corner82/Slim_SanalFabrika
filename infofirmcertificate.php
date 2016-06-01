@@ -304,7 +304,7 @@ $app->get("/pkFillFirmCertificateNpk_infoFirmCertificate/", function () use ($ap
 
     $headerParams = $app->request()->headers();
     if (!isset($headerParams['X-Public']))
-        throw new Exception('rest api "pkFillFirmProductsServicesNpk_infoFirmCertificate" end point, X-Public variable not found');
+        throw new Exception('rest api "pkFillFirmCertificateNpk_infoFirmCertificate" end point, X-Public variable not found');
     $pk = $headerParams['X-Public'];
 
     $vLanguageCode = 'tr';
