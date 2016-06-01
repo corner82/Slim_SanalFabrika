@@ -1627,8 +1627,8 @@ $app->get("/pkFillFirmFullVerbal_infoFirmProfile/", function () use ($app ) {
     foreach ($result['resultSet'] as $flow) {
         $flows[] = array(
             "id" => $flow["id"],  
-            "verbal_id" => $flow["verbal_id"], 
-            "firm_id" => $flow["act_parent_id"],   
+           // "verbal_id" => $flow["verbal_id"], 
+            "cpk" => $flow["cpk"],   
             "profile_public" => $flow["profile_public"],  
             "s_date" => $flow["s_date"],   
             "c_date" => $flow["c_date"],
