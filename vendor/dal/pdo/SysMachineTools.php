@@ -225,6 +225,7 @@ class SysMachineTools extends \DAL\DalSlim {
 		INNER JOIN info_users_detail u ON u.root_id = a.op_user_id AND u.active = 0 AND u.deleted = 0                 
 		WHERE a.machine_tool_name = '" . $params['machine_tool_name'] . "'
                     AND a.machine_tool_grup_id = " . intval($params['machine_tool_grup_id']) . "
+                    AND a.manufactuer_id = " . intval($params['manufactuer_id']) . "                        
                 " . $addSql . " 
                     AND a.deleted =0    
                                ";
