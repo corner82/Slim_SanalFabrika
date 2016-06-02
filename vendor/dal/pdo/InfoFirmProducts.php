@@ -176,7 +176,7 @@ class InfoFirmProducts extends \DAL\DalSlim {
                 CONCAT(a.product_name, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message                             
             FROM info_firm_products a             
             WHERE a.firm_id = " . intval($params['firm_id']) . "
-                AND LOWER(a.product_name) = LOWER('" . $params['machine_id'] . "')
+                AND LOWER(a.product_name) = LOWER('" . $params['product_name'] . "')
                 AND a.active = 0 
                 AND a.deleted = 0     
                 " . $addSql . "                  
@@ -370,14 +370,18 @@ class InfoFirmProducts extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $kontrol = $this->haveRecords($params);
-                if (\Utill\Dal\Helper::haveRecord($kontrol)) {
-                    $this->makePassive(array('id' => $params['id']));               
+                  $getFirm = InfoFirmProfile :: getFirmIdsForNetworkKey(array('network_key' => $params['network_key']));
+                if (\Utill\Dal\Helper::haveRecord($getFirm)) {
+                    $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
+
+                $kontrol = $this->haveRecords(array('id' => $params['id'], 'firm_id' => $getFirmId, 'product_name' => $params['product_name'],));
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                    $this->makePassive(array('id' => $params['id']));
                     $operationIdValue = -2;
                     $operationId = SysOperationTypes::getTypeIdToGoOperationId(
-                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 22, 'type_id' => 2,));
+                                    array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 22, 'type_id' => 2,));
                     if (\Utill\Dal\Helper::haveRecord($operationId)) {
-                    $operationIdValue = $operationId ['resultSet'][0]['id'];
+                        $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
                     $languageId = NULL;
                     $languageIdValue = 647;
@@ -386,7 +390,7 @@ class InfoFirmProducts extends \DAL\DalSlim {
                         if (\Utill\Dal\Helper::haveRecord($languageId)) {
                             $languageIdValue = $languageId ['resultSet'][0]['id'];
                         }
-                    } 
+                    }
 
                     $profilePublic = 0;
                     if ((isset($params['profile_public']) && $params['profile_public'] != "")) {
@@ -396,7 +400,7 @@ class InfoFirmProducts extends \DAL\DalSlim {
                     if ((isset($params['active']) && $params['active'] != "")) {
                         $active = $params['active'];
                     }
-                    
+
                     $statement_act_insert = $pdo->prepare(" 
                  INSERT INTO info_firm_products(
                             firm_id, 
@@ -427,17 +431,17 @@ class InfoFirmProducts extends \DAL\DalSlim {
                             act_parent_id,
                             " . intval($active) . ",  
                             
-                            '" . $params['product_name'] . " AS product_name,
-                            '" . $params['product_description'] . " AS product_description,
+                            '" . $params['product_name'] . "' AS product_name,
+                            '" . $params['product_description'] . "' AS product_description,
                             " . intval($params['gtip_no_id']) . " AS gtip_no_id,
-                            '" . $params['product_name_eng'] . " AS product_name_eng,
-                            '" . $params['product_description_eng'] . " AS product_description_eng,
-                            '" . $params['product_picture'] . " AS product_picture,
-                            '" . $params['product_video_link'] . " AS product_video_link,
+                            '" . $params['product_name_eng'] . "' AS product_name_eng,
+                            '" . $params['product_description_eng'] . "' AS product_description_eng,
+                            '" . $params['product_picture'] . "' AS product_picture,
+                            '" . $params['product_video_link'] . "' AS product_video_link,
                             " . intval($params['production_types_id']) . " AS production_types_id  
                         FROM info_firm_products 
                         WHERE id =  " . intval($params['id']) . " 
-                        "); 
+                        ");
                     $insert_act_insert = $statement_act_insert->execute();
                     $affectedRows = $statement_act_insert->rowCount();
                     $errorInfo = $statement_act_insert->errorInfo();
@@ -452,6 +456,12 @@ class InfoFirmProducts extends \DAL\DalSlim {
                     $pdo->rollback();
                     $result = $kontrol;
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
+                }
+                } else {
+                    $errorInfo = '23502';   // 23502  not_null_violation
+                    $errorInfoColumn = 'firm_id';
+                    $pdo->rollback();
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation

@@ -160,26 +160,32 @@ $app->get("/pkUpdate_infoFirmProducts/", function () use ($app ) {
     $headerParams = $app->request()->headers();
     if (!isset($headerParams['X-Public']))
         throw new Exception('rest api "pkUpdate_infoFirmProducts" end point, X-Public variable not found');
-    $pk = $headerParams['X-Public'];    
-    $vLanguageCode = 'tr'; 
-    if (isset($_GET['language_code'])) {
-         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
-                                                $app,
-                                                $_GET['language_code']));
-    }       
+    $pk = $headerParams['X-Public'];          
     $vId = NULL;
     if (isset($_GET['id'])) {
          $stripper->offsetSet('id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['id']));
     }   
-    $vActive = 0;
+    $vActive = NULL;
     if (isset($_GET['active'])) {
          $stripper->offsetSet('active',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['active']));
-    }   
+    }  
+    $vLanguageCode = 'tr'; 
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }       
     $vProfilePublic = 0;
+    $vNpk = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['npk']));
+    }
     if (isset($_GET['profile_public'])) {
          $stripper->offsetSet('profile_public',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
@@ -234,16 +240,19 @@ $app->get("/pkUpdate_infoFirmProducts/", function () use ($app ) {
                                                 $_GET['production_types_id']));
     }     
     
-    $stripper->strip(); 
-    if ($stripper->offsetExists('language_code')) {
-        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    } 
+    $stripper->strip();    
     if ($stripper->offsetExists('id')) {
         $vId = $stripper->offsetGet('id')->getFilterValue();
     } 
     if ($stripper->offsetExists('active')) {
         $vActive = $stripper->offsetGet('active')->getFilterValue();
-    } 
+    }     
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }  
+    if ($stripper->offsetExists('npk')){
+        $vNpk = $stripper->offsetGet('npk')->getFilterValue();
+    }
     if ($stripper->offsetExists('profile_public')) {
         $vProfilePublic = $stripper->offsetGet('profile_public')->getFilterValue();
     } 
@@ -271,14 +280,12 @@ $app->get("/pkUpdate_infoFirmProducts/", function () use ($app ) {
     if ($stripper->offsetExists('picture')) {
         $vPicture = $stripper->offsetGet('picture')->getFilterValue();
     } 
-    
-
+     
     $resData = $BLL->update(array(  
             'id' => $vId,
             'active' => $vActive,
             'language_code' => $vLanguageCode,
-            'profile_public' => $vProfilePublic,
-            
+            'profile_public' => $vProfilePublic,            
             'product_name' => $vProductName,
             'product_name_eng' => $vProductNameEng,
             'product_description' => $vProductDescription,
@@ -286,9 +293,9 @@ $app->get("/pkUpdate_infoFirmProducts/", function () use ($app ) {
             'gtip_no_id' => $vGtipNoId,
             'product_video_link' => $vProductVideoLink,
             'production_types_id' => $vProductionTypesId,
-            'picture' => $vPicture, 
-                               
-            'pk' => $pk,        
+            'product_picture' => $vPicture, 
+            'network_key' => $vNpk,                  
+            'pk' => $pk,     
             )); 
     $app->response()->header("Content-Type", "application/json"); 
     $app->response()->body(json_encode($resData));
@@ -315,6 +322,12 @@ $app->get("/pkInsert_infoFirmProducts/", function () use ($app ) {
                                                 $_GET['language_code']));
     }       
     $vProfilePublic = 0;
+    $vNpk = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['npk']));
+    }
     if (isset($_GET['profile_public'])) {
          $stripper->offsetSet('profile_public',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
@@ -372,7 +385,10 @@ $app->get("/pkInsert_infoFirmProducts/", function () use ($app ) {
     $stripper->strip(); 
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    }      
+    }  
+    if ($stripper->offsetExists('npk')){
+        $vNpk = $stripper->offsetGet('npk')->getFilterValue();
+    }
     if ($stripper->offsetExists('profile_public')) {
         $vProfilePublic = $stripper->offsetGet('profile_public')->getFilterValue();
     } 
@@ -404,8 +420,7 @@ $app->get("/pkInsert_infoFirmProducts/", function () use ($app ) {
 
     $resData = $BLL->insert(array(              
             'language_code' => $vLanguageCode,
-            'profile_public' => $vProfilePublic,
-            
+            'profile_public' => $vProfilePublic,            
             'product_name' => $vProductName,
             'product_name_eng' => $vProductNameEng,
             'product_description' => $vProductDescription,
@@ -413,8 +428,8 @@ $app->get("/pkInsert_infoFirmProducts/", function () use ($app ) {
             'gtip_no_id' => $vGtipNoId,
             'product_video_link' => $vProductVideoLink,
             'production_types_id' => $vProductionTypesId,
-            'picture' => $vPicture, 
-                               
+            'product_picture' => $vPicture, 
+            'network_key' => $vNpk,                  
             'pk' => $pk,        
             )); 
     $app->response()->header("Content-Type", "application/json"); 
