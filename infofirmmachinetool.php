@@ -350,12 +350,17 @@ $app->get("/pkInsert_infoFirmMachineTool/", function () use ($app ) {
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
         $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
+    }   
+    $vNpk = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['npk']));
     }
-
     $vProfilePublic = 0;
     if (isset($_GET['profile_public'])) {
         $stripper->offsetSet('profile_public', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['profile_public']));
-    }
+    }    
     $vAvailabilityId = 0;
     if (isset($_GET['availability_id'])) {
         $stripper->offsetSet('availability_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['availability_id']));
@@ -363,6 +368,10 @@ $app->get("/pkInsert_infoFirmMachineTool/", function () use ($app ) {
     $vMachineId = NULL;
     if (isset($_GET['machine_id'])) {
         $stripper->offsetSet('machine_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['machine_id']));
+    }
+    $vTotal = 0;
+    if (isset($_GET['total'])) {
+        $stripper->offsetSet('total', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['total']));
     }
     $vPicture = NULL;
     if (isset($_GET['picture'])) {
@@ -372,6 +381,12 @@ $app->get("/pkInsert_infoFirmMachineTool/", function () use ($app ) {
     $stripper->strip();
     if ($stripper->offsetExists('machine_id')) {
         $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('total')) {
+        $vTotal = $stripper->offsetGet('total')->getFilterValue();
+    }
+    if ($stripper->offsetExists('npk')) {
+        $vNpk = $stripper->offsetGet('npk')->getFilterValue();
     }
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
@@ -388,8 +403,10 @@ $app->get("/pkInsert_infoFirmMachineTool/", function () use ($app ) {
 
     $resDataInsert = $BLL->insert(array(
         'language_code' => $vLanguageCode,
+        'network_key' => $vNpk,
         'profile_public' => $vProfilePublic,
         'machine_id' => $vMachineId,
+        'total' => $vTotal,
         'availability_id' => $vAvailabilityId,        
         'picture' => $vPicture,
         'pk' => $pk,
@@ -416,6 +433,12 @@ $app->get("/pkUpdate_infoFirmMachineTool/", function () use ($app ) {
     if (isset($_GET['id'])) {
         $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['id']));
     }
+    $vNpk = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['npk']));
+    }
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
         $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
@@ -440,10 +463,17 @@ $app->get("/pkUpdate_infoFirmMachineTool/", function () use ($app ) {
     if (isset($_GET['picture'])) {
         $stripper->offsetSet('picture', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['picture']));
     }
+    $vTotal = 0;
+    if (isset($_GET['total'])) {
+        $stripper->offsetSet('total', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['total']));
+    }
 
     $stripper->strip();
     if ($stripper->offsetExists('id')) {
         $vId = $stripper->offsetGet('id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('npk')) {
+        $vNpk = $stripper->offsetGet('npk')->getFilterValue();
     }
     if ($stripper->offsetExists('machine_id')) {
         $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
@@ -463,13 +493,18 @@ $app->get("/pkUpdate_infoFirmMachineTool/", function () use ($app ) {
     if ($stripper->offsetExists('picture')) {
         $vPicture = $stripper->offsetGet('picture')->getFilterValue();
     }
+    if ($stripper->offsetExists('total')) {
+        $vTotal = $stripper->offsetGet('total')->getFilterValue();
+    }
 
     $resDataInsert = $BLL->update(array(
         'id' => $vId,
+        'network_key' => $vNpk,
         'language_code' => $vLanguageCode,
         'profile_public' => $vProfilePublic,
         'firm_id' => $vFirmId,
-        'machine_id' => $vMachineId,
+        'sys_machine_tool_id' => $vMachineId,
+        'total' => $vTotal,
         'availability_id' => $vAvailabilityId,        
         'picture' => $vPicture,
         'pk' => $pk,

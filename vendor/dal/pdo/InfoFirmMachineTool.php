@@ -162,26 +162,25 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
     public function haveRecords($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $addSql = " AND a.deleted =0  ";
+            $addSql = " ";
             if (isset($params['id'])) {
                 $addSql .= " AND a.id != " . intval($params['id']);
             }
             $sql = " 
             SELECT  
-                smt.machine_tool_name AS name , 
-                smt.machine_tool_name AS value , 
+                a.sys_machine_tool_id AS name , 
+                a.sys_machine_tool_id AS value , 
                 a.sys_machine_tool_id = " . intval($params['machine_id']) . " AS control,
-                CONCAT(smt.machine_tool_name, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message                             
-            FROM info_firm_machine_tool a 
-            INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.deleted =0 AND smt.active =0 
+                CONCAT(a.sys_machine_tool_id, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message                             
+            FROM info_firm_machine_tool a             
             WHERE a.firm_id = " . intval($params['firm_id']) . "
                 AND a.sys_machine_tool_id = " . intval($params['machine_id']) . "
                 AND a.active = 0 
                 AND a.deleted = 0     
-                   " . $addSql . "                  
+                " . $addSql . "                  
                                ";
             $statement = $pdo->prepare($sql);
-            // echo debugPDO($sql, $params);
+             echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -240,7 +239,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $getFirm = InfoFirmProfile :: getUserFirmIds(array('user_id' => $opUserIdValue));
+                $getFirm = InfoFirmProfile :: getFirmIdsForNetworkKey(array('network_key' => $params['network_key']));
                 if (\Utill\Dal\Helper::haveRecord($getFirm)) {
                     $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
 
@@ -332,7 +331,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     }
                 } else {
                     $errorInfo = '23502';   // 23502  not_null_violation
-                    $errorInfoColumn = 'firm_id';
+                    $errorInfoColumn = 'npk';
                     $pdo->rollback();
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
@@ -363,34 +362,39 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $kontrol = $this->haveRecords($params);
-                if (\Utill\Dal\Helper::haveRecord($kontrol)) {
-                    $this->makePassive(array('id' => $params['id']));               
-                    $operationIdValue = -2;
-                    $operationId = SysOperationTypes::getTypeIdToGoOperationId(
-                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 41, 'type_id' => 2,));
-                    if (\Utill\Dal\Helper::haveRecord($operationId)) {
-                    $operationIdValue = $operationId ['resultSet'][0]['id'];
-                    }
-                    $languageId = NULL;
-                    $languageIdValue = 647;
-                    if ((isset($params['language_code']) && $params['language_code'] != "")) {
-                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                            $languageIdValue = $languageId ['resultSet'][0]['id'];
-                        }
-                    } 
 
-                    $availabilityId= NULL;
-                    if ((isset($params['availability_id']) && $params['availability_id'] != "")) {                      
-                        $availabilityId =  intval($params['availability_id']);
-                    }
-                    $sysMachineToolId= NULL;
-                    if ((isset($params['sys_machine_tool_id']) && $params['sys_machine_tool_id'] != "")) {                      
-                        $sysMachineToolId =  intval($params['sys_machine_tool_id']);
-                    }
-                    
-                    $statement_act_insert = $pdo->prepare(" 
+                $getFirm = InfoFirmProfile :: getFirmIdsForNetworkKey(array('network_key' => $params['network_key']));
+                if (\Utill\Dal\Helper::haveRecord($getFirm)) {
+                    $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
+
+                    $kontrol = $this->haveRecords(array('id' => $params['id'], 'firm_id' => $getFirmId, 'machine_id' => $params['sys_machine_tool_id'],));
+                    if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                        $this->makePassive(array('id' => $params['id']));
+                        $operationIdValue = -2;
+                        $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                                        array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 41, 'type_id' => 2,));
+                        if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                            $operationIdValue = $operationId ['resultSet'][0]['id'];
+                        }
+                        $languageId = NULL;
+                        $languageIdValue = 647;
+                        if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                                $languageIdValue = $languageId ['resultSet'][0]['id'];
+                            }
+                        }
+
+                        $availabilityId = NULL;
+                        if ((isset($params['availability_id']) && $params['availability_id'] != "")) {
+                            $availabilityId = intval($params['availability_id']);
+                        }
+                        $sysMachineToolId = NULL;
+                        if ((isset($params['sys_machine_tool_id']) && $params['sys_machine_tool_id'] != "")) {
+                            $sysMachineToolId = intval($params['sys_machine_tool_id']);
+                        }
+
+                        $statement_act_insert = $pdo->prepare(" 
                  INSERT INTO info_firm_machine_tool(
                         profile_public, 
                         language_id,
@@ -407,7 +411,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         )
                         SELECT  
                             " . intval($params['profile_public']) . " AS profile_public, 
-                            " . intval($languageIdValue). ",   
+                            " . intval($languageIdValue) . ",   
                             " . intval($opUserIdValue) . ",
                             " . intval($operationIdValue) . ",    
                             act_parent_id,                       
@@ -417,23 +421,29 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                             consultant_id,
                             language_parent_id,
                             " . intval($params['total']) . " AS total,
-                            '" .$params['picture'] . " AS picture
+                            '" . $params['picture'] . "' AS picture
                         FROM info_firm_machine_tool 
                         WHERE id =  " . intval($params['id']) . " 
-                        "); 
-                    $insert_act_insert = $statement_act_insert->execute();
-                    $affectedRows = $statement_act_insert->rowCount();
-                    $errorInfo = $statement_act_insert->errorInfo();
-                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                        throw new \PDOException($errorInfo[0]);
-                    $pdo->commit();
-                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                        ");
+                        $insert_act_insert = $statement_act_insert->execute();
+                        $affectedRows = $statement_act_insert->rowCount();
+                        $errorInfo = $statement_act_insert->errorInfo();
+                        if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                            throw new \PDOException($errorInfo[0]);
+                        $pdo->commit();
+                        return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                    } else {
+                        // 23505  unique_violation
+                        $errorInfo = '23505';
+                        $pdo->rollback();
+                        $result = $kontrol;
+                        return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
+                    }
                 } else {
-                    // 23505  unique_violation
-                    $errorInfo = '23505';
+                    $errorInfo = '23502';   // 23502  not_null_violation
+                    $errorInfoColumn = 'npk';
                     $pdo->rollback();
-                    $result = $kontrol;
-                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
