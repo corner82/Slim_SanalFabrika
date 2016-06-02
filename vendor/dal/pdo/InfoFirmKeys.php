@@ -279,7 +279,7 @@ class InfoFirmKeys extends \DAL\DalSlim {
         }
     }
 
-      /**
+    /**
      *       
      * parametre olarak gelen array deki 'id' li kaydın, info_firm_keys tablosundaki private key ve value değerlerini oluşturur  !!
      * @author Okan CIRAN
@@ -326,7 +326,7 @@ class InfoFirmKeys extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-      /**
+    /**
      *       
      * parametre olarak gelen array deki 'id' li kaydın, info_firm_keys tablosundaki private key ve value değerlerini oluşturur  !!
      * @author Okan CIRAN
@@ -365,5 +365,70 @@ class InfoFirmKeys extends \DAL\DalSlim {
         }
     }
 
+    /**
+     * 
+     * @author Okan CIRAN
+     * @ info_firm_keys tablosundan firma public key i döndürür   !!
+     * @version v 1.0  31.06.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getCPK($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+                  $sql = "                           
+                SELECT       
+                     REPLACE(TRIM(SUBSTRING(crypt(sf_private_key_value,gen_salt('xdes')),6,20)),'/','*') AS cpk,
+                     1=1 AS control
+                FROM info_firm_keys a                            
+                WHERE a.network_key = :network_key  
+                                 ";
+            $statement = $pdo->prepare($sql);
+            $statement->bindValue(':network_key', $params['network_key'], \PDO::PARAM_STR);            
+          //  echo debugPDO($sql, $parameters);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {      
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * parametre olarak gelen array deki 'cpk' nın, info_firm_keys tablosundaki firm_id si değerini döndürür !!
+     * @author Okan CIRAN
+     * @version v 1.0  31.05.2016
+     * @param array $params 
+     * @return array
+     * @throws \PDOException
+     */
+    public function getFirmIdCPK($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $sql = "  
+                 SELECT firm_id AS firm_id, 1=1 AS control FROM (
+                            SELECT firm_id , 	
+                                CRYPT(sf_private_key_value,CONCAT('_J9..',REPLACE('" . $params['cpk'] . "','*','/'))) = CONCAT('_J9..',REPLACE('" . $params['cpk'] . "','*','/')) AS cpk                                
+                            FROM info_firm_keys) AS logintable
+                        WHERE cpk = TRUE 
+                ";
+            $statement = $pdo->prepare($sql);
+            // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
     
 }
