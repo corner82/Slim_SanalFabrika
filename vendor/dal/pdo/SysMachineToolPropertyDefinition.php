@@ -118,12 +118,13 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
+            $insertID = NULL;
+           $errorInfo = ["00000", null, null];
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $kontrol = $this->haveRecords($params);                     
-                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {             
-                  
+                $kontrol = $this->haveRecords($params);                
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {                   
                     $languageId = NULL;
                     $languageIdValue = 647;
                     if ((isset($params['language_code']) && $params['language_code'] != "")) {
@@ -157,29 +158,38 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                     $errorInfo = $statement->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
-
+                    
+                    if ((isset($params['unit_grup_id']) && $params['unit_grup_id'] != "")) {
+                        $xc= $this->insertPropertyUnitGroup(array('property_id' => $insertID,
+                            'unit_grup_id' => $params['unit_grup_id'],
+                            'opUserIdValue' => $opUserIdValue,));
+                    }
+                    }
+                    ELSE 
+                    {
+                        $insertID = $kontrol ['resultSet'][0]['id'];
+                    }
+          
                     if ((isset($params['machine_grup_id']) && $params['machine_grup_id'] != "")) {
                       $xc= $this->insertPropertyMachineGroup(array('property_id' => $insertID,
                             'machine_grup_id' => $params['machine_grup_id'],
                             'opUserIdValue' => $opUserIdValue,
                         ));
                     }
-                    if ((isset($params['unit_grup_id']) && $params['unit_grup_id'] != "")) {
-                        $xc= $this->insertPropertyUnitGroup(array('property_id' => $insertID,
-                            'unit_grup_id' => $params['unit_grup_id'],
-                            'opUserIdValue' => $opUserIdValue,));
-                    }
+                   
                    if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
                         throw new \PDOException($xc['errorInfo']);
                   
                     $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
-                } else {
+              /*  } else {
                     $errorInfo = '23505';
                     $errorInfoColumn = 'property_name';
                     $pdo->rollback();
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
+               * *
+               */
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
@@ -251,7 +261,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             //$pdo->beginTransaction();
-            $opUserIdValue = intval($params['opUserIdValue']);
+            $opUserIdValue = intval($params['opUserIdValue']);            
             $kontrol = $this->haveRecordsUnitGroup($params);
             if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                 $sql = "
@@ -267,7 +277,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                                      
                                                 ";
                 $statement = $pdo->prepare($sql);
-             //  echo debugPDO($sql, $params);
+               // echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_unit_groups_property_definition_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -307,15 +317,16 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                a.property_name AS name,
                '" . $params['property_name'] . "' AS value, 
                 LOWER(a.property_name) = LOWER(TRIM('" . $params['property_name'] . "')) AS control,
-                CONCAT(a.property_name, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
+                CONCAT(a.property_name, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message,
+                a.id
             FROM sys_machine_tool_property_definition  a                          
             WHERE 
-                LOWER(a.property_name) = LOWER(TRIM('" . $params['property_name'] . "'))            
+               replace(LOWER(a.property_name),' ','') = replace(LOWER(TRIM('" . $params['property_name'] . "')),' ','')            
                   " . $addSql . " 
                AND a.deleted =0    
                                ";
             $statement = $pdo->prepare($sql);
-           //  echo debugPDO($sql, $params);
+          //   echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -356,7 +367,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 AND a.deleted =0
                                ";            
             $statement = $pdo->prepare($sql);
-            // echo debugPDO($sql, $params);
+           //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -383,6 +394,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             if (isset($params['id'])) {
                 $addSql = " AND a.id != " . intval($params['id']) . " ";
             }
+             
             $sql = "
             SELECT  
                 a.unit_grup_id AS name,
@@ -397,7 +409,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 AND a.deleted =0
                                ";            
             $statement = $pdo->prepare($sql);
-            //   echo debugPDO($sql, $params);
+             // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -665,8 +677,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * user interface datagrid fill operation get row count for widget
+    /**     
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_machine_tool_property_definition tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
      * @version v 1.0  17.02.2016
@@ -704,7 +715,6 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
     }
 
     /**
-     * user interface fill operation   
      * @author Okan CIRAN
      * @ tree doldurmak için sys_machine_tool_property_definition tablosundan machine_grup_id si ve/yada unit_grup_id si
      * verilen kayıtları döndürür !!  grup değerleri boş ise tüm kayıtları döndürür.
@@ -906,7 +916,6 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-
      
     /**
      * @author Okan CIRAN
