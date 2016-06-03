@@ -44,14 +44,14 @@ $app->add(new \Slim\Middleware\MiddlewareServiceManager());
  *  * Okan CIRAN
  * @since 26-04-2016
  */
-$app->get("/pkInsert_infoFirmVerbal/", function () use ($app ) {  
+$app->get("/pkcpkInsert_infoFirmVerbal/", function () use ($app ) {  
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
     $BLL = $app->getBLLManager()->get('infoFirmVerbalBLL');    
   //  $BLLProfile = $app->getBLLManager()->get('infoFirmVerbalBLL');    
     $headerParams = $app->request()->headers();  
     if (!isset($headerParams['X-Public'])) {
-        throw new Exception('rest api "pkInsert_infoFirmVerbal" end point, X-Public variable not found');
+        throw new Exception('rest api "pkcpkInsert_infoFirmVerbal" end point, X-Public variable not found');
     }
     $pk = $headerParams['X-Public'];
 
@@ -67,18 +67,26 @@ $app->get("/pkInsert_infoFirmVerbal/", function () use ($app ) {
                                                 $app,
                                                 $_GET['profile_public']));
     }  
-    $vCountryId = NULL;
+    $vCountryId = 91;
     if (isset($_GET['country_id'])) {
         $stripper->offsetSet('country_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['country_id']));
-    }    
+    } 
+    $vCpk = NULL;
+    if (isset($_GET['cpk'])) {
+        $stripper->offsetSet('cpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['cpk']));
+    }
+    /*
     $vNpk = NULL;
     if (isset($_GET['npk'])) {
         $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
                                                         $app, 
                                                         $_GET['npk']));
-    }
+    }     
+    */
     $vAbout = NULL;
     if (isset($_GET['about'])) {
          $stripper->offsetSet('about',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
@@ -245,10 +253,15 @@ $app->get("/pkInsert_infoFirmVerbal/", function () use ($app ) {
     $stripper->strip();
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    }        
+    }  
+    if ($stripper->offsetExists('cpk')) {
+        $vCpk = $stripper->offsetGet('cpk')->getFilterValue();
+    }   
+    /*
     if ($stripper->offsetExists('npk')) {
         $vNpk = $stripper->offsetGet('npk')->getFilterValue();
-    }    
+    }     
+    */    
     if ($stripper->offsetExists('profile_public')) {
         $vProfilePublic = $stripper->offsetGet('profile_public')->getFilterValue();
     }
@@ -340,7 +353,7 @@ $app->get("/pkInsert_infoFirmVerbal/", function () use ($app ) {
     
     $resDataInsert = $BLL->insert(array(   
             'language_code' => $vLanguageCode,    
-            'network_key'=> $vNpk,  
+            'cpk'=> $vCpk,  
             'firm_name'=> $vFirmName, 
             'firm_name_eng'=> $vFirmNameEng, 
             'firm_name_short'=> $vFirmNameShort, 
@@ -370,8 +383,6 @@ $app->get("/pkInsert_infoFirmVerbal/", function () use ($app ) {
             'sgk_sicil_no'=> $vSgkSicilNo,
             'web_address'=> $vWebAddress,
             'logo'=> $vLogo,
-        
-        
             'pk' => $pk,        
             ));
 
@@ -384,258 +395,41 @@ $app->get("/pkInsert_infoFirmVerbal/", function () use ($app ) {
  *  * Okan CIRAN
  * @since 26-04-2016
  */
-$app->get("/pkUpdate_infoFirmVerbal/", function () use ($app ) {
+$app->get("/pkcpkUpdate_infoFirmVerbal/", function () use ($app ) {
    $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
     $BLL = $app->getBLLManager()->get('infoFirmVerbalBLL');    
     $headerParams = $app->request()->headers();  
     if (!isset($headerParams['X-Public'])) {
-        throw new Exception('rest api "pkInsert_infoFirmVerbal" end point, X-Public variable not found');
+        throw new Exception('rest api "pkcpkUpdate_infoFirmVerbal" end point, X-Public variable not found');
     }
     $pk = $headerParams['X-Public'];
-
-    $vLanguageCode = 'tr';
-    if (isset($_GET['language_code'])) {
-         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
-                                                $app,
-                                                $_GET['language_code']));
-    } 
+  
     $vId = 0;
     if (isset($_GET['id'])) {
         $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['id']));
     }  
-    $vActive = 0;
-    if (isset($_GET['active'])) {
-        $stripper->offsetSet('active', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
-                                                $app,
-                                                $_GET['active']));
-    } 
-    $vProfilePublic = 0;
-    if (isset($_GET['profile_public'])) {
-        $stripper->offsetSet('profile_public', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
-                                                $app,
-                                                $_GET['profile_public']));
-    }  
-    $vFirmId = NULL;
-    if (isset($_GET['firm_id'])) {
-        $stripper->offsetSet('firm_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
-                                                $app,
-                                                $_GET['firm_id']));
+    $vCpk = NULL;
+    if (isset($_GET['cpk'])) {
+        $stripper->offsetSet('cpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['cpk']));
     }
-    $vAbout = NULL;
-    if (isset($_GET['about'])) {
-         $stripper->offsetSet('about',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['about']));
-    }   
-    $vAboutEng = NULL;
-    if (isset($_GET['about_eng'])) {
-         $stripper->offsetSet('about_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['about_eng']));
-    }   
-    $vVerbal1Title = NULL;
-    if (isset($_GET['verbal1_title'])) {
-         $stripper->offsetSet('verbal1_title',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['verbal1_title']));
-    }   
-    $vVerbal1 = NULL;
-    if (isset($_GET['verbal1'])) {
-         $stripper->offsetSet('verbal1',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['verbal1']));
-    }        
-    $vVerbal2Title = NULL;
-    if (isset($_GET['verbal2_title'])) {
-         $stripper->offsetSet('verbal2_title',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['verbal2_title']));
-    }   
-    $vVerbal2 = NULL;
-    if (isset($_GET['verbal2'])) {
-         $stripper->offsetSet('verbal2',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['verbal2']));
-    }        
-    $vVerbal3Title = NULL;
-    if (isset($_GET['verbal3_title'])) {
-         $stripper->offsetSet('verbal3_title',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['verbal3_title']));
-    }   
-    $vVerbal3 = NULL;
-    if (isset($_GET['verbal3'])) {
-         $stripper->offsetSet('verbal3',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['verbal3']));
-    }
-    $vVerbal1TitleEng = NULL;
-    if (isset($_GET['verbal1_title_eng'])) {
-         $stripper->offsetSet('verbal1_title_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['verbal1_title_eng']));
-    }
-    $vVerbal1Eng = NULL;
-    if (isset($_GET['verbal1_eng'])) {
-         $stripper->offsetSet('verbal1_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['verbal1_eng']));
-    }
-    $vVerbal2TitleEng = NULL;
-    if (isset($_GET['verbal2_title_eng'])) {
-         $stripper->offsetSet('verbal2_title_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['verbal2_title_eng']));
-    }
-    $vVerbal2Eng = NULL;
-    if (isset($_GET['verbal2_eng'])) {
-         $stripper->offsetSet('verbal2_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['verbal2_eng']));
-    }
-    $vVerbal3TitleEng = NULL;
-    if (isset($_GET['verbal3_title_eng'])) {
-         $stripper->offsetSet('verbal3_title_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['verbal3_title_eng']));
-    }
-    $vVerbal3Eng = NULL;
-    if (isset($_GET['verbal3_eng'])) {
-         $stripper->offsetSet('verbal3_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['verbal3_eng']));
-    }
-    
-    $stripper->strip();
-    if ($stripper->offsetExists('id')) {
-        $vId = $stripper->offsetGet('id')->getFilterValue();
-    }
-    if ($stripper->offsetExists('language_code')) {
-        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    }
-    if ($stripper->offsetExists('firm_id')) {
-        $vFirmId = $stripper->offsetGet('firm_id')->getFilterValue();
-    }
-    if ($stripper->offsetExists('active')) {
-        $vActive = $stripper->offsetGet('active')->getFilterValue();
-    }
-    if ($stripper->offsetExists('profile_public')) {
-        $vProfilePublic = $stripper->offsetGet('profile_public')->getFilterValue();
-    }
-    if ($stripper->offsetExists('about')) {
-        $vAbout = $stripper->offsetGet('about')->getFilterValue();
-    }
-    if ($stripper->offsetExists('about_eng')) {
-        $vAboutEng = $stripper->offsetGet('about_eng')->getFilterValue();
-    }
-    if ($stripper->offsetExists('verbal1_title')) {
-        $vVerbal1Title = $stripper->offsetGet('verbal1_title')->getFilterValue();
-    }
-    if ($stripper->offsetExists('verbal1')) {
-        $vVerbal1 = $stripper->offsetGet('verbal1')->getFilterValue();
-    }
-    if ($stripper->offsetExists('verbal2_title')) {
-        $vVerbal2Title = $stripper->offsetGet('verbal2_title')->getFilterValue();
-    }
-    if ($stripper->offsetExists('verbal2')) {
-        $vVerbal2 = $stripper->offsetGet('verbal2')->getFilterValue();
-    }
-    if ($stripper->offsetExists('verbal3_title')) {
-        $vVerbal3Title = $stripper->offsetGet('verbal3_title')->getFilterValue();
-    }
-    if ($stripper->offsetExists('verbal3')) {
-        $vVerbal3 = $stripper->offsetGet('verbal3')->getFilterValue();
-    }
-    if ($stripper->offsetExists('verbal1_title_eng')) {
-        $vVerbal1TitleEng = $stripper->offsetGet('verbal1_title_eng')->getFilterValue();
-    }
-    if ($stripper->offsetExists('verbal1_eng')) {
-        $vVerbal1Eng = $stripper->offsetGet('verbal1_eng')->getFilterValue();
-    }
-    if ($stripper->offsetExists('verbal2_title_eng')) {
-        $vVerbal2TitleEng = $stripper->offsetGet('verbal2_title_eng')->getFilterValue();
-    }
-    if ($stripper->offsetExists('verbal2_eng')) {
-        $vVerbal2Eng = $stripper->offsetGet('verbal2_eng')->getFilterValue();
-    }
-    if ($stripper->offsetExists('verbal3_title_eng')) {
-        $vVerbal3TitleEng = $stripper->offsetGet('verbal3_title_eng')->getFilterValue();
-    }
-    if ($stripper->offsetExists('verbal3_eng')) {
-        $vVerbal3Eng = $stripper->offsetGet('verbal3_eng')->getFilterValue();
-    }
-      
-    $resDataInsert = $BLL->update(array( 
-            'id' => $vId,
-            'language_code' => $vLanguageCode,
-            'firm_id'=> $vFirmId,  
-            'profile_public'=> $vProfilePublic,
-            'active'=> $vActive,
-            'about'=> $vAbout,
-            'about_eng'=> $vAboutEng,
-            'verbal1_title'=> $vVerbal1Title,
-            'verbal1'=> $vVerbal1,
-            'verbal2_title'=> $vVerbal2Title,
-            'verbal2'=> $vVerbal2,
-            'verbal3_title'=> $vVerbal3Title,
-            'verbal3'=> $vVerbal3,            
-            'verbal1_title_eng'=> $vVerbal1TitleEng,
-            'verbal1_eng'=> $vVerbal1Eng,
-            'verbal2_title_eng'=> $vVerbal2TitleEng,
-            'verbal2_eng'=> $vVerbal2Eng,
-            'verbal3_title_eng'=> $vVerbal3TitleEng,
-            'verbal3_eng'=> $vVerbal3Eng,
-            'pk' => $pk,        
-            ));
-
-    $app->response()->header("Content-Type", "application/json"); 
-    $app->response()->body(json_encode($resDataInsert));
-}
-); 
-
-/**
- *  * Okan CIRAN
- * @since 26-04-2016
- */
-$app->get("/pkUpdate_infoFirmVerbal/", function () use ($app ) {  
-    $stripper = $app->getServiceManager()->get('filterChainerCustom');
-    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
-    $BLL = $app->getBLLManager()->get('infoFirmVerbalBLL');    
-   
-    $headerParams = $app->request()->headers();  
-    if (!isset($headerParams['X-Public'])) {
-        throw new Exception('rest api "pkUpdate_infoFirmVerbal" end point, X-Public variable not found');
-    }
-    $pk = $headerParams['X-Public'];
-
-    $vLanguageCode = 'tr';
+     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
          $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
                                                 $app,
                                                 $_GET['language_code']));
     } 
-     $vId = 0;
-    if (isset($_GET['id'])) {
-        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
-                                                $app,
-                                                $_GET['id']));
-    }  
-    $vActive = 0;
-    if (isset($_GET['active'])) {
-        $stripper->offsetSet('active', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
-                                                $app,
-                                                $_GET['active']));
-    } 
     $vProfilePublic = 0;
     if (isset($_GET['profile_public'])) {
         $stripper->offsetSet('profile_public', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['profile_public']));
     }  
-    $vCountryId = NULL;
+    $vCountryId = 91;
     if (isset($_GET['country_id'])) {
         $stripper->offsetSet('country_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
@@ -809,18 +603,18 @@ $app->get("/pkUpdate_infoFirmVerbal/", function () use ($app ) {
                                                 $app,
                                                 $_GET['logo']));
     }
-    
      
+    
     $stripper->strip();
-    if ($stripper->offsetExists('language_code')) {
-        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    }      
     if ($stripper->offsetExists('id')) {
         $vId = $stripper->offsetGet('id')->getFilterValue();
     }
-    if ($stripper->offsetExists('active')) {
-        $vActive = $stripper->offsetGet('active')->getFilterValue();
+    if ($stripper->offsetExists('cpk')) {
+        $vCpk = $stripper->offsetGet('cpk')->getFilterValue();
     }
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }        
     if ($stripper->offsetExists('npk')) {
         $vNpk = $stripper->offsetGet('npk')->getFilterValue();
     }    
@@ -910,12 +704,13 @@ $app->get("/pkUpdate_infoFirmVerbal/", function () use ($app ) {
     }
     if ($stripper->offsetExists('logo')) {
         $vLogo = $stripper->offsetGet('logo')->getFilterValue();
-    } 
-    
-    
-    $resDataInsert = $BLL->insert(array(   
+    }  
+      
+    $resDataInsert = $BLL->update(array( 
+            'id' => $vId,
             'language_code' => $vLanguageCode,    
-            'network_key'=> $vNpk,  
+           // 'network_key'=> $vNpk,  
+            'cpk'=> $vCpk,  
             'firm_name'=> $vFirmName, 
             'firm_name_eng'=> $vFirmNameEng, 
             'firm_name_short'=> $vFirmNameShort, 
@@ -944,17 +739,15 @@ $app->get("/pkUpdate_infoFirmVerbal/", function () use ($app ) {
             'tax_no'=> $vTaxNo,
             'sgk_sicil_no'=> $vSgkSicilNo,
             'web_address'=> $vWebAddress,
-            'logo'=> $vLogo,
-        
-        
-            'pk' => $pk,        
+            'logo'=> $vLogo, 
+            'pk' => $pk,     
             ));
 
     $app->response()->header("Content-Type", "application/json"); 
     $app->response()->body(json_encode($resDataInsert));
 }
 ); 
-
+ 
 /**
  *  * Okan CIRAN
  * @since 26-04-2016
@@ -1277,9 +1070,9 @@ $app->get("/pkGetFirmVerbalConsultant_infoFirmVerbal/", function () use ($app ) 
             "name" => $flow["name"],   
             "surname" => $flow["surname"],
             "auth_email" => $flow["auth_email"],
-            "communications_type_id" => $flow["communications_type_id"],
-            "communications_type_name" => $flow["communications_type_name"],             
-            "communications_no" => $flow["communications_no"],
+        //    "communications_type_id" => $flow["communications_type_id"],
+        //    "communications_type_name" => $flow["communications_type_name"],             
+        //    "communications_no" => $flow["communications_no"],
             "cons_picture" => $flow["cons_picture"],
             "npk" => $flow["network_key"],
              
@@ -1291,6 +1084,48 @@ $app->get("/pkGetFirmVerbalConsultant_infoFirmVerbal/", function () use ($app ) 
     $app->response()->body(json_encode($flows));
 });
 
+
+
+/**
+ *  * Okan CIRAN
+ * @since 23-05-2016
+ */
+$app->get("/sendMailConsultant_infoFirmVerbal/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('infoFirmVerbalBLL');
+     
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }
+     
+
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('npk')) $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();    
+ 
+     $result = $BLL->sendMailConsultant(array(
+        'language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey,        
+      
+        ));
+    
+  
+    $flows = array();
+    
+    $app->response()->header("Content-Type", "application/json");    
+    $app->response()->body(json_encode($flows));
+});
 
 
 $app->run();
