@@ -1523,7 +1523,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
     }
  
     
-       /**  
+    /**  
      * @author Okan CIRAN
      * @ userin elemanı oldugu firmanın makina kayıtlarını döndürür !!
      * @version v 1.0  19.02.2016
@@ -1566,14 +1566,14 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         fp.act_parent_id AS firm_id,
                         a.total,
                         CASE COALESCE(NULLIF(a.picture, ''),'-')
-                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
+                            WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
                         ELSE CONCAT(fk.folder_name ,'/',fk.machines_folder,'/' ,COALESCE(NULLIF(a.picture, ''),'image_not_found.png')) END AS picture
                     FROM info_firm_machine_tool a 
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0                    
-                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
-                    INNER JOIN info_firm_keys fk ON fp.act_parent_id = fk.firm_id                      
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
+                    INNER JOIN info_firm_keys fk ON fp.act_parent_id = fk.firm_id 
                     INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
                     LEFT JOIN sys_machine_tools smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
 		    INNER JOIN sys_machine_tool_groups smtg ON smtg.id = smt.machine_tool_grup_id AND smtg.language_id = l.id
@@ -1589,7 +1589,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 ORDER BY machine_tool_grup_names, manufacturer_name,machine_tool_names     
                 ";
                 $statement = $pdo->prepare($sql);
-             // echo debugPDO($sql, $params);
+           //  echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -1605,7 +1605,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-      /**  
+    /**  
      * @author Okan CIRAN
      * @ userin elemanı oldugu firmanın makina kayıtları sayısını döndürür !!
      * @version v 1.0  25.04.2016
@@ -1667,6 +1667,328 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
         }
     }
     
+        
+    /**
+     * @author Okan CIRAN
+     * @ Tüm firmaların makina parklarının kayıtlarını döndürür !!
+     * @version v 1.0  06.06.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillAllCompanyMachineLists($params = array()) {
+        try {
+            if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+                $limit = intval($params['rows']);
+            } else {
+                $limit = 10;
+                $offset = 0;
+            }           
 
-    
+            $sortArr = array();
+            $orderArr = array();
+            $addSql = NULL;
+            if (isset($params['sort']) && $params['sort'] != "") {
+                $sort = trim($params['sort']);
+                $sortArr = explode(",", $sort);
+                if (count($sortArr) === 1)
+                    $sort = trim($params['sort']);
+            } else {
+                $sort = " firm_name, machine_tool_grup_name, manufacturer_name, machine_tool_name ";
+            }
+
+            if (isset($params['order']) && $params['order'] != "") {
+                $order = trim($params['order']);
+                $orderArr = explode(",", $order);
+                //print_r($orderArr);
+                if (count($orderArr) === 1)
+                    $order = trim($params['order']);
+            } else {
+                $order = "ASC";
+            }
+            $sorguStr = null; 
+                            
+                            
+            if (isset($params['filterRules']) && $params['filterRules'] != "") {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+              
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'firm_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng)" . $sorguExpression . ' ';
+                              
+                                break;
+                            case 'firm_name_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND fp.firm_name_eng" . $sorguExpression . ' ';
+
+                                break;
+                            case 'manufacturer_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND m.manufacturer_name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'machine_tool_grup_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND COALESCE(NULLIF(smtgx.group_name, ''), smtg.group_name_eng)" . $sorguExpression . ' ';
+
+                                break;
+                            case 'machine_tool_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND COALESCE(NULLIF(smtx.machine_tool_name, ''), smt.machine_tool_name_eng)" . $sorguExpression . ' ';
+
+                                break;
+                            case 'model':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND smt.model" . $sorguExpression . ' ';
+
+                                break;
+                            case 'model_year':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND CAST(smt.model_year AS TEXT)" . $sorguExpression . ' ';
+
+                                break;
+                            case 'series':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND smt.machine_code" . $sorguExpression . ' ';
+
+                                break;                            
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+
+
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+                            
+                if (isset($params['network_key']) && $params['network_key'] != "") {
+                    $networkKeyValue = $params['network_key'];
+                  $addSql .= " AND fk.network_key = '".$params['network_key']."'";  
+                }
+
+                $sql = "
+                    SELECT 
+                        a.id,
+			COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng) AS firm_name,
+			fp.firm_name_eng,
+                        CAST(a.sys_machine_tool_id AS text) AS machine_id,
+                        m.manufacturer_name,
+                        COALESCE(NULLIF(smtgx.group_name, ''), smtg.group_name_eng) AS machine_tool_grup_name,
+                        COALESCE(NULLIF(smtx.machine_tool_name, ''), smt.machine_tool_name_eng) AS machine_tool_name,
+                        smt.model,
+                        smt.model_year,
+                        smt.machine_code AS series,
+                        fp.act_parent_id AS firm_id,
+                        a.total,
+                        CASE COALESCE(NULLIF(a.picture, ''),'-')
+                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
+                        ELSE CONCAT(fk.folder_name ,'/',fk.machines_folder,'/' ,COALESCE(NULLIF(a.picture, ''),'image_not_found.png')) END AS picture,
+                        fk.network_key                        
+                    FROM info_firm_machine_tool a 
+                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                    LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0                    
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.cons_allow_id = 2 AND fp.language_parent_id =0                      
+                    LEFT JOIN info_firm_profile fpx ON fpx.act_parent_id = fp.act_parent_id AND fpx.cons_allow_id = 2 AND fpx.language_id = lx.id
+                    INNER JOIN info_firm_keys fk ON fp.act_parent_id = fk.firm_id                      
+                    INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
+                    LEFT JOIN sys_machine_tools smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
+		    INNER JOIN sys_machine_tool_groups smtg ON smtg.id = smt.machine_tool_grup_id AND smtg.language_id = l.id
+		    LEFT JOIN sys_machine_tool_groups smtgx ON (smtgx.id = smtg.id OR smtg.language_parent_id = smtg.id )AND smtgx.language_id = lx.id
+                    INNER JOIN sys_manufacturer m ON m.id = smt.manufactuer_id AND m.language_id = l.id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0 
+                    LEFT JOIN sys_manufacturer mx ON (mx.id = m.id OR mx.language_parent_id = m.id) AND mx.language_id = lx.id AND mx.deleted =0 AND mx.active =0        
+                    WHERE 
+                        a.deleted =0 AND 
+                        a.active =0 AND
+                        a.profile_public =0 AND
+                        a.language_parent_id =0 AND 
+                        a.cons_allow_id = 2
+                " . $addSql . "
+                " . $sorguStr . " 
+                ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            ); 
+                $statement = $pdo->prepare($sql);
+                //   echo debugPDO($sql, $parameters);                
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                $affectedRows = $statement->rowCount();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ Tüm firmaların makina parklarının kayıtlarının sayısını döndürür !!
+     * @version v 1.0  06.06.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillAllCompanyMachineListsRtc($params = array()) {
+        try {       
+            $addSql = NULL;  
+            $sorguStr = null;                            
+            if (isset($params['filterRules']) && $params['filterRules'] != "") {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+              
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'firm_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng)" . $sorguExpression . ' ';
+                              
+                                break;
+                            case 'firm_name_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND fp.firm_name_eng" . $sorguExpression . ' ';
+
+                                break;
+                            case 'manufacturer_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND m.manufacturer_name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'machine_tool_grup_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND COALESCE(NULLIF(smtgx.group_name, ''), smtg.group_name_eng)" . $sorguExpression . ' ';
+
+                                break;
+                            case 'machine_tool_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND COALESCE(NULLIF(smtx.machine_tool_name, ''), smt.machine_tool_name_eng)" . $sorguExpression . ' ';
+
+                                break;
+                            case 'model':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND smt.model" . $sorguExpression . ' ';
+
+                                break;
+                            case 'model_year':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND CAST(smt.model_year AS TEXT)" . $sorguExpression . ' ';
+
+                                break;
+                            case 'series':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND smt.machine_code" . $sorguExpression . ' ';
+
+                                break;                            
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+                            
+                if (isset($params['network_key']) && $params['network_key'] != "") {
+                    $networkKeyValue = $params['network_key'];
+                  $addSql .= " AND fk.network_key = '".$params['network_key']."'";  
+                }
+
+                $sql = "
+                    SELECT 
+                       COUNT(a.id) AS COUNT                    
+                    FROM info_firm_machine_tool a                     
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                    LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0                    
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.cons_allow_id = 2 AND fp.language_parent_id =0                      
+                    LEFT JOIN info_firm_profile fpx ON fpx.act_parent_id = fp.act_parent_id AND fpx.cons_allow_id = 2 AND fpx.language_id = lx.id
+                    INNER JOIN info_firm_keys fk ON fp.act_parent_id = fk.firm_id                      
+                    INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
+                    LEFT JOIN sys_machine_tools smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
+		    INNER JOIN sys_machine_tool_groups smtg ON smtg.id = smt.machine_tool_grup_id AND smtg.language_id = l.id
+		    LEFT JOIN sys_machine_tool_groups smtgx ON (smtgx.id = smtg.id OR smtg.language_parent_id = smtg.id )AND smtgx.language_id = lx.id
+                    INNER JOIN sys_manufacturer m ON m.id = smt.manufactuer_id AND m.language_id = l.id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0 
+                    LEFT JOIN sys_manufacturer mx ON (mx.id = m.id OR mx.language_parent_id = m.id) AND mx.language_id = lx.id AND mx.deleted =0 AND mx.active =0        
+                    WHERE 
+                        a.deleted =0 AND 
+                        a.active =0 AND
+                        a.profile_public =0 AND
+                        a.language_parent_id =0 AND 
+                        a.cons_allow_id = 2
+                " . $addSql . "
+                " . $sorguStr . " 
+                ";
+                $statement = $pdo->prepare($sql);
+                            
+                $statement = $pdo->prepare($sql);
+                //  echo debugPDO($sql, $parameters);                
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                $affectedRows = $statement->rowCount();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
 }

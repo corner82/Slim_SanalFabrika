@@ -189,5 +189,30 @@ class InfoFirmMachineTool extends \BLL\BLLSlim{
         $resultSet = $DAL->fillUsersFirmMachinesNpkRtc($params);  
         return $resultSet['resultSet'];
     }
+      /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */ 
+    public function fillAllCompanyMachineLists($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        $resultSet = $DAL->fillAllCompanyMachineLists($params);  
+        return $resultSet['resultSet'];
+    }
+    
+        /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */ 
+    public function fillAllCompanyMachineListsRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        $resultSet = $DAL->fillAllCompanyMachineListsRtc($params);  
+        return $resultSet['resultSet'];
+    }
+    
+    
+    
+    
 }
 

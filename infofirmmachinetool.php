@@ -564,7 +564,7 @@ $app->get("/pkFillFirmMachineGroupsCounts_infoFirmMachineTool/", function () use
  *  * Okan CIRAN
  * @since 20-04-2016
  */
-$app->get("/pkFillUsersFirmMachinesNpk_infoFirmMachineTool/", function () use ($app ) {
+$app->get("/pkFillUsersFirmMachinesNpkEski_infoFirmMachineTool/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
     $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');
@@ -644,6 +644,229 @@ $app->get("/pkFillUsersFirmMachinesNpk_infoFirmMachineTool/", function () use ($
     $app->response()->header("Content-Type", "application/json");
     $app->response()->body(json_encode($resultArray));
 });
+
+/**
+ *  * Okan CIRAN
+ * @since 08-06-2016
+ */
+$app->get("/pkFillUsersFirmMachinesNpk_infoFirmMachineTool/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');
+    $headerParams = $app->request()->headers();
+    $pk = $headerParams['X-Public'];
+     
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillUsersFirmMachinesNpk_infoFirmMachineTool" end point, X-Public variable not found');
+    }
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
+    }
+    $vMachineId = NULL;
+    if (isset($_GET['machine_id'])) {
+        $stripper->offsetSet('machine_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['machine_id']));
+    }
+    $vMachineGrupId = NULL;
+    if (isset($_GET['machine_grup_id'])) {
+        $stripper->offsetSet('machine_grup_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['machine_grup_id']));
+    }
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['npk']));
+    }
+       $vParentId = 0;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    }
+    $componentType = 'bootstrap';    
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+
+    
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('machine_grup_id')) {
+        $vMachineGrupId = $stripper->offsetGet('machine_grup_id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('machine_id')) {
+        $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('npk')) {
+        $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();
+    }    
+    if($stripper->offsetExists('id')) {
+        $vParentId = $stripper->offsetGet('id')->getFilterValue();
+    }
+    
+    $resDataGrid = $BLL->FillUsersFirmMachinesNpk(array(
+        'pk' => $pk,
+        'language_code' => $vLanguageCode,
+        'machine_grup_id' => $vMachineGrupId,
+        'machine_id' => $vMachineId,
+        'network_key' => $vNetworkKey,
+    ));
+
+    /*
+     * $resTotalRowCount = $BLL->fillUsersFirmMachinesNpkRtc(array(    
+        'pk' => $pk,
+        'machine_grup_id' => $vMachineGrupId,
+        'machine_id' => $vMachineId,
+        'network_key' => $vNetworkKey,
+    ));
+        */
+    
+    
+    $menus = array();
+    //$menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
+     if ($componentType == 'bootstrap') {
+        $menus = array();
+        foreach ($resDataGrid as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "machine_id" => $menu["machine_id"],
+                "manufacturer_name" => $menu["manufacturer_name"],
+                "machine_tool_grup_names" => $menu["machine_tool_grup_names"],
+                "machine_tool_names" => $menu["machine_tool_names"],
+                "model" => $menu["model"],
+                "model_year" => $menu["model_year"],
+                "series" => $menu["series"],
+                "firm_id" => $menu["firm_id"],
+                "picture" => $menu["picture"],
+                "total" => $menu["total"],
+                "attributes" => array("notroot" => true,
+                    ) 
+                
+            );
+        }
+    } 
+
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($menus));
+});
+ 
+
+/**
+ *  * Okan CIRAN
+ * @since 20-05-2016
+ */
+$app->get("/pkFillAllCompanyMachineLists_infoFirmMachineTool/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+   $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');
+
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkFillAllCompanyMachineLists_infoFirmMachineTool" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
+    }
+    $vNpk = NULL ;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['npk']));
+    }
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, $app, $_GET['filterRules']));
+    }
+    
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code'))
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();    
+    if ($stripper->offsetExists('npk'))
+        $vNpk = $stripper->offsetGet('npk')->getFilterValue();
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    } 
+
+    $resDataGrid = $BLL->fillAllCompanyMachineLists(array(
+        'language_code' => $vLanguageCode,
+        'page' => $vPage,
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,
+        'network_key' => $vNpk,
+        'filterRules' => $filterRules,
+        'pk' => $pk,
+    ));
+   
+    $resTotalRowCount = $BLL->fillAllCompanyMachineListsRtc(array(
+        'language_code' => $vLanguageCode,        
+        'network_key' => $vNpk,
+        'filterRules' => $filterRules,
+        'pk' => $pk,
+    ));
+    $counts=0;
+  
+    $menu = array();            
+    if (isset($resDataGrid[0]['id'])) {      
+        foreach ($resDataGrid as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                
+                "firm_name" => $menu["firm_name"],
+                "firm_name_eng" => $menu["firm_name_eng"],
+                "machine_id" => $menu["machine_id"],
+                "manufacturer_name" => $menu["manufacturer_name"],
+                "machine_tool_grup_names" => $menu["machine_tool_grup_name"],
+                "machine_tool_names" => $menu["machine_tool_name"],
+                "model" => $menu["model"],
+                "model_year" => $menu["model_year"],                
+                "picture" =>  $menu["picture"],
+                "total" => $menu["total"],
+                "attributes" => array("notroot" => true),
+                   
+            );
+        }
+       $counts = $resTotalRowCount[0]['count'];
+      } ELSE  $menus = array();       
+
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['total'] = $counts;
+    $resultArray['rows'] = $menus;
+    $app->response()->body(json_encode($resultArray));
+});
+
 
 
 $app->run();
