@@ -114,4 +114,16 @@ class SysMachineTools extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('sysMachineToolsPDO');
         return $DAL->makeActiveOrPassive($params);
     } 
+     /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function getMachineProperities($params = array()) {      
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolsPDO');     
+        $resultSet = $DAL->getMachineProperities($params);
+        return $resultSet['resultSet'];
+    }
+    
+    
 }

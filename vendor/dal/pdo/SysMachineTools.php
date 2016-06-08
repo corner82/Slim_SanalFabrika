@@ -522,6 +522,9 @@ class SysMachineTools extends \DAL\DalSlim {
         if ((isset($args['manufacturer_id']) && $args['manufacturer_id'] != "")) {
             $addSql =  " AND m.id = " .intval($args['manufacturer_id']) ; 
         }   
+        if ((isset($args['machine_id']) && $args['machine_id'] != "")) {
+            $addSql =  " AND mt.id = " .intval($args['machine_id']) ; 
+        } 
         // sql query dynamic for filter operations
         $sorguStr = null;
         if (isset($args['filterRules'])) {
@@ -565,30 +568,33 @@ class SysMachineTools extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-                 SELECT                    
+                SELECT                    
                     mt.id, 
                     COALESCE(NULLIF( (mtx.machine_tool_name), ''), mt.machine_tool_name_eng) AS machine_tool_name,   
                     mt.machine_tool_name_eng,
                     COALESCE(NULLIF((ax.group_name), ''), a.group_name_eng) AS group_name,   
-                    a.group_name_eng,		   
-                    m.manufacturer_name,             
-                    mt.active,                    
+                    a.group_name_eng,
+                    m.manufacturer_name,
+                    mt.active,
                     mt.machine_tool_grup_id, 
                     mt.manufactuer_id, 
                     mt.model, 
-                    mt.model_year,                     
+                    mt.model_year,
                     mt.machine_code, 
-                    mt.language_id,                     
-                    mt.picture
+                    mt.language_id,                  
+                    CASE COALESCE(NULLIF(mt.picture, ''),'-')
+                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(mt.picture, ''),'image_not_found.png'))
+                        ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(mt.picture, ''),'image_not_found.png')) END AS picture
                 FROM sys_machine_tool_groups a 
+		INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0   
 		INNER JOIN sys_machine_tools mt ON mt.machine_tool_grup_id = a.id AND mt.language_id = l.id AND mt.deleted =0 
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
 		LEFT JOIN sys_machine_tools mtx ON (mtx.id = mt.id OR mtx.language_parent_id = mt.id) AND mtx.language_id = lx.id AND mtx.deleted =0 
 		LEFT JOIN sys_machine_tool_groups ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.language_id = lx.id AND ax.deleted =0  
-		LEFT JOIN sys_manufacturer m ON m.id = mt.manufactuer_id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0                 
-                WHERE            
-                    a.deleted = 0 AND                  
+		LEFT JOIN sys_manufacturer m ON m.id = mt.manufactuer_id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0 
+                WHERE 
+                    a.deleted = 0 AND 
                     mt.language_parent_id =0 
                 " . $addSql . "
                 " . $sorguStr . " 
@@ -615,6 +621,7 @@ class SysMachineTools extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
+    
     /**
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_machine_tools tablosundan kayıtları döndürür !!
@@ -640,6 +647,9 @@ class SysMachineTools extends \DAL\DalSlim {
         if ((isset($params['manufacturer_id']) && $params['manufacturer_id'] != "")) {
             $addSql =  " AND m.id = " .intval($params['manufacturer_id']) ; 
         }   
+        if ((isset($params['machine_id']) && $params['machine_id'] != "")) {
+            $addSql =  " AND mt.id = " .intval($params['machine_id']) ; 
+        } 
         // sql query dynamic for filter operations
         $sorguStr = null;
         if (isset($params['filterRules'])) {
@@ -711,8 +721,7 @@ class SysMachineTools extends \DAL\DalSlim {
         }
     }
 
-    
-        /**
+    /**
 
      * @author Okan CIRAN
      * @ sys_machine_tools tablosundan parametre olarak  gelen id kaydın aktifliğini
@@ -765,5 +774,70 @@ class SysMachineTools extends \DAL\DalSlim {
         }
     }
 
+       /**
+     * @author Okan CIRAN
+     * @ Gridi doldurmak için sys_machine_tools tablosundan kayıtları döndürür !!
+     * @version v 1.0  16.05.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getMachineProperities($args = array()) {                        
+        $addSql = NULL;
+
+        $languageId = NULL;
+        $languageIdValue = 647;
+        if ((isset($args['language_code']) && $args['language_code'] != "")) {                
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $args['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+            }
+        }  
+ 
+        if ((isset($args['machine_id']) && $args['machine_id'] != "")) {
+            $addSql =  " AND mt.machine_tool_id = " .intval($args['machine_id']) ; 
+        }                    
+                        
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $sql = "
+                SELECT                    
+                     mt.id, 
+                     COALESCE(NULLIF( (mtpx.property_name), ''), mtp.property_name_eng) AS property_name,   
+		     mtp.property_name_eng,
+		     mt.property_value,
+                     mt.unit_id ,                      
+                     COALESCE(NULLIF((sux.unitcode), ''), su.unitcode_eng) AS unitcode,   
+                     su.unitcode_eng,
+                     mtp.active
+                FROM sys_machine_tools a 
+			INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0   		
+		INNER JOIN sys_machine_tool_properties mt ON mt.machine_tool_id = a.id AND mt.deleted =0 AND mt.language_parent_id = 0 
+		INNER JOIN sys_machine_tool_property_definition mtp ON mtp.id = mt.machine_tool_property_definition_id AND mtp.deleted =0  AND mtp.active =0  AND mtp.language_parent_id = 0 		
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
+                LEFT JOIN sys_machine_tool_property_definition mtpx ON mtp.id = mtpx.id AND mtpx.deleted =0  AND mtpx.active =0 AND mtpx.language_id = lx.id
+		INNER JOIN sys_units su ON su.id =  mt.unit_id AND su.active =0 AND su.deleted =0 AND su.language_parent_id = 0 
+		INNER JOIN sys_units sux ON (sux.id = su.id OR sux.language_parent_id = su.id) AND su.active =0 AND su.deleted =0 AND sux.language_id = lx.id
+                WHERE 
+                    a.deleted = 0 AND  
+                    mt.language_parent_id =0 
+                " . $addSql . "          
+                ORDER BY property_name
+                ";
+            $statement = $pdo->prepare($sql);                        
+           // echo debugPDO($sql, $parameters);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+    
     
 }

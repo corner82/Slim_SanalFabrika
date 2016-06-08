@@ -185,6 +185,10 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
     if (isset($_GET['manufacturer_id'])) {
         $stripper->offsetSet('manufacturer_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['manufacturer_id']));
     }
+    $vMachineId = NULL;
+    if (isset($_GET['machine_id'])) {
+        $stripper->offsetSet('machine_id', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, $app, $_GET['machine_id']));
+    }
     $vPage = NULL;
     if (isset($_GET['page'])) {
         $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['page']));
@@ -216,6 +220,9 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
     if ($stripper->offsetExists('manufacturer_id')) {
         $vManufacturerId = $stripper->offsetGet('manufacturer_id')->getFilterValue();
     }
+    if ($stripper->offsetExists('machine_id')) {
+        $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
+    }
     if ($stripper->offsetExists('page')) {
         $vPage = $stripper->offsetGet('page')->getFilterValue();
     }
@@ -242,12 +249,14 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
         'order' => $vOrder,
         'machine_groups_id' => $vMachineGroupsId,
         'manufacturer_id' => $vManufacturerId,
+        'machine_id' => $vMachineId,
         'filterRules' => $filterRules,
     ));
     $resTotalRowCount = $BLL->getMachineToolsRtc(array(
         'language_code' => $vLanguageCode,
         'machine_groups_id' => $vMachineGroupsId,
         'manufacturer_id' => $vManufacturerId,
+        'machine_id' => $vMachineId,
         'filterRules' => $filterRules,
     ));
 
@@ -283,6 +292,63 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
     $app->response()->body(json_encode($resultArray));
 });
 
+
+/**
+ *  * Okan CIRAN
+ * @since 08-06-2016
+ */
+$app->get("/pkGetMachineProperities_sysMachineTools/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysMachineToolsBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkGetMachineProperities_sysMachineTools" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+ 
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
+    }
+    $vMachineId = NULL;
+    if (isset($_GET['machine_id'])) {
+        $stripper->offsetSet('machine_id', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, $app, $_GET['machine_id']));
+    }
+    
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('machine_id')) {
+        $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
+    } 
+
+    $resDataGrid = $BLL->getMachineProperities(array(
+        'language_code' => $vLanguageCode,    
+        'machine_id' => $vMachineId,        
+    )); 
+
+    $flows = array();
+    foreach ($resDataGrid as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+            "property_name" => $flow["property_name"],
+            "property_name_eng" => $flow["property_name_eng"],
+            "property_value" => $flow["property_value"],
+            "unit_id" => $flow["unit_id"],
+            "unitcode_eng" => $flow["unitcode_eng"],
+            "unitcode" => $flow["unitcode"],
+            "attributes" => array(
+                        "notroot" => true, 
+                        "active" => $flow["active"],
+                ),
+        );
+    }       
+    
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($flows));
+});
 
 /**
  *  * Okan CIRAN
