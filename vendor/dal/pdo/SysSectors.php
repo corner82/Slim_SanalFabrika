@@ -65,30 +65,43 @@ class SysSectors extends \DAL\DalSlim {
     public function getAll($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
             $statement = $pdo->prepare("
             SELECT 
                     a.id, 
-                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name, 
-                    a.name_eng, 
-                    a.deleted, 
-		    sd.description as state_deleted,                 
-                    a.active, 
-		    sd1.description as state_active,                      
-                    a.language_code, 
+                    COALESCE(NULLIF(ax.name, ''), a.name_eng) AS name,
+                    a.name_eng,
+                    a.active,
+                    COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng) AS state_active,
+                    a.deleted,
+		    COALESCE(NULLIF(sd15x.description, ''), sd15.description_eng) AS state_deleted,
+                    COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
+		    COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,
 		    COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,
                     a.ordr as siralama,
                     a.language_parent_id,
                     a.description,
-                    a.description_eng,                   
+                    a.description_eng,
                     a.op_user_id,
-                    u.username    
-                FROM sys_sectors  a
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
-                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0                
-                INNER JOIN sys_language l ON l.language_main_code = a.language_code AND l.deleted =0 AND l.active = 0 
-		INNER JOIN info_users u ON u.id = a.op_user_id 
+                    u.username
+                FROM sys_sectors a
+	        INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+	        LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+	        LEFT JOIN sys_sectors ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.deleted =0 AND ax.active =0 AND ax.language_id = lx.id 
+	        INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = l.id AND sd15.deleted =0 AND sd15.active =0 
+	        INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = l.id AND sd16.deleted = 0 AND sd16.active = 0
+	        LEFT JOIN sys_specific_definitions sd15x ON sd15x.language_id =lx.id AND (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15x.deleted =0 AND sd15x.active =0 
+	        LEFT JOIN sys_specific_definitions sd16x ON sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.deleted = 0 AND sd16x.active = 0
+                INNER JOIN info_users u ON u.id = a.op_user_id 
                 WHERE a.deleted =0                 
-                ORDER BY a.name                
+                ORDER BY a.name              
                                  ");               
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);   
@@ -219,8 +232,7 @@ class SysSectors extends \DAL\DalSlim {
         }
     }
 
-    /**    
-     * usage  
+    /** 
      * @author Okan CIRAN
      * sys_sectors tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  07.12.2015
@@ -292,9 +304,7 @@ class SysSectors extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * Datagrid fill function used for testing
-     * user interface datagrid fill operation   
+    /**  
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_sectors tablosundan kayıtları döndürür !!
      * @version v 1.0  08.12.2015
@@ -347,26 +357,31 @@ class SysSectors extends \DAL\DalSlim {
             $sql = "
                 SELECT 
                     a.id, 
-                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name, 
-                    a.name_eng, 
-                    a.deleted, 
-		    sd.description AS state_deleted,                 
-                    a.active, 
-		    sd1.description AS state_active,                      
-                    a.language_id, 
+                    COALESCE(NULLIF(ax.name, ''), a.name_eng) AS name,
+                    a.name_eng,
+                    a.active,
+                    COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng) AS state_active,
+                    a.deleted,
+		    COALESCE(NULLIF(sd15x.description, ''), sd15.description_eng) AS state_deleted,
+                    COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
+		    COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,
 		    COALESCE(NULLIF(l.language_eng, ''), l.language) AS language_name,
-                    a.ordr AS siralama,
+                    a.ordr as siralama,
                     a.language_parent_id,
                     a.description,
-                    a.description_eng,                  
+                    a.description_eng,
                     a.op_user_id,
-                    u.username    
+                    u.username
                 FROM sys_sectors a
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
-                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0
-                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0
-		INNER JOIN info_users u ON u.id = a.op_user_id 
-                WHERE a.language_id = ". intval($languageIdValue)." AND a.deleted = 0 
+	        INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+	        LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+	        LEFT JOIN sys_sectors ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.deleted =0 AND ax.active =0 AND ax.language_id = lx.id 
+	        INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = l.id AND sd15.deleted =0 AND sd15.active =0 
+	        INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = l.id AND sd16.deleted = 0 AND sd16.active = 0
+	        LEFT JOIN sys_specific_definitions sd15x ON sd15x.language_id =lx.id AND (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15x.deleted =0 AND sd15x.active =0 
+	        LEFT JOIN sys_specific_definitions sd16x ON sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.deleted = 0 AND sd16x.active = 0
+                INNER JOIN info_users u ON u.id = a.op_user_id                                 
+                WHERE a.deleted = 0 
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -402,17 +417,26 @@ class SysSectors extends \DAL\DalSlim {
      */
     public function fillGridRowTotalCount($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+        $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+        $languageId = NULL;
+        $languageIdValue = 647;
+        if ((isset($params['language_code']) && $params['language_code'] != "")) {
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            }
+        }
             $sql = "
                 SELECT 
 			COUNT(a.id) AS COUNT 
                 FROM sys_sectors a
-                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = a.language_id AND sd.deleted = 0 AND sd.active = 0
-                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0                
-                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
-		INNER JOIN info_users u ON u.id = a.op_user_id  
-                WHERE a.language_id = " .intval($params['language_id']) . "
-                    AND a.deleted = 0
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+	        LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0	        
+	        INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = l.id AND sd15.deleted =0 AND sd15.active =0 
+	        INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = l.id AND sd16.deleted = 0 AND sd16.active = 0
+	        INNER JOIN info_users u ON u.id = a.op_user_id                      
+                WHERE 
+                    a.deleted = 0
                     ";
             $statement = $pdo->prepare($sql);          
             $statement->execute();
@@ -427,13 +451,24 @@ class SysSectors extends \DAL\DalSlim {
         }
     }
     
-    public function fillComboBox() {
+    /**  
+     * @author Okan CIRAN
+     * @ Gridi doldurmak için sys_sectors tablosundan kayıtları döndürür !!
+     * @version v 1.0  08.12.2015
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillComboBox($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-             if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];
-            } else {
-                $languageIdValue = 647;
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
             }
             $statement = $pdo->prepare("
                SELECT                    
@@ -456,8 +491,8 @@ class SysSectors extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-    /**    
-     * usage     
+    
+    /** 
      * @author Okan CIRAN
      * @ sys_sectors tablosuna aktif olan diller için ,tek bir kaydın tabloda olmayan diğer dillerdeki kayıtlarını oluşturur   !!
      * @version v 1.0  29.12.2015
@@ -517,8 +552,7 @@ class SysSectors extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * 
+    /** 
      * @author Okan CIRAN
      * @ text alanları doldurmak için sys_sectors tablosundan tek kayıt döndürür !! 
      * insertLanguageTemplate fonksiyonu ile oluşturulmuş kayıtları 
@@ -580,6 +614,55 @@ class SysSectors extends \DAL\DalSlim {
         }
     }
 
+    /**  
+     * @author Okan CIRAN
+     * @ Sektör isimlerini sys_sectors tablosundan döndürür !!
+     * @version v 1.0  09.06.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */ 
+    public function getSectors($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+            $whereSql = " WHERE a.active =0 AND a.deleted = 0 AND a.language_parent_id =0 "; 
+            $sql = "
+                SELECT 
+                    a.id, 
+                    COALESCE(NULLIF(ax.name, ''), a.name_eng) AS name,
+                    a.name_eng,
+                    COALESCE(NULLIF(ax.description, ''), a.description_eng) AS description,
+                    a.description_eng 
+                FROM sys_sectors a
+	        INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+	        LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+	        LEFT JOIN sys_sectors ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.deleted =0 AND ax.active =0 AND ax.language_id =lx.id
+                " . $whereSql . "
+                ORDER BY a.name
+                                 ";
+            $statement = $pdo->prepare($sql);            
+          // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+ 
+    
 }
 
  

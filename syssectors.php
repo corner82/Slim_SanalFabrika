@@ -4,7 +4,7 @@
 require 'vendor/autoload.php';
 
 
-
+use \Services\Filter\Helper\FilterFactoryNames as stripChainers;
 
 /* $app = new \Slim\Slim(array(
   'mode' => 'development',
@@ -38,32 +38,15 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
 $app->add(new \Slim\Middleware\MiddlewareBLLManager());
 $app->add(new \Slim\Middleware\MiddlewareDalManager());
 $app->add(new \Slim\Middleware\MiddlewareServiceManager());
+$app->add(new \Slim\Middleware\MiddlewareMQManager());
 
 
-
-$pdo = new PDO('pgsql:dbname=ecoman_01_10;host=88.249.18.205;user=postgres;password=1q2w3e4r');
-
-\Slim\Route::setDefaultConditions(array(
-    'firstName' => '[a-zA-Z]{3,}',
-    'page' => '[0-9]{1,}'
-));
-
-$app->get('/hello/:name/:firstName', function ($name) {
-    echo "Hello, $name";
-});
-
-$app->post('/hello/:name/:firstName', function ($name) {
-    echo "Hello, $name";
-});
-
-
-
-
+ 
 /**
  *  * zeynel daÄŸlÄ±
  * @since 11-09-2014
  */
-$app->get("/pkFillGrid_syssectors/", function () use ($app, $pdo) {
+$app->get("/pkFillGrid_syssectors/", function () use ($app ) {
  
     $BLL = $app->getBLLManager()->get('sysSectorsBLL');
     
@@ -80,6 +63,36 @@ $app->get("/pkFillGrid_syssectors/", function () use ($app, $pdo) {
       $app->halt(302, '{"error":"Something went wrong"}');
       $app->stop(); */
 
+    $app->response()->body(json_encode($resultArray));
+});
+
+/**
+ *  Okan CIRAN
+ * @since 09-06-2016
+ */
+$app->get("/pkGetSectors_syssectors/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysSectorsBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkGetSectors_syssectors" end point, X-Public variable not found');
+    }
+  //  $pk = $headerParams['X-Public'];    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, 
+                                                                $app, 
+                                                                $_GET['language_code']));
+    }
+    $stripper->strip(); 
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }     
+    $resultArray = $BLL->getSectors(array(
+        'language_code' => $vLanguageCode,        
+            ));
+    $app->response()->header("Content-Type", "application/json");
     $app->response()->body(json_encode($resultArray));
 });
 

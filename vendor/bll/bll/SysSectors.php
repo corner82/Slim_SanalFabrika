@@ -116,6 +116,13 @@ class SysSectors extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
     
+    public function getSectors($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysSectorsPDO');
+        $resultSet = $DAL->getSectors($params);  
+        return $resultSet['resultSet'];
+    }
+     
+    
     
 }
 
