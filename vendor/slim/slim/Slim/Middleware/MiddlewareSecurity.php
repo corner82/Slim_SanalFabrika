@@ -450,7 +450,7 @@ use PhpAmqpLib\Message\AMQPMessage;
                $resultSet = $this->app->getBLLManager()->get('blLoginLogoutBLL')->isUserBelongToCompany($requestHeaderParams,
                                                                                                         $params);
                //print_r($resultSet);
-               if(empty($resultSet['resultSet'])) $this->userNotBelongCompany();
+               if(empty($resultSet)) $this->userNotBelongCompany();
            } else {
                $this->publicKeyNotFoundRedirect();
            }

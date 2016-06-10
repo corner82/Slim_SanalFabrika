@@ -489,8 +489,8 @@ class BlLoginLogout extends \DAL\DalSlim {
      */
     public function isUserBelongToCompany($requestHeaderParams, $params) {
         try {
-            $resultSet = $this->pkControl($requestHeaderParams['X-Public']);
-            //print_r($resultSet);
+            $resultSet = $this->pkControl(array('pk' =>$requestHeaderParams['X-Public']));
+            //print_r($resultSet); 
             
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');  
             

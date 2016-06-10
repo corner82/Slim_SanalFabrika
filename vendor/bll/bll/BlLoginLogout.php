@@ -74,6 +74,19 @@ class BlLoginLogout extends \BLL\BLLSlim{
     }
     
     /**
+     * check if user belongs to specific company
+     * @param array$params
+     * @return array
+     * @author Mustafa Zeynel Dağlı
+     * @since 10/06/2016
+     */
+    public function isUserBelongToCompany($requestHeaderParams = array(), $params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('blLoginLogoutPDO');
+        $resultSet = $DAL->isUserBelongToCompany($requestHeaderParams, $params);  
+        return $resultSet['resultSet'];
+    }
+    
+    /**
      * get private key temp from public temp key
      * @param array$params
      * @return array
