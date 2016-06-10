@@ -171,7 +171,7 @@ $app->get("/pkGetConsConfirmationProcessDetails_sysOsbConsultants/", function ()
  *  * Okan CIRAN
  * @since 23-05-2016
  */
-$app->get("/pkGetAllFirmCons_sysOsbConsultants/", function () use ($app ) {
+$app->get("/pkcpkGetAllFirmCons_sysOsbConsultants/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
     $BLL = $app->getBLLManager()->get('sysOsbConsultantsBLL');
@@ -187,21 +187,21 @@ $app->get("/pkGetAllFirmCons_sysOsbConsultants/", function () use ($app ) {
                                                 $app,
                                                 $_GET['language_code']));
     }  
-    $vNetworkKey = NULL;
-    if (isset($_GET['npk'])) {
-        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+    $vcpk = NULL;
+    if (isset($_GET['cpk'])) {
+        $stripper->offsetSet('cpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
-                                                $_GET['npk']));
+                                                $_GET['cpk']));
     }
      
 
     $stripper->strip();
     if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    if($stripper->offsetExists('npk')) $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();    
+    if($stripper->offsetExists('cpk')) $vcpk = $stripper->offsetGet('cpk')->getFilterValue();    
  
      $result = $BLL->getAllFirmCons(array(
         'language_code' => $vLanguageCode,
-        'network_key' => $vNetworkKey,        
+        'cpk' => $vcpk,        
         'pk' => $pk,
         ));
     
@@ -209,7 +209,7 @@ $app->get("/pkGetAllFirmCons_sysOsbConsultants/", function () use ($app ) {
     $flows = array();
     foreach ($result['resultSet'] as $flow) {
         $flows[] = array(
-            "firm_id" => $flow["firm_id"],
+          //  "firm_id" => $flow["firm_id"],
             "consultant_id" => $flow["consultant_id"],  
             "name" => $flow["name"],   
             "surname" => $flow["surname"],

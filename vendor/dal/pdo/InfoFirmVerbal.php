@@ -7,7 +7,7 @@
  * @copyright Copyright (c) 2015 OSTİM TEKNOLOJİ (http://www.ostim.com.tr)
  * @license   
  */
-
+use  \Utill\Mail\PhpMailer\MailWrapper as sanalmail;
 namespace DAL\PDO;
 
 /**
@@ -17,7 +17,7 @@ namespace DAL\PDO;
  * @author Okan CİRANĞ
  */
 class InfoFirmVerbal extends \DAL\DalSlim {
-
+  
     /**
      * @author Okan CIRAN
      * @ info_firm_verbal tablosundan parametre olarak  gelen id kaydını siler. !!
@@ -68,11 +68,13 @@ class InfoFirmVerbal extends \DAL\DalSlim {
     public function getAll($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-            if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];
-            } else {
-                $languageIdValue = 647;
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
             }
             $statement = $pdo->prepare("                    
                     SELECT 
@@ -131,8 +133,8 @@ class InfoFirmVerbal extends \DAL\DalSlim {
 		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.language_id = l.id AND sd19.deleted = 0 AND sd19.active = 0
                     
                     LEFT JOIN sys_specific_definitions sd14x ON sd14x.language_id = lx.id AND (sd14x.id = sd14.id OR sd14x.language_parent_id = sd14.id) AND sd14x.deleted =0 AND sd14x.active =0
-                    LEFT JOIN sys_specific_definitions sd15x ON sd15x.language_id =lx.id AND (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15.deleted =0 AND sd15x.active =0 
-                    LEFT JOIN sys_specific_definitions sd16x ON sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16.deleted = 0 AND sd16x.active = 0
+                    LEFT JOIN sys_specific_definitions sd15x ON sd15x.language_id = lx.id AND (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15x.deleted =0 AND sd15x.active =0 
+                    LEFT JOIN sys_specific_definitions sd16x ON sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.deleted = 0 AND sd16x.active = 0
                     LEFT JOIN sys_specific_definitions sd19x ON sd19x.language_id = lx.id AND (sd19x.id = sd19.id OR sd19x.language_parent_id = sd19.id) AND sd19x.deleted = 0 AND sd19x.active = 0
                     
 		   ORDER BY a.language_id,firm_name,a.s_date	
@@ -178,7 +180,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                    " . $addSql . "                  
                                ";
             $statement = $pdo->prepare($sql);
-           // echo debugPDO($sql, $params);
+         //echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -232,15 +234,17 @@ class InfoFirmVerbal extends \DAL\DalSlim {
     public function insert($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
+            $pdo->beginTransaction();           
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $getFirm = InfoFirmProfile :: getFirmIdsForNetworkKey(array('network_key' => $params['network_key']));
-                if (\Utill\Dal\Helper::haveRecord($getFirm)) {
+                
+                $getFirm = InfoFirmProfile :: getCheckIsThisFirmRegisteredUser(array('cpk' => $params['cpk'],'op_user_id' => $opUserIdValue));           
+                if (\Utill\Dal\Helper::haveRecord($getFirm)) {                    
                     $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
+               
                     $kontrol = $this->haveRecords(array('firm_id' => $getFirmId,));
-                    if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                    if (!\Utill\Dal\Helper::haveRecord($kontrol)) {                          
                         $operationIdValue = -1;
                         $operationId = SysOperationTypes::getTypeIdToGoOperationId(
                                         array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 32, 'type_id' => 1,));
@@ -249,7 +253,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                         }
 
                         $ConsultantId = 1001;
-                        $getConsultant = SysOsbConsultants::getConsultantIdForCompany(array('category_id' => 1));
+                        $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_verbal' , 'operation_type_id' => $operationIdValue));
                         if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                             $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                         }
@@ -379,7 +383,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                     }
                 } else {
                     $errorInfo = '23502';   // 23502  not_null_violation
-                    $errorInfoColumn = 'npk';
+                    $errorInfoColumn = 'cpk';
                     $pdo->rollback();
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
@@ -404,17 +408,19 @@ class InfoFirmVerbal extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function update($params = array()) {
-        try {
+        try { 
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();
+            $pdo->beginTransaction();             
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $getFirm = InfoFirmProfile :: getFirmIdsForNetworkKey(array('network_key' => $params['network_key']));
+             
+                $getFirm = InfoFirmProfile :: getCheckIsThisFirmRegisteredUser(array('cpk' => $params['cpk'],'op_user_id' => $opUserIdValue));
                 if (\Utill\Dal\Helper::haveRecord($getFirm)) {
                     $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
-                    $kontrol = $this->haveRecords($params);
-                    if (\Utill\Dal\Helper::haveRecord($kontrol)) {
+              
+                    $kontrol = $this->haveRecords(array('id' => $params['id'],'firm_id' => $getFirmId,));
+                    if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                         $this->makePassive(array('id' => $params['id']));
                         $operationIdValue = -2;
                         $operationId = SysOperationTypes::getTypeIdToGoOperationId(
@@ -442,6 +448,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                         if ((isset($params['active']) && $params['active'] != "")) {
                             $active = intval($params['active']);
                         }
+                   
                         $xc = InfoFirmProfile::updateVerbal(array(
                                     'op_user_id' => $opUserIdValue,
                                     'firm_id' => $getFirmId,
@@ -463,6 +470,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                                     'logo' => $params['logo'],
                                         )
                         );
+                       
 
                         if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
                             throw new \PDOException($xc['errorInfo']);
@@ -477,7 +485,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                             profile_public,                           
                             act_parent_id,  
                             about,
-                            about_eng
+                            about_eng,
                             verbal1_title, 
                             verbal1, 
                             verbal2_title, 
@@ -521,11 +529,12 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                         WHERE id =  " . intval($params['id']) . " 
                         ";
                         $statement_act_insert = $pdo->prepare($sql);
+                   // echo debugPDO($sql, $params);
                         $insert_act_insert = $statement_act_insert->execute();
                         $affectedRows = $statement_act_insert->rowCount();
                         $errorInfo = $statement_act_insert->errorInfo();
                         if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                            throw new \PDOException($errorInfo[0]);
+                            throw new \PDOException($errorInfo[0]);                   
                         $pdo->commit();
                         return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
                     } else {
@@ -537,7 +546,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                     }
                 } else {
                     $errorInfo = '23502';   // 23502  not_null_violation
-                    $errorInfoColumn = 'npk';
+                    $errorInfoColumn = 'cpk';
                     $pdo->rollback();
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
@@ -554,8 +563,6 @@ class InfoFirmVerbal extends \DAL\DalSlim {
     }
 
     /**
-     * Datagrid fill function used for testing
-     * user interface datagrid fill operation   
      * @author Okan CIRAN
      * @ Gridi doldurmak için info_firm_verbal tablosundan kayıtları döndürür !!
      * @version v 1.0  25.04.2016
@@ -661,10 +668,10 @@ class InfoFirmVerbal extends \DAL\DalSlim {
 		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.language_id = l.id AND sd19.deleted = 0 AND sd19.active = 0
                     
                     LEFT JOIN sys_specific_definitions sd14x ON sd14x.language_id = lx.id AND (sd14x.id = sd14.id OR sd14x.language_parent_id = sd14.id) AND sd14x.deleted =0 AND sd14x.active =0
-                    LEFT JOIN sys_specific_definitions sd15x ON sd15x.language_id =lx.id AND (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15.deleted =0 AND sd15x.active =0 
-                    LEFT JOIN sys_specific_definitions sd16x ON sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16.deleted = 0 AND sd16x.active = 0
-                    LEFT JOIN sys_specific_definitions sd19x ON sd19x.language_id = lx.id AND (sd19x.id = sd19.id OR sd19x.language_parent_id = sd19.id) AND sd19x.deleted = 0 AND sd19x.active = 0                    
-		    WHERE a.deleted = 0 AND a.active =0 AND a.language_parent_id =0
+                    LEFT JOIN sys_specific_definitions sd15x ON sd15x.language_id = lx.id AND (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15x.deleted =0 AND sd15x.active =0 
+                    LEFT JOIN sys_specific_definitions sd16x ON sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.deleted = 0 AND sd16x.active = 0
+                    LEFT JOIN sys_specific_definitions sd19x ON sd19x.language_id = lx.id AND (sd19x.id = sd19.id OR sd19x.language_parent_id = sd19.id) AND sd19x.deleted = 0 AND sd19x.active = 0
+                    WHERE a.deleted = 0 AND a.active =0 AND a.language_parent_id =0
                     ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -739,8 +746,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * usage     
+    /**   
      * @author Okan CIRAN
      * @ info_firm_verbal tablosuna aktif olan diller için ,tek bir kaydın tabloda olmayan diğer dillerdeki kayıtlarını oluşturur   !!
      * @version v 1.0  25.04.2016
@@ -840,7 +846,6 @@ class InfoFirmVerbal extends \DAL\DalSlim {
     }
 
     /**
-     * 
      * @author Okan CIRAN
      * @ text alanları doldurmak için info_firm_verbal tablosundan tek kayıt döndürür !! 
      * insertLanguageTemplate fonksiyonu ile oluşturulmuş kayıtları 
@@ -944,36 +949,40 @@ class InfoFirmVerbal extends \DAL\DalSlim {
      * @throws PDOException
      */
     public function deletedAct($params = array()) {
-           try {
+        try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $kontrol = $this->haveRecords($params);
-                if (\Utill\Dal\Helper::haveRecord($kontrol)) {
-                    $this->makePassive(array('id' => $params['id']));               
-                    $operationIdValue = -3;
-                    $operationId = SysOperationTypes::getTypeIdToGoOperationId(
-                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 32, 'type_id' => 3,));
-                    if (\Utill\Dal\Helper::haveRecord($operationId)) {
-                    $operationIdValue = $operationId ['resultSet'][0]['id'];
-                    }
-                    $languageId = NULL;
-                    $languageIdValue = 647;
-                    if ((isset($params['language_code']) && $params['language_code'] != "")) {
-                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                            $languageIdValue = $languageId ['resultSet'][0]['id'];
+                $getFirm = InfoFirmProfile :: getCheckIsThisFirmRegisteredUser(array('cpk' => $params['cpk'], 'op_user_id' => $opUserIdValue));
+                if (\Utill\Dal\Helper::haveRecord($getFirm)) {
+                    $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
+                    //$kontrol = $this->haveRecords($params);
+                    $kontrol = $this->haveRecords(array('id' => $params['id'],'firm_id' => $getFirmId,));                    
+                    if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                        $this->makePassive(array('id' => $params['id']));
+                        $operationIdValue = -3;
+                        $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                                        array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 32, 'type_id' => 3,));
+                        if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                            $operationIdValue = $operationId ['resultSet'][0]['id'];
                         }
-                    } 
-                    
-                    $profilePublic= 0;
-                    if ((isset($params['profile_public']) && $params['profile_public'] != "")) {                      
-                        $profilePublic =  intval($params['profile_public']);
-                    }
-                    
-                 $sql = " 
+                        $languageId = NULL;
+                        $languageIdValue = 647;
+                        if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                                $languageIdValue = $languageId ['resultSet'][0]['id'];
+                            }
+                        }
+
+                        $profilePublic = 0;
+                        if ((isset($params['profile_public']) && $params['profile_public'] != "")) {
+                            $profilePublic = intval($params['profile_public']);
+                        }
+
+                        $sql = " 
                         INSERT INTO info_firm_verbal(
                             firm_id, 
                             consultant_id,
@@ -983,7 +992,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                             profile_public,                           
                             act_parent_id,  
                             about,
-                            about_eng
+                            about_eng,
                             verbal1_title, 
                             verbal1, 
                             verbal2_title, 
@@ -1033,21 +1042,29 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                             1
                         FROM info_firm_verbal 
                         WHERE id =  " . intval($params['id']) . " 
-                        "; 
-                    $statement_act_insert = $pdo->prepare($sql); 
-                    $insert_act_insert = $statement_act_insert->execute();
-                    $affectedRows = $statement_act_insert->rowCount();
-                    $errorInfo = $statement_act_insert->errorInfo();
-                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                        throw new \PDOException($errorInfo[0]);
-                    $pdo->commit();
-                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                        ";
+                        $statement_act_insert = $pdo->prepare($sql);
+                        
+                        $insert_act_insert = $statement_act_insert->execute();
+                        // echo debugPDO($sql, $params);
+                        $affectedRows = $statement_act_insert->rowCount();
+                        $errorInfo = $statement_act_insert->errorInfo();
+                        if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                            throw new \PDOException($errorInfo[0]);
+                        $pdo->commit();
+                        return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                    } else {
+                        // 23505  unique_violation
+                        $errorInfo = '23505';
+                        $pdo->rollback();
+                        $result = $kontrol;
+                        return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
+                    }
                 } else {
-                    // 23505  unique_violation
-                    $errorInfo = '23505';
+                    $errorInfo = '23502';   // 23502  not_null_violation
+                    $errorInfoColumn = 'cpk';
                     $pdo->rollback();
-                    $result = $kontrol;
-                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
@@ -1060,7 +1077,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-    
+
     /**  
      * @author Okan CIRAN
      * @ userin sectiği firmanın sözel kayıtlarını döndürür !!
@@ -1072,8 +1089,9 @@ class InfoFirmVerbal extends \DAL\DalSlim {
     public function fillUsersFirmVerbalNpk($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) {               
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {    
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $addSql = "";
                 $languageId = NULL;
                 $languageIdValue = 647;
@@ -1117,15 +1135,17 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(ifk.folder_name,'/'), '/'),''),ifk.logos_folder,'/' ,COALESCE(NULLIF(fp.logo, ''),'image_not_found.png'))
                                         ELSE                         
                                         CONCAT(ifk.folder_name ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(fp.logo, ''),'image_not_found.png')) END AS logo,                        
-                                fp.web_address             
+                                fp.web_address,
+                                ifu.user_id = " . intval($opUserIdValue) . " AS userb
                             FROM info_firm_verbal a                     
                             INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                    
                             INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                             LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
-                            LEFT JOIN info_firm_verbal ax ON (ax.id = a.id OR ax.language_parent_id=a.id)  AND ax.active = 0 AND ax.deleted = 0 AND ax.language_id =lx.id AND ax.cons_allow_id =2 
+                            LEFT JOIN info_firm_verbal ax ON (ax.id = a.id OR ax.language_parent_id=a.id) AND ax.language_id =lx.id AND ax.cons_allow_id =2 
                             INNER JOIN info_firm_keys ifk ON  ifk.network_key = '" . $params['network_key'] . "'                   
-                            INNER JOIN info_firm_profile fp ON fp.id = ifk.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0 AND fp.cons_allow_id =2
-                            LEFT JOIN info_firm_profile fpx ON (fpx.id =ifk.firm_id OR fpx.language_parent_id=ifk.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id AND fpx.cons_allow_id =2 
+                            INNER JOIN info_firm_profile fp ON fp.id = ifk.firm_id AND fp.language_parent_id =0 AND fp.cons_allow_id =2
+                            LEFT JOIN info_firm_profile fpx ON (fpx.id =ifk.firm_id OR fpx.language_parent_id=ifk.firm_id) AND fpx.language_id =lx.id AND fpx.cons_allow_id =2 
+                            LEFT JOIN info_firm_users ifu ON ifu.firm_id = ifk.firm_id AND ifu.active =0 AND ifu.deleted =0 AND ifu.language_parent_id = 0 AND ifu.user_id = " . intval($opUserIdValue) . "
                             WHERE 
                                 a.cons_allow_id=2  AND 
                                 a.language_parent_id =0 AND
@@ -1160,16 +1180,18 @@ class InfoFirmVerbal extends \DAL\DalSlim {
 				WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(ifk.folder_name,'/'), '/'),''),ifk.logos_folder,'/' ,COALESCE(NULLIF(fp.logo, ''),'image_not_found.png'))
 				ELSE                         
 				CONCAT(ifk.folder_name ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(fp.logo, ''),'image_not_found.png')) END AS logo,                        
-			fp.web_address             
+			fp.web_address,
+                        ifu.user_id = " . intval($opUserIdValue) . " AS userb
                     FROM info_firm_verbal a                     
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                    
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     LEFT JOIN info_firm_verbal ax ON (ax.id = a.id OR ax.language_parent_id=a.id)  AND ax.active = 0 AND ax.deleted = 0 AND ax.language_id =lx.id AND ax.cons_allow_id =2
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  AND fp.cons_allow_id =2
-                    LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  AND fpx.cons_allow_id =2
+                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.language_parent_id =0  AND fp.cons_allow_id =2
+                    LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.language_id =lx.id AND fpx.cons_allow_id =2
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id                                              
+                    LEFT JOIN info_firm_users ifu ON ifu.firm_id = ifk.firm_id AND ifu.active =0 AND ifu.deleted =0 AND ifu.language_parent_id = 0 AND ifu.user_id = " . intval($opUserIdValue) . "
                     WHERE 
                         a.cons_allow_id=2  AND 
                         a.language_parent_id =0 AND
@@ -1250,17 +1272,18 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                                 COALESCE(NULLIF(lx.language, ''), 'en') AS language_name, 
                                 CASE COALESCE(NULLIF(fp.logo, ''),'-') 
                                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(ifk.folder_name,'/'), '/'),''),ifk.logos_folder,'/' ,COALESCE(NULLIF(fp.logo, ''),'image_not_found.png'))
-                                        ELSE                         
-                                        CONCAT(ifk.folder_name ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(fp.logo, ''),'image_not_found.png')) END AS logo,                        
-                                fp.web_address             
-                            FROM info_firm_verbal a                     
-                            INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                    
+                                        ELSE
+                                        CONCAT(ifk.folder_name ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(fp.logo, ''),'image_not_found.png')) END AS logo,
+                                fp.web_address,
+                                false AS userb
+                            FROM info_firm_verbal a
+                            INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
                             INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                             LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
-                            LEFT JOIN info_firm_verbal ax ON (ax.id = a.id OR ax.language_parent_id=a.id)  AND ax.active = 0 AND ax.deleted = 0 AND ax.language_id =lx.id AND ax.cons_allow_id =2 
-                            INNER JOIN info_firm_keys ifk ON  ifk.network_key = '" . $params['network_key'] . "'                   
-                            INNER JOIN info_firm_profile fp ON fp.id = ifk.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0 AND fp.cons_allow_id =2
-                            LEFT JOIN info_firm_profile fpx ON (fpx.id =ifk.firm_id OR fpx.language_parent_id=ifk.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id AND fpx.cons_allow_id =2 
+                            LEFT JOIN info_firm_verbal ax ON (ax.id = a.id OR ax.language_parent_id=a.id) AND ax.language_id =lx.id AND ax.cons_allow_id =2 
+                            INNER JOIN info_firm_keys ifk ON  ifk.network_key = '" . $params['network_key'] . "'
+                            INNER JOIN info_firm_profile fp ON fp.id = ifk.firm_id AND fp.language_parent_id =0 AND fp.cons_allow_id =2
+                            LEFT JOIN info_firm_profile fpx ON (fpx.id =ifk.firm_id OR fpx.language_parent_id=ifk.firm_id) AND fpx.language_id =lx.id AND fpx.cons_allow_id =2
                             WHERE 
                                 a.cons_allow_id=2  AND 
                                 a.language_parent_id =0 AND
@@ -1293,30 +1316,31 @@ class InfoFirmVerbal extends \DAL\DalSlim {
 		        COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,  
 			CASE COALESCE(NULLIF(fp.logo, ''),'-') 
 				WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(ifk.folder_name,'/'), '/'),''),ifk.logos_folder,'/' ,COALESCE(NULLIF(fp.logo, ''),'image_not_found.png'))
-				ELSE                         
-				CONCAT(ifk.folder_name ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(fp.logo, ''),'image_not_found.png')) END AS logo,                        
-			fp.web_address             
-                    FROM info_firm_verbal a                     
-                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                    
+				ELSE
+				CONCAT(ifk.folder_name ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(fp.logo, ''),'image_not_found.png')) END AS logo,
+			fp.web_address,
+                        false AS userb
+                    FROM info_firm_verbal a
+                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     LEFT JOIN info_firm_verbal ax ON (ax.id = a.id OR ax.language_parent_id=a.id)  AND ax.active = 0 AND ax.deleted = 0 AND ax.language_id =lx.id AND ax.cons_allow_id =2
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  AND fp.cons_allow_id =2
-                    LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  AND fpx.cons_allow_id =2
-                    INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id                                              
+                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.language_parent_id =0  AND fp.cons_allow_id =2
+                    LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.language_id =lx.id AND fpx.cons_allow_id =2
+                    INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id
                     WHERE 
                         a.cons_allow_id=2  AND 
                         a.language_parent_id =0 AND
                         a.profile_public =0 AND
                         ifk.network_key = '" . $params['network_key'] . "' 
                     limit 1 
-                    ) 
+                    )              
                 ORDER BY firm_id DESC
-                limit 1 
+                limit 1  
                         ";
                 $statement = $pdo->prepare($sql);
-             // echo debugPDO($sql, $params);
+            // echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -1328,7 +1352,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
         }
     }
     
-        /**
+    /**
      * @author Okan CIRAN
      * @ firmanın sözel verilerinin danısman bilgisini döndürür !!
      * @version v 1.0  23.05.2016
@@ -1339,11 +1363,14 @@ class InfoFirmVerbal extends \DAL\DalSlim {
     public function getFirmVerbalConsultant($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $getFirmIdValue = -1;
-            $getFirm = InfoFirmProfile :: getFirmIdsForNetworkKey(array('network_key' => $params['network_key']));
-            if (\Utill\Dal\Helper::haveRecord($getFirm)) {
-                $getFirmIdValue = $getFirm ['resultSet'][0]['firm_id'];
-                $languageId = NULL;
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $getFirm = InfoFirmProfile :: getCheckIsThisFirmRegisteredUser(array('cpk' => $params['cpk'], 'op_user_id' => $opUserIdValue));
+                if (\Utill\Dal\Helper::haveRecord($getFirm)) {
+                    $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
+               
+                    $languageId = NULL;
                 $languageIdValue = 647;
                 if ((isset($params['language_code']) && $params['language_code'] != "")) {
                     $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
@@ -1358,10 +1385,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                     ifv.consultant_id,                   
                     iud.name, 
                     iud.surname,
-                    iud.auth_email,
-                    iuc.communications_type_id, 
-		    COALESCE(NULLIF(sd5x.description, ''), sd5.description_eng) AS communications_type_name,  
-                    iuc.communications_no,
+                    iud.auth_email, 
                     ifk.network_key,
 		    CASE COALESCE(NULLIF(TRIM(iud.picture), ''),'-') 
                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' ,'image_not_found.png')
@@ -1380,11 +1404,11 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd5 ON sd5.main_group = 5 AND sd5.first_group = iuc.communications_type_id AND sd5.deleted =0 AND sd5.active =0 AND l.id = sd5.language_id   
 		LEFT JOIN sys_specific_definitions sd5x ON (sd5x.id =sd5.id OR sd5x.language_parent_id = sd5.id) AND sd5x.deleted =0 AND sd5x.active =0 AND lx.id = sd5x.language_id 
                 WHERE    
-                    a.act_parent_id = " . intval($getFirmIdValue) . "  
+                    a.act_parent_id = " . intval($getFirmId) . "  
                 ORDER BY  iud.name, iud.surname 
                 ";
                 $statement = $pdo->prepare($sql);
-                //  echo debugPDO($sql, $params);                
+                  echo debugPDO($sql, $params);                
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -1392,8 +1416,15 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                     throw new \PDOException($errorInfo[0]);
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             } else {
-                $errorInfo = '23502';   // 23502  user_id not_null_violation
-                $errorInfoColumn = 'network_key';
+                    $errorInfo = '23502';   // 23502  not_null_violation
+                    $errorInfoColumn = 'cpk';
+                    $pdo->rollback();
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
                 return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -1402,5 +1433,341 @@ class InfoFirmVerbal extends \DAL\DalSlim {
         }
     }
 
- 
+    /**
+     * @author Okan CIRAN
+     * @ firmanın sözel verilerinin danısman bilgisini döndürür !!
+     * @version v 1.0  23.05.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function sendMailConsultant($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+         //   $mailService = $this->slimApp->getServiceManager()->get('mailPHPMailerAutoload');
+          //require   \Utill\Mail\PhpMailer\MailWrapper;          
+            
+            $getFirmIdValue = -1;            
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+                
+                
+              
+           $prms =  array(  
+            'params' => json_encode(serialize(array('subject'=>'xcvxcvxcv xcv xvc 1'))), 
+            'recipients' => json_encode(serialize(array('ociran@gmail.com'=>'okan1'))), 
+            'recipientsBcc' => json_encode(serialize(array('ociran@gmail.com'=>'okan2'))), 
+            'recipientCc' => json_encode(serialize(array('ociran@gmail.com'=>'okan3'))),             
+            'attachment' => json_encode(serialize(array(''))),             
+            
+            );
+          //  $prms1 =  json_encode(serialize($prms)); 
+          //  print_r($prms1);
+            $mailId = \Utill\Mail\PhpMailer\MailWrapper::sendAuthorizingMail(
+                    $prms);     
+            /*
+                
+                 $mailId = \Utill\Mail\PhpMailer\MailWrapper::sendAuthorizingMail(
+                    array(
+                        'body' => 'Sanal Fabrika denemesi 1  <b>Sanal Fabrika !</b>',
+                        'subject' => 'xcvxcvxcv xcv xvc 1 ',
+                        'address' => 'ociran@gmail.com',
+                        'name' => 'oki',
+                
+                ));
+             */
+            /*
+            $mail = new \PHPMailer();
+                  
+
+           // $headers = "MIME-Version: 1.0\r\n Content-type: text/html; charset=UTF-8\r\n From: sanalfabrika@ostimteknoloji.com \r\n X-Mailer: PHP/"
+            // "Reply-To: 311corner82@gmail.com" . "\r\n" .
+            // . phpversion(); 
+            
+            $body  = ' ıı öö ğğ işş çç  <b>ŞŞŞŞ İİĞ ĞĞ !</b>';
+            $body  = eregi_replace("[\]",'',$body);
+            $mail->CharSet='UTF-8';
+            //$mail->headerLine($headers, $value);
+            $mail->IsSMTP(); // telling the class to use SMTP 
+            $mail->Host       = "mail.ostimteknoloji.com"; // SMTP server 
+            $mail->SMTPDebug  = 2;                      // enables SMTP debug information (for testing) 
+                                                        // 1 = errors and messages
+                                                        // 2 = messages only
+            $mail->SMTPAuth   = true;                  // enable SMTP authentication
+            $mail->Host       = "mail.ostimteknoloji.com"; // sets the SMTP server
+            $mail->SMTPSecure = 'SSL';   
+            $mail->Port       = 587;                        // set the SMTP port for the GMAIL server
+            $mail->Username   = "sanalfabrika@ostimteknoloji.com"; // SMTP account username
+            $mail->Password   = "1q2w3e4r";             // SMTP account password
+            $mail->SetFrom('sanalfabrika@ostimteknoloji.com', '8 deneme');
+            $mail->AddReplyTo("311corner82@gmail.com","8.  deneme");
+            $mail->Subject    = "cc9 bık bık ";
+
+            //$mail->AltBody    = " ıı öö ğğ işş çç !"; // optional, comment out and test
+
+            $mail->MsgHTML($body);
+            $address = "ociran@gmail.com";
+            //$mail->addCC('bahram.metu@gmail.com');
+            //$mail->addBCC('311corner82@gmail.com'); 
+            $mail->AddAddress($address, "z cddccd ");
+            //$mail->AddAttachment("images/phpmailer.gif");      // attachment
+            //$mail->AddAttachment("images/phpmailer_mini.gif"); // attachment
+            if(!$mail->Send()) {
+            echo "Mailer Error: " . $mail->ErrorInfo;
+            } else {
+            echo "Message sent!";
+            }       
+*/
+                  
+                  /*
+                $mail->isSMTP();  
+                // Set mailer to use SMTP
+$mail->Host = 'smtp.gmail.com';  // Specify main and backup SMTP servers
+$mail->SMTPAuth = true;                               // Enable SMTP authentication
+$mail->Username = 'ociran@gmail.com';                 // SMTP username
+$mail->Password = '134sn7d117006';                           // SMTP password
+$mail->SMTPSecure = 'tls';                            // Enable TLS encryption, `ssl` also accepted
+$mail->Port = 587;                                    // TCP port to connect to
+
+$mail->setFrom('ociran@gmail.com', 'Mailer');
+$mail->addAddress('mustafa.zeynel@ostimteknoloji.com', 'Joe User');     // Add a recipient
+$mail->addAddress('ellen@example.com');               // Name is optional
+$mail->addReplyTo('mustafa.zeynel@ostimteknoloji.com', 'Information');
+$mail->addCC('bahram@ostimteknoloji.com');
+$mail->addBCC('okan.ciran.com');
+
+//$mail->addAttachment('/var/tmp/file.tar.gz');         // Add attachments
+//$mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
+$mail->isHTML(true);                                  // Set email format to HTML
+
+$mail->Subject = 'Here is the subject';
+$mail->Body    = 'This is the HTML message body <b>in bold!</b>';
+$mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+
+if(!$mail->send()) {
+    echo 'Message could not be sent.';
+    echo 'Mailer Error: ' . $mail->ErrorInfo;
+} else {
+    echo 'Message has been sent';
+}
+        */        
+/*
+                    //Create a new PHPMailer instance
+                    //$mail = new PHPMailer;
+                    $mail = new \PHPMailer();
+                    // Set PHPMailer to use the sendmail transport
+                    
+                     $mail->Username = 'sanalfabrika@ostimteknoloji.com';                 // SMTP username
+                    $mail->Password = '1q2w3e4r';  
+                    $mail->From = "sanalfabrika@ostimteknoloji.com";
+                    $mail->FromName = "Full Name";
+
+              
+                    
+                    
+                    $mail->isSendmail();
+                    //Set who the message is to be sent from
+                    $mail->setFrom('sanalfabrika@ostimteknoloji.com', 'First Last');
+                    //Set an alternative reply-to address
+                  //  $mail->addReplyTo('replyto@example.com', 'First Last');
+                    //Set who the message is to be sent to
+                         //To address and name
+                    $mail->addAddress("mustafa.zeynel@ostimteknoloji.com");
+                    //$mail->addAddress("recepient1@example.com"); //Recipient name is optional
+                    //Address to which recipient will reply
+                  //  $mail->addReplyTo("reply@yourdomain.com", "Reply");
+
+                    //CC and BCC
+                    $mail->addCC("bahram@ostimteknoloji.com");
+                    $mail->addBCC("mustafa.zeynel@ostimteknoloji.com");
+                    //Set the subject line
+                    $mail->Subject = 'PHPMailer sendmail test';
+                    //Read an HTML message body from an external file, convert referenced images to embedded,
+                    //convert HTML into a basic plain-text alternative body
+                   
+                    
+                //    $mail->msgHTML(file_get_contents('contents.html'), dirname('/../../phpmailer/phpmailer/examples'));
+                //    
+//Send HTML or Plain Text email
+                    $mail->isHTML(true);
+
+                    $mail->Subject = "Subject Text";
+                    $mail->Body = "<i>Mail body in HTML</i>";
+                //    $mail->AltBody = "This is the plain text version of the email content";
+
+
+                    //Replace the plain text body with one created manually
+                    $mail->AltBody = 'This is a plain-text message body';
+                    //Attach an image file
+                 //   $mail->addAttachment('images/phpmailer_mini.png');
+
+                    //send the message, check for errors
+                    if (!$mail->send()) {
+                        echo "Mailer Error: " . $mail->ErrorInfo;
+                    } else {
+                        echo "Message sent!";
+                    }
+                  //  print_r($mail);
+ * 
+ * 
+ */
+                $sql = "
+                 
+                ";
+                $statement = $pdo->prepare($sql);
+                //  echo debugPDO($sql, $params);                
+               // $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+           
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ firmanın sözel verilerinin danısman bilgisini döndürür !!
+     * @version v 1.0  23.05.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function sendMaildeneme($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            print_r('asdasdasd');
+           $prms =  array(  
+            'params' => array('subject'=>'xcvxcvxcv xcv xvc 1'), 
+            'recipients' => array('ociran@gmail.com'=>'okan1'), 
+            'recipientsBcc' => array('ociran@gmail.com'=>'okan2'), 
+            'recipientCc' => array('ociran@gmail.com'=>'okan3'),             
+            'attachment' => array(''),             
+            
+            );
+            $prms1 =  json_encode(serialize($prms));
+            print_r($prms1);
+            $mailId = \Utill\Mail\PhpMailer\MailWrapper::sendAuthorizingMail(
+                    array($prms1));            
+
+                  /*
+                $mail->isSMTP();  
+                // Set mailer to use SMTP
+$mail->Host = 'smtp.gmail.com';  // Specify main and backup SMTP servers
+$mail->SMTPAuth = true;                               // Enable SMTP authentication
+$mail->Username = 'ociran@gmail.com';                 // SMTP username
+$mail->Password = '134sn7d117006';                           // SMTP password
+$mail->SMTPSecure = 'tls';                            // Enable TLS encryption, `ssl` also accepted
+$mail->Port = 587;                                    // TCP port to connect to
+
+$mail->setFrom('ociran@gmail.com', 'Mailer');
+$mail->addAddress('mustafa.zeynel@ostimteknoloji.com', 'Joe User');     // Add a recipient
+$mail->addAddress('ellen@example.com');               // Name is optional
+$mail->addReplyTo('mustafa.zeynel@ostimteknoloji.com', 'Information');
+$mail->addCC('bahram@ostimteknoloji.com');
+$mail->addBCC('okan.ciran.com');
+
+//$mail->addAttachment('/var/tmp/file.tar.gz');         // Add attachments
+//$mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
+$mail->isHTML(true);                                  // Set email format to HTML
+
+$mail->Subject = 'Here is the subject';
+$mail->Body    = 'This is the HTML message body <b>in bold!</b>';
+$mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+
+if(!$mail->send()) {
+    echo 'Message could not be sent.';
+    echo 'Mailer Error: ' . $mail->ErrorInfo;
+} else {
+    echo 'Message has been sent';
+}
+        */        
+/*
+                    //Create a new PHPMailer instance
+                    //$mail = new PHPMailer;
+                    $mail = new \PHPMailer();
+                    // Set PHPMailer to use the sendmail transport
+                    
+                     $mail->Username = 'sanalfabrika@ostimteknoloji.com';                 // SMTP username
+                    $mail->Password = '1q2w3e4r';  
+                    $mail->From = "sanalfabrika@ostimteknoloji.com";
+                    $mail->FromName = "Full Name";
+
+              
+                    
+                    
+                    $mail->isSendmail();
+                    //Set who the message is to be sent from
+                    $mail->setFrom('sanalfabrika@ostimteknoloji.com', 'First Last');
+                    //Set an alternative reply-to address
+                  //  $mail->addReplyTo('replyto@example.com', 'First Last');
+                    //Set who the message is to be sent to
+                         //To address and name
+                    $mail->addAddress("mustafa.zeynel@ostimteknoloji.com");
+                    //$mail->addAddress("recepient1@example.com"); //Recipient name is optional
+                    //Address to which recipient will reply
+                  //  $mail->addReplyTo("reply@yourdomain.com", "Reply");
+
+                    //CC and BCC
+                    $mail->addCC("bahram@ostimteknoloji.com");
+                    $mail->addBCC("mustafa.zeynel@ostimteknoloji.com");
+                    //Set the subject line
+                    $mail->Subject = 'PHPMailer sendmail test';
+                    //Read an HTML message body from an external file, convert referenced images to embedded,
+                    //convert HTML into a basic plain-text alternative body
+                   
+                    
+                //    $mail->msgHTML(file_get_contents('contents.html'), dirname('/../../phpmailer/phpmailer/examples'));
+                //    
+//Send HTML or Plain Text email
+                    $mail->isHTML(true);
+
+                    $mail->Subject = "Subject Text";
+                    $mail->Body = "<i>Mail body in HTML</i>";
+                //    $mail->AltBody = "This is the plain text version of the email content";
+
+
+                    //Replace the plain text body with one created manually
+                    $mail->AltBody = 'This is a plain-text message body';
+                    //Attach an image file
+                 //   $mail->addAttachment('images/phpmailer_mini.png');
+
+                    //send the message, check for errors
+                    if (!$mail->send()) {
+                        echo "Mailer Error: " . $mail->ErrorInfo;
+                    } else {
+                        echo "Message sent!";
+                    }
+                  //  print_r($mail);
+ * 
+ * 
+ */
+                $sql = "
+                 
+                ";
+                $statement = $pdo->prepare($sql);
+                //  echo debugPDO($sql, $params);                
+               // $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+           
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
 }

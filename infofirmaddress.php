@@ -150,7 +150,7 @@ $app->get("/pkDeletedAct_infoFirmAddress/", function () use ($app ) {
  *  * Okan CIRAN
  * @since 17-05-2016
  */
-$app->get("/pkUpdate_infoFirmAddress/", function () use ($app ) {    
+$app->get("/pkcpkUpdate_infoFirmAddress/", function () use ($app ) {    
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
     $BLL = $app->getBLLManager()->get('infoFirmAddressBLL');   
@@ -169,6 +169,12 @@ $app->get("/pkUpdate_infoFirmAddress/", function () use ($app ) {
          $stripper->offsetSet('id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['id']));
+    }   
+    $vcpk = NULL;
+    if (isset($_GET['cpk'])) {
+         $stripper->offsetSet('cpk',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['cpk']));
     }   
     $vActive = 0;
     if (isset($_GET['active'])) {
@@ -237,6 +243,24 @@ $app->get("/pkUpdate_infoFirmAddress/", function () use ($app ) {
                                                 $app,
                                                 $_GET['description_eng']));
     } 
+    $vTel = NULL;
+    if (isset($_GET['tel'])) {
+         $stripper->offsetSet('tel',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['tel']));
+    } 
+    $vFax = NULL;
+    if (isset($_GET['fax'])) {
+         $stripper->offsetSet('fax',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['fax']));
+    } 
+    $vEmail = NULL;
+    if (isset($_GET['email'])) {
+         $stripper->offsetSet('email',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['email']));
+    } 
     
     $stripper->strip(); 
     if ($stripper->offsetExists('language_code')) {
@@ -244,6 +268,9 @@ $app->get("/pkUpdate_infoFirmAddress/", function () use ($app ) {
     } 
     if ($stripper->offsetExists('id')) {
         $vId = $stripper->offsetGet('id')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('cpk')) {
+        $vcpk = $stripper->offsetGet('cpk')->getFilterValue();
     } 
     if ($stripper->offsetExists('active')) {
         $vActive = $stripper->offsetGet('active')->getFilterValue();
@@ -278,22 +305,35 @@ $app->get("/pkUpdate_infoFirmAddress/", function () use ($app ) {
     if ($stripper->offsetExists('description_eng')) {
         $vDescriptionEng = $stripper->offsetGet('description_eng')->getFilterValue();
     } 
+    if ($stripper->offsetExists('tel')) {
+        $vTel = $stripper->offsetGet('tel')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('fax')) {
+        $vFax = $stripper->offsetGet('fax')->getFilterValue();
+    }
+    if ($stripper->offsetExists('email')) {
+        $vEmail= $stripper->offsetGet('email')->getFilterValue();
+    } 
+
 
     $resData = $BLL->update(array(  
-            'id' => $vId ,    
-            'active' => $vActive ,  
-            'language_code' => $vLanguageCode,    
-            'profile_public' => $vProfilePublic,  
-            'firm_building_type_id' => $vFirmBuildingTypeId,  
-            'firm_building_name' => $vFirmBuildingName,  
-            'address' => $vAddress,  
-            'borough_id' => $vBoroughId,  
-            'city_id' => $vCityId,  
-            'country_id' => $vCountryId,  
-            'osb_id' => $vOsbId,  
-            'description' => $vDescription,  
-            'description_eng' => $vDescriptionEng,  
-        
+            'id' => $vId,
+            'cpk' => $vcpk,
+            'active' => $vActive,
+            'language_code' => $vLanguageCode,
+            'profile_public' => $vProfilePublic,
+            'firm_building_type_id' => $vFirmBuildingTypeId,
+            'firm_building_name' => $vFirmBuildingName,
+            'address' => $vAddress,
+            'borough_id' => $vBoroughId,
+            'city_id' => $vCityId,
+            'country_id' => $vCountryId,
+            'osb_id' => $vOsbId,
+            'description' => $vDescription,
+            'description_eng' => $vDescriptionEng,
+            'tel' => $vTel,
+            'fax' => $vFax,
+            'email' => $vEmail,        
             'pk' => $pk,        
             )); 
     $app->response()->header("Content-Type", "application/json"); 

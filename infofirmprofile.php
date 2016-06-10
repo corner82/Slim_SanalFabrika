@@ -821,7 +821,7 @@ $app->get("/fillCompanyListsGuest_infoFirmProfile/", function () use ($app ) {
     $flows = array();
     foreach ($resDataGrid as $flow) {
         $flows[] = array(
-            "pk" => $flow["pk"],
+            "npk" => $flow["npk"],
             "firm_names" => $flow["firm_names"],
             "web_address" => $flow["web_address"],
             "firm_name_short" => $flow["firm_name_short"],
@@ -915,7 +915,7 @@ $app->get("/pkFillCompanyLists_infoFirmProfile/", function () use ($app ) {
     $flows = array();
     foreach ($resDataGrid as $flow) {
         $flows[] = array(
-            "pk" => $flow["pk"],
+            "npk" => $flow["npk"],
             "firm_names" => $flow["firm_names"],
             "web_address" => $flow["web_address"],
             "firm_name_short" => $flow["firm_name_short"],

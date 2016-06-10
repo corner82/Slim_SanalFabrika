@@ -434,13 +434,7 @@ $app->get("/pkcpkUpdate_infoFirmVerbal/", function () use ($app ) {
         $stripper->offsetSet('country_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['country_id']));
-    }    
-    $vNpk = NULL;
-    if (isset($_GET['npk'])) {
-        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
-                                                        $app, 
-                                                        $_GET['npk']));
-    }
+    }        
     $vAbout = NULL;
     if (isset($_GET['about'])) {
          $stripper->offsetSet('about',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
@@ -614,10 +608,7 @@ $app->get("/pkcpkUpdate_infoFirmVerbal/", function () use ($app ) {
     }
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    }        
-    if ($stripper->offsetExists('npk')) {
-        $vNpk = $stripper->offsetGet('npk')->getFilterValue();
-    }    
+    }            
     if ($stripper->offsetExists('profile_public')) {
         $vProfilePublic = $stripper->offsetGet('profile_public')->getFilterValue();
     }
@@ -708,8 +699,7 @@ $app->get("/pkcpkUpdate_infoFirmVerbal/", function () use ($app ) {
       
     $resDataInsert = $BLL->update(array( 
             'id' => $vId,
-            'language_code' => $vLanguageCode,    
-           // 'network_key'=> $vNpk,  
+            'language_code' => $vLanguageCode,               
             'cpk'=> $vCpk,  
             'firm_name'=> $vFirmName, 
             'firm_name_eng'=> $vFirmNameEng, 
@@ -747,6 +737,49 @@ $app->get("/pkcpkUpdate_infoFirmVerbal/", function () use ($app ) {
     $app->response()->body(json_encode($resDataInsert));
 }
 ); 
+
+/**x
+ *  * Okan CIRAN
+ * @since 09-05-2016
+ */
+$app->get("/pkcpkDeletedAct_infoFirmVerbal/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('infoFirmVerbalBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkcpkDeletedAct_infoFirmVerbal" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+ 
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    } 
+    $vCpk = NULL;
+    if (isset($_GET['cpk'])) {
+        $stripper->offsetSet('cpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['cpk']));
+    }
+
+    $stripper->strip(); 
+    if ($stripper->offsetExists('id')) 
+        {$vId = $stripper->offsetGet('id')->getFilterValue(); }     
+    if ($stripper->offsetExists('cpk')) 
+        {$vCpk = $stripper->offsetGet('cpk')->getFilterValue(); }     
+    
+    $resDataDeleted = $BLL->DeletedAct(array(                  
+            'id' => $vId ,  
+            'cpk' => $vCpk ,    
+            'pk' => $pk,        
+            ));
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($resDataDeleted));
+}
+); 
+
  
 /**
  *  * Okan CIRAN
@@ -823,7 +856,7 @@ $app->get("/pkFillGrid_infoFirmVerbal/", function () use ($app ) {
     foreach ($resDataGrid as $flow) {
         $flows[] = array(
             "id" => $flow["id"],
-            "firm_id" => $flow["firm_id"],
+          //  "firm_id" => $flow["firm_id"],
             "firm_name" => $flow["firm_name"],
             "firm_name_eng" => $flow["firm_name_eng"],
             "about" => $flow["about"],
@@ -913,7 +946,7 @@ $app->get("/pkFillUsersFirmVerbalNpk_infoFirmVerbal/", function () use ($app ) {
     foreach ($resDataGrid as $flow) {
         $flows[] = array(
            "id" => $flow["id"],
-            "firm_id" => $flow["firm_id"],
+           // "firm_id" => $flow["firm_id"],
             "firm_name" => $flow["firm_name"],
             "firm_name_eng" => $flow["firm_name_eng"],
             "about" => $flow["about"],
@@ -933,7 +966,7 @@ $app->get("/pkFillUsersFirmVerbalNpk_infoFirmVerbal/", function () use ($app ) {
             "language_id" => $flow["language_id"],
             "language_name" => $flow["language_name"],    
             "logo" => $flow["logo"],  
-            "attributes" => array("notroot" => true, ),
+            "attributes" => array("notroot" => true,  "userb" => $flow["userb"],),
         );
     }
 
@@ -983,7 +1016,7 @@ $app->get("/fillUsersFirmVerbalNpkGuest_infoFirmVerbal/", function () use ($app 
     foreach ($resDataGrid as $flow) {
         $flows[] = array(
             "id" => $flow["id"],
-            "firm_id" => $flow["firm_id"],
+          //  "firm_id" => $flow["firm_id"],
             "firm_name" => $flow["firm_name"],
             "firm_name_eng" => $flow["firm_name_eng"],
             "about" => $flow["about"],
@@ -1012,7 +1045,7 @@ $app->get("/fillUsersFirmVerbalNpkGuest_infoFirmVerbal/", function () use ($app 
         
 	 
             
-            "attributes" => array("notroot" => true, ),
+            "attributes" => array("notroot" => true,"userb" => $flow["userb"] ),
         );
     }
 
@@ -1027,13 +1060,13 @@ $app->get("/fillUsersFirmVerbalNpkGuest_infoFirmVerbal/", function () use ($app 
  *  * Okan CIRAN
  * @since 23-05-2016
  */
-$app->get("/pkGetFirmVerbalConsultant_infoFirmVerbal/", function () use ($app ) {
+$app->get("/pkcpkGetFirmVerbalConsultant_infoFirmVerbal/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
     $BLL = $app->getBLLManager()->get('infoFirmVerbalBLL');
     $headerParams = $app->request()->headers();     
     if (!isset($headerParams['X-Public'])) {
-        throw new Exception('rest api "pkGetFirmVerbalConsultant_infoFirmVerbal" end point, X-Public variable not found');
+        throw new Exception('rest api "pkcpkGetFirmVerbalConsultant_infoFirmVerbal" end point, X-Public variable not found');
     }
     $pk = $headerParams['X-Public'];
     
@@ -1043,21 +1076,21 @@ $app->get("/pkGetFirmVerbalConsultant_infoFirmVerbal/", function () use ($app ) 
                                                 $app,
                                                 $_GET['language_code']));
     }  
-    $vNetworkKey = NULL;
-    if (isset($_GET['npk'])) {
-        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+    $vcpk = NULL;
+    if (isset($_GET['cpk'])) {
+        $stripper->offsetSet('cpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
-                                                $_GET['npk']));
+                                                $_GET['cpk']));
     }
      
 
     $stripper->strip();
     if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    if($stripper->offsetExists('npk')) $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();    
+    if($stripper->offsetExists('cpk')) $vcpk = $stripper->offsetGet('cpk')->getFilterValue();    
  
      $result = $BLL->getFirmVerbalConsultant(array(
         'language_code' => $vLanguageCode,
-        'network_key' => $vNetworkKey,        
+        'cpk' => $vcpk,        
         'pk' => $pk,
         ));
     
@@ -1065,7 +1098,7 @@ $app->get("/pkGetFirmVerbalConsultant_infoFirmVerbal/", function () use ($app ) 
     $flows = array();
     foreach ($result['resultSet'] as $flow) {
         $flows[] = array(
-            "firm_id" => $flow["firm_id"],
+           // "firm_id" => $flow["firm_id"],
             "consultant_id" => $flow["consultant_id"],  
             "name" => $flow["name"],   
             "surname" => $flow["surname"],
@@ -1074,7 +1107,7 @@ $app->get("/pkGetFirmVerbalConsultant_infoFirmVerbal/", function () use ($app ) 
         //    "communications_type_name" => $flow["communications_type_name"],             
         //    "communications_no" => $flow["communications_no"],
             "cons_picture" => $flow["cons_picture"],
-            "npk" => $flow["network_key"],
+         //   "npk" => $flow["network_key"],
              
             "attributes" => array(),
         );

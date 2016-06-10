@@ -46,7 +46,7 @@ class InfoFirmVerbal extends \BLL\BLLSlim{
      * @param array | null $params
      * @return array
      */
-    public function update($params = array()) {
+    public function update($params = array()) {     
         $DAL = $this->slimApp->getDALManager()->get('infoFirmVerbalPDO');
         return $DAL->update($params);
     }
@@ -136,7 +136,7 @@ class InfoFirmVerbal extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
  
-             /**
+    /**
      * get consultant confirmation process details
      * @param array $params
      * @return array
@@ -144,6 +144,15 @@ class InfoFirmVerbal extends \BLL\BLLSlim{
     public function getFirmVerbalConsultant($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmVerbalPDO');
         return $DAL->getFirmVerbalConsultant($params);
+    }
+    /**
+     * get consultant confirmation process details
+     * @param array $params
+     * @return array
+     */
+    public function sendMailConsultant($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmVerbalPDO');
+        return $DAL->sendMailConsultant($params);
     }
       
     

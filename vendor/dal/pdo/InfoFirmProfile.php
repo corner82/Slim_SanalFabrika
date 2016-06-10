@@ -477,7 +477,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                             '" . $params['description'] . "' AS description, 
                             '" . $params['description_eng'] . "' AS description_eng, 
                             '" . $params['duns_number'] . "' AS duns_number,
-                            '" . $params['logo'] . "' AS logo       
+                            logo       
                         FROM info_firm_profile 
                         WHERE id =  " . intval($params['id']) . " 
                         ");
@@ -526,7 +526,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             //    $pdo->beginTransaction(); 
-            $endOfIdValue = -1;
+            $endOfIdValue = -1;            
+       
             $endOfId = InfoFirmProfile::getFirmEndOfId(array('firm_id' => $params['firm_id']));
             if (\Utill\Dal\Helper::haveRecord($endOfId)) {
                 $endOfIdValue = $endOfId ['resultSet'][0]['firm_id'];
@@ -612,7 +613,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                             '" . $params['description'] . "' AS description,
                             '" . $params['description_eng'] . "' AS description_eng, 
                             '" . $params['duns_number'] . "' AS duns_number,
-                            '" . $params['logo'] . "' AS logo
+                            logo
                         FROM info_firm_profile 
                         WHERE id =  " . intval($endOfIdValue) . "                                
                         ";
@@ -774,7 +775,6 @@ class InfoFirmProfile extends \DAL\DalSlim {
     }
 
     /**
-     * user interface datagrid fill operation get row count for widget
      * @author Okan CIRAN
      * @ Gridi doldurmak için info_firm_profile tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
      * @version v 1.0  06.01.2016
@@ -1596,10 +1596,10 @@ class InfoFirmProfile extends \DAL\DalSlim {
      */
     public function getCheckIsThisFirmRegisteredUser($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
             if (isset($params['cpk'])) {
                 $cpk = $params['cpk'];  
-                $user = $params['op_user_id'];  
+                $user = $params['op_user_id'];                 
                 $sql = " 
                 SELECT firm_id AS firm_id, 1=1 AS control FROM (
                             SELECT a.firm_id ,
@@ -1719,7 +1719,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
 
                 $sql = "                  
                 SELECT 
-                    k.network_key AS pk ,
+                    k.network_key AS npk ,
                     LOWER(COALESCE(NULLIF(COALESCE(NULLIF(ax.firm_name, ''), a.firm_name_eng), ''), a.firm_name)) AS firm_names,   
                     LOWER(a.web_address) AS web_address,
                     LOWER(a.firm_name_short) AS firm_name_short,

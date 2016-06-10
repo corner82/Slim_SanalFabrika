@@ -160,7 +160,7 @@ class InfoFirmSectoral extends \DAL\DalSlim {
             SELECT  
                 a.sector_id AS name , 
                 a.sector_id AS value , 
-                LOWER(a.sector_id) = LOWER('" . $params['sector_id'] . "') AS control,
+                 a.sector_id  =   " . intval($params['sector_id']) . " AS control,
                 CONCAT(a.sector_id, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message                             
             FROM info_firm_sectoral a             
             WHERE a.firm_id = " . intval($params['firm_id']) . "
@@ -274,18 +274,16 @@ class InfoFirmSectoral extends \DAL\DalSlim {
                             sector_id
                             )
                         VALUES (
-                            :firm_id,
+                            " . intval($getFirmId) . ",
                             " . intval($ConsultantId) . ",
                             " . intval($operationIdValue) . ",
                             " . intval($languageIdValue) . ",
                             " . intval($opUserIdValue) . ",
                             " . intval($profilePublic) . ",
                             (SELECT last_value FROM info_firm_sectoral_id_seq),
-                            :sector_id 
-                             )";
-                        $statement = $pdo->prepare($sql);
-                        $statement->bindValue(':firm_id', $getFirmId, \PDO::PARAM_INT);
-                        $statement->bindValue(':sector_id', $params['sector_id'], \PDO::PARAM_INT);                        
+                            " . intval($params['sector_id']) . "
+                            )";
+                        $statement = $pdo->prepare($sql);                                         
                       //  echo debugPDO($sql, $params);
                         $result = $statement->execute();
                         $insertID = $pdo->lastInsertId('info_firm_sectoral_id_seq');
@@ -297,7 +295,7 @@ class InfoFirmSectoral extends \DAL\DalSlim {
                     } else {
                         // 23505  unique_violation
                         $errorInfo = '23505';
-                        $errorInfoColumn = 'certificate_id';
+                        $errorInfoColumn = 'sector_id';
                         $pdo->rollback();
                         // $result = $kontrol;
                         return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
