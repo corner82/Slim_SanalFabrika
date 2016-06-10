@@ -1328,7 +1328,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                     
                     $sql = "                
                 SELECT DISTINCT
-                    a.id AS firm_id,
+                    a.act_parent_id AS firm_id,
                     u.id AS consultant_id,
                     iud.name, 
                     iud.surname,
