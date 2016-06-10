@@ -74,6 +74,14 @@ use PhpAmqpLib\Message\AMQPMessage;
     protected $isPublicKeyNotFoundRedirect = true;
     
     /**
+     * determine if company public key not found
+     * @var boolean | null
+     * @author Mustafa Zeynel Dağlı
+     * @since  10/06/2016
+     */
+    protected $isPublicCompanyKeyNotFoundRedirect = true;
+    
+    /**
      * determine if user not registered
      * @var boolean | null
      * @author Mustafa Zeynel Dağlı
@@ -88,6 +96,52 @@ use PhpAmqpLib\Message\AMQPMessage;
     public function __construct($settings = array())
     {
         parent::__construct();
+    }
+    
+    /**
+     * get if to redirect due to public key not found process
+     * @return boolean 
+     * @author Mustafa Zeynel Dağlı
+     * @since  10/06/2016
+     */
+    public function getCompanyPublicKeyNotFoundRedirect() {
+        return $this->isPublicCompanyKeyNotFoundRedirect;
+    }
+    
+    /**
+     * set if to redirect due to public key not found process
+     * @param boolean | null $boolean 
+     * @author Mustafa Zeynel Dağlı
+     * @since  10/06/2016
+     */
+    public function setCompanyPublicKeyNotFoundRedirect($boolean = null) {
+        $this->isPublicCompanyKeyNotFoundRedirect = $boolean;
+    }
+
+    /**
+     * public key not found process is being evaluated here
+     * @author Mustafa Zeynel Dağlı
+     * @since  10/06/2016
+     */
+    public function companyPublicKeyNotFoundRedirect() { 
+        if($this->app->isServiceCpkRequired && $this->isPublicCompanyKeyNotFoundRedirect) {
+             $forwarder = new \Utill\Forwarder\PublicCompanyNotFoundForwarder();
+             $forwarder->setParameters($this->getAppRequestParams());
+             $forwarder->redirect();  
+         } else {
+             return true;
+         }
+    }
+    
+    /**
+     * if user id and company id does not match , rest api forwarded here
+     * inherit classes
+     * @author Mustafa Zeynel Dağlı
+     * @since version  10/06/2016
+     */
+    public function userNotBelongCompany() {
+        $forwarder = new \Utill\Forwarder\UserNotBelongCompanyForwarder;
+        $forwarder->redirect();
     }
     
     /**
@@ -195,11 +249,11 @@ use PhpAmqpLib\Message\AMQPMessage;
     }
 
     /**
-      * set if public / private key controler to be worked
-      * @return boolean
-      * @author Mustafa Zeynel Dağlı
-      * @since version 0.3
-      */
+    * set if public / private key controler to be worked
+    * @return boolean
+    * @author Mustafa Zeynel Dağlı
+    * @since version 0.3
+    */
     public function servicePkRequired() {
         if($this->app->isServicePkRequired == null) {
              $params = $this->getAppRequestParams();
@@ -212,7 +266,27 @@ use PhpAmqpLib\Message\AMQPMessage;
              $this->app->isServicePkRequired = false;
              return $this->app->isServicePkRequired;
          } else {
-             return $this->app->isServicePkRequired;
+             return $this->app->isServicePkRequired;  
+         }
+    }
+    
+    /**
+    * set if public / private key controler to be worked
+    * @return boolean
+    * @author Mustafa Zeynel Dağlı
+    * @since  10/06/2016
+    */
+    public function serviceCpkRequired() {
+        if($this->app->isServiceCpkRequired == null) {
+             $params = $this->getAppRequestParams();
+             if(substr(trim($params['url']),0,5) == 'pkcpk') {
+                $this->app->isServiceCpkRequired = true;
+                return $this->app->isServiceCpkRequired ;
+             }
+             $this->app->isServiceCpkRequired = false;
+             return $this->app->isServiceCpkRequired;
+         } else {
+             return $this->app->isServiceCpkRequired;
          }
     }
 
@@ -231,8 +305,24 @@ use PhpAmqpLib\Message\AMQPMessage;
          */
         $this->servicePkTempRequired();
         
+        /**
+         * determine if company public key  control to be done
+         * @author Mustafa Zeynel Dağlı
+         * @since  10/06/2016
+         * @todo after detail test code description block will be removed
+         */
+        $this->serviceCpkRequired();   
+        
         $params = $this->getAppRequestParams();
         $requestHeaderParams = $this->getRequestHeaderData();
+        
+        /**
+         * company public  key processes wrapper
+         * @author Mustafa Zeynel Dağlı
+         * @since  10/06/2016
+         * @todo after detailed test code description block will be removed
+         */
+        $this->publicCompanyKeyProcessControler($requestHeaderParams, $params);
         
         /**
          * public  key processes wrapper
@@ -325,6 +415,44 @@ use PhpAmqpLib\Message\AMQPMessage;
                $resultSet = $this->app->getBLLManager()->get('blLoginLogoutBLL')->pkControl(array('pk'=>$requestHeaderParams['X-Public']));
                //print_r($resultSet);
                if($resultSet[0]['sf_private_key_value'] == null) $this->privateKeyNotFoundRedirect();
+           }
+           return $resultSet;
+        } else {
+            return null;
+        }
+        
+    }
+    
+    /**
+     * company public key control processes has been wrapped
+     * @param array $requestHeaderParams
+     * @return mixed array | null
+     * @author Mustafa Zeynel Dağlı
+     * @since  10/06/2016
+     */
+    private function publicCompanyKeyProcessControler($requestHeaderParams, $params) {
+        if($this->app->isServiceCpkRequired) {
+            /**
+            * controlling public key if public key is necessary for this service and
+            * public key not found forwarder is in effect then making forward
+            * @since  10/06/2016
+            */
+           if(!isset($params['cpk']) ) {
+               $this->companyPublicKeyNotFoundRedirect();
+           }
+
+           /**
+            * controlling user belongs to company   
+            * @author Mustafa Zeynel Dağlı
+            * @since 10/06/2016 
+            */
+           if(isset($requestHeaderParams['X-Public'])) {
+               $resultSet = $this->app->getBLLManager()->get('blLoginLogoutBLL')->isUserBelongToCompany($requestHeaderParams,
+                                                                                                        $params);
+               //print_r($resultSet);
+               if(empty($resultSet['resultSet'])) $this->userNotBelongCompany();
+           } else {
+               $this->publicKeyNotFoundRedirect();
            }
            return $resultSet;
         } else {
