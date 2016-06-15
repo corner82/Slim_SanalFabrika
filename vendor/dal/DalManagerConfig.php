@@ -93,7 +93,9 @@ class DalManagerConfig {
                 'infoFirmQualityPDO' => 'DAL\Factory\PDO\InfoFirmQualityFactory',
                 'infoFirmSectoralPDO' => 'DAL\Factory\PDO\InfoFirmSectoralFactory',
                 'infoFirmLanguageInfoPDO' => 'DAL\Factory\PDO\InfoFirmLanguageInfoFactory',
-               
+                'sysCustomerCriterionPDO' => 'DAL\Factory\PDO\SysCustomerCriterionFactory',
+                               
+                
                 
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
                 'logServicesPDO' => 'DAL\Factory\PDO\LogServicesFactory',

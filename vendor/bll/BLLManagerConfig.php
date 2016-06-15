@@ -88,9 +88,9 @@ class BLLManagerConfig{
                  'infoFirmQualityBLL' => 'BLL\BLL\InfoFirmQuality',
                  'infoFirmSectoralBLL' => 'BLL\BLL\InfoFirmSectoral',
                  'infoFirmLanguageInfoBLL' => 'BLL\BLL\InfoFirmLanguageInfo',
+                 'sysCustomerCriterionBLL' => 'BLL\BLL\SysCustomerCriterion',
                  
-                 
-                 
+                                  
                  'logConnectionBLL' => 'BLL\BLL\LogConnection',  
                  'logServicesBLL' => 'BLL\BLL\LogServices',
                  'logConsultantBLL' => 'BLL\BLL\LogConsultant',
