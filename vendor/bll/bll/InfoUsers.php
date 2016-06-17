@@ -173,5 +173,29 @@ class InfoUsers extends \BLL\BLLSlim{
         return $DAL->setNewUserRrpMap($params);
     }
     
+    /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillUsersListNpk ($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
+        $resultSet = $DAL->fillUsersListNpk($params);  
+        return $resultSet['resultSet'];
+    }  
+    
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillUsersListNpkRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
+        $resultSet = $DAL->fillUsersListNpkRtc($params);  
+        return $resultSet['resultSet'];
+    }
+    
+    
+    
 }
 

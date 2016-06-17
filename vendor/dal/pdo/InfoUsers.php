@@ -320,6 +320,16 @@ class InfoUsers extends \DAL\DalSlim {
                     if (\Utill\Dal\Helper::haveRecord($operationId)) {
                     $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
+                    
+                    $CountryCode = NULL;
+                    $CountryCodeValue = 'TR';
+                    if ((isset($params['country_id']) && $params['country_id'] != "")) {              
+                        $CountryCode = SysCountrys::getCountryCode(array('country_id' => $params['country_id']));
+                        if (\Utill\Dal\Helper::haveRecord($CountryCode)) {
+                            $CountryCodeValue = $CountryCode ['resultSet'][0]['country_code'];                    
+                        }
+                    } 
+
                     $sql = " 
                     INSERT INTO info_users(
                                operation_type_id, 
@@ -329,7 +339,8 @@ class InfoUsers extends \DAL\DalSlim {
                                language_id,
                                op_user_id,
                                role_id,
-                               consultant_id
+                               consultant_id,
+                               network_key
                                 )
                     VALUES (  :operation_type_id, 
                               :username,
@@ -338,7 +349,8 @@ class InfoUsers extends \DAL\DalSlim {
                               ".intval($languageIdValue).",
                               ".intval($userIdValue).",
                               :role_id,
-                              ". intval($ConsultantId)."
+                              ". intval($ConsultantId).",
+                              CONCAT('U','".$CountryCodeValue."',ostim_userid_generator())
                         )";
 
                     $statement = $pdo->prepare($sql);
@@ -516,6 +528,15 @@ class InfoUsers extends \DAL\DalSlim {
                     $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
                     
+                    $CountryCode = NULL;
+                    $CountryCodeValue = 'TR';
+                    if ((isset($params['country_id']) && $params['country_id'] != "")) {              
+                        $CountryCode = SysCountrys::getCountryCode(array('country_id' => $params['country_id']));
+                        if (\Utill\Dal\Helper::haveRecord($CountryCode)) {
+                            $CountryCodeValue = $CountryCode ['resultSet'][0]['country_code'];                    
+                        }
+                    } 
+                    
                     $sql = " 
                 INSERT INTO info_users(                           
                         operation_type_id, 
@@ -524,15 +545,17 @@ class InfoUsers extends \DAL\DalSlim {
                         op_user_id,                            
                         language_id, 
                         role_id,
-                        consultant_id
-                              )      
+                        consultant_id,
+                        network_key
+                            )      
                 VALUES (".intval($operationIdValue).",
                         :username,
                         :password,
                         (SELECT last_value FROM info_users_id_seq),
                         ".intval($languageIdValue).", 
                         ".intval($roleId).",
-                        ".intval($ConsultantId)."
+                        ".intval($ConsultantId).",
+                        CONCAT('U','".$CountryCodeValue."',ostim_userid_generator())
                     )";
                     
                     $statement = $pdo->prepare($sql);
@@ -1233,7 +1256,7 @@ class InfoUsers extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "  
-                 SELECT id AS user_id, 1=1 AS control FROM (
+                SELECT id AS user_id, 1=1 AS control FROM (
                             SELECT id , 	
                                 CRYPT(sf_private_key_value,CONCAT('_J9..',REPLACE('" . $params['pk'] . "','*','/'))) = CONCAT('_J9..',REPLACE('" . $params['pk'] . "','*','/')) as pkey                                
                             FROM info_users WHERE active =0 AND deleted =0) AS logintable
@@ -1359,7 +1382,7 @@ class InfoUsers extends \DAL\DalSlim {
     }
  
     
-   /**
+    /**
      * log databasine yeni kullanıcı için kayıt ekler           
      * @author Okan CIRAN
      * @version v 1.0  09.03.2016
@@ -1440,7 +1463,7 @@ class InfoUsers extends \DAL\DalSlim {
         }
     }
 
-      /**
+    /**
      * user interface fill operation    
      * @author Okan CIRAN
      * @ userin firm id sini döndürür döndürür !!
@@ -1483,5 +1506,349 @@ class InfoUsers extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+    
+    /**
+     * @author Okan CIRAN
+     * @ user in adres , cominication , ad soyad , networkkey bilgilerinin döndürür !!
+     * varsa network_key, name, surname, email , communication_number parametrelerinin like ile arar
+     * @version v 1.0  17.06.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillUsersListNpk($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                                 
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+                $sorguStr = null;    
+                if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                    $filterRules = trim($params['filterRules']);
+                    $jsonFilter = json_decode($filterRules, true);
+
+                    $sorguExpression = null;
+                    foreach ($jsonFilter as $std) {
+                        if ($std['value'] != null) {
+                            switch (trim($std['field'])) {
+                                case 'network_key':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                    $sorguStr.=" AND network_key" . $sorguExpression . ' ';
+
+                                    break;
+                                case 'name':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                    $sorguStr.=" AND name" . $sorguExpression . ' ';
+
+                                    break;
+                                case 'surname':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                    $sorguStr.=" AND surname" . $sorguExpression . ' ';
+
+                                    break;
+                                case 'email':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                    $sorguStr.=" AND email" . $sorguExpression . ' ';
+
+                                    break;
+                                case 'communication_number':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                    $sorguStr.=" AND communication_number1" . $sorguExpression . ' ';
+                                    $sorguStr.=" AND communication_number2" . $sorguExpression . ' ';
+                                    break;                                
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                } else {
+                    $sorguStr = null;
+                    $filterRules = "";
+                    if (isset($params['network_key']) && $params['network_key'] != "") {
+                        $sorguStr .= " AND network_key Like '%" . $params['network_key'] . "%'";
+                    }
+                    if (isset($params['name']) && $params['name'] != "") {
+                        $sorguStr .= " AND name Like '%" . $params['name'] . "%'";
+                    }
+
+                    if (isset($params['surname']) && $params['surname'] != "") {
+                        $sorguStr .= " AND surname Like '%" . $params['surname'] . "%'";
+                    }
+                    if (isset($params['email']) && $params['email'] != "") {
+                        $sorguStr .= " AND email Like '%" . $params['email'] . "%'";
+                    }
+                    if (isset($params['communication_number']) && $params['communication_number'] != "") {
+                        $sorguStr .= " AND (communication_number1'%" . $params['communication_number'] . "%' 
+                                     OR communication_number2'%" . $params['communication_number'] . "%')";
+                    }
+            }
+                $sorguStr = rtrim($sorguStr, "AND ");  
+                
+                $sql = "                     
+                SELECT                    
+                    name,
+                    surname,
+                    email,
+                    language_id,
+                    language_name,
+                    iletisimadresi, 
+                    faturaadresi,
+                    communication_number1,
+                    communication_number2,
+                    network_key
+                FROM (
+                    SELECT
+                        a.id,
+                        iud.name AS name,
+                        iud.surname AS surname,
+                        iud.auth_email AS email,
+                        COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
+		        COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,
+                        (   SELECT Concat(ax.address1,ax.address2, 
+				    ' Posta Kodu = ',ax.postal_code,' ',
+				    cox.name ,' ',
+				    ctx.name ,' ',
+				    box.name ,' ',
+				    ax.city_name)
+				FROM info_users_addresses  ax                                                  									
+				LEFT JOIN sys_countrys cox ON cox.id = ax.country_id AND cox.deleted = 0 AND cox.active = 0 AND cox.language_code = ax.language_code                               
+				LEFT JOIN sys_city ctx ON ctx.id = ax.city_id AND ctx.deleted = 0 AND ctx.active = 0 AND ctx.language_code = ax.language_code                               
+				LEFT JOIN sys_borough box ON box.id = ax.borough_id AND box.deleted = 0 AND box.active = 0 AND box.language_code = ax.language_code                 
+				WHERE ax.deleted =0 AND ax.active =0 AND ax.address_type_id = 1 
+				AND ax.user_id = a.id AND ax.language_parent_id =0 limit 1 
+                        )                  
+                        As iletisimadresi,
+			(   SELECT Concat(ax.address1,ax.address2, 
+				    ' Posta Kodu = ',ax.postal_code,' ',
+				    cox.name ,' ',
+				    ctx.name ,' ',
+				    box.name ,' ',
+				    ax.city_name)
+				FROM info_users_addresses ax
+				LEFT JOIN sys_countrys cox ON cox.id = ax.country_id AND cox.deleted = 0 AND cox.active = 0 AND cox.language_code = ax.language_code 
+				LEFT JOIN sys_city ctx ON ctx.id = ax.city_id AND ctx.deleted = 0 AND ctx.active = 0 AND ctx.language_code = ax.language_code
+				LEFT JOIN sys_borough box ON box.id = ax.borough_id AND box.deleted = 0 AND box.active = 0 AND box.language_code = ax.language_code
+				WHERE ax.deleted =0 AND ax.active =0 AND ax.address_type_id = 2 
+				AND ax.user_id = a.id AND ax.language_parent_id =0 limit 1 
+                        ) AS faturaadresi,  
+			(SELECT  
+				ay.communications_no
+				FROM info_users_communications ay
+				WHERE 
+				    ay.active =0 AND ay.deleted = 0 AND ay.default_communication_id = 1 AND 
+				    ay.user_id = a.id AND ay.language_parent_id =0 limit 1 
+			 ) As communication_number1,
+			 (SELECT  
+				ay.communications_no
+				FROM info_users_communications ay       				
+				WHERE 
+				    ay.active =0 AND ay.deleted = 0 AND ay.communications_type_id = 2 AND
+				    ay.user_id = a.id  AND ay.language_parent_id =0 limit 1 
+			 ) As communication_number2,
+                        a.network_key
+                    FROM info_users a
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                    LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+                    INNER JOIN info_users_detail iud ON iud.root_id = a.id AND iud.active =0 AND iud.deleted =0  
+                    WHERE
+                        a.deleted = 0 AND 
+                        a.active =0 
+                     ) as tempp                     
+                     WHERE 1=1 ".$sorguStr. "
+               ORDER BY name, surname
+
+                ";
+                $statement = $pdo->prepare($sql);
+               // echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);            
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ user in adres , cominication , ad soyad , networkkey bilgilerinin sayısını döndürür !!
+     * varsa network_key, name, surname, email , communication_number parametrelerinin like ile arar
+     * @version v 1.0  17.06.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+     public function fillUsersListNpkRtc($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
+                                
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+                $sorguStr = null;                            
+               if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                    $filterRules = trim($params['filterRules']);
+                    $jsonFilter = json_decode($filterRules, true);
+
+                    $sorguExpression = null;
+                    foreach ($jsonFilter as $std) {
+                        if ($std['value'] != null) {
+                            switch (trim($std['field'])) {
+                                case 'network_key':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                    $sorguStr.=" AND network_key" . $sorguExpression . ' ';
+
+                                    break;
+                                case 'name':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                    $sorguStr.=" AND name" . $sorguExpression . ' ';
+
+                                    break;
+                                case 'surname':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                    $sorguStr.=" AND surname" . $sorguExpression . ' ';
+
+                                    break;
+                                case 'email':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                    $sorguStr.=" AND email" . $sorguExpression . ' ';
+
+                                    break;
+                                case 'communication_number':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                    $sorguStr.=" AND communication_number1" . $sorguExpression . ' ';
+                                    $sorguStr.=" AND communication_number2" . $sorguExpression . ' ';
+                                    break;                                
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                } else {
+                    $sorguStr = null;
+                    $filterRules = "";
+                    if (isset($params['network_key']) && $params['network_key'] != "") {
+                        $sorguStr .= " AND network_key Like '%" . $params['network_key'] . "%'";
+                    }
+                    if (isset($params['name']) && $params['name'] != "") {
+                        $sorguStr .= " AND name Like '%" . $params['name'] . "%'";
+                    }
+
+                    if (isset($params['surname']) && $params['surname'] != "") {
+                        $sorguStr .= " AND surname Like '%" . $params['surname'] . "%'";
+                    }
+                    if (isset($params['email']) && $params['email'] != "") {
+                        $sorguStr .= " AND email Like '%" . $params['email'] . "%'";
+                    }
+                    if (isset($params['communication_number']) && $params['communication_number'] != "") {
+                        $sorguStr .= " AND (communication_number1'%" . $params['communication_number'] . "%' 
+                                     OR communication_number2'%" . $params['communication_number'] . "%')";
+                    }
+            }
+                $sorguStr = rtrim($sorguStr, "AND ");  
+                           
+                
+                $sql = " 
+            SELECT COUNT(id) AS count FROM (    
+                SELECT 
+                    id,
+                    name,
+                    surname,
+                    email,
+                    language_id,
+                    language_name,
+                    iletisimadresi, 
+                    faturaadresi,
+                    communication_number1,
+                    communication_number2,
+                    network_key
+                FROM (
+                    SELECT
+                        a.id,
+                        iud.name AS name,
+                        iud.surname AS surname,
+                        iud.auth_email AS email,
+                        COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
+		        COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,
+                        (   SELECT Concat(ax.address1,ax.address2, 
+				    ' Posta Kodu = ',ax.postal_code,' ',
+				    cox.name ,' ',
+				    ctx.name ,' ',
+				    box.name ,' ',
+				    ax.city_name)
+				FROM info_users_addresses  ax                                                  									
+				LEFT JOIN sys_countrys cox ON cox.id = ax.country_id AND cox.deleted = 0 AND cox.active = 0 AND cox.language_code = ax.language_code                               
+				LEFT JOIN sys_city ctx ON ctx.id = ax.city_id AND ctx.deleted = 0 AND ctx.active = 0 AND ctx.language_code = ax.language_code                               
+				LEFT JOIN sys_borough box ON box.id = ax.borough_id AND box.deleted = 0 AND box.active = 0 AND box.language_code = ax.language_code                 
+				WHERE ax.deleted =0 AND ax.active =0 AND ax.address_type_id = 1 
+				AND ax.user_id = a.id AND ax.language_parent_id =0 limit 1 
+                        )                  
+                        As iletisimadresi,
+			(   SELECT Concat(ax.address1,ax.address2, 
+				    ' Posta Kodu = ',ax.postal_code,' ',
+				    cox.name ,' ',
+				    ctx.name ,' ',
+				    box.name ,' ',
+				    ax.city_name)
+				FROM info_users_addresses ax
+				LEFT JOIN sys_countrys cox ON cox.id = ax.country_id AND cox.deleted = 0 AND cox.active = 0 AND cox.language_code = ax.language_code 
+				LEFT JOIN sys_city ctx ON ctx.id = ax.city_id AND ctx.deleted = 0 AND ctx.active = 0 AND ctx.language_code = ax.language_code
+				LEFT JOIN sys_borough box ON box.id = ax.borough_id AND box.deleted = 0 AND box.active = 0 AND box.language_code = ax.language_code
+				WHERE ax.deleted =0 AND ax.active =0 AND ax.address_type_id = 2 
+				AND ax.user_id = a.id AND ax.language_parent_id =0 limit 1 
+                        ) AS faturaadresi,  
+			(SELECT  
+				ay.communications_no
+				FROM info_users_communications ay
+				WHERE 
+				    ay.active =0 AND ay.deleted = 0 AND ay.default_communication_id = 1 AND 
+				    ay.user_id = a.id AND ay.language_parent_id =0 limit 1 
+			 ) As communication_number1,
+			 (SELECT  
+				ay.communications_no
+				FROM info_users_communications ay       				
+				WHERE 
+				    ay.active =0 AND ay.deleted = 0 AND ay.communications_type_id = 2 AND
+				    ay.user_id = a.id  AND ay.language_parent_id =0 limit 1 
+			 ) As communication_number2,
+                        a.network_key
+                    FROM info_users a
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                    LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+                    INNER JOIN info_users_detail iud ON iud.root_id = a.id AND iud.active =0 AND iud.deleted =0  
+                    WHERE
+                        a.deleted = 0 AND 
+                        a.active =0 
+                     ) as tempp                     
+                     WHERE 1=1 ".$sorguStr. "
+                    ) AS tempcount 
+             
+
+                ";
+                $statement = $pdo->prepare($sql);
+                //echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);            
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
     
 }

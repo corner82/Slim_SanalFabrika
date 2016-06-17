@@ -514,5 +514,129 @@ $stripper = $app->getServiceManager()->get('filterChainerCustom');
 });
 
  
+/**
+ *  * Okan CIRAN
+ * @since 26-04-2016
+ */
+$app->get("/pkFillUsersListNpk_infoUsers/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('infoUsersBLL');
+    $headerParams = $app->request()->headers(); 
+     if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillUsersListNpk_infoUsers" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }
+    $vName = NULL;
+    if (isset($_GET['name'])) {
+        $stripper->offsetSet('name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['name']));
+    }
+    $vSurname = NULL;
+    if (isset($_GET['surname'])) {
+        $stripper->offsetSet('surname', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['surname']));
+    }
+    $vEmail = NULL;
+    if (isset($_GET['email'])) {
+        $stripper->offsetSet('email', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['email']));
+    }
+    $vCommunicationNumber = NULL;
+    if (isset($_GET['communication_number'])) {
+        $stripper->offsetSet('communication_number', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['communication_number']));
+    }
+    $filterRules = NULL;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, $app, $_GET['filterRules']));
+    }
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }     
+    if ($stripper->offsetExists('npk')) {
+        $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('name')) {
+        $vName = $stripper->offsetGet('name')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('surname')) {
+        $vSurname = $stripper->offsetGet('surname')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('email')) {
+        $vEmail = $stripper->offsetGet('email')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('communication_number')) {
+        $vCommunicationNumber = $stripper->offsetGet('communication_number')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    } 
+    $resDataGrid = $BLL->FillUsersListNpk(array(
+        'language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey,  
+        'name' => $vName,  
+        'surname' => $vSurname,  
+        'email' => $vEmail,  
+        'communication_number' => $vCommunicationNumber,
+        'filterRules' => $filterRules,
+        'pk'=> $pk,
+    ));
+    $resTotalRowCount = $BLL->FillUsersListNpkRtc(array(
+        'language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey,  
+        'name' => $vName,  
+        'surname' => $vSurname,  
+        'email' => $vEmail,  
+        'communication_number' => $vCommunicationNumber,
+        'filterRules' => $filterRules,
+        'pk'=> $pk,
+    ));
+    $counts=0;
+     
+    $flows = array();
+    if (isset($resDataGrid[0]['name'])) { 
+    foreach ($resDataGrid as $flow) {
+        $flows[] = array(            
+            "name" => $flow["name"],
+            "surname" => $flow["surname"],
+            "email" => $flow["email"],
+            "iletisimadresi" => $flow["iletisimadresi"],            
+            "faturaadresi" => $flow["faturaadresi"],
+            "communication_number1" => $flow["communication_number1"],
+            "communication_number2" => $flow["communication_number2"],  
+            "language_id" => $flow["language_id"],
+            "language_name" => $flow["language_name"],    
+            "network_key" => $flow["network_key"],  
+            "attributes" => array("notroot" => true, ),
+        );
+        }
+       $counts = $resTotalRowCount[0]['count'];
+     }    
+
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array(); 
+    $resultArray['total'] = $counts;
+    $resultArray['rows'] = $flows;
+    $app->response()->body(json_encode($resultArray));
+});
+
  
 $app->run();
