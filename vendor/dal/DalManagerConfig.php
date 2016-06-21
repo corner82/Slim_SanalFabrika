@@ -95,8 +95,8 @@ class DalManagerConfig {
                 'infoFirmLanguageInfoPDO' => 'DAL\Factory\PDO\InfoFirmLanguageInfoFactory',
                 'sysCustomerCriterionPDO' => 'DAL\Factory\PDO\SysCustomerCriterionFactory',
                 'sysClustersPDO' => 'DAL\Factory\PDO\SysClustersFactory',
-                               
-                
+                'sysOsbClustersPDO' => 'DAL\Factory\PDO\SysOsbClustersFactory',
+                                
                 
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
                 'logServicesPDO' => 'DAL\Factory\PDO\LogServicesFactory',
