@@ -90,8 +90,10 @@ class BLLManagerConfig{
                  'infoFirmLanguageInfoBLL' => 'BLL\BLL\InfoFirmLanguageInfo',
                  'sysCustomerCriterionBLL' => 'BLL\BLL\SysCustomerCriterion',
                  'sysClustersBLL' => 'BLL\BLL\SysClusters',
-                 'sysOsbClustersBLL' => 'BLL\BLL\SysOsbClusters',                 
-                   
+                 'sysOsbClustersBLL' => 'BLL\BLL\SysOsbClusters',
+                 'sysOsbClustersFirmsBLL' => 'BLL\BLL\SysOsbClustersFirms',
+                 
+                                  
                  
                  'logConnectionBLL' => 'BLL\BLL\LogConnection',  
                  'logServicesBLL' => 'BLL\BLL\LogServices',
