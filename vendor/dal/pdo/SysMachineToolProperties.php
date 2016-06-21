@@ -126,9 +126,9 @@ class SysMachineToolProperties extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $userId = $this->getUserId(array('pk' => $params['pk']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $opUserIdValue = $userId ['resultSet'][0]['user_id'];
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
                 if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                     $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
@@ -202,10 +202,11 @@ class SysMachineToolProperties extends \DAL\DalSlim {
             if (isset($params['id'])) {
                 $addSql = " AND a.id != " . intval($params['id']) . " ";
             }
+     
             $sql = " 
             SELECT  
-                 a.property_value   AS name , 
-                 " . $params['property_value '] . " AS value , 
+                 a.property_value AS name , 
+                 a.property_value AS value , 
                  1 =1 AS control,
                  CONCAT(mt.machine_tool_name ,' - ', mtpd.property_name ,': ',a.property_value  ,' ',su.unitcode,  ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
             FROM sys_machine_tool_properties  a
@@ -220,7 +221,7 @@ class SysMachineToolProperties extends \DAL\DalSlim {
             AND a.deleted =0    
                                ";
             $statement = $pdo->prepare($sql);
-            //   echo debugPDO($sql, $params);
+            //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -403,8 +404,7 @@ class SysMachineToolProperties extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * user interface datagrid fill operation get row count for widget
+    /**     
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_machine_tool_properties tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
      * @version v 1.0  17.02.2016
@@ -451,8 +451,7 @@ class SysMachineToolProperties extends \DAL\DalSlim {
     }
 
  
-   /**
-     * user interface fill operation   
+   /**  
      * @author Okan CIRAN
      * @ tree doldurmak için sys_machine_tool tablosundan tüm kayıtları döndürür !!
      * @version v 1.0  19.02.2016
@@ -511,8 +510,7 @@ class SysMachineToolProperties extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * user interface datagrid fill operation get row count for widget
+    /**     
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_machine_tool_properties tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
      * @version v 1.0  17.02.2016
@@ -562,4 +560,68 @@ class SysMachineToolProperties extends \DAL\DalSlim {
         }
     }
 
+     
+   /**  
+     * @author Okan CIRAN
+     * @  property için tanmlanmış unit grubundaki unitleri döndürür !!
+     * @version v 1.0  19.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillPropertyUnits($params = array()) {
+     try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
+            $propertyId = 0;
+            if (isset($params['property_id']) && $params['property_id'] != "") {
+                $propertyId = $params['property_id'];
+            }
+            $sql ="          
+                SELECT                    
+                    a.id, 	
+                    COALESCE(NULLIF(sux.unitcode, ''), su.unitcode_eng) AS unitcode,  
+                    su.unitcode_eng,
+                    su.parent_id,
+                    a.active,
+                    CASE 
+                    (SELECT DISTINCT 1 state_type FROM sys_units WHERE parent_id = a.unit_grup_id  AND deleted = 0)    
+                     WHEN 1 THEN 'closed'
+                     ELSE 'open'   
+                     END AS state_type  
+                FROM sys_unit_groups_property_definition a    
+		INNER JOIN sys_units su ON su.parent_id = a.unit_grup_id AND su.language_parent_id =0 AND su.active =0 AND su.deleted =0 
+                INNER JOIN sys_language l ON l.id = su.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue). " AND lx.deleted =0 AND lx.active =0                      		
+                LEFT JOIN sys_units sux ON (sux.id =su.id OR sux.language_parent_id = su.id) AND sux.deleted =0 AND sux.active =0 AND lx.id = sux.language_id   
+                WHERE   
+                    a.property_id = ".intval($propertyId)." AND                                      
+                    a.deleted = 0 AND
+                    a.active = 0 AND
+                    su.language_parent_id =0 
+                  ORDER BY unitcode  
+                                 ";
+            $statement = $pdo->prepare($sql);
+            // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {           
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
+    
+    
+    
 }

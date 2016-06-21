@@ -47,44 +47,61 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
  * @since 17.02.2016
  */
 $app->get("/pkInsert_sysMachineToolProperties/", function () use ($app ) {
-
-    $BLL = $app->getBLLManager()->get('sysMachineToolPropertiesBLL');
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysMachineToolPropertiesBLL');    
     $headerParams = $app->request()->headers();
-    $vPk = $headerParams['X-Public'];
-    
-    $vLanguageCode = 'tr';
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkInsert_sysMachineToolProperties" end point, X-Public variable not found');    
+    $pk = $headerParams['X-Public'];
+        
+  $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
-        $vLanguageCode = strtolower(trim($_GET['language_code']));
-    }     
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vMachineToolId = NULL;
+    if (isset($_GET['machine_tool_id'])) {
+         $stripper->offsetSet('machine_tool_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['machine_tool_id']));
+    } 
+    $vMachineToolPropertyDefinitionId = NULL;
+    if (isset($_GET['property_id'])) {
+         $stripper->offsetSet('property_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['property_id']));
+    }
+    $vUnitId = NULL;
+    if (isset($_GET['unit_id'])) {
+         $stripper->offsetSet('unit_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['unit_id']));
+    }
+    $vPropertyValue = NULL;
+    if (isset($_GET['property_value'])) {
+         $stripper->offsetSet('property_value',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['property_value']));
+    } 
     
-    $vMachineToolId = $_GET['machine_tool_id'];
-    $vMachineToolPropertyDefinitionId = $_GET['machine_tool_property_definition_id']; 
-    $vUnitId = $_GET['unit_id'];  
-    $vPropertyValue = $_GET['property_value']; 
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('machine_tool_id')) $vMachineToolId = $stripper->offsetGet('machine_tool_id')->getFilterValue();
+    if($stripper->offsetExists('property_id')) $vMachineToolPropertyDefinitionId = $stripper->offsetGet('property_id')->getFilterValue();
+    if($stripper->offsetExists('property_value')) $vPropertyValue = $stripper->offsetGet('property_value')->getFilterValue();
+    if($stripper->offsetExists('unit_id')) $vUnitId = $stripper->offsetGet('unit_id')->getFilterValue();
      
-    $fLanguageCode = $vLanguageCode;     
-    $fMachineToolId = $vMachineToolId;
-    $fMachineToolPropertyDefinitionId =$vMachineToolPropertyDefinitionId;
-    $fPropertyValue = $vPropertyValue;
-    $fUnitId = $vUnitId;  
-  
-    
-    $resDataInsert = $BLL->insert(array(   
-            'language_code' => $fLanguageCode,
-            'machine_tool_id' => $fMachineToolId ,         
-            'machine_tool_property_definition_id' => $fMachineToolPropertyDefinitionId ,         
-            'property_value' => $fPropertyValue ,
-            'unit_id' => $fUnitId , 
-               
-            'pk' => $vPk,        
+    $resDataInsert = $BLL->insert(array(
+            'language_code' => $vLanguageCode,
+            'machine_tool_id' => $vMachineToolId,
+            'machine_tool_property_definition_id' => $vMachineToolPropertyDefinitionId,
+            'property_value' => $vPropertyValue,
+            'unit_id' => $vUnitId,                
+            'pk' => $pk,        
             ));
 
     $app->response()->header("Content-Type", "application/json");
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
     $app->response()->body(json_encode($resDataInsert));
 }
 ); 
@@ -314,6 +331,98 @@ $app->get("/pkFillMachineToolFullProperties_sysMachineToolProperties/", function
         
  
 });
+
+/**
+ *  * Okan CIRAN
+ * @since 21-06-2016
+ */
+$app->get("/pkFillPropertyUnits_sysMachineToolProperties/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('sysMachineToolPropertiesBLL');    
+    $headerParams = $app->request()->headers();    
+    
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }   
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillPropertyUnits_sysMachineToolProperties" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vPropertyId = 0;
+    if (isset($_GET['property_id'])) {
+        $stripper->offsetSet('property_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['property_id']));
+    }    
+    
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('property_id')) {
+        $vPropertyId = $stripper->offsetGet('property_id')->getFilterValue();
+    }
+    
+    $resData = $BLL->fillPropertyUnits(array(
+                                                'language_code' => $vLanguageCode,
+                                                'pk' => $pk,
+                                                'property_id' => $vPropertyId,
+                                                        ));   
+    $menus = array();
+    $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
+     if ($componentType == 'bootstrap') {
+        $menus = array();
+        foreach ($resData as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],       
+                "text" => $menu["unitcode"],
+                "state" => $menu["state_type"],
+                "checked" => false,
+                "attributes" => array("notroot" => true, 
+                                    "active" => $menu["active"] ,
+                                    "unitcode_eng"=>$menu["unitcode_eng"],
+                )                
+            );
+        }
+    } else if ($componentType == 'ddslick') {   
+        foreach ($resData as $menu) {
+            $menus[] = array(
+                "text" => $menu["unitcode"],
+                "value" =>  intval($menu["id"]),
+                "selected" => false,
+                "description" => $menu["unitcode_eng"],
+             //   "imageSrc" => ""
+            );
+        }
+    }
+    
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+   // $resultArray['total'] = $resTotalRowCount[0]['count'];
+    $resultArray['rows'] = $menus;
+    
+     // $app->response()->body(json_encode($flows));
+    if($componentType == 'bootstrap'){
+        $app->response()->body(json_encode($menus));
+    }else if($componentType == 'ddslick'){
+        $app->response()->body(json_encode($resultArray));
+    }
+      //  $app->response()->body(json_encode($resultArray));
+        
+ 
+});
+
+
+
 
 
 $app->run();

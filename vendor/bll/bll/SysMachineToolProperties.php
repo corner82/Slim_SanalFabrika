@@ -86,7 +86,7 @@ class SysMachineToolProperties extends \BLL\BLLSlim {
     }
 
   
-         /**
+    /**
      * Data update function   
      * @param array $params
      * @return array
@@ -96,7 +96,7 @@ class SysMachineToolProperties extends \BLL\BLLSlim {
         return $DAL->fillMachineToolFullProperties($params);
     }
     
-      /**
+    /**
      * Function to get datagrid row count on user interface layer
      * @param array | null $params
      * @return array
@@ -106,7 +106,18 @@ class SysMachineToolProperties extends \BLL\BLLSlim {
         $resultSet = $DAL->fillMachineToolFullPropertiesRtc($params);  
         return $resultSet['resultSet'];
     }
-
+   
+ 
+    /**
+     * Function to fill User Communications Types on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillPropertyUnits ($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertiesPDO');
+        $resultSet = $DAL->fillPropertyUnits($params);  
+        return $resultSet['resultSet'];
+    }
  
     
 }
