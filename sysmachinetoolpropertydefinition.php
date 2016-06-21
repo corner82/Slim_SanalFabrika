@@ -48,7 +48,6 @@ $app->get("/pkFillMachineToolGroupPropertyDefinitions_sysMachineToolPropertyDefi
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
     $BLL = $app->getBLLManager()->get('sysMachineToolPropertyDefinitionBLL');
-
     
     $componentType = 'ddslick';
     if (isset($_GET['component_type'])) {
@@ -96,13 +95,14 @@ $app->get("/pkFillMachineToolGroupPropertyDefinitions_sysMachineToolPropertyDefi
         $flows[] = array(
             "id" => $flow["id"],
             //"text" => strtolower($flow["name"]),
-            "text" => $flow["property_name"],
+            "text" => html_entity_decode($flow["property_name"]),
             "state" => $flow["state_type"], //   'closed',
             "checked" => false,
             "icon_class"=>"icon_class", 
             "attributes" => array("root" => $flow["root_type"], "active" => $flow["active"],
-                "machinegroup" => $flow["machinegroup"],"unitgroup" => $flow["unitgroup"],
-                  "text_eng" => $flow["property_name_eng"],
+                "machinegroup" => html_entity_decode($flow["machinegroup"]),
+                "unitgroup" => html_entity_decode($flow["unitgroup"]),
+                "text_eng" => html_entity_decode($flow["property_name_eng"]),
                 ),
         );
     }
@@ -164,13 +164,13 @@ $app->get("/pkFillMachineGroupPropertyDefinitions_sysMachineToolPropertyDefiniti
         $flows[] = array(
             "id" => $flow["id"],
             //"text" => strtolower($flow["name"]),
-            "text" => $flow["property_name"],
+            "text" => html_entity_decode($flow["property_name"]),
             "state" => $flow["state_type"], //   'closed',
             "checked" => false,
             "icon_class"=>"icon_class", 
             "attributes" => array("root" => $flow["root_type"], "active" => $flow["active"],
-                "machine_grup_id" => $flow["machine_grup_id"], "unitgroup" => $flow["unitgroup"],  
-                "property_name_eng" => $flow["property_name_eng"],
+                "machine_grup_id" => $flow["machine_grup_id"], "unitgroup" => html_entity_decode($flow["unitgroup"]),  
+                "property_name_eng" => html_entity_decode($flow["property_name_eng"]),
                 ),
         );
     }
@@ -353,12 +353,12 @@ $app->get("/pkFillGrid_sysMachineToolPropertyDefinition/", function () use ($app
         $flows[] = array(
              "id" => $flow["id"],
             "machine_tool_grup_id" => $flow["machine_tool_grup_id"],
-            "tool_group_name" => $flow["tool_group_name"],
-            "tool_group_name_eng" => $flow["tool_group_name_eng"],
-            "property_name" => $flow["property_name"],
-            "property_name_eng" => $flow["property_name_eng"],
+            "tool_group_name" => html_entity_decode($flow["tool_group_name"]),
+            "tool_group_name_eng" => html_entity_decode($flow["tool_group_name_eng"]),
+            "property_name" => html_entity_decode($flow["property_name"]),
+            "property_name_eng" => html_entity_decode($flow["property_name_eng"]),
             "unit_grup_id" => $flow["unit_grup_id"],
-            "unit_group_name" => $flow["unit_group_name"],          
+            "unit_group_name" => html_entity_decode($flow["unit_group_name"]),
             "algorithmic_id" => $flow["algorithmic_id"],
             "state_algorithmic" => $flow["state_algorithmic"],
             "deleted" => $flow["deleted"],      
@@ -371,8 +371,6 @@ $app->get("/pkFillGrid_sysMachineToolPropertyDefinition/", function () use ($app
             "language_parent_id" => $flow["language_parent_id"],                
             "op_user_id" => $flow["op_user_id"],  
             "op_user_name" => $flow["op_user_name"],  
-            
-             
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
     }
@@ -489,8 +487,73 @@ $app->get("/pkDeletePropertyMachineGroup_sysMachineToolPropertyDefinition/", fun
     $app->response()->body(json_encode($resData));
 }
 ); 
+ 
+/**
+ *  * Okan CIRAN
+ * @since 20-06-2016
+ */
+$app->get("/pkFillMachineGroupProperties_sysMachineToolPropertyDefinition/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysMachineToolPropertyDefinitionBLL');
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkFillMachineGroupProperties_sysMachineToolPropertyDefinition" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vMachineGrupId = NULL;
+    if (isset($_GET['machine_grup_id'])) {
+         $stripper->offsetSet('machine_grup_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['machine_grup_id']));
+    } 
+    $vMachineId = NULL;
+    if (isset($_GET['machine_id'])) {
+         $stripper->offsetSet('machine_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['machine_id']));
+    } 
+    
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('machine_grup_id')) $vMachineGrupId = $stripper->offsetGet('machine_grup_id')->getFilterValue();
+    if($stripper->offsetExists('machine_id')) $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
+      
+    
+    $resCombobox = $BLL->fillMachineGroupProperties(array(
+                                    'machine_grup_id' => $vMachineGrupId,
+                                    'machine_id' =>$vMachineId,
+                                    'language_code' => $vLanguageCode,
+                        ));    
 
-
+    $flows = array();
+    foreach ($resCombobox as $flow) {
+        $flows[] = array(
+            "id" => intval($flow["id"]),
+            //"text" => strtolower($flow["name"]),
+            "text" => html_entity_decode($flow["property_name"]),
+            "state" => $flow["state_type"], //   'closed',
+            "checked" => $flow["checked"],
+            //"icon_class"=>"icon_class", 
+            "attributes" => array(  "active" => $flow["active"],
+                "machine_grup_id" => $flow["machine_grup_id"], //"machinegroup" => $flow["machinegroup"],  
+                "property_name_eng" => html_entity_decode($flow["property_name_eng"]),
+                ),
+        );
+    }
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($flows));
+});
+ 
 
 
 $app->run();

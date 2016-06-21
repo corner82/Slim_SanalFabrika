@@ -905,7 +905,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                            
                                  ";
             $statement = $pdo->prepare($sql); 
-            //echo debugPDO($sql, $params);
+           //echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -962,6 +962,86 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
         }
     }
     
-    
+      /**
+     * @author Okan CIRAN
+     * @   sys_machine_tool_property_definition tablosundan machine_grup property lerinin 
+     * kayıtları döndürür !! 
+     * @version v 1.0  20.06.2016 
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillMachineGroupProperties($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $machineToolGrupId = 0;
+            $innerSql = NULL;
+            $whereSql = "  WHERE a.deleted =0 AND a.language_parent_id =0 "; 
+          
+            if (isset($params['machine_grup_id']) && $params['machine_grup_id'] != "") {
+                $machineToolGrupId = $params['machine_grup_id'];
+                }    
+            $innerSql .= " INNER JOIN sys_machine_groups_property_definition mpd ON mpd.property_id = a.id AND mpd.active =0 AND mpd.deleted =0 ";
+            $whereSql .= " AND mpd.machine_grup_id = " . $machineToolGrupId;
+            
+            $ekSql = " sss.machine_tool_property_definition_id = a.id ";             
+            if (isset($params['machine_id']) && $params['machine_id'] != "") {
+                $MachineId = $params['machine_id'];
+                $innerSql .=" INNER JOIN sys_machine_tools smt ON smt.machine_tool_grup_id = mpd.machine_grup_id AND smt.active =0 AND smt.deleted =0 AND smt.language_parent_id =0
+                            LEFT JOIN sys_machine_tools smtx ON (smtx.id =smt.id OR smtx.language_parent_id = smt.id) AND smtx.deleted =0 AND smtx.active =0 AND lx.id = smtx.language_id
+                            ";
+                $whereSql .= " AND smt.id = " . $MachineId; 
+                $ekSql = " sss.machine_tool_id = smt.id ";              
+            }
+     
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+
+            $sql = " 
+                SELECT DISTINCT
+                    a.id,
+                    mpd.machine_grup_id,
+                    COALESCE(NULLIF(su.property_name, ''), a.property_name_eng) AS property_name,
+                    a.property_name_eng,
+                    'open' AS state_type,                    
+                    CASE 
+                        (SELECT COUNT(ssz.id) FROM sys_machine_groups_property_definition ssz WHERE ssz.property_id = a.id) 
+                    WHEN 1 THEN true
+                    ELSE false END AS machinegroup, 
+                    CASE
+                        (SELECT COUNT(sss.id) FROM sys_machine_tool_properties sss WHERE sss.machine_tool_property_definition_id = a.id AND sss.language_parent_id =0 ) 
+		    WHEN 1 THEN true 
+		    ELSE false END AS checked ,
+                    CASE
+                        (SELECT COUNT(sss.id) FROM sys_machine_tool_properties sss WHERE sss.machine_tool_property_definition_id = a.id AND sss.language_parent_id =0 ) 
+		    WHEN 1 THEN true 
+		    ELSE false END AS active 
+ 		FROM sys_machine_tool_property_definition a
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+                " . $innerSql . " 
+                LEFT JOIN sys_machine_tool_property_definition su ON (su.id = a.id OR su.language_parent_id = a.id) AND su.deleted =0 AND su.active =0 AND lx.id = su.language_id 
+                " . $whereSql . " 
+                ORDER BY property_name 
+                                 ";
+             $statement = $pdo->prepare($sql);
+           //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
     
 }
