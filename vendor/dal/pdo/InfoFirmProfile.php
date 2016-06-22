@@ -416,6 +416,10 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         if ((isset($params['active']) && $params['active'] != "")) {
                             $active = intval($params['active']);
                         }
+                        $countryId = 91;
+                        if ((isset($params['country_id']) && $params['country_id'] != "")) {
+                            $countryId = intval($params['country_id']);
+                        }
                         $languageId = NULL;
                         $languageIdValue = 647;
                         if ((isset($params['language_code']) && $params['language_code'] != "")) {
@@ -461,7 +465,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                             " . intval($active) . " AS active,
                             consultant_id,
                             " . intval($opUserIdValue) . " AS op_user_id,                            
-                            " . intval($params['country_id']) . " AS country_id,                             
+                            " . intval($countryId) . " AS country_id,                             
                             '" . $params['firm_name'] . "' AS firm_name, 
                             '" . $params['web_address'] . "' AS web_address, 
                             '" . $params['tax_office'] . "' AS tax_office, 
@@ -618,7 +622,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         WHERE id =  " . intval($endOfIdValue) . "                                
                         ";
             $statement_act_insert = $pdo->prepare($sql);
-            // echo debugPDO($sql, $params);
+         //   echo debugPDO($sql, $params);
             $insert_act_insert = $statement_act_insert->execute();
             $affectedRows = $statement_act_insert->rowCount();
             $errorInfo = $statement_act_insert->errorInfo();
@@ -1649,7 +1653,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 ) AS xtable limit 1                             
                                  ";
                 $statement = $pdo->prepare($sql);
-               // echo debugPDO($sql, $params);
+              // echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -2383,7 +2387,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     a.id = " . $endOfId ['resultSet'][0]['firm_id'] . "                 
                 ";
                     $statement = $pdo->prepare($sql);
-                    //  echo debugPDO($sql, $params);                
+                 //    echo debugPDO($sql, $params);                
                     $statement->execute();
                     $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                     $errorInfo = $statement->errorInfo();

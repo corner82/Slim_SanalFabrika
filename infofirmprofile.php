@@ -654,7 +654,6 @@ $app->get("/pktempInsert_infoFirmProfile/", function () use ($app ) {
 $app->get("/pktempUpdate_infoFirmProfile/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
-
     $headerParams = $app->request()->headers();
     $vPkTemp = $headerParams['X-Public-Temp'];  
     
@@ -671,12 +670,10 @@ $app->get("/pktempUpdate_infoFirmProfile/", function () use ($app ) {
     $vBoroughId = $_GET['borough_id'];
     $vCityName = $_GET['city_name'];  
     $vDescription = $_GET['description'];   
-    $vDescriptionEng = $_GET['description_eng'];   
-     
+    $vDescriptionEng = $_GET['description_eng'];       
   
       
-    $fID = $vID;   
-    
+    $fID = $vID;       
     $fLanguageCode = $vLanguageCode;
     $fProfilePublic = $vProfilePublic;
    
@@ -712,12 +709,6 @@ $app->get("/pktempUpdate_infoFirmProfile/", function () use ($app ) {
          )); 
   
     $app->response()->header("Content-Type", "application/json");
-
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
     $app->response()->body(json_encode($resDataUpdate));
 });
 
@@ -726,9 +717,7 @@ $app->get("/pktempUpdate_infoFirmProfile/", function () use ($app ) {
  * @since 02-02-2016
  */
 $app->get("/pktempDeletedAct_infoFirmProfile/", function () use ($app ) {
-
     $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
-
     $headerParams = $app->request()->headers();
     $vPkTemp = $headerParams['X-Public-Temp'];  
     
@@ -745,8 +734,7 @@ $app->get("/pktempDeletedAct_infoFirmProfile/", function () use ($app ) {
     $fPkTemp = $vPkTemp ; 
     $fID = $vID ; 
     $fActParentId = $vActParentId ; 
-    $fOperationTypeId = $vOperationTypeId ; 
-    
+    $fOperationTypeId = $vOperationTypeId ;     
     
     $resDataUpdate = $BLL->deletedActTemp(array(
         'id' => $fID,        
@@ -754,12 +742,7 @@ $app->get("/pktempDeletedAct_infoFirmProfile/", function () use ($app ) {
         'act_parent_id' => $fOperationTypeId,
         'pktemp' => $fPkTemp));
  
-    $app->response()->header("Content-Type", "application/json");
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
+    $app->response()->header("Content-Type", "application/json"); 
     $app->response()->body(json_encode($resDataUpdate));
 });
  
@@ -767,27 +750,21 @@ $app->get("/pktempDeletedAct_infoFirmProfile/", function () use ($app ) {
  *  * Okan CIRAN
  * @since 02-02-2016
  */
-$app->get("/pktempFillUserAddressesTypes_infoFirmProfile/", function () use ($app ) {
-
- 
-    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
- 
+$app->get("/pktempFillUserAddressesTypes_infoFirmProfile/", function () use ($app ) { 
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL'); 
     $headerParams = $app->request()->headers();
     $vPkTemp = $headerParams['X-Public-Temp'];   
     $vLanguageCode =$_GET['language_code'] ; 
-    //print_r($vPkTemp) ;
    
     $resCombobox = $BLL->fillUserAddressesTypesTemp(array('pktemp' => $vPkTemp , 
                                                         'language_code' => $vLanguageCode ));
-
-  //  print_r('123123123123');
-  // print_r($resCombobox);
+ 
     $flows = array();
     foreach ($resCombobox as $flow) {
         $flows[] = array(
             "id" => $flow["id"],
             //"text" => strtolower($flow["name"]),
-            "text" => $flow["name"],
+            "text" => html_entity_decode($flow["name"]),
             "state" => 'open',
             "checked" => false,
             "attributes" => array("notroot" => true,   ),
@@ -822,23 +799,21 @@ $app->get("/fillCompanyListsGuest_infoFirmProfile/", function () use ($app ) {
     foreach ($resDataGrid as $flow) {
         $flows[] = array(
             "npk" => $flow["npk"],
-            "firm_names" => $flow["firm_names"],
-            "web_address" => $flow["web_address"],
-            "firm_name_short" => $flow["firm_name_short"],
+            "firm_names" => html_entity_decode($flow["firm_names"]),
+            "web_address" => html_entity_decode($flow["web_address"]),
+            "firm_name_short" => html_entity_decode($flow["firm_name_short"]),
             "country_id" => $flow["country_id"],
-            "country_names" => $flow["country_names"],
-            "descriptions" => $flow["descriptions"],            
+            "country_names" => html_entity_decode($flow["country_names"]),
+            "descriptions" => html_entity_decode($flow["descriptions"]),
             "logo" => $flow["logo"], 
             "attributes" => array("notroot" => true, ),
         );
     }
 
     $app->response()->header("Content-Type", "application/json");
-
     $resultArray = array();
     $resultArray['total'] = $resTotalRowCount[0]['count'];
-    $resultArray['rows'] = $flows;
-    
+    $resultArray['rows'] = $flows;    
     $app->response()->body(json_encode($resultArray));
 });
 
@@ -916,23 +891,21 @@ $app->get("/pkFillCompanyLists_infoFirmProfile/", function () use ($app ) {
     foreach ($resDataGrid as $flow) {
         $flows[] = array(
             "npk" => $flow["npk"],
-            "firm_names" => $flow["firm_names"],
-            "web_address" => $flow["web_address"],
-            "firm_name_short" => $flow["firm_name_short"],
+            "firm_names" => html_entity_decode($flow["firm_names"]),
+            "web_address" => html_entity_decode($flow["web_address"]),
+            "firm_name_short" => html_entity_decode($flow["firm_name_short"]),
             "country_id" => $flow["country_id"],
-            "country_names" => $flow["country_names"],
-            "descriptions" => $flow["descriptions"],            
+            "country_names" => html_entity_decode($flow["country_names"]),
+            "descriptions" => html_entity_decode($flow["descriptions"]),
             "logo" => $flow["logo"], 
             "attributes" => array("notroot" => true, ),
         );
     }
 
     $app->response()->header("Content-Type", "application/json");
-
     $resultArray = array();
     $resultArray['total'] = $resTotalRowCount[0]['count'];
-    $resultArray['rows'] = $flows;
-    
+    $resultArray['rows'] = $flows;    
     $app->response()->body(json_encode($resultArray));
 });
 
@@ -941,7 +914,6 @@ $app->get("/pkFillCompanyLists_infoFirmProfile/", function () use ($app ) {
  * @since 23-03-2016
  */
 $app->get("/fillCompanyInfoEmployeesGuest_infoFirmProfile/", function () use ($app ) {
-
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
     $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
@@ -1046,7 +1018,6 @@ $app->get("/pkFillCompanyInfoEmployees_infoFirmProfile/", function () use ($app 
  * @since 23-03-2016
  */
 $app->get("/fillCompanyInfoSocialediaGuest_infoFirmProfile/", function () use ($app ) {
-
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
     $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
@@ -1070,15 +1041,14 @@ $app->get("/fillCompanyInfoSocialediaGuest_infoFirmProfile/", function () use ($
  
      $result = $BLL->fillCompanyInfoSocialediaGuest(array('language_code' => $vLanguageCode,
         'network_key' => $vNetworkKey,        
-        ));
-    
+        ));    
   
     $flows = array();
     foreach ($result['resultSet'] as $flow) {
         $flows[] = array(
-            "socialmedia" => $flow["socialmedia"],
-            "firm_link" => $flow["firm_link"],      
-            "abbreviation" => $flow["abbreviation"],  
+            "socialmedia" => html_entity_decode($flow["socialmedia"]),
+            "firm_link" => html_entity_decode($flow["firm_link"]),
+            "abbreviation" => html_entity_decode($flow["abbreviation"]),
             "attributes" => array("notroot" => true, ),
         );
     }
@@ -1125,9 +1095,9 @@ $app->get("/pkFillCompanyInfoSocialedia_infoFirmProfile/", function () use ($app
     $flows = array();
     foreach ($result['resultSet'] as $flow) {
         $flows[] = array(
-            "socialmedia" => $flow["socialmedia"],
-            "firm_link" => $flow["firm_link"],      
-            "abbreviation" => $flow["abbreviation"],  
+            "socialmedia" => html_entity_decode($flow["socialmedia"]),
+            "firm_link" => html_entity_decode($flow["firm_link"]),      
+            "abbreviation" => html_entity_decode($flow["abbreviation"]),  
             "attributes" => array("notroot" => true, ),
         );
     }
@@ -1141,7 +1111,6 @@ $app->get("/pkFillCompanyInfoSocialedia_infoFirmProfile/", function () use ($app
  * @since 23-03-2016
  */
 $app->get("/fillCompanyInfoReferencesGuest_infoFirmProfile/", function () use ($app ) {
-
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
     $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
@@ -1165,18 +1134,16 @@ $app->get("/fillCompanyInfoReferencesGuest_infoFirmProfile/", function () use ($
  
      $result = $BLL->fillCompanyInfoReferencesGuest(array('language_code' => $vLanguageCode,
         'network_key' => $vNetworkKey,        
-        ));
-    
+        ));    
   
     $flows = array();
     foreach ($result['resultSet'] as $flow) {
         $flows[] = array(
-            "ref_name" => $flow["ref_name"],    
+            "ref_name" => html_entity_decode($flow["ref_name"]),    
             "ref_date" => $flow["ref_date"],    
             "ref_network_key" => $flow["ref_network_key"],    
             "ref_logo" => $flow["ref_logo"],   
-            "firm_logo" => $flow["firm_logo"],  
-             
+            "firm_logo" => $flow["firm_logo"],               
             "attributes" => array("notroot" => true,"active" => $flow["active"], ),
         );
     }
@@ -1224,7 +1191,7 @@ $app->get("/pkFillCompanyInfoReferences_infoFirmProfile/", function () use ($app
     $flows = array();
     foreach ($result['resultSet'] as $flow) {
         $flows[] = array(
-            "ref_name" => $flow["ref_name"],    
+            "ref_name" => html_entity_decode($flow["ref_name"]),    
             "ref_date" => $flow["ref_date"],    
             "ref_network_key" => $flow["ref_network_key"],    
             "ref_logo" => $flow["ref_logo"],   
@@ -1272,7 +1239,7 @@ $app->get("/fillCompanyInfoCustomersGuest_infoFirmProfile/", function () use ($a
     $flows = array();
     foreach ($result['resultSet'] as $flow) {
         $flows[] = array(
-            "customer_names" => $flow["customer_names"],            
+            "customer_names" => html_entity_decode($flow["customer_names"]),            
             "attributes" => array("notroot" => true, ),
         );
     }
@@ -1320,7 +1287,7 @@ $app->get("/pkFillCompanyInfoCustomers_infoFirmProfile/", function () use ($app 
     $flows = array();
     foreach ($result['resultSet'] as $flow) {
         $flows[] = array(
-            "customer_names" => $flow["customer_names"],            
+            "customer_names" => html_entity_decode($flow["customer_names"]),            
             "attributes" => array("notroot" => true, ),
         );
     }
@@ -1365,8 +1332,8 @@ $app->get("/fillCompanyInfoProductsGuest_infoFirmProfile/", function () use ($ap
     foreach ($result['resultSet'] as $flow) {
         $flows[] = array(
             "id" => $flow["id"],    
-            "product_name" => $flow["product_name"],    
-            "product_description" => $flow["product_description"],    
+            "product_name" => html_entity_decode($flow["product_name"]),    
+            "product_description" => html_entity_decode($flow["product_description"]),    
             "gtip_no_id" => $flow["gtip_no_id"],   
             "product_picture" => $flow["product_picture"],  
             "product_video_link" => $flow["product_video_link"],              
@@ -1416,8 +1383,8 @@ $app->get("/pkFillCompanyInfoProducts_infoFirmProfile/", function () use ($app )
     foreach ($result['resultSet'] as $flow) {
         $flows[] = array(
             "id" => $flow["id"],    
-            "product_name" => $flow["product_name"],    
-            "product_description" => $flow["product_description"],    
+            "product_name" => html_entity_decode($flow["product_name"]),    
+            "product_description" => html_entity_decode($flow["product_description"]),    
             "gtip_no_id" => $flow["gtip_no_id"],   
             "product_picture" => $flow["product_picture"],  
             "product_video_link" => $flow["product_video_link"],              
@@ -1464,7 +1431,7 @@ $app->get("/fillCompanyInfoSectorsGuest_infoFirmProfile/", function () use ($app
     foreach ($result['resultSet'] as $flow) {
         $flows[] = array(
             "id" => $flow["id"],    
-            "sector_name" => $flow["sector_name"],  
+            "sector_name" => html_entity_decode($flow["sector_name"]),  
             "logo" => $flow["logo"],              
             "attributes" => array("notroot" => true,"active" => $flow["active"], ),
         );
@@ -1512,7 +1479,7 @@ $app->get("/pkFillCompanyInfoSectors_infoFirmProfile/", function () use ($app ) 
     foreach ($result['resultSet'] as $flow) {
         $flows[] = array(
             "id" => $flow["id"],    
-            "sector_name" => $flow["sector_name"],  
+            "sector_name" => html_entity_decode($flow["sector_name"]),  
             "logo" => $flow["logo"],              
             "attributes" => array("notroot" => true,"active" => $flow["active"], ),
         );
@@ -1571,10 +1538,10 @@ $app->get("/pkFillCompanyInfoBuildingNpk_infoFirmProfile/", function () use ($ap
         $flows[] = array(
             "id" => $flow["id"],  
             "firm_id" => $flow["firm_id"],   
-            "building_type" => $flow["building_type"],  
-            "firm_building_name" => $flow["firm_building_name"],   
-            "osb_name" => $flow["osb_name"],
-            "building_address" => $flow["building_address"],
+            "building_type" => html_entity_decode($flow["building_type"]),  
+            "firm_building_name" => html_entity_decode($flow["firm_building_name"]),   
+            "osb_name" => html_entity_decode($flow["osb_name"]),
+            "building_address" => html_entity_decode($flow["building_address"]),
             "attributes" => array("notroot" => true,"active" => $flow["active"], ),
         );
     }
@@ -1632,37 +1599,37 @@ $app->get("/pkFillFirmFullVerbal_infoFirmProfile/", function () use ($app ) {
             "profile_public" => $flow["profile_public"],  
             "s_date" => $flow["s_date"],   
             "c_date" => $flow["c_date"],
-            "firm_name" => $flow["firm_name"],
-            "firm_name_eng" => $flow["firm_name_eng"],
-            "firm_name_short" => $flow["firm_name_short"],
-            "firm_name_short_eng" => $flow["firm_name_short_eng"],
-            "web_address" => $flow["web_address"],
+            "firm_name" => html_entity_decode($flow["firm_name"]),
+            "firm_name_eng" => html_entity_decode($flow["firm_name_eng"]),
+            "firm_name_short" => html_entity_decode($flow["firm_name_short"]),
+            "firm_name_short_eng" => html_entity_decode($flow["firm_name_short_eng"]),
+            "web_address" => html_entity_decode($flow["web_address"]),
             "country_id" => $flow["country_id"],
-            "country_name" => $flow["country_name"],
-            "country_name_eng" => $flow["country_name_eng"],
-            "about" => $flow["about"],
-            "about_eng" => $flow["about_eng"],
-            "verbal1_title" => $flow["verbal1_title"],
-            "verbal1_title_eng" => $flow["verbal1_title_eng"],
-            "verbal1" => $flow["verbal1"],
-            "verbal1_eng" => $flow["verbal1_eng"],            
-            "verbal2_title" => $flow["verbal2_title"],
-            "verbal2_title_eng" => $flow["verbal2_title_eng"],
-            "verbal2" => $flow["verbal2"],
-            "verbal2_eng" => $flow["verbal2_eng"],            
-            "verbal3_title" => $flow["verbal3_title"],
-            "verbal3_title_eng" => $flow["verbal3_title_eng"],
-            "verbal3" => $flow["verbal3"],
-            "verbal3_eng" => $flow["verbal3_eng"],            
+            "country_name" => html_entity_decode($flow["country_name"]),
+            "country_name_eng" => html_entity_decode($flow["country_name_eng"]),
+            "about" => html_entity_decode($flow["about"]),
+            "about_eng" => html_entity_decode($flow["about_eng"]),
+            "verbal1_title" => html_entity_decode($flow["verbal1_title"]),
+            "verbal1_title_eng" => html_entity_decode($flow["verbal1_title_eng"]),
+            "verbal1" => html_entity_decode($flow["verbal1"]),
+            "verbal1_eng" => html_entity_decode($flow["verbal1_eng"]),            
+            "verbal2_title" => html_entity_decode($flow["verbal2_title"]),
+            "verbal2_title_eng" => html_entity_decode($flow["verbal2_title_eng"]),
+            "verbal2" => html_entity_decode($flow["verbal2"]),
+            "verbal2_eng" => html_entity_decode($flow["verbal2_eng"]),
+            "verbal3_title" => html_entity_decode($flow["verbal3_title"]),
+            "verbal3_title_eng" => html_entity_decode($flow["verbal3_title_eng"]),
+            "verbal3" => html_entity_decode($flow["verbal3"]),
+            "verbal3_eng" => html_entity_decode($flow["verbal3_eng"]),
             "duns_number" => $flow["duns_number"],
-            "tax_office" => $flow["tax_office"],
+            "tax_office" => html_entity_decode($flow["tax_office"]),
             "tax_no" => $flow["tax_no"],
             "foundation_yearx" => $flow["foundation_yearx"],            
             "language_id" => $flow["language_id"],
-            "language_name" => $flow["language_name"],
+            "language_name" => html_entity_decode($flow["language_name"]),
             "operation_type_id" => $flow["operation_type_id"],
-            "operation_name" => $flow["operation_name"],            
-            "operation_name_eng" => $flow["operation_name_eng"],
+            "operation_name" => html_entity_decode($flow["operation_name"]),
+            "operation_name_eng" => html_entity_decode($flow["operation_name_eng"]),
             "active" => $flow["active"],
             "state_active" => $flow["state_active"],
             "deleted" => $flow["deleted"],
@@ -1676,8 +1643,7 @@ $app->get("/pkFillFirmFullVerbal_infoFirmProfile/", function () use ($app ) {
             "language_parent_id" => $flow["language_parent_id"],
             "network_key" => $flow["network_key"],
             "logo" => $flow["logo"],
-            "place_point" => $flow["place_point"],        
-            
+            "place_point" => $flow["place_point"],              
             "attributes" => array("notroot" => true,"active" => $flow["active"], ),
         );
     }
@@ -1712,8 +1678,7 @@ $app->get("/pkGetFirmProfileConsultant_infoFirmProfile/", function () use ($app 
         $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
                                                 $_GET['npk']));
-    }
-     
+    }     
 
     $stripper->strip();
     if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
@@ -1731,8 +1696,8 @@ $app->get("/pkGetFirmProfileConsultant_infoFirmProfile/", function () use ($app 
         $flows[] = array(
             "firm_id" => $flow["firm_id"],
             "consultant_id" => $flow["consultant_id"],  
-            "name" => $flow["name"],   
-            "surname" => $flow["surname"],
+            "name" => html_entity_decode($flow["name"]),   
+            "surname" => html_entity_decode($flow["surname"]),
             "auth_email" => $flow["auth_email"],
             //"communications_type_id" => $flow["communications_type_id"],
            // "communications_type_name" => $flow["communications_type_name"],             
