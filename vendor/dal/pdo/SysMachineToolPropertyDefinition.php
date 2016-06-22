@@ -119,12 +119,12 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $insertID = NULL;
-           $errorInfo = ["00000", null, null];
+            $errorInfo = ["00000", null, null];
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $kontrol = $this->haveRecords($params);                
-                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {                   
+                $kontrol = $this->haveRecords($params);
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                     $languageId = NULL;
                     $languageIdValue = 647;
                     if ((isset($params['language_code']) && $params['language_code'] != "")) {
@@ -133,7 +133,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                             $languageIdValue = $languageId ['resultSet'][0]['id'];
                         }
                     }
-                 
+
                     $sql = "
                 INSERT INTO sys_machine_tool_property_definition(                        
                          property_name,
@@ -152,44 +152,42 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                     $statement->bindValue(':property_name_eng', $params['property_name_eng'], \PDO::PARAM_STR);
                     $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
                     $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
-                   // echo debugPDO($sql, $params);
+                    // echo debugPDO($sql, $params);
                     $result = $statement->execute();
                     $insertID = $pdo->lastInsertId('sys_machine_tool_property_definition_id_seq');
                     $errorInfo = $statement->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
-                    
+
                     if ((isset($params['unit_grup_id']) && $params['unit_grup_id'] != "")) {
-                        $xc= $this->insertPropertyUnitGroup(array('property_id' => $insertID,
+                        $xc = $this->insertPropertyUnitGroup(array('property_id' => $insertID,
                             'unit_grup_id' => $params['unit_grup_id'],
                             'opUserIdValue' => $opUserIdValue,));
                     }
-                    }
-                    ELSE 
-                    {
-                        $insertID = $kontrol ['resultSet'][0]['id'];
-                    }
-          
-                    if ((isset($params['machine_grup_id']) && $params['machine_grup_id'] != "")) {
-                      $xc= $this->insertPropertyMachineGroup(array('property_id' => $insertID,
-                            'machine_grup_id' => $params['machine_grup_id'],
-                            'opUserIdValue' => $opUserIdValue,
-                        ));
-                    }
-                   
-                   if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
-                        throw new \PDOException($xc['errorInfo']);
-                  
-                    $pdo->commit();
-                    return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
-              /*  } else {
-                    $errorInfo = '23505';
-                    $errorInfoColumn = 'property_name';
-                    $pdo->rollback();
-                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                } ELSE {
+                    $insertID = $kontrol ['resultSet'][0]['id'];
                 }
-               * *
-               */
+
+                if ((isset($params['machine_grup_id']) && $params['machine_grup_id'] != "")) {
+                    $xc = $this->insertPropertyMachineGroup(array('property_id' => $insertID,
+                        'machine_grup_id' => $params['machine_grup_id'],
+                        'opUserIdValue' => $opUserIdValue,
+                    ));
+                }
+
+                if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                    throw new \PDOException($xc['errorInfo']);
+
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                /*  } else {
+                  $errorInfo = '23505';
+                  $errorInfoColumn = 'property_name';
+                  $pdo->rollback();
+                  return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                  }
+                 * *
+                 */
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
@@ -201,7 +199,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-
+     
     /**
      * @author Okan CIRAN
      * @ sys_machine_tool_property_definition tablosuna yeni bir kayıt oluşturur.  !!
@@ -297,6 +295,63 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
         }
     }
 
+        
+    /**
+     * @author Okan CIRAN
+     * @ sys_machine_tool_property_definition tablosuna yeni bir kayıt oluşturur.  !!
+     * @version v 1.0  14.03.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function transferPropertyMachineGroup($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $kontrol = $this->haveRecordsMachineGroup(array('property_id' => $params['property_id'] , 
+                    'machine_grup_id' => '{"0":'.$params['machine_grup_id'].'}' ,   // {"0":5}
+                    ));
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                    $sql = "  
+                INSERT INTO sys_machine_groups_property_definition(                        
+                         property_id,
+                         machine_grup_id,
+                         op_user_id
+                         ) VALUES (
+                        " . intval($params['property_id']) . ",
+                        " . intval($params['machine_grup_id']) . ",                        
+                        " . intval($opUserIdValue) . ")  
+                                 ";
+                    $statement = $pdo->prepare($sql);
+                    // echo debugPDO($sql, $params);
+                    $result = $statement->execute();
+                    $insertID = $pdo->lastInsertId('sys_machine_groups_property_definition_id_seq');
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                } else {
+                    $errorInfo = '23505';
+                    $errorInfoColumn = 'machine_grup_id';
+                    $pdo->rollback();
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
     /**
      * @author Okan CIRAN
      * @ sys_machine_tool_property_definition tablosunda property_name daha önce kaydedilmiş mi ?  
@@ -355,19 +410,19 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             }
             $sql = "
             SELECT  
-               a.machine_grup_id AS name,
+                a.machine_grup_id AS name,
                 machine_grup_id AS value, 
-               machine_grup_id = machine_grup_id AS control,
+                machine_grup_id = machine_grup_id AS control,
                 CONCAT(a.machine_grup_id, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
             FROM sys_machine_groups_property_definition a
             WHERE 
-                a.property_id =   " . intval($params['property_id']) . " AND
+                a.property_id = " . intval($params['property_id']) . " AND
                 a.machine_grup_id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each('" . $params['machine_grup_id'] . "'))
                   " . $addSql . "
                 AND a.deleted =0
                                ";            
             $statement = $pdo->prepare($sql);
-           //  echo debugPDO($sql, $params);
+             // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -917,6 +972,84 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
         }
     }
      
+    
+    
+    /**
+     * @author Okan CIRAN
+     * @ sys_machine_tool_property_definition tablosundan machine_grup_id si dısında kalan property leri 
+     * döndürür !!  machine_grup_id boş ise tüm kayıtları döndürür.
+     * @version v 1.0  22.06.2016 
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillMachineGroupNotInPropertyDefinitions($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $machineToolGrupId = 0;
+            $UnitGrupId=0;
+            $innerSql = "";
+            $addSelect = "";
+            $whereSql = "  WHERE a.deleted =0 AND a.language_parent_id =0 ";            
+
+            if (isset($params['machine_grup_id']) && $params['machine_grup_id'] != "") {
+                $machineToolGrupId = $params['machine_grup_id'];
+            }
+            $whereSql .= " AND mpd.machine_grup_id NOT IN ( " . $machineToolGrupId ." )";
+            
+            if (isset($params['unit_grup_id']) && $params['unit_grup_id'] != "") {
+                $UnitGrupId = $params['unit_grup_id'];
+                $addSelect .=" upd.unit_grup_id ,";
+                $innerSql .=" INNER JOIN sys_unit_groups_property_definition upd ON upd.property_id = a.id AND upd.active =0 AND upd.deleted =0  ";
+                $whereSql .= " AND upd.unit_grup_id = " . $UnitGrupId;
+            }
+            $languageId = NULL; 
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+
+            $sql ="             
+                SELECT DISTINCT
+                    a.id,
+                    0 AS machine_grup_id,
+                    ".$addSelect."
+                    COALESCE(NULLIF(su.property_name, ''), a.property_name_eng) AS property_name,
+                    a.property_name_eng,
+                    a.active,
+                    'open' AS state_type,
+                    false AS root_type,                   
+		    CASE
+                        (SELECT COUNT(id) FROM sys_unit_groups_property_definition WHERE property_id = a.id) 
+		    WHEN 1 THEN true
+		    ELSE false END AS unitgroup
+		FROM sys_machine_tool_property_definition a
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+                INNER JOIN sys_machine_groups_property_definition mpd ON mpd.property_id = a.id AND mpd.active =0 AND mpd.deleted =0 
+                " . $innerSql . "    
+                LEFT JOIN sys_machine_tool_property_definition su ON (su.id = a.id OR su.language_parent_id = a.id) AND su.deleted =0 AND su.active =0 AND lx.id = su.language_id
+                " . $whereSql . "
+                ORDER BY property_name 
+                           
+                                 ";
+            $statement = $pdo->prepare($sql); 
+           //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+  
+    
     /**
      * @author Okan CIRAN
      * sys_machine_groups_property_definition tablosuna parametre olarak gelen id deki kaydın bilgilerini siler   !!

@@ -302,16 +302,6 @@ $app->get("/pkFillMachineToolFullProperties_sysMachineToolProperties/", function
         }
         
     }
-   
-    
-    
-    
-               
-              
-              
-             
-    
-    
     
     
     
@@ -378,23 +368,9 @@ $app->get("/pkFillPropertyUnits_sysMachineToolProperties/", function () use ($ap
                                                 'property_id' => $vPropertyId,
                                                         ));   
     $menus = array();
-    $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
-     if ($componentType == 'bootstrap') {
-        $menus = array();
-        foreach ($resData as $menu) {
-            $menus[] = array(
-                "id" => $menu["id"],       
-                "text" => $menu["unitcode"],
-                "state" => $menu["state_type"],
-                "checked" => false,
-                "attributes" => array("notroot" => true, 
-                                    "active" => $menu["active"] ,
-                                    "unitcode_eng"=>$menu["unitcode_eng"],
-                )                
-            );
-        }
-    } else if ($componentType == 'ddslick') {   
-        foreach ($resData as $menu) {
+    $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true,   "description" => "Lütfen Seçiniz",); 
+  
+    foreach ($resData as $menu) {
             $menus[] = array(
                 "text" => $menu["unitcode"],
                 "value" =>  intval($menu["id"]),
@@ -403,19 +379,16 @@ $app->get("/pkFillPropertyUnits_sysMachineToolProperties/", function () use ($ap
              //   "imageSrc" => ""
             );
         }
-    }
+  
     
     $app->response()->header("Content-Type", "application/json");
     $resultArray = array();
    // $resultArray['total'] = $resTotalRowCount[0]['count'];
     $resultArray['rows'] = $menus;
     
-     // $app->response()->body(json_encode($flows));
-    if($componentType == 'bootstrap'){
+    
         $app->response()->body(json_encode($menus));
-    }else if($componentType == 'ddslick'){
-        $app->response()->body(json_encode($resultArray));
-    }
+ 
       //  $app->response()->body(json_encode($resultArray));
         
  

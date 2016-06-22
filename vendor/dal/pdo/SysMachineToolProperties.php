@@ -140,7 +140,7 @@ class SysMachineToolProperties extends \DAL\DalSlim {
 
                     $sql = "
                 INSERT INTO sys_machine_tool_properties(
-                 machine_tool_id, 
+                        machine_tool_id, 
                         machine_tool_property_definition_id, 
                         property_value,
                         unit_id,                         
@@ -586,7 +586,7 @@ class SysMachineToolProperties extends \DAL\DalSlim {
             }
             $sql ="          
                 SELECT                    
-                    a.id, 	
+                    su.id, 	
                     COALESCE(NULLIF(sux.unitcode, ''), su.unitcode_eng) AS unitcode,  
                     su.unitcode_eng,
                     su.parent_id,
@@ -609,7 +609,7 @@ class SysMachineToolProperties extends \DAL\DalSlim {
                   ORDER BY unitcode  
                                  ";
             $statement = $pdo->prepare($sql);
-            // echo debugPDO($sql, $params);
+            //echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
             $errorInfo = $statement->errorInfo();

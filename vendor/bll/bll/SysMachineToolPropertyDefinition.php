@@ -119,6 +119,19 @@ class SysMachineToolPropertyDefinition extends \BLL\BLLSlim {
         $resultSet = $DAL->fillMachineGroupPropertyDefinitions($params);
         return $resultSet['resultSet'];
     }
+    
+    /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillMachineGroupNotInPropertyDefinitions($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertyDefinitionPDO');
+        $resultSet = $DAL->fillMachineGroupNotInPropertyDefinitions($params);
+        return $resultSet['resultSet'];
+    }
+    
+    
         /**
      * Data update function
      * @param array $params
@@ -140,5 +153,13 @@ class SysMachineToolPropertyDefinition extends \BLL\BLLSlim {
         return $resultSet['resultSet'];
     } 
     
-    
+ /**
+     * DAta insert function
+     * @param array | null $params
+     * @return array
+     */
+    public function transferPropertyMachineGroup($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertyDefinitionPDO');
+        return $DAL->transferPropertyMachineGroup($params);
+    }    
 }
