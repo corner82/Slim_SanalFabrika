@@ -79,7 +79,7 @@ class SysOsbClustersFirms extends \DAL\DalSlim {
             $statement = $pdo->prepare("              
                 SELECT 
                         a.id,
-                        a.osb_id,
+                        soc.osb_id,
                         COALESCE(NULLIF(sox.name, ''), so.name_eng) AS osb,
                         COALESCE(NULLIF(scx.name, ''), sc.name_eng) AS clusters, 
 			COALESCE(NULLIF(ifpx.firm_name, ''), ifp.firm_name_eng) AS firm_name, 
@@ -97,8 +97,9 @@ class SysOsbClustersFirms extends \DAL\DalSlim {
 			ct.name AS tr_city_name,
 			so.borough_id, 
 			bo.name AS tr_borough_name 			 
-                FROM sys_osb_clusters_firms a
-                INNER JOIN sys_osb so ON so.id = a.osb_id AND so.deleted =0 AND so.active =0 AND so.language_parent_id =0 
+                FROM sys_osb_clusters_firms a                
+                INNER JOIN sys_osb_clusters soc ON soc.id = a.osb_clusters_id AND soc.active =0 AND soc.deleted =0 
+                INNER JOIN sys_osb so ON so.id = soc.osb_id AND so.deleted =0 AND so.active =0 AND so.language_parent_id =0 
                 INNER JOIN sys_language l ON l.id = so.language_id AND l.deleted =0 AND l.active = 0 
                 LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0
                 INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = so.language_id AND sd15.deleted = 0 
@@ -107,7 +108,7 @@ class SysOsbClustersFirms extends \DAL\DalSlim {
                 LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= a.deleted AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
                 LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0                
                 LEFT JOIN sys_osb sox ON (sox.id = so.id OR sox.language_parent_id = so.id) AND sox.deleted =0 AND sox.active =0 AND lx.id = sox.language_id
-		INNER JOIN sys_clusters sc ON sc.id = a.clusters_id AND sc.deleted =0 AND sc.active =0 AND l.id = sc.language_id
+		INNER JOIN sys_clusters sc ON sc.id = soc.clusters_id AND sc.deleted =0 AND sc.active =0 AND l.id = sc.language_id
                 LEFT JOIN sys_clusters scx ON (scx.id = sc.id OR scx.language_parent_id = sc.id) AND scx.deleted =0 AND scx.active =0 AND lx.id = scx.language_id
 		INNER JOIN info_firm_profile ifp ON ifp.act_parent_id = a.firm_id AND ifp.language_parent_id =0 AND ifp.cons_allow_id =2 
 		LEFT JOIN info_firm_profile ifpx ON (ifpx.id = ifp.id OR ifpx.language_parent_id = ifp.id) AND ifpx.language_id = lx.id AND ifpx.cons_allow_id =2 
@@ -148,20 +149,17 @@ class SysOsbClustersFirms extends \DAL\DalSlim {
 
                     $sql = "
                 INSERT INTO sys_osb_clusters_firms(
-                        osb_id, 
-                        clusters_id, 
+                        osb_clusters_id, 
                         firm_id,
                         op_user_id
                         )
                 VALUES (
-                        :osb_id, 
-                        :clusters_id, 
+                        :osb_clusters_id, 
                         :firm_id,
                         :op_user_id
                         )   ";
                     $statement = $pdo->prepare($sql);
-                    $statement->bindValue(':osb_id', $params['osb_id'] , \PDO::PARAM_INT);
-                    $statement->bindValue(':clusters_id', $params['clusters_id'] , \PDO::PARAM_INT);
+                    $statement->bindValue(':osb_clusters_id', $params['osb_clusters_id'] , \PDO::PARAM_INT);                    
                     $statement->bindValue(':firm_id', $params['firm_id'] , \PDO::PARAM_INT);
                     $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
                     // echo debugPDO($sql, $params);
@@ -212,9 +210,8 @@ class SysOsbClustersFirms extends \DAL\DalSlim {
                 a.firm_id = " . intval($params['firm_id']) . " AS control,
                 CONCAT('Bu Firma daha önce Bu clustera kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
             FROM sys_osb_clusters_firms a                          
-            WHERE 
-                a.osb_id =" . intval($params['osb_id']) . " AND
-                a.clusters_id =" . intval($params['clusters_id']) . " AND
+            WHERE  
+                a.osb_clusters_id =" . intval($params['osb_clusters_id']) . " AND
                 a.firm_id =" . intval($params['firm_id']) . " 
                   " . $addSql . " 
                AND a.deleted =0    
@@ -252,14 +249,12 @@ class SysOsbClustersFirms extends \DAL\DalSlim {
                     $sql = "
                     UPDATE sys_osb_clusters_firms
                     SET 
-                        osb_id= :osb_id , 
-                        clusters_id= :clusters_id , 
+                        osb_clusters_id= :osb_clusters_id , 
                         firm_id= :firm_id ,
                         op_user_id= :op_user_id                        
                     WHERE id = " . intval($params['id']);
-                    $statement = $pdo->prepare($sql);
-                    $statement->bindValue(':osb_id', $params['osb_id'] , \PDO::PARAM_INT);
-                    $statement->bindValue(':clusters_id', $params['clusters_id'] , \PDO::PARAM_INT);
+                    $statement = $pdo->prepare($sql);                 
+                    $statement->bindValue(':osb_clusters_id', $params['osb_clusters_id'] , \PDO::PARAM_INT);
                     $statement->bindValue(':firm_id', $params['firm_id'] , \PDO::PARAM_INT);
                     $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
                     //echo debugPDO($sql, $params);
@@ -339,27 +334,28 @@ class SysOsbClustersFirms extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
                 SELECT 
-                    a.id,
-                    a.osb_id,
-                    COALESCE(NULLIF(sox.name, ''), so.name_eng) AS osb,
-                    COALESCE(NULLIF(scx.name, ''), sc.name_eng) AS clusters, 
-                    COALESCE(NULLIF(ifpx.firm_name, ''), ifp.firm_name_eng) AS firm_name, 
-                    a.deleted,
-                    COALESCE(NULLIF(sd15x.description , ''), sd15.description_eng) AS state_deleted,
-                    a.active,
-                    COALESCE(NULLIF(sd16x.description , ''), sd16.description_eng) AS state_active,
-                    COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
-                    COALESCE(NULLIF(lx.language, ''), l.language_eng) AS language_name,			 
-                    a.op_user_id,
-                    u.username AS op_user_name,
-                    so.country_id,
-                    co.name AS tr_country_name,
-                    so.city_id, 
-                    ct.name AS tr_city_name,
-                    so.borough_id, 
-                    bo.name AS tr_borough_name 			 
-                FROM sys_osb_clusters_firms a
-                INNER JOIN sys_osb so ON so.id = a.osb_id AND so.deleted =0 AND so.active =0 AND so.language_parent_id =0 
+                        a.id,
+                        soc.osb_id,
+                        COALESCE(NULLIF(sox.name, ''), so.name_eng) AS osb,
+                        COALESCE(NULLIF(scx.name, ''), sc.name_eng) AS clusters, 
+			COALESCE(NULLIF(ifpx.firm_name, ''), ifp.firm_name_eng) AS firm_name, 
+                        a.deleted,
+			COALESCE(NULLIF(sd15x.description , ''), sd15.description_eng) AS state_deleted,
+                        a.active,
+			COALESCE(NULLIF(sd16x.description , ''), sd16.description_eng) AS state_active,
+			COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
+			COALESCE(NULLIF(lx.language, ''), l.language_eng) AS language_name,			 
+                        a.op_user_id,
+                        u.username AS op_user_name,
+                        so.country_id,
+                        co.name AS tr_country_name,
+			so.city_id, 
+			ct.name AS tr_city_name,
+			so.borough_id, 
+			bo.name AS tr_borough_name 			 
+                FROM sys_osb_clusters_firms a                
+                INNER JOIN sys_osb_clusters soc ON soc.id = a.osb_clusters_id AND soc.active =0 AND soc.deleted =0 
+                INNER JOIN sys_osb so ON so.id = soc.osb_id AND so.deleted =0 AND so.active =0 AND so.language_parent_id =0 
                 INNER JOIN sys_language l ON l.id = so.language_id AND l.deleted =0 AND l.active = 0 
                 LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0
                 INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = so.language_id AND sd15.deleted = 0 
@@ -368,13 +364,13 @@ class SysOsbClustersFirms extends \DAL\DalSlim {
                 LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= a.deleted AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
                 LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0                
                 LEFT JOIN sys_osb sox ON (sox.id = so.id OR sox.language_parent_id = so.id) AND sox.deleted =0 AND sox.active =0 AND lx.id = sox.language_id
-		INNER JOIN sys_clusters sc ON sc.id = a.clusters_id AND sc.deleted =0 AND sc.active =0 AND l.id = sc.language_id
+		INNER JOIN sys_clusters sc ON sc.id = soc.clusters_id AND sc.deleted =0 AND sc.active =0 AND l.id = sc.language_id
                 LEFT JOIN sys_clusters scx ON (scx.id = sc.id OR scx.language_parent_id = sc.id) AND scx.deleted =0 AND scx.active =0 AND lx.id = scx.language_id
 		INNER JOIN info_firm_profile ifp ON ifp.act_parent_id = a.firm_id AND ifp.language_parent_id =0 AND ifp.cons_allow_id =2 
 		LEFT JOIN info_firm_profile ifpx ON (ifpx.id = ifp.id OR ifpx.language_parent_id = ifp.id) AND ifpx.language_id = lx.id AND ifpx.cons_allow_id =2 
                 LEFT JOIN sys_countrys co ON co.id = so.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = so.language_id                               
 		LEFT JOIN sys_city ct ON ct.id = so.city_id AND ct.deleted = 0 AND ct.active = 0 AND ct.language_id = so.language_id                               
-		LEFT JOIN sys_borough bo ON bo.boroughs_id = so.borough_id AND bo.city_id = so.city_id AND bo.deleted = 0 AND bo.active = 0 AND bo.language_id = so.language_id                                  
+		LEFT JOIN sys_borough bo ON bo.boroughs_id = so.borough_id AND bo.city_id = so.city_id AND bo.deleted = 0 AND bo.active = 0 AND bo.language_id = so.language_id                                 
                 WHERE a.deleted =0 AND a.language_parent_id =0  
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
@@ -414,13 +410,14 @@ class SysOsbClustersFirms extends \DAL\DalSlim {
             $sql = "
                 SELECT 
                      COUNT(a.id) AS COUNT  
-                FROM sys_osb_clusters_firms a
-                INNER JOIN sys_osb so ON so.id = a.osb_id AND so.deleted =0 AND so.active =0 AND so.language_parent_id =0 
+                FROM sys_osb_clusters_firms a                
+                INNER JOIN sys_osb_clusters soc ON soc.id = a.osb_clusters_id AND soc.active =0 AND soc.deleted =0 
+                INNER JOIN sys_osb so ON so.id = soc.osb_id AND so.deleted =0 AND so.active =0 AND so.language_parent_id =0 
                 INNER JOIN sys_language l ON l.id = so.language_id AND l.deleted =0 AND l.active = 0                 
                 INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = so.language_id AND sd15.deleted = 0 
                 INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = so.language_id AND sd16.deleted = 0
                 INNER JOIN info_users u ON u.id = a.op_user_id    
-                INNER JOIN sys_clusters sc ON sc.id = a.clusters_id AND sc.deleted =0 AND sc.active =0 AND l.id = sc.language_id                
+                INNER JOIN sys_clusters sc ON sc.id = soc.clusters_id AND sc.deleted =0 AND sc.active =0 AND l.id = sc.language_id                
 		INNER JOIN info_firm_profile ifp ON ifp.act_parent_id = a.firm_id AND ifp.language_parent_id =0 AND ifp.cons_allow_id =2 
 		WHERE a.deleted =0 AND a.language_parent_id =0  
                     ";
@@ -459,13 +456,13 @@ class SysOsbClustersFirms extends \DAL\DalSlim {
             } 
             $addSql=NULL; 
             if (isset($params['clusters_id']) && $params['clusters_id'] != "") {
-                $addSql =" AND a.clusters_id =". intval($params['clusters_id']);
+                $addSql =" AND soc.clusters_id =". intval($params['clusters_id']);
             }
             $addSql=NULL; 
             if (isset($params['osb_id']) && $params['osb_id'] != "") {
-                $addSql =" AND a.osb_id =". intval($params['osb_id']);
+                $addSql =" AND so.id =". intval($params['osb_id']);
             }
-            $sql = "
+            $sql = "                
                 SELECT
                     a.id,
                     COALESCE(NULLIF(ifpx.firm_name, ''), ifp.firm_name_eng) AS firm_name, 
@@ -473,18 +470,18 @@ class SysOsbClustersFirms extends \DAL\DalSlim {
                     a.active,
                     'open' AS state_type
                 FROM sys_osb_clusters_firms a
-		INNER JOIN sys_osb so ON so.id = a.osb_id AND so.deleted =0 AND so.active =0 AND so.language_parent_id =0
+                INNER JOIN sys_osb_clusters soc ON soc.id = a.osb_clusters_id AND soc.active =0 AND soc.deleted =0 
+                INNER JOIN sys_osb so ON so.id = soc.osb_id AND so.deleted =0 AND so.active =0 AND so.language_parent_id =0 
                 INNER JOIN sys_language l ON l.id = so.language_id AND l.deleted =0 AND l.active = 0
-		LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue). " AND lx.deleted =0 AND lx.active =0
-		INNER JOIN sys_osb_clusters soc ON soc.osb_id = a.osb_id AND soc.clusters_id = a.clusters_id AND soc.active =0 AND soc.deleted =0
+		LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue). " AND lx.deleted =0 AND lx.active =0		
 		INNER JOIN info_firm_profile ifp ON ifp.act_parent_id = a.firm_id AND ifp.language_parent_id =0 AND ifp.cons_allow_id =2
 		LEFT JOIN info_firm_profile ifpx ON (ifpx.id = ifp.id OR ifpx.language_parent_id = ifp.id) AND ifpx.language_id = lx.id AND ifpx.cons_allow_id =2 
-                INNER JOIN sys_clusters sc ON sc.id = a.clusters_id AND sc.deleted =0 AND sc.active =0 AND l.id = sc.language_id
+                INNER JOIN sys_clusters sc ON sc.id =soc.clusters_id AND sc.deleted =0 AND sc.active =0 AND l.id = sc.language_id
                 WHERE
                     a.deleted = 0 AND
                     so.language_parent_id =0
-                    ".$addSql."
-                ORDER BY firm_name
+                   ".$addSql."
+                ORDER BY firm_name                
                                  ";
             $statement = $pdo->prepare($sql); 
           //  echo debugPDO($sql, $params);
