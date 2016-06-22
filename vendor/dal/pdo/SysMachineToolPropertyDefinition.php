@@ -326,7 +326,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                         " . intval($opUserIdValue) . ")  
                                  ";
                     $statement = $pdo->prepare($sql);
-                    // echo debugPDO($sql, $params);
+                   //  echo debugPDO($sql, $params);
                     $result = $statement->execute();
                     $insertID = $pdo->lastInsertId('sys_machine_groups_property_definition_id_seq');
                     $errorInfo = $statement->errorInfo();
@@ -422,7 +422,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 AND a.deleted =0
                                ";            
             $statement = $pdo->prepare($sql);
-             // echo debugPDO($sql, $params);
+            // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -991,12 +991,9 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             $innerSql = "";
             $addSelect = "";
             $whereSql = "  WHERE a.deleted =0 AND a.language_parent_id =0 ";            
-
             if (isset($params['machine_grup_id']) && $params['machine_grup_id'] != "") {
                 $machineToolGrupId = $params['machine_grup_id'];
             }
-            $whereSql .= " AND mpd.machine_grup_id NOT IN ( " . $machineToolGrupId ." )";
-            
             if (isset($params['unit_grup_id']) && $params['unit_grup_id'] != "") {
                 $UnitGrupId = $params['unit_grup_id'];
                 $addSelect .=" upd.unit_grup_id ,";
@@ -1028,16 +1025,21 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
 		    ELSE false END AS unitgroup
 		FROM sys_machine_tool_property_definition a
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
-                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
-                INNER JOIN sys_machine_groups_property_definition mpd ON mpd.property_id = a.id AND mpd.active =0 AND mpd.deleted =0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0               
                 " . $innerSql . "    
                 LEFT JOIN sys_machine_tool_property_definition su ON (su.id = a.id OR su.language_parent_id = a.id) AND su.deleted =0 AND su.active =0 AND lx.id = su.language_id
                 " . $whereSql . "
-                ORDER BY property_name 
-                           
+                    AND a.id NOT IN (  
+                        SELECT 
+                            DISTINCT mpd.property_id
+                        FROM sys_machine_groups_property_definition mpd                           
+                        WHERE 
+                            mpd.deleted =0 AND 
+                            mpd.machine_grup_id IN (".$machineToolGrupId." ) )
+                ORDER BY property_name                            
                                  ";
             $statement = $pdo->prepare($sql); 
-           //echo debugPDO($sql, $params);
+         //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1048,7 +1050,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-  
+   
     
     /**
      * @author Okan CIRAN
@@ -1073,9 +1075,10 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                     op_user_id = " . intval($opUserIdValue)."    
                 WHERE property_id = " . intval($params['property_id'])." AND  
                     machine_grup_id = " . intval($params['machine_grup_id'])." 
+                    AND active = 0 AND  deleted = 0  
                 " ;
                 $statement = $pdo->prepare($sql);  
-               // echo debugPDO($sql, $params);
+                 // echo debugPDO($sql, $params);
                 $update = $statement->execute();
                 $affectedRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
