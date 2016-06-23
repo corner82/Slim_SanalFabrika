@@ -522,10 +522,10 @@ $app->get("/pkDeletePropertyMachineGroup_sysMachineToolPropertyDefinition/", fun
     $Pk = $headerParams['X-Public'];     
    
     $vMachineGrupId = -1;
-    if (isset($_GET['machine_group_id'])) {
-         $stripper->offsetSet('machine_group_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+    if (isset($_GET['machine_grup_id'])) {
+         $stripper->offsetSet('machine_grup_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
-                                                $_GET['machine_group_id']));
+                                                $_GET['machine_grup_id']));
     } 
      $vPropertyId = NULL;
     if (isset($_GET['property_id'])) {
@@ -534,8 +534,8 @@ $app->get("/pkDeletePropertyMachineGroup_sysMachineToolPropertyDefinition/", fun
                                                 $_GET['property_id']));
     }      
     $stripper->strip(); 
-    if ($stripper->offsetExists('machine_group_id')) {
-        $vMachineGrupId = $stripper->offsetGet('machine_group_id')->getFilterValue();
+    if ($stripper->offsetExists('machine_grup_id')) {
+        $vMachineGrupId = $stripper->offsetGet('machine_grup_id')->getFilterValue();
     }
     if ($stripper->offsetExists('property_id')) {
         $vPropertyId = $stripper->offsetGet('property_id')->getFilterValue();

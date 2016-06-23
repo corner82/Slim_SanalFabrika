@@ -1078,7 +1078,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                     AND active = 0 AND  deleted = 0  
                 " ;
                 $statement = $pdo->prepare($sql);  
-                 // echo debugPDO($sql, $params);
+                 //  echo debugPDO($sql, $params);
                 $update = $statement->execute();
                 $affectedRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
