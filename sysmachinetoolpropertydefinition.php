@@ -317,12 +317,13 @@ $app->get("/pkInsert_sysMachineToolPropertyDefinition/", function () use ($app )
     $app->response()->body(json_encode($resData));
 }
 ); 
- 
+
+
 /**
  *  * Okan CIRAN
  * @since 15-02-2016
  */
-$app->get("/pkUpdate_sysMachineToolPropertyDefinition/", function () use ($app ) {    
+$app->get("/pkInsertPropertyUnit_sysMachineToolPropertyDefinition/", function () use ($app ) {    
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
     $BLL = $app->getBLLManager()->get('sysMachineToolPropertyDefinitionBLL');   
@@ -345,16 +346,10 @@ $app->get("/pkUpdate_sysMachineToolPropertyDefinition/", function () use ($app )
          $stripper->offsetSet('property_name_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
                                                 $_GET['property_name_eng']));
-    }      
-    $vMachineGrupId = 0;
-    if (isset($_GET['machine_grup_id'])) {
-         $stripper->offsetSet('machine_grup_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
-                                                $app,
-                                                $_GET['machine_grup_id']));
-    } 
-     $vUnitGrupId = NULL;
+    }           
+    $vUnitGrupId = NULL;
     if (isset($_GET['unit_grup_id'])) {
-         $stripper->offsetSet('unit_grup_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+         $stripper->offsetSet('unit_grup_id',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1,
                                                 $app,
                                                 $_GET['unit_grup_id']));
     }  
@@ -367,19 +362,89 @@ $app->get("/pkUpdate_sysMachineToolPropertyDefinition/", function () use ($app )
     }
     if ($stripper->offsetExists('property_name_eng')) {
         $vPropertyNameEng = $stripper->offsetGet('property_name_eng')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('unit_grup_id')) {
+        $vUnitGrupId = $stripper->offsetGet('unit_grup_id')->getFilterValue();
     }
-    if ($stripper->offsetExists('machine_grup_id')) {
-        $vMachineGrupId = $stripper->offsetGet('machine_grup_id')->getFilterValue();
+ 
+    $resData = $BLL->insertPropertyUnit(array(  
+            'language_code' => $vLanguageCode, 
+            'property_name' => $vPropertyName ,
+            'property_name_eng'=> $vPropertyNameEng,             
+            'unit_grup_id' => $vUnitGrupId ,
+            'pk' => $Pk,        
+            ));
+
+
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($resData));
+}
+); 
+
+
+ 
+/**
+ *  * Okan CIRAN
+ * @since 15-02-2016
+ */
+$app->get("/pkUpdate_sysMachineToolPropertyDefinition/", function () use ($app ) {    
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('sysMachineToolPropertyDefinitionBLL');   
+    $headerParams = $app->request()->headers();
+    $Pk = $headerParams['X-Public'];     
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    } 
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+         $stripper->offsetSet('id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    }  
+    $vPropertyName = NULL;
+    if (isset($_GET['property_name'])) {
+         $stripper->offsetSet('property_name',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['property_name']));
+    } 
+    $vPropertyNameEng = NULL;
+    if (isset($_GET['property_name_eng'])) {
+         $stripper->offsetSet('property_name_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['property_name_eng']));
+    }    
+    $vUnitGrupId = NULL;
+    if (isset($_GET['unit_grup_id'])) {
+         $stripper->offsetSet('unit_grup_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['unit_grup_id']));
+    }  
+    $stripper->strip(); 
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }  
+    if ($stripper->offsetExists('id')) {
+        $vId = $stripper->offsetGet('id')->getFilterValue();
     }
+    if ($stripper->offsetExists('property_name')) {
+        $vPropertyName = $stripper->offsetGet('property_name')->getFilterValue();
+    }
+    if ($stripper->offsetExists('property_name_eng')) {
+        $vPropertyNameEng = $stripper->offsetGet('property_name_eng')->getFilterValue();
+    }    
     if ($stripper->offsetExists('unit_grup_id')) {
         $vUnitGrupId = $stripper->offsetGet('unit_grup_id')->getFilterValue();
     }
     
     $resData = $BLL->update(array(  
             'language_code' => $vLanguageCode, 
+            'id' => $vId, 
             'property_name' => $vPropertyName ,
-            'property_name_eng'=> $vPropertyNameEng, 
-            'machine_grup_id' => $vMachineGrupId , 
+            'property_name_eng'=> $vPropertyNameEng,            
             'unit_grup_id' => $vUnitGrupId ,
             'pk' => $Pk,        
             ));
@@ -662,5 +727,143 @@ $app->get("/pkTransferPropertyMachineGroup_sysMachineToolPropertyDefinition/", f
 }
 ); 
  
+
+
+
+/**
+ *  * Okan CIRAN
+ * @since 15-06-2016
+ */
+$app->get("/pkFillPropertieslist_sysMachineToolPropertyDefinition/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysMachineToolPropertyDefinitionBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillPropertieslist_sysMachineToolPropertyDefinition" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
+    }
+    $vPropertyName = NULL;
+    if (isset($_GET['property_name'])) {
+        $stripper->offsetSet('property_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['property_name']));
+    }
+    $vPropertyNameEng = NULL;
+    if (isset($_GET['property_name_eng'])) {
+        $stripper->offsetSet('property_name_eng', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['property_name_eng']));
+    }
+    $vUnitcode = NULL;
+    if (isset($_GET['unitcode'])) {
+        $stripper->offsetSet('unitcode', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['unitcode']));
+    }
+    $vUnitcodeEng = NULL;
+    if (isset($_GET['unitcode_eng'])) {
+        $stripper->offsetSet('unitcode_eng', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['unitcode_eng']));
+    }
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, $app, $_GET['filterRules']));
+    }
+
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('property_name')) {
+        $vPropertyName = $stripper->offsetGet('property_name')->getFilterValue();
+    }
+    if ($stripper->offsetExists('property_name_eng')) {
+        $vPropertyNameEng = $stripper->offsetGet('property_name_eng')->getFilterValue();
+    }
+    if ($stripper->offsetExists('unitcode')) {
+        $vUnitcode = $stripper->offsetGet('unitcode')->getFilterValue();
+    }
+    if ($stripper->offsetExists('unitcode_eng')) {
+        $vUnitcodeEng = $stripper->offsetGet('unitcode_eng')->getFilterValue();
+    }
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    }
+
+    //  if(isset($_GET['filterRules'])) $filterRules = $_GET['filterRules'];
+
+    $resDataGrid = $BLL->fillPropertieslist(array(
+        'language_code' => $vLanguageCode,
+        'page' => $vPage,
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,
+        'property_name' => $vPropertyName,
+        'property_name_eng' => $vPropertyNameEng,
+        'unitcode' => $vUnitcode,
+        'unitcode_eng' => $vUnitcodeEng,
+        'filterRules' => $filterRules,
+    ));
+    $resTotalRowCount = $BLL->fillPropertieslistRtc(array(
+        'language_code' => $vLanguageCode,
+        'property_name' => $vPropertyName,
+        'property_name_eng' => $vPropertyNameEng,
+        'unitcode' => $vUnitcode,
+        'unitcode_eng' => $vUnitcodeEng,
+        'filterRules' => $filterRules,
+    ));
+    $counts = 0;
+    $flows = array();
+    if (isset($resDataGrid[0]['id'])) {
+        foreach ($resDataGrid as $flow) {
+            $flows[] = array(
+            "id" => $flow["id"],
+            "property_name" => $flow["property_name"],
+            "property_name_eng" => $flow["property_name_eng"],
+            "unitcode" => $flow["unitcode"],
+            "unitcode_eng" => $flow["unitcode_eng"],            
+            "attributes" => array(
+                "notroot" => true,
+                "active" => $flow["active"], ) );
+        };
+        $counts = $resTotalRowCount[0]['count'];
+    }   
+    
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['total'] = $counts;
+    $resultArray['rows'] = $flows;
+    $app->response()->body(json_encode($resultArray));
+});
+
+
+
 
 $app->run();

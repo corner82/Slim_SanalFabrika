@@ -118,6 +118,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
+            $xc = NULL;
             $insertID = NULL;
             $errorInfo = ["00000", null, null];
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
@@ -200,6 +201,88 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
         }
     }
      
+        /**
+     * @author Okan CIRAN
+     * @ sys_machine_tool_property_definition tablosuna yeni bir kayıt oluşturur.  !!
+     * @version v 1.0  23.02.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function insertPropertyUnit($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $xc = NULL;
+            $insertID = NULL;
+            $errorInfo = ["00000", null, null];
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $kontrol = $this->haveRecords($params);
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                    $languageId = NULL;
+                    $languageIdValue = 647;
+                    if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                            $languageIdValue = $languageId ['resultSet'][0]['id'];
+                        }
+                    }
+
+                    $sql = "
+                INSERT INTO sys_machine_tool_property_definition(                        
+                         property_name,
+                         property_name_eng,
+                         language_id,
+                         op_user_id
+                         )
+                VALUES (
+                        :property_name,
+                        :property_name_eng,
+                        :language_id,
+                        :op_user_id
+                                             )   ";
+                    $statement = $pdo->prepare($sql);
+                    $statement->bindValue(':property_name', $params['property_name'], \PDO::PARAM_STR);
+                    $statement->bindValue(':property_name_eng', $params['property_name_eng'], \PDO::PARAM_STR);
+                    $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
+                    $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
+                    // echo debugPDO($sql, $params);
+                    $result = $statement->execute();
+                    $insertID = $pdo->lastInsertId('sys_machine_tool_property_definition_id_seq');
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+
+                    if ((isset($params['unit_grup_id']) && $params['unit_grup_id'] != "")) {
+                        $xc = $this->insertPropertyUnitGroup(array('property_id' => $insertID,
+                            'unit_grup_id' => "'[" . $params['unit_grup_id'] . "]'",
+                            'opUserIdValue' => $opUserIdValue,));
+                    } 
+                    if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                        throw new \PDOException($xc['errorInfo']);
+
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                } else {
+                    $errorInfo = '23505';
+                    $errorInfoColumn = 'property_name';
+                    $pdo->rollback();
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
     /**
      * @author Okan CIRAN
      * @ sys_machine_tool_property_definition tablosuna yeni bir kayıt oluşturur.  !!
@@ -227,7 +310,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                     id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each('" . $params['machine_grup_id'] . "')) 
                                                 ";                
                 $statement = $pdo->prepare($sql);
-                // echo debugPDO($sql, $params);
+               //  echo debugPDO($sql, $params);
                 $result = $statement->execute();
                 $insertID = $pdo->lastInsertId('sys_machine_groups_property_definition_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -294,8 +377,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-
-        
+                            
     /**
      * @author Okan CIRAN
      * @ sys_machine_tool_property_definition tablosuna yeni bir kayıt oluşturur.  !!
@@ -487,12 +569,13 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
     public function update($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $xc =NULL;
             $pdo->beginTransaction();
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
-                if (\Utill\Dal\Helper::haveRecord($kontrol)) {
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                     $languageId = NULL;
                     $languageIdValue = 647;
                     if ((isset($params['language_code']) && $params['language_code'] != "")) {
@@ -502,7 +585,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                         }
                     }
 
-                    $sql = "
+                $sql = "
                 UPDATE sys_machine_tool_property_definition
                 SET 
                        property_name = :property_name,
@@ -518,6 +601,18 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                     $update = $statement->execute();
                     $affectedRows = $statement->rowCount();
                     $errorInfo = $statement->errorInfo();
+                    
+                    if ((isset($params['unit_grup_id']) && $params['unit_grup_id'] != "")) {
+                        $xc = $this->updatePropertyUnitGroup(array('property_id' =>  intval($params['id']),
+                            'unit_grup_id' => $params['unit_grup_id'],
+                            'opUserIdValue' => $opUserIdValue,));
+                        print_r($xc);  
+                        if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                            throw new \PDOException($xc['errorInfo']);
+                        
+                    }
+                            
+
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
                     $pdo->commit();
@@ -597,32 +692,29 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             //   $pdo->beginTransaction();
-            $opUserIdValue = intval($params['opUserIdValue']);
-            $kontrol = $this->haveRecordsUnitGroup($params);
-            if (\Utill\Dal\Helper::haveRecord($kontrol)) {
+            $opUserIdValue = intval($params['opUserIdValue']);            
                 $sql = "
                 UPDATE sys_unit_groups_property_definition
                 SET 
-                    unit_grup_id = :unit_grup_id,
-                    op_user_id = :op_user_id                                                      
-                WHERE id = " . intval($params['id']);
-                $statement = $pdo->prepare($sql);
-                $statement->bindValue(':unit_grup_id', $params['unit_grup_id'], \PDO::PARAM_INT);
-                $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
+                    unit_grup_id =  " . intval($params['unit_grup_id']).",
+                    op_user_id =  " . $opUserIdValue ."  
+                WHERE id = ( 
+                    SELECT 
+                        id 
+                    FROM sys_unit_groups_property_definition 
+                    WHERE 
+                        property_id = " . intval($params['property_id']). " AND 
+                        deleted = 0)
+                ";
+                $statement = $pdo->prepare($sql);  
+                // echo debugPDO($sql, $params);
                 $update = $statement->execute();
                 $affectedRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
                 //     $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
-            } else {
-                // 23505 	unique_violation
-                $errorInfo = '23505';
-                $errorInfoColumn = 'group_name';
-                //     $pdo->rollback();
-                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
-            }
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);            
         } catch (\PDOException $e /* Exception $e */) {
             // $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -971,9 +1063,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-     
-    
-    
+                            
     /**
      * @author Okan CIRAN
      * @ sys_machine_tool_property_definition tablosundan machine_grup_id si dısında kalan property leri 
@@ -1098,7 +1188,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
         }
     }
     
-      /**
+    /**
      * @author Okan CIRAN
      * @   sys_machine_tool_property_definition tablosundan machine_grup property lerinin 
      * kayıtları döndürür !! 
@@ -1168,6 +1258,263 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                                  ";
              $statement = $pdo->prepare($sql);
            //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
+    /**
+     * @author Okan CIRAN
+     * @ user in adres , cominication , ad soyad , networkkey bilgilerinin sayısını döndürür !!
+     * varsa network_key, name, surname, email , communication_number parametrelerinin like ile arar
+     * @version v 1.0  23.06.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+     public function fillPropertieslist($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+                $limit = intval($params['rows']);
+            } else {
+                $limit = 10;
+                $offset = 0;
+            }
+
+            $sortArr = array();
+            $orderArr = array();
+            if (isset($params['sort']) && $params['sort'] != "") {
+                $sort = trim($params['sort']);
+                $sortArr = explode(",", $sort);
+                if (count($sortArr) === 1)
+                    $sort = trim($params['sort']);
+            } else {
+                $sort = "property_name";
+            }
+
+            if (isset($params['order']) && $params['order'] != "") {
+                $order = trim($params['order']);
+                $orderArr = explode(",", $order);
+                //print_r($orderArr);
+                if (count($orderArr) === 1)
+                    $order = trim($params['order']);
+            } else {
+                $order = "ASC";
+            }
+
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'property_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND COALESCE(NULLIF(smtpdx.property_name, ''), a.property_name_eng)" . $sorguExpression . ' ';
+
+                                break;
+                            case 'property_name_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND a.property_name_eng" . $sorguExpression . ' ';
+
+                                break;
+                            case 'unitcode':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND COALESCE(NULLIF(sux.unitcode, ''), su.unitcode_eng)" . $sorguExpression . ' ';
+
+                                break;
+                            case 'unitcode_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND su.unitcode_eng" . $sorguExpression . ' ';
+
+                                break;                            
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+                if (isset($params['property_name']) && $params['property_name'] != "") {
+                    $sorguStr .= " AND COALESCE(NULLIF(smtpdx.property_name, ''), a.property_name_eng) Like '%" . $params['property_name'] . "%'";
+                }
+                if (isset($params['property_name_eng']) && $params['property_name_eng'] != "") {
+                    $sorguStr .= " AND a.property_name_eng Like '%" . $params['property_name_eng'] . "%'";
+                }
+                if (isset($params['unitcode']) && $params['unitcode'] != "") {
+                    $sorguStr .= " AND COALESCE(NULLIF(sux.unitcode, ''), su.unitcode_eng) Like '%" . $params['unitcode'] . "%'";
+                }
+                if (isset($params['unitcode_eng']) && $params['unitcode_eng'] != "") {
+                    $sorguStr .= " AND su.unitcode_eng Like '%" . $params['unitcode_eng'] . "%'";
+                }                            
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+            $sql = "                 
+		SELECT 
+                    a.id,                                                
+                    COALESCE(NULLIF(smtpdx.property_name, ''), a.property_name_eng) AS property_name,
+                    a.property_name_eng, 
+                    COALESCE(NULLIF(sux.unitcode, ''), su.unitcode_eng) AS unitcode,
+                    su.unitcode_eng,                    
+                    a.active,
+                    COALESCE(NULLIF(sd16x.description , ''), sd16.description_eng) AS state_active                                  
+                FROM sys_machine_tool_property_definition  a                                
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                       
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0 AND sd16.active = 0
+                LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
+                LEFT JOIN sys_machine_tool_property_definition smtpdx ON (smtpdx.id = a.id  OR smtpdx.language_parent_id = a.id) AND smtpdx.deleted =0 AND smtpdx.active =0 AND lx.id = smtpdx.language_id 
+                INNER JOIN sys_unit_groups_property_definition sugpd ON sugpd.property_id = a.id AND sugpd.active =0 AND sugpd.deleted =0 
+		INNER JOIN sys_units su ON su.id = sugpd.unit_grup_id AND su.deleted =0 AND su.active =0 AND su.language_id = a.language_id 
+		INNER JOIN sys_units sux ON sux.id = sugpd.unit_grup_id AND sux.deleted =0 AND sux.active =0 AND sux.language_id = lx.id 
+                WHERE a.deleted =0 AND a.language_parent_id = 0 
+                ".$sorguStr."
+                ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            );
+            $statement = $pdo->prepare($sql);
+         // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+        
+    /**
+     * @author Okan CIRAN
+     * @ user in adres , cominication , ad soyad , networkkey bilgilerinin sayısını döndürür !!
+     * varsa network_key, name, surname, email , communication_number parametrelerinin like ile arar
+     * @version v 1.0  23.06.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+     public function fillPropertieslistRtc($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($args['language_code']) && $args['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $args['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'property_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND COALESCE(NULLIF(smtpdx.property_name, ''), a.property_name_eng)" . $sorguExpression . ' ';
+
+                                break;
+                            case 'property_name_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND a.property_name_eng" . $sorguExpression . ' ';
+
+                                break;
+                            case 'unitcode':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND COALESCE(NULLIF(sux.unitcode, ''), su.unitcode_eng)" . $sorguExpression . ' ';
+
+                                break;
+                            case 'unitcode_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND su.unitcode_eng" . $sorguExpression . ' ';
+
+                                break;                            
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+                if (isset($params['property_name']) && $params['property_name'] != "") {
+                    $sorguStr .= " AND COALESCE(NULLIF(smtpdx.property_name, ''), a.property_name_eng) Like '%" . $params['property_name'] . "%'";
+                }
+                if (isset($params['property_name_eng']) && $params['property_name_eng'] != "") {
+                    $sorguStr .= " AND a.property_name_eng Like '%" . $params['property_name_eng'] . "%'";
+                }
+                if (isset($params['unitcode']) && $params['unitcode'] != "") {
+                    $sorguStr .= " AND COALESCE(NULLIF(sux.unitcode, ''), su.unitcode_eng) Like '%" . $params['unitcode'] . "%'";
+                }
+                if (isset($params['unitcode_eng']) && $params['unitcode_eng'] != "") {
+                    $sorguStr .= " AND su.unitcode_eng Like '%" . $params['unitcode_eng'] . "%'";
+                }                            
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+            $sql = "
+                SELECT count(id) FROM (
+		SELECT 
+                    a.id,                                                
+                    COALESCE(NULLIF(smtpdx.property_name, ''), a.property_name_eng) AS property_name,
+                    a.property_name_eng, 
+                    COALESCE(NULLIF(sux.unitcode, ''), su.unitcode_eng) AS unitcode,
+                    su.unitcode_eng,                    
+                    a.active,
+                    COALESCE(NULLIF(sd16x.description , ''), sd16.description_eng) AS state_active                                  
+                FROM sys_machine_tool_property_definition  a                                
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                       
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0 AND sd16.active = 0
+                LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
+                LEFT JOIN sys_machine_tool_property_definition smtpdx ON (smtpdx.id = a.id  OR smtpdx.language_parent_id = a.id) AND smtpdx.deleted =0 AND smtpdx.active =0 AND lx.id = smtpdx.language_id 
+                INNER JOIN sys_unit_groups_property_definition sugpd ON sugpd.property_id = a.id AND sugpd.active =0 AND sugpd.deleted =0 
+		INNER JOIN sys_units su ON su.id = sugpd.unit_grup_id AND su.deleted =0 AND su.active =0 AND su.language_id = a.language_id 
+		INNER JOIN sys_units sux ON sux.id = sugpd.unit_grup_id AND sux.deleted =0 AND sux.active =0 AND sux.language_id = lx.id 
+                WHERE a.deleted =0 AND a.language_parent_id = 0
+                ".$sorguStr."
+                ) as xtemp 
+                    ";
+            $statement = $pdo->prepare($sql);
+                            
+            $statement = $pdo->prepare($sql);
+          //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();

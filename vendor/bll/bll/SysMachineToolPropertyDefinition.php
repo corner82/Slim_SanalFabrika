@@ -31,6 +31,16 @@ class SysMachineToolPropertyDefinition extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertyDefinitionPDO');
         return $DAL->insert($params);
     }
+    /**
+     * DAta insert function
+     * @param array | null $params
+     * @return array
+     */
+    public function insertPropertyUnit($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertyDefinitionPDO');
+        return $DAL->insertPropertyUnit($params);
+    }
+    
 
     /**
      * Data update function
@@ -162,4 +172,29 @@ class SysMachineToolPropertyDefinition extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertyDefinitionPDO');
         return $DAL->transferPropertyMachineGroup($params);
     }    
+     /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillPropertieslist($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertyDefinitionPDO');
+        $resultSet = $DAL->fillPropertieslist($params);
+        return $resultSet['resultSet'];
+    }
+
+       /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillPropertieslistRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertyDefinitionPDO');
+        $resultSet = $DAL->fillPropertieslistRtc($params);
+        return $resultSet['resultSet'];
+    }
+
+    
+    
+    
 }
