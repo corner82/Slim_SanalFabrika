@@ -638,5 +638,72 @@ $app->get("/pkFillUsersListNpk_infoUsers/", function () use ($app ) {
     $app->response()->body(json_encode($resultArray));
 });
 
+
+ 
+/**
+ *  * Okan CIRAN
+ * @since 26-04-2016
+ */
+$app->get("/pkFillUsersInformationNpk_infoUsers/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('infoUsersBLL');
+    $headerParams = $app->request()->headers(); 
+     if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillUsersInformationNpk_infoUsers" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vNetworkKey = NULL;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    }   
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }     
+    if ($stripper->offsetExists('npk')) {
+        $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();
+    }      
+    $resDataGrid = $BLL->fillUsersInformationNpk(array(
+        'language_code' => $vLanguageCode,
+        'network_key' => $vNetworkKey,  
+        'pk'=> $pk,
+    ));
+     
+    $flows = array();
+    if (isset($resDataGrid[0]['unpk'])) { 
+    foreach ($resDataGrid as $flow) {
+        $flows[] = array(            
+            "unpk" => $flow["unpk"],
+            "registration_date" => $flow["registration_date"],
+            "name" => $flow["name"],
+            "surname" => $flow["surname"],            
+            "auth_email" => $flow["auth_email"],
+            "user_language" => $flow["user_language"],
+            "npk" => $flow["npk"],  
+            "firm_name" => $flow["firm_name"],
+            "firm_name_eng" => $flow["firm_name_eng"],                
+            "title" => $flow["title"],  
+            "title_eng" => $flow["title_eng"],  
+            "userb" => $flow["userb"], 
+            "attributes" => array("notroot" => true, ), 
+        );
+        }
+     }
+
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['rows'] = $flows;
+    $app->response()->body(json_encode($resultArray));
+});
+
  
 $app->run();

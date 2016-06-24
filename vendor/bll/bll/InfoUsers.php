@@ -195,6 +195,16 @@ class InfoUsers extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
     
+    /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillUsersInformationNpk ($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
+        $resultSet = $DAL->fillUsersInformationNpk($params);  
+        return $resultSet['resultSet'];
+    } 
     
     
 }

@@ -976,7 +976,7 @@ class InfoUsers extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "    
-                   SELECT
+                    SELECT
                         a.id, 
                         ad.profile_public,                  
                         a.s_date, 
@@ -1029,7 +1029,7 @@ class InfoUsers extends \DAL\DalSlim {
                     LEFT JOIN sys_specific_definitions sd19x ON sd19x.main_group = 19 AND sd19x.language_id = lx.id AND (sd19x.id = sd19.id OR sd19x.language_parent_id = sd19.id) AND sd19x.deleted = 0 AND sd19x.active = 0
                     
                     INNER JOIN info_users u ON u.id = a.op_user_id                        
-                    LEFT JOIN info_users_detail cons ON cons.root_id = a.consultant_id AND cons.cons_allow_id =1 
+                    LEFT JOIN info_users_detail cons ON cons.root_id = a.consultant_id AND cons.cons_allow_id =2 
                  
                     WHERE a.deleted =0  
                     ".$whereSql."                   
@@ -1849,6 +1849,76 @@ class InfoUsers extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-
     
+    
+    /**
+     * Datagrid fill function used for testing
+     * user interface datagrid fill operation
+     * @param array | null $args
+     * @return Array
+     * @throws \PDOException
+     */
+    public function fillUsersInformationNpk($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];                
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+                $sql = "                        
+                    SELECT
+                        a.network_key as unpk,
+                        a.s_date AS registration_date, 
+                        ad.name, 
+                        ad.surname,
+                        ad.auth_email,  
+                        ad.language_id, 
+                        l.language_eng as user_language,
+			COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
+		        COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,                        
+                        ifk.network_key as npk,
+                        COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng) AS firm_name,
+                        fp.firm_name_eng,
+                        COALESCE(NULLIF(ifux.title, ''), ifu.title_eng) AS title,
+                        ifu.title_eng,
+                        ad.root_id  = u.id AS userb
+                    FROM info_users a
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                    LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+                    INNER JOIN info_users_detail ad ON ad.deleted =0 AND ad.active =0 AND ad.root_id = a.id AND ad.language_parent_id = 0
+                    INNER JOIN info_users u ON u.id = " . intval($opUserIdValue) . "
+                    LEFT JOIN info_firm_users ifu ON ifu.user_id = a.id AND ifu.cons_allow_id =2 
+                    LEFT JOIN info_firm_users ifux ON (ifux.language_parent_id = ifu.id OR ifux.id=ifu.id) AND ifux.cons_allow_id =2 AND ifux.language_id = lx.id                
+                    LEFT JOIN info_firm_profile fp ON (fp.act_parent_id = ifu.firm_id) AND fp.cons_allow_id =2 AND fp.language_id = l.id  
+                    LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id) AND fpx.cons_allow_id =2 AND fpx.language_id = lx.id                
+                    LEFT JOIN info_firm_keys ifk ON ifk.firm_id = fp.act_parent_id                 
+                    WHERE a.deleted =0  
+                    and a.network_key = '" . $params['network_key'] . "'                    
+                   ";
+                $statement = $pdo->prepare($sql);
+               // echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
 }
