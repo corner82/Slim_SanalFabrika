@@ -349,8 +349,7 @@ $app->get("/pkcpkInsert_infoFirmVerbal/", function () use ($app ) {
     if ($stripper->offsetExists('logo')) {
         $vLogo = $stripper->offsetGet('logo')->getFilterValue();
     } 
-    
-    
+   
     $resDataInsert = $BLL->insert(array(   
             'language_code' => $vLanguageCode,    
             'cpk'=> $vCpk,  
@@ -857,25 +856,25 @@ $app->get("/pkFillGrid_infoFirmVerbal/", function () use ($app ) {
         $flows[] = array(
             "id" => $flow["id"],
           //  "firm_id" => $flow["firm_id"],
-            "firm_name" => $flow["firm_name"],
-            "firm_name_eng" => $flow["firm_name_eng"],
-            "about" => $flow["about"],
-            "about_eng" => $flow["about_eng"],
+            "firm_name" => html_entity_decode($flow["firm_name"]),
+            "firm_name_eng" => html_entity_decode($flow["firm_name_eng"]),
+            "about" => html_entity_decode($flow["about"]),
+            "about_eng" => html_entity_decode($flow["about_eng"]),
             
-            "verbal1_title" => $flow["verbal1_title"],
-            "verbal1_title_eng" => $flow["verbal1_title_eng"],
-            "verbal1" => $flow["verbal1"],         
-            "verbal1_eng" => $flow["verbal1_eng"],
+            "verbal1_title" => html_entity_decode($flow["verbal1_title"]),
+            "verbal1_title_eng" => html_entity_decode($flow["verbal1_title_eng"]),
+            "verbal1" => html_entity_decode($flow["verbal1"]),
+            "verbal1_eng" => html_entity_decode($flow["verbal1_eng"]),
             
-            "verbal2_title" => $flow["verbal2_title"],
-            "verbal2_title_eng" => $flow["verbal2_title_eng"],
-            "verbal2" => $flow["verbal2"],         
-            "verbal2_eng" => $flow["verbal2_eng"],
+            "verbal2_title" => html_entity_decode($flow["verbal2_title"]),
+            "verbal2_title_eng" => html_entity_decode($flow["verbal2_title_eng"]),
+            "verbal2" => html_entity_decode($flow["verbal2"]),
+            "verbal2_eng" => html_entity_decode($flow["verbal2_eng"]),
             
-            "verbal3_title" => $flow["verbal3_title"],
-            "verbal3_title_eng" => $flow["verbal3_title_eng"],
-            "verbal3" => $flow["verbal3"],
-            "verbal3_eng" => $flow["verbal3_eng"],
+            "verbal3_title" => html_entity_decode($flow["verbal3_title"]),
+            "verbal3_title_eng" => html_entity_decode($flow["verbal3_title_eng"]),
+            "verbal3" => html_entity_decode($flow["verbal3"]),
+            "verbal3_eng" => html_entity_decode($flow["verbal3_eng"]),
             
             "profile_public" => $flow["profile_public"],
             "state_profile_public" => $flow["state_profile_public"],                     
@@ -884,13 +883,13 @@ $app->get("/pkFillGrid_infoFirmVerbal/", function () use ($app ) {
             "c_date" => $flow["c_date"],
             "consultant_id" => $flow["consultant_id"],
             "operation_type_id" => $flow["operation_type_id"],
-            "operation_name" => $flow["operation_name"],            
+            "operation_name" => html_entity_decode($flow["operation_name"]),
             "deleted" => $flow["deleted"],
             "state_deleted" => $flow["state_deleted"],
             "active" => $flow["active"],
             "state_active" => $flow["state_active"],
             "language_id" => $flow["language_id"],
-            "language_name" => $flow["language_name"],
+            "language_name" => html_entity_decode($flow["language_name"]),
             "op_user_id" => $flow["op_user_id"],
             "op_user_name" => $flow["op_user_name"],
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
@@ -947,24 +946,24 @@ $app->get("/pkFillUsersFirmVerbalNpk_infoFirmVerbal/", function () use ($app ) {
         $flows[] = array(
            "id" => $flow["id"],
            // "firm_id" => $flow["firm_id"],
-            "firm_name" => $flow["firm_name"],
-            "firm_name_eng" => $flow["firm_name_eng"],
-            "about" => $flow["about"],
-            "about_eng" => $flow["about_eng"],            
-            "verbal1_title" => $flow["verbal1_title"],
-            "verbal1_title_eng" => $flow["verbal1_title_eng"],
-            "verbal1" => $flow["verbal1"],         
-            "verbal1_eng" => $flow["verbal1_eng"],            
-            "verbal2_title" => $flow["verbal2_title"],
-            "verbal2_title_eng" => $flow["verbal2_title_eng"],
-            "verbal2" => $flow["verbal2"],         
-            "verbal2_eng" => $flow["verbal2_eng"],
-            "verbal3_title" => $flow["verbal3_title"],
-            "verbal3_title_eng" => $flow["verbal3_title_eng"],
-            "verbal3" => $flow["verbal3"],
-            "verbal3_eng" => $flow["verbal3_eng"],           
+            "firm_name" => html_entity_decode($flow["firm_name"]),
+            "firm_name_eng" => html_entity_decode($flow["firm_name_eng"]),
+            "about" => html_entity_decode($flow["about"]),
+            "about_eng" => html_entity_decode($flow["about_eng"]),
+            "verbal1_title" => html_entity_decode($flow["verbal1_title"]),
+            "verbal1_title_eng" => html_entity_decode($flow["verbal1_title_eng"]),
+            "verbal1" => html_entity_decode($flow["verbal1"]),
+            "verbal1_eng" => html_entity_decode($flow["verbal1_eng"]),
+            "verbal2_title" => html_entity_decode($flow["verbal2_title"]),
+            "verbal2_title_eng" => html_entity_decode($flow["verbal2_title_eng"]),
+            "verbal2" => html_entity_decode($flow["verbal2"]),
+            "verbal2_eng" => html_entity_decode($flow["verbal2_eng"]),
+            "verbal3_title" => html_entity_decode($flow["verbal3_title"]),
+            "verbal3_title_eng" => html_entity_decode($flow["verbal3_title_eng"]),
+            "verbal3" => html_entity_decode($flow["verbal3"]),
+            "verbal3_eng" => html_entity_decode($flow["verbal3_eng"]),
             "language_id" => $flow["language_id"],
-            "language_name" => $flow["language_name"],    
+            "language_name" => html_entity_decode($flow["language_name"]),
             "logo" => $flow["logo"],  
             "attributes" => array("notroot" => true,  "userb" => $flow["userb"],),
         );
@@ -984,8 +983,7 @@ $app->get("/fillUsersFirmVerbalNpkGuest_infoFirmVerbal/", function () use ($app 
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
     $BLL = $app->getBLLManager()->get('infoFirmVerbalBLL');
-    $headerParams = $app->request()->headers(); 
-     
+    $headerParams = $app->request()->headers();     
     
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
@@ -1008,8 +1006,7 @@ $app->get("/fillUsersFirmVerbalNpkGuest_infoFirmVerbal/", function () use ($app 
     } 
     $resDataGrid = $BLL->fillUsersFirmVerbalNpkGuest(array(
         'language_code' => $vLanguageCode,
-        'network_key' => $vNetworkKey,  
-      
+        'network_key' => $vNetworkKey,        
     ));
     
     $flows = array();
@@ -1017,34 +1014,25 @@ $app->get("/fillUsersFirmVerbalNpkGuest_infoFirmVerbal/", function () use ($app 
         $flows[] = array(
             "id" => $flow["id"],
           //  "firm_id" => $flow["firm_id"],
-            "firm_name" => $flow["firm_name"],
-            "firm_name_eng" => $flow["firm_name_eng"],
-            "about" => $flow["about"],
-            "about_eng" => $flow["about_eng"],
-            
-            "verbal1_title" => $flow["verbal1_title"],
-            "verbal1_title_eng" => $flow["verbal1_title_eng"],
-            "verbal1" => $flow["verbal1"],
-            "verbal1_eng" => $flow["verbal1_eng"],
-            
-            "verbal2_title" => $flow["verbal2_title"],
-            "verbal2_title_eng" => $flow["verbal2_title_eng"],
-            "verbal2" => $flow["verbal2"],
-            "verbal2_eng" => $flow["verbal2_eng"],
-            
-            "verbal3_title" => $flow["verbal3_title"],
-            "verbal3_title_eng" => $flow["verbal3_title_eng"],
-            "verbal3" => $flow["verbal3"],
-            "verbal3_eng" => $flow["verbal3_eng"],   
-            
+            "firm_name" => html_entity_decode($flow["firm_name"]),
+            "firm_name_eng" => html_entity_decode($flow["firm_name_eng"]),
+            "about" => html_entity_decode($flow["about"]),
+            "about_eng" => html_entity_decode($flow["about_eng"]),            
+            "verbal1_title" => html_entity_decode($flow["verbal1_title"]),
+            "verbal1_title_eng" => html_entity_decode($flow["verbal1_title_eng"]),
+            "verbal1" => html_entity_decode($flow["verbal1"]),
+            "verbal1_eng" => html_entity_decode($flow["verbal1_eng"]),            
+            "verbal2_title" => html_entity_decode($flow["verbal2_title"]),
+            "verbal2_title_eng" => html_entity_decode($flow["verbal2_title_eng"]),
+            "verbal2" => html_entity_decode($flow["verbal2"]),
+            "verbal2_eng" => html_entity_decode($flow["verbal2_eng"]),            
+            "verbal3_title" => html_entity_decode($flow["verbal3_title"]),
+            "verbal3_title_eng" => html_entity_decode($flow["verbal3_title_eng"]),
+            "verbal3" => html_entity_decode($flow["verbal3"]),
+            "verbal3_eng" => html_entity_decode($flow["verbal3_eng"]),               
             "language_id" => $flow["language_id"],
-            "language_name" => $flow["language_name"],
-            "logo" => $flow["logo"],
-           
-            
-        
-	 
-            
+            "language_name" => html_entity_decode($flow["language_name"]),
+            "logo" => $flow["logo"],           
             "attributes" => array("notroot" => true,"userb" => $flow["userb"] ),
         );
     }
@@ -1081,34 +1069,31 @@ $app->get("/pkcpkGetFirmVerbalConsultant_infoFirmVerbal/", function () use ($app
         $stripper->offsetSet('cpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
                                                 $_GET['cpk']));
-    }
-     
+    }     
 
     $stripper->strip();
     if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     if($stripper->offsetExists('cpk')) $vcpk = $stripper->offsetGet('cpk')->getFilterValue();    
  
-     $result = $BLL->getFirmVerbalConsultant(array(
+    $result = $BLL->getFirmVerbalConsultant(array(
         'language_code' => $vLanguageCode,
         'cpk' => $vcpk,        
         'pk' => $pk,
-        ));
-    
+        ));    
   
     $flows = array();
     foreach ($result['resultSet'] as $flow) {
         $flows[] = array(
            // "firm_id" => $flow["firm_id"],
             "consultant_id" => $flow["consultant_id"],  
-            "name" => $flow["name"],   
-            "surname" => $flow["surname"],
+            "name" => html_entity_decode($flow["name"]),   
+            "surname" => html_entity_decode($flow["surname"]),
             "auth_email" => $flow["auth_email"],
         //    "communications_type_id" => $flow["communications_type_id"],
         //    "communications_type_name" => $flow["communications_type_name"],             
         //    "communications_no" => $flow["communications_no"],
             "cons_picture" => $flow["cons_picture"],
-         //   "npk" => $flow["network_key"],
-             
+         //   "npk" => $flow["network_key"],             
             "attributes" => array(),
         );
     }

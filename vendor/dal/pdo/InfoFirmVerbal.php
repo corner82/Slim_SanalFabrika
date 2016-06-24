@@ -1400,15 +1400,12 @@ class InfoFirmVerbal extends \DAL\DalSlim {
 		LEFT JOIN info_firm_verbal ifvx ON (ifvx.id = ifv.id OR ifvx.language_parent_id = ifv.id) AND ifvx.deleted = 0 AND ifvx.active =0 AND ifvx.language_id = lx.id
                 INNER JOIN info_users u ON u.id = ifv.consultant_id AND u.role_id in (1,2,6)
                 INNER JOIN info_users_detail iud ON iud.root_id = u.id AND iud.cons_allow_id = 2    
-                INNER JOIN info_users_communications iuc ON iuc.user_id = u.id AND iuc.cons_allow_id = 2  
-                INNER JOIN sys_specific_definitions sd5 ON sd5.main_group = 5 AND sd5.first_group = iuc.communications_type_id AND sd5.deleted =0 AND sd5.active =0 AND l.id = sd5.language_id   
-		LEFT JOIN sys_specific_definitions sd5x ON (sd5x.id =sd5.id OR sd5x.language_parent_id = sd5.id) AND sd5x.deleted =0 AND sd5x.active =0 AND lx.id = sd5x.language_id 
                 WHERE    
                     a.act_parent_id = " . intval($getFirmId) . "  
                 ORDER BY  iud.name, iud.surname 
                 ";
                 $statement = $pdo->prepare($sql);
-                  echo debugPDO($sql, $params);                
+               //   echo debugPDO($sql, $params);                
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
