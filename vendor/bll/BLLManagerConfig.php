@@ -92,8 +92,9 @@ class BLLManagerConfig{
                  'sysClustersBLL' => 'BLL\BLL\SysClusters',
                  'sysOsbClustersBLL' => 'BLL\BLL\SysOsbClusters',
                  'sysOsbClustersFirmsBLL' => 'BLL\BLL\SysOsbClustersFirms',
+                 'infoUsersVerbalBLL' => 'BLL\BLL\InfoUsersVerbal',
                  
-                                  
+                                 
                  
                  'logConnectionBLL' => 'BLL\BLL\LogConnection',  
                  'logServicesBLL' => 'BLL\BLL\LogServices',

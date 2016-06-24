@@ -96,8 +96,8 @@ class DalManagerConfig {
                 'sysCustomerCriterionPDO' => 'DAL\Factory\PDO\SysCustomerCriterionFactory',
                 'sysClustersPDO' => 'DAL\Factory\PDO\SysClustersFactory',
                 'sysOsbClustersPDO' => 'DAL\Factory\PDO\SysOsbClustersFactory',
-                'sysOsbClustersFirmsPDO' => 'DAL\Factory\PDO\SysOsbClustersFirmsFactory',
-                  
+                'sysOsbClustersFirmsPDO' => 'DAL\Factory\PDO\SysOsbClustersFirmsFactory',                  
+                'infoUsersVerbalPDO' => 'DAL\Factory\PDO\InfoUsersVerbalFactory',
                 
                 
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
