@@ -95,6 +95,7 @@ class BLLManagerConfig{
                  'infoUsersVerbalBLL' => 'BLL\BLL\InfoUsersVerbal',
                  'infoUsersProductsServicesBLL' => 'BLL\BLL\InfoUsersProductsServices',
                  'sysOsbClustersAllianceBLL' => 'BLL\BLL\SysOsbClustersAlliance',
+                 'sysMembershipTypesBLL' => 'BLL\BLL\SysMembershipTypes',
                  
                                  
                  
