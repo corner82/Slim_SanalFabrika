@@ -7,7 +7,7 @@
  * @license   
  */
 
-namespace Utill\Mail\PhpMailer;
+namespace Utill\Mail;
 
 // require_once '../../../phpmailer/phpmailer/PhpMailerAutoload.php';
 

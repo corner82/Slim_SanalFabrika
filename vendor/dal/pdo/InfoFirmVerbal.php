@@ -7,7 +7,7 @@
  * @copyright Copyright (c) 2015 OSTİM TEKNOLOJİ (http://www.ostim.com.tr)
  * @license   
  */
-use  \Utill\Mail\PhpMailer\MailWrapper as sanalmail;
+//use  \Utill\Mail\PhpMailer\MailWrapper as sanalmail;
 namespace DAL\PDO;
 
 /**
@@ -1466,8 +1466,8 @@ class InfoFirmVerbal extends \DAL\DalSlim {
             );
           //  $prms1 =  json_encode(serialize($prms)); 
           //  print_r($prms1);
-            $mailId = \Utill\Mail\PhpMailer\MailWrapper::sendAuthorizingMail(
-                    $prms);     
+            /*$mailId = \Utill\Mail\PhpMailer\MailWrapper::sendAuthorizingMail(
+                    $prms);     */
             /*
                 
                  $mailId = \Utill\Mail\PhpMailer\MailWrapper::sendAuthorizingMail(
@@ -1479,8 +1479,16 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                 
                 ));
              */
-            /*
-            $mail = new \PHPMailer();
+           
+           $mail = new \Utill\Mail\PhpMailer\PhpMailWrapper();
+           $mail->setCharset('UTF-8');
+           $mail->setSMTPServerHost('mail.ostimteknoloji.com');
+           $mail->setSMTPServerUser('sanalfabrika@ostimteknoloji.com');
+           $mail->setSMTPServerUserPassword('1q2w3e4r');
+           $mail->setFromUserName('sanalfabrika@ostimteknoloji.com');
+           $mail->sendInfoMailSMTP();
+            
+            /*$mail = new \PHPMailer();
                   
 
            // $headers = "MIME-Version: 1.0\r\n Content-type: text/html; charset=UTF-8\r\n From: sanalfabrika@ostimteknoloji.com \r\n X-Mailer: PHP/"
@@ -1493,23 +1501,24 @@ class InfoFirmVerbal extends \DAL\DalSlim {
             //$mail->headerLine($headers, $value);
             $mail->IsSMTP(); // telling the class to use SMTP 
             $mail->Host       = "mail.ostimteknoloji.com"; // SMTP server 
-            $mail->SMTPDebug  = 2;                      // enables SMTP debug information (for testing) 
+            $mail->SMTPDebug  = 1;                      // enables SMTP debug information (for testing) 
                                                         // 1 = errors and messages
                                                         // 2 = messages only
             $mail->SMTPAuth   = true;                  // enable SMTP authentication
             $mail->Host       = "mail.ostimteknoloji.com"; // sets the SMTP server
-            $mail->SMTPSecure = 'SSL';   
+            //$mail->SMTPSecure = 'SSL';   
+            $mail->SMTPSecure = 'TLS';   
             $mail->Port       = 587;                        // set the SMTP port for the GMAIL server
             $mail->Username   = "sanalfabrika@ostimteknoloji.com"; // SMTP account username
             $mail->Password   = "1q2w3e4r";             // SMTP account password
-            $mail->SetFrom('sanalfabrika@ostimteknoloji.com', '8 deneme');
-            $mail->AddReplyTo("311corner82@gmail.com","8.  deneme");
-            $mail->Subject    = "cc9 bık bık ";
+            $mail->SetFrom('sanalfabrika@ostimteknoloji.com', '11 deneme');
+            //$mail->AddReplyTo("311corner82@gmail.com","8.  deneme");
+            $mail->Subject    = "cc9 bık bık içerik değişti 11 deneme";
 
             //$mail->AltBody    = " ıı öö ğğ işş çç !"; // optional, comment out and test
 
             $mail->MsgHTML($body);
-            $address = "ociran@gmail.com";
+            $address = "311corner82@gmail.com";
             //$mail->addCC('bahram.metu@gmail.com');
             //$mail->addBCC('311corner82@gmail.com'); 
             $mail->AddAddress($address, "z cddccd ");
@@ -1519,8 +1528,8 @@ class InfoFirmVerbal extends \DAL\DalSlim {
             echo "Mailer Error: " . $mail->ErrorInfo;
             } else {
             echo "Message sent!";
-            }       
-*/
+            }   */    
+
                   
                   /*
                 $mail->isSMTP();  
@@ -1654,10 +1663,11 @@ if(!$mail->send()) {
             );
             $prms1 =  json_encode(serialize($prms));
             print_r($prms1);
-            $mailId = \Utill\Mail\PhpMailer\MailWrapper::sendAuthorizingMail(
-                    array($prms1));            
+           /* $mailId = \Utill\Mail\PhpMailer\MailWrapper::sendAuthorizingMail(
+                    array($prms1));      */      
 
                   /*
+                $mail = new \PHPMailer();
                 $mail->isSMTP();  
                 // Set mailer to use SMTP
 $mail->Host = 'smtp.gmail.com';  // Specify main and backup SMTP servers
