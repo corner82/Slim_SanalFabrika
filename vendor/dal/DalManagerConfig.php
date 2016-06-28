@@ -100,6 +100,7 @@ class DalManagerConfig {
                 'infoUsersVerbalPDO' => 'DAL\Factory\PDO\InfoUsersVerbalFactory',
                 'infoUsersProductsServicesPDO' => 'DAL\Factory\PDO\InfoUsersProductsServicesFactory',
                 'sysOsbClustersAlliancePDO' => 'DAL\Factory\PDO\SysOsbClustersAllianceFactory',
+                'sysMembershipTypesPDO' => 'DAL\Factory\PDO\SysMembershipTypesFactory',
                 
                 
                 

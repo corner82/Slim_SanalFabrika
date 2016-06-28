@@ -1652,7 +1652,7 @@ if(!$mail->send()) {
     public function sendMaildeneme($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            print_r('asdasdasd');
+          //  print_r('asdasdasd');
            $prms =  array(  
             'params' => array('subject'=>'xcvxcvxcv xcv xvc 1'), 
             'recipients' => array('ociran@gmail.com'=>'okan1'), 
@@ -1662,9 +1662,7 @@ if(!$mail->send()) {
             
             );
             $prms1 =  json_encode(serialize($prms));
-            print_r($prms1);
-           /* $mailId = \Utill\Mail\PhpMailer\MailWrapper::sendAuthorizingMail(
-                    array($prms1));      */      
+
 
                   /*
                 $mail = new \PHPMailer();
