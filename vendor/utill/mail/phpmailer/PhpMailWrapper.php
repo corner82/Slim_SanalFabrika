@@ -100,7 +100,7 @@ class PhpMailWrapper extends \Utill\Mail\AbstractMailWrapper implements \Utill\M
     }
 
     public function sendInfoMailSMTP(array $params = null) {
-        
+         
         $body  = ' ıı öö ğğ işş çç  <b>ŞŞŞŞ İİĞ ĞĞ !</b>';
         $body  = eregi_replace("[\]",'',$body);
         $this->mailObj->CharSet='UTF-8';
@@ -116,13 +116,13 @@ class PhpMailWrapper extends \Utill\Mail\AbstractMailWrapper implements \Utill\M
         $this->mailObj->Port       = $this->getSMTPServerPort();                        // set the SMTP port for the GMAIL server
         $this->mailObj->Username   = $this->getSMTPServerUser(); // SMTP account username
         $this->mailObj->Password   = $this->getSMTPServerUserPassword();             // SMTP account password
-        $this->mailObj->SetFrom($this->getFromUserName(), 'bu mail php mail wrapper içinden atılmıştır');
+        $this->mailObj->SetFrom($this->getFromUserName(), 'bu mail php mail wrapper içinden sanal fabrika için atılmıştır');
         //$mail->AddReplyTo("311corner82@gmail.com","8.  deneme");
-        $this->mailObj->Subject    = "cc9 bık bık içerik değişti 11 deneme";
+        $this->mailObj->Subject    = "Sanal Fabrika Mail lib test";
 
         //$mail->AltBody    = " ıı öö ğğ işş çç !"; // optional, comment out and test
 
-        $this->mailObj->MsgHTML($body);
+        $this->mailObj->MsgHTML($this->getMessage());
         $address = "311corner82@gmail.com";
         //$mail->addCC('bahram.metu@gmail.com');
         //$mail->addBCC('311corner82@gmail.com'); 

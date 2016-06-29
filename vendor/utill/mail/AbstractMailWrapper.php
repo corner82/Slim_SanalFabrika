@@ -91,6 +91,7 @@ abstract class AbstractMailWrapper {
      * @return string | null
      */
     public function getSubject() {
+        if(!isset($this->subject ))  throw new Exception('mail subject not found');
         return $this->subject;
     }
     
@@ -107,6 +108,7 @@ abstract class AbstractMailWrapper {
      * @return string | null
      */
     public function getCharset() {
+        if(!isset($this->charset ))  throw new Exception('mail charset not found');
         return $this->charset;
     }
     
@@ -123,6 +125,7 @@ abstract class AbstractMailWrapper {
      * @return string | null
      */
     public function getSMTPServerHost() {
+        if(!isset($this->smtpServerHost ))  throw new Exception('SMTP server host not found');
         return $this->smtpServerHost;
     }
     
@@ -139,6 +142,7 @@ abstract class AbstractMailWrapper {
      * @return string | null
      */
     public function getFromUserName() {
+        if(!isset($this->fromUserName ))  throw new Exception('from mail user not found');
         return $this->fromUserName;
     }
     
@@ -172,6 +176,7 @@ abstract class AbstractMailWrapper {
      * @return string | null
      */
     public function getSMTPServerUser() {
+        if(!isset($this->smtpServerUser ))  throw new Exception('SMTP server user not found');
         return $this->smtpServerUser;
     }
     
@@ -188,7 +193,8 @@ abstract class AbstractMailWrapper {
      * @return string | null
      */
     public function getSMTPServerUserPassword() {
-        return $this->smtpServerUserPassword;
+        if(!isset($this->smtpServerUserPassword ))  throw new Exception('SMTP user password not found');
+        return $this->smtpServerUserPassword; 
     }
    
       /**
@@ -204,6 +210,7 @@ abstract class AbstractMailWrapper {
      * @return int | null
      */
     public function getSMTPServerPort() {
+        if(!isset($this->smtpServerPort ))  throw new Exception('SMTP user port not found');
         return $this->smtpServerPort;
     }
 
@@ -221,6 +228,7 @@ abstract class AbstractMailWrapper {
      * @return string | null
      */
     public function getMessage() {
+        if(!isset($this->message ))  throw new Exception('mail message not found');
         return $this->message;
     }
     
@@ -237,6 +245,7 @@ abstract class AbstractMailWrapper {
      * @return int | null
      */
     public function getSMTPServerSecureProtocol() {
+        if(!isset($this->smtpSecureProtocol ))  throw new Exception('SMTP server secure protocol not found');
         return $this->smtpSecureProtocol;
     }
 
