@@ -6,6 +6,9 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Foil\\' => array($vendorDir . '/foil/foil/src'),
+    'Aura\\Html\\_Config\\' => array($vendorDir . '/aura/html/config'),
+    'Aura\\Html\\' => array($vendorDir . '/aura/html/src'),
     'Zend\\Validator\\' => array($vendorDir . '/zendframework/zend-validator/src'),
     'Zend\\Uri\\' => array($vendorDir . '/zendframework/zend-uri/src'),
     'Zend\\Stdlib\\' => array($vendorDir . '/zendframework/zend-stdlib/src'),
@@ -67,4 +70,5 @@ return array(
     'Utill\\Helpers\\ResulSetHelpers\\' => array($vendorDir . '/utill/helpers/resultsethelpers'),
     'Utill\\Mail\\PhpMailer\\' => array($vendorDir . '/utill/mail/phpmailer'),
     'Utill\\Mail\\' => array($vendorDir . '/utill/mail'),
+    'Utill\\Mail\\Template\\' => array($vendorDir . '/utill/mail/template'),
 );

@@ -6,5 +6,7 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    $vendorDir . '/igorw/get-in/src/get_in.php',
+    $vendorDir . '/foil/foil/inc/functions.php',
     $vendorDir . '/panique/pdo-debug/pdo-debug.php',
 );

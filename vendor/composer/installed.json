@@ -1,5 +1,275 @@
 [
     {
+        "name": "aura/html",
+        "version": "2.4.1",
+        "version_normalized": "2.4.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/auraphp/Aura.Html.git",
+            "reference": "7f575f35765af41091b85b23a92b168ae0c5765f"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/auraphp/Aura.Html/zipball/7f575f35765af41091b85b23a92b168ae0c5765f",
+            "reference": "7f575f35765af41091b85b23a92b168ae0c5765f",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0"
+        },
+        "require-dev": {
+            "aura/di": "~2.0"
+        },
+        "time": "2015-03-27 17:31:31",
+        "type": "library",
+        "extra": {
+            "aura": {
+                "type": "library",
+                "config": {
+                    "common": "Aura\\Html\\_Config\\Common"
+                }
+            },
+            "branch-alias": {
+                "dev-develop-2": "2.1.x-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Aura\\Html\\": "src/",
+                "Aura\\Html\\_Config\\": "config/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-2-Clause"
+        ],
+        "authors": [
+            {
+                "name": "Aura.Html Contributors",
+                "homepage": "https://github.com/auraphp/Aura.Html/contributors"
+            }
+        ],
+        "description": "Provides HTML escapers and helpers, including form input helpers.",
+        "homepage": "https://github.com/auraphp/Aura.Html",
+        "keywords": [
+            "Escape",
+            "escaper",
+            "escapers",
+            "escaping",
+            "form",
+            "helper",
+            "helpers",
+            "html",
+            "input"
+        ]
+    },
+    {
+        "name": "evenement/evenement",
+        "version": "v2.0.0",
+        "version_normalized": "2.0.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/igorw/evenement.git",
+            "reference": "f6e843799fd4f4184d54d8fc7b5b3551c9fa803e"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/igorw/evenement/zipball/f6e843799fd4f4184d54d8fc7b5b3551c9fa803e",
+            "reference": "f6e843799fd4f4184d54d8fc7b5b3551c9fa803e",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.4.0"
+        },
+        "time": "2012-11-02 14:49:47",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "2.0-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Evenement": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Igor Wiedler",
+                "email": "igor@wiedler.ch",
+                "homepage": "http://wiedler.ch/igor/"
+            }
+        ],
+        "description": "Événement is a very simple event dispatching library for PHP",
+        "keywords": [
+            "event-dispatcher",
+            "event-emitter"
+        ]
+    },
+    {
+        "name": "igorw/get-in",
+        "version": "v1.0.3",
+        "version_normalized": "1.0.3.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/igorw/get-in.git",
+            "reference": "170ded831f49abc6a6061f655aba9bdbcf7b8111"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/igorw/get-in/zipball/170ded831f49abc6a6061f655aba9bdbcf7b8111",
+            "reference": "170ded831f49abc6a6061f655aba9bdbcf7b8111",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.4"
+        },
+        "time": "2014-12-15 23:03:51",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.0-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "files": [
+                "src/get_in.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Igor Wiedler",
+                "email": "igor@wiedler.ch"
+            }
+        ],
+        "description": "Functions for for hash map (assoc array) traversal.",
+        "keywords": [
+            "assoc-array",
+            "hash-map"
+        ]
+    },
+    {
+        "name": "pimple/pimple",
+        "version": "v3.0.2",
+        "version_normalized": "3.0.2.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/silexphp/Pimple.git",
+            "reference": "a30f7d6e57565a2e1a316e1baf2a483f788b258a"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/silexphp/Pimple/zipball/a30f7d6e57565a2e1a316e1baf2a483f788b258a",
+            "reference": "a30f7d6e57565a2e1a316e1baf2a483f788b258a",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0"
+        },
+        "time": "2015-09-11 15:10:35",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "3.0.x-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Pimple": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Fabien Potencier",
+                "email": "fabien@symfony.com"
+            }
+        ],
+        "description": "Pimple, a simple Dependency Injection Container",
+        "homepage": "http://pimple.sensiolabs.org",
+        "keywords": [
+            "container",
+            "dependency injection"
+        ]
+    },
+    {
+        "name": "foil/foil",
+        "version": "v0.6.6",
+        "version_normalized": "0.6.6.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/FoilPHP/Foil.git",
+            "reference": "1838c31bd0b2669865556834160b3c24962e1e16"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/FoilPHP/Foil/zipball/1838c31bd0b2669865556834160b3c24962e1e16",
+            "reference": "1838c31bd0b2669865556834160b3c24962e1e16",
+            "shasum": ""
+        },
+        "require": {
+            "aura/html": "~2.4",
+            "evenement/evenement": "~2.0",
+            "igorw/get-in": "~1.0",
+            "php": ">=5.4",
+            "pimple/pimple": "~3.0"
+        },
+        "require-dev": {
+            "brain/monkey": "~1.1",
+            "mockery/mockery": "0.9.3",
+            "phpunit/phpunit": "~4.8"
+        },
+        "time": "2016-05-26 22:58:32",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "0.6.x-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Foil\\": "src/"
+            },
+            "files": [
+                "inc/functions.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Giuseppe Mazzapica",
+                "email": "giuseppe.mazzapica@gmail.com",
+                "homepage": "http://gm.zoomlab.it",
+                "role": "Developer"
+            }
+        ],
+        "description": "PHP template engine for native PHP templates",
+        "homepage": "https://github.com/Giuseppe-Mazzapica/Foil",
+        "keywords": [
+            "template engine",
+            "templates"
+        ]
+    },
+    {
         "name": "slim/slim",
         "version": "2.6.2",
         "version_normalized": "2.6.2.0",
