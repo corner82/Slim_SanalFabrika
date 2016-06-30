@@ -1442,14 +1442,17 @@ class InfoFirmVerbal extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             
-            print_r(dirname(__FILE__));
+            //print_r(dirname(__FILE__));
+            print_r($_SERVER['DOCUMENT_ROOT']);
+           $foil = \Foil\engine(['folders' => [$_SERVER['DOCUMENT_ROOT'].'/vendor/foil']]);
+           //echo $foil->render('test');
             
            $mailTemplate = new \Utill\Mail\Template\MailTemplate();
            $mailTemplate->setContentRetrieverStartegyClass(new \Utill\Mail\Template\ContentRetrieverFromFileStrategy);
            $mailTemplate->setTemplateContent(array('fileName'=>'test'));
            $message = $mailTemplate->getTemplateContent();
-           print_r($message);
-            
+           //print_r($message);
+               
            $mail = new \Utill\Mail\PhpMailer\PhpMailWrapper();
            $mail->setCharset('UTF-8');
            $mail->setSMTPServerHost('mail.ostimteknoloji.com');

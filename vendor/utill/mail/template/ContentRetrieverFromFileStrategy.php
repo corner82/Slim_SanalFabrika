@@ -24,7 +24,7 @@ protected $content;
 
 
 public function fillContent(array $params = null) {
-    print_r(dirname(__FILE__)); 
+    //print_r(dirname(__FILE__)); 
     $this->content = file_get_contents(dirname(__FILE__).DIRECTORY_SEPARATOR.'contents'.DIRECTORY_SEPARATOR.$params['fileName'].'.html');
 }
 
