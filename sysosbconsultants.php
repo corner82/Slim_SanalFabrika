@@ -173,58 +173,58 @@ $app->get("/pkGetConsConfirmationProcessDetails_sysOsbConsultants/", function ()
  */
 $app->get("/pkcpkGetAllFirmCons_sysOsbConsultants/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
-    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
     $BLL = $app->getBLLManager()->get('sysOsbConsultantsBLL');
-    $headerParams = $app->request()->headers();     
+    $headerParams = $app->request()->headers();
     if (!isset($headerParams['X-Public'])) {
         throw new Exception('rest api "pkGetAllFirmCons_sysOsbConsultants" end point, X-Public variable not found');
     }
     $pk = $headerParams['X-Public'];
-    
+
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
-         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
-                                                $app,
-                                                $_GET['language_code']));
-    }  
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
+    }
     $vcpk = NULL;
     if (isset($_GET['cpk'])) {
-        $stripper->offsetSet('cpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                                                $app,
-                                                $_GET['cpk']));
+        $stripper->offsetSet('cpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['cpk']));
     }
-     
+
 
     $stripper->strip();
-    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    if($stripper->offsetExists('cpk')) $vcpk = $stripper->offsetGet('cpk')->getFilterValue();    
- 
-     $result = $BLL->getAllFirmCons(array(
+    if ($stripper->offsetExists('language_code'))
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if ($stripper->offsetExists('cpk'))
+        $vcpk = $stripper->offsetGet('cpk')->getFilterValue();
+
+    $result = $BLL->getAllFirmCons(array(
         'language_code' => $vLanguageCode,
-        'cpk' => $vcpk,        
+        'cpk' => $vcpk,
         'pk' => $pk,
-        ));
-    
-  
+    ));
+
+
     $flows = array();
-    foreach ($result['resultSet'] as $flow) {
-        $flows[] = array(
-          //  "firm_id" => $flow["firm_id"],
-            "consultant_id" => $flow["consultant_id"],  
-            "name" => $flow["name"],   
-            "surname" => $flow["surname"],
-            "auth_email" => $flow["auth_email"],            
-            "title" => $flow["title"],             
-            "title_eng" => $flow["title_eng"],
-            "osb_title" => $flow["title"],             
-            "osb_title_eng" => $flow["title_eng"],
-            "cons_picture" => $flow["cons_picture"],
-            "npk" => $flow["network_key"],         
-            "attributes" => array("firm_consultant" => $flow["firm_consultant"],),
-        );
+    if (isset($result[0]['consultant_id'])) {
+        foreach ($result['resultSet'] as $flow) {
+            $flows[] = array(
+                //  "firm_id" => $flow["firm_id"],
+                "consultant_id" => $flow["consultant_id"],
+                "name" => $flow["name"],
+                "surname" => $flow["surname"],
+                "auth_email" => $flow["auth_email"],
+                "title" => $flow["title"],
+                "title_eng" => $flow["title_eng"],
+                "osb_title" => $flow["title"],
+                "osb_title_eng" => $flow["title_eng"],
+                "cons_picture" => $flow["cons_picture"],
+                "npk" => $flow["network_key"],
+                "attributes" => array("firm_consultant" => $flow["firm_consultant"],),
+            );
+        }
     }
- 
-    $app->response()->header("Content-Type", "application/json");    
+
+    $app->response()->header("Content-Type", "application/json");
     $app->response()->body(json_encode($flows));
 });
 

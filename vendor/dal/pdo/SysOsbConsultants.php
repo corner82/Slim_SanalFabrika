@@ -1262,29 +1262,36 @@ class SysOsbConsultants extends \DAL\DalSlim {
             
             $tableName = 'info_firm_profile';
             if ((isset($params['table_name']) && $params['table_name'] != "")) {
-                $addSql = " AND sos.table_name = '" . $params['table_name']."'";  
                 $tableName = $params['table_name'];
+                $addSql = " AND sos.table_name = '" . $tableName."'";  
+                
             }
             if ((isset($params['operation_type_id']) && $params['operation_type_id'] != "")) {
                 $addSql .= " AND sos.id = " . intval($params['operation_type_id']);                        
             }
-            
+                        
+            $languageIdValue = 647;
+            if ((isset($params['language_id']) && $params['language_id'] != "")) {                        
+                    $languageIdValue = $params['language_id'];                        
+            }
+
                $sql = "              
                 SELECT consultant_id, 1=1 AS control FROM ( 
                     SELECT 
-                        cons.user_id AS consultant_id , 
-                        count(ifp.id) AS adet , 
+                        cons.user_id AS consultant_id, 
+                        count(ifp.id) AS adet, 
                         MAX(ifp.s_date) 
                     FROM sys_osb_consultants cons
                     INNER JOIN sys_operation_types sos ON sos.active =0 AND sos.deleted =0 ".$addSql." 
                     LEFT JOIN ".$tableName." ifp ON ifp.consultant_id = cons.user_id AND ifp.cons_allow_id = 0  
-                    WHERE cons.active = 0 AND cons.deleted =0 AND cons.osb_id = 5                     
-                        AND sos.category_id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_array_elements(category_json))                    
+                    WHERE cons.active = 0 AND cons.deleted =0 AND cons.osb_id = 5
+                        AND sos.category_id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_array_elements(category_json))
+                        AND ".intval($languageIdValue)." IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_array_elements(preferred_language_json))
                     GROUP BY cons.user_id
                     ORDER BY adet, max  
                     LIMIT 1 
-                ) AS tempx                    
-                                 ";
+                ) AS tempx
+                             ";
                $statement = $pdo->prepare($sql);
            //  echo debugPDO($sql, $params);
             $statement->execute();
