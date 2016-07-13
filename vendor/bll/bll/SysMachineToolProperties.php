@@ -119,5 +119,14 @@ class SysMachineToolProperties extends \BLL\BLLSlim {
         return $resultSet['resultSet'];
     }
  
+      /**
+     * Data delete function
+     * @param array $params
+     * @return array
+     */
+    public function deletePropertyMachine($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertiesPDO');
+        return $DAL->deletePropertyMachine($params);
+    }
     
 }

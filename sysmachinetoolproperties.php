@@ -54,7 +54,7 @@ $app->get("/pkInsert_sysMachineToolProperties/", function () use ($app ) {
     if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkInsert_sysMachineToolProperties" end point, X-Public variable not found');    
     $pk = $headerParams['X-Public'];
         
-  $vLanguageCode = 'tr';
+    $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
          $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
                                                 $app,
@@ -105,63 +105,80 @@ $app->get("/pkInsert_sysMachineToolProperties/", function () use ($app ) {
     $app->response()->body(json_encode($resDataInsert));
 }
 ); 
-
+ 
 /**
  *  * Okan CIRAN
  * @since 17.02.2016
  */
 $app->get("/pkUpdate_sysMachineToolProperties/", function () use ($app ) {
-
-    $BLL = $app->getBLLManager()->get('sysMachineToolPropertiesBLL');
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysMachineToolPropertiesBLL');    
     $headerParams = $app->request()->headers();
-    $vPk = $headerParams['X-Public'];
-    
-    $vLanguageCode = 'tr';
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkUpdate_sysMachineToolProperties" end point, X-Public variable not found');    
+    $pk = $headerParams['X-Public'];
+        
+  $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
-        $vLanguageCode = strtolower(trim($_GET['language_code']));
-    }     
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    } 
+   /* $vId = NULL;
+    if (isset($_GET['id'])) {
+         $stripper->offsetSet('id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    }
+    * 
+    */  
+    $vMachineToolId = NULL;
+    if (isset($_GET['machine_tool_id'])) {
+         $stripper->offsetSet('machine_tool_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['machine_tool_id']));
+    } 
+    $vMachineToolPropertyDefinitionId = NULL;
+    if (isset($_GET['property_id'])) {
+         $stripper->offsetSet('property_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['property_id']));
+    }
+    $vUnitId = NULL;
+    if (isset($_GET['unit_id'])) {
+         $stripper->offsetSet('unit_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['unit_id']));
+    }
+    $vPropertyValue = NULL;
+    if (isset($_GET['property_value'])) {
+         $stripper->offsetSet('property_value',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['property_value']));
+    } 
     
-    $vActive =0; 
-    if (isset($_GET['active'])) {
-        $vActive = $_GET['active'];
-    }    
-    $vID =$_GET['id'];  
-    $vMachineToolId = $_GET['machine_tool_id'];
-    $vMachineToolPropertyDefinitionId = $_GET['machine_tool_property_definition_id']; 
-    $vUnitId = $_GET['unit_id'];  
-    $vPropertyValue = $_GET['property_value']; 
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    //if($stripper->offsetExists('id')) $vId = $stripper->offsetGet('id')->getFilterValue();
+    if($stripper->offsetExists('machine_tool_id')) $vMachineToolId = $stripper->offsetGet('machine_tool_id')->getFilterValue();
+    if($stripper->offsetExists('property_id')) $vMachineToolPropertyDefinitionId = $stripper->offsetGet('property_id')->getFilterValue();
+    if($stripper->offsetExists('property_value')) $vPropertyValue = $stripper->offsetGet('property_value')->getFilterValue();
+    if($stripper->offsetExists('unit_id')) $vUnitId = $stripper->offsetGet('unit_id')->getFilterValue();
      
-    $fLanguageCode = $vLanguageCode;     
-    $fMachineToolId = $vMachineToolId;
-    $fMachineToolPropertyDefinitionId =$vMachineToolPropertyDefinitionId;
-    $fPropertyValue = $vPropertyValue;
-    $fUnitId = $vUnitId;  
-    $fID=$vID ; 
-  
-    
-    $resDataUpdate = $BLL->update(array(  
-            'id' => $fID,
-            'language_code' => $fLanguageCode,
-            'machine_tool_id' => $fMachineToolId ,         
-            'machine_tool_property_definition_id' => $fMachineToolPropertyDefinitionId ,         
-            'property_value' => $fPropertyValue ,
-            'unit_id' => $fUnitId , 
-            'active' => $fActive,   
-            'pk' => $vPk,        
+    $resDataInsert = $BLL->update(array(
+          //  'id' => $vId,  
+            'language_code' => $vLanguageCode,
+            'machine_tool_id' => $vMachineToolId,
+            'machine_tool_property_definition_id' => $vMachineToolPropertyDefinitionId,
+            'property_value' => $vPropertyValue,
+            'unit_id' => $vUnitId,                
+            'pk' => $pk,        
             ));
-    
-     
 
     $app->response()->header("Content-Type", "application/json");
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
-    $app->response()->body(json_encode($resDataUpdate));
+    $app->response()->body(json_encode($resDataInsert));
 }
 ); 
-
 
 /**
  *  * Okan CIRAN
@@ -393,9 +410,53 @@ $app->get("/pkFillPropertyUnits_sysMachineToolProperties/", function () use ($ap
         
  
 });
+ 
+
+/**
+ *  * Okan CIRAN
+ * @since 02-05-2016
+ */
+$app->get("/pkDeletePropertyMachine_sysMachineToolProperties/", function () use ($app ) {    
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('sysMachineToolPropertiesBLL');   
+    $headerParams = $app->request()->headers();     
+     if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkDeletePropertyMachine_sysMachineToolProperties" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+   
+    $vMachineId = -1;
+    if (isset($_GET['machine_id'])) {
+         $stripper->offsetSet('machine_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['machine_id']));
+    } 
+     $vPropertyId = NULL;
+    if (isset($_GET['property_id'])) {
+         $stripper->offsetSet('property_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['property_id']));
+    }      
+    $stripper->strip(); 
+    if ($stripper->offsetExists('machine_id')) {
+        $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('property_id')) {
+        $vPropertyId = $stripper->offsetGet('property_id')->getFilterValue();
+    }
+    
+    
+    $resData = $BLL->deletePropertyMachine(array(      
+            'machine_id' => $vMachineId , 
+            'property_id' => $vPropertyId ,
+            'pk' => $pk,        
+            ));
 
 
-
-
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($resData));
+}
+); 
 
 $app->run();
