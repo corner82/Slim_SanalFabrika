@@ -30,14 +30,15 @@ class SysAclResources extends \DAL\DalSlim {
        try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $userId = $this->getUserId(array('pk' => $params['pk']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $userIdValue = $userId ['resultSet'][0]['user_id'];
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $statement = $pdo->prepare(" 
                 UPDATE sys_acl_resources
-                SET  deleted= 1 , active = 1 ,
-                     op_user_id = " . $userIdValue . "     
-                WHERE id = :id");
+                SET  deleted= 1, active = 1,
+                     op_user_id = " .intval($opUserIdValue) . "
+                WHERE id = ".intval($params['id']) 
+                        );
                 //Execute our DELETE statement.
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
@@ -70,26 +71,25 @@ class SysAclResources extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $statement = $pdo->prepare("
                 SELECT 
-                        a.id,                       
+                        a.id,
                         a.name AS name,
-                        a.icon_class, 
-                        a.c_date AS create_date,		
-                        a.parent,                   
-                        a.deleted, 
-                        sd.description AS state_deleted,                 
-                        a.active, 
-                        sd1.description AS state_active,  
-                        a.description,                                     
-                        a.user_id,
-                        u.username                    
+                        a.icon_class,
+                        a.c_date AS create_date,
+                        a.parent_id,
+                        a.deleted,
+                        sd.description AS state_deleted,
+                        a.active,
+                        sd1.description AS state_active,
+                        a.description,
+                        a.op_user_id,
+                        u.username
                 FROM sys_acl_resources a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
-                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
-                INNER JOIN info_users u ON u.id = a.user_id    
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0
+                INNER JOIN info_users u ON u.id = a.op_user_id
                 WHERE a.deleted =0 AND a.language_code = :language_code     
-                ORDER BY a.name                  
-                                 ");
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);             
+                ORDER BY a.name
+                                 ");            
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);   
             $errorInfo = $statement->errorInfo();
@@ -113,37 +113,47 @@ class SysAclResources extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $kontrol = $this->haveRecords($params); 
-            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {            
-                $sql = "
+            $kontrol = $this->haveRecords($params);
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+                if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                    $opUserIdValue = $opUserId ['resultSet'][0]['user_id']; 
+                    $ParentId = 0;
+                    if ((isset($params['parent_id']) && $params['parent_id'] != "")) {                        
+                        $ParentId = $params['parent_id'];                        
+                    }
+                    
+                    $sql = "
                 INSERT INTO sys_acl_resources(
-                        name, icon_class, parent, user_id, description)
+                        name, parent_id, op_user_id, description)
                 VALUES (
-                        :name,
-                        :icon_class,                    
-                        :parent,                       
-                        :user_id,
+                        :name,                               
+                        ".intval($ParentId).",                      
+                        ".intval($opUserIdValue).",
                         :description                      
                                               )  ";
-                $statement = $pdo->prepare($sql);
-                $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-                $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
-                $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);
-                $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-                $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
-             //   echo debugPDO($sql, $params);
-                $result = $statement->execute();
-                $insertID = $pdo->lastInsertId('sys_acl_resources_id_seq');
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
-                $pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
-            } else {  
-                $errorInfo = '23505'; 
-                 $pdo->rollback();
-                $result= $kontrol;                            
-                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
+                    $statement = $pdo->prepare($sql);
+                    $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);                    
+                    $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
+                    //   echo debugPDO($sql, $params);
+                    $result = $statement->execute();
+                    $insertID = $pdo->lastInsertId('sys_acl_resources_id_seq');
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                } else {
+                    $errorInfo = '23505';
+                    $errorInfoColumn = 'name';
+                    $pdo->rollback();             
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -163,45 +173,52 @@ class SysAclResources extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $kontrol = $this->haveRecords($params); 
-            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {       
-            $statement = $pdo->prepare("
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $kontrol = $this->haveRecords($params);
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {                 
+                    $ParentId =0 ;
+                    if ((isset($params['parent_id']) && $params['parent_id'] != "")) {                        
+                        $ParentId = $params['parent_id'];                        
+                    }
+                    
+                    $sql = "
                 UPDATE sys_acl_resources
-                SET   
-                    name = :name, 
-                    icon_class = :icon_class, 
-                    active = :active,                 
-                    parent = :parent,
-                    user_id= :user_id,  
-                    description = :description                                           
-                WHERE id = :id");
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);      
-            $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-            $statement->bindValue(':icon_class', $params['icon_class'], \PDO::PARAM_STR);
-            $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
-            $statement->bindValue(':parent', $params['parent'], \PDO::PARAM_INT);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
-            $update = $statement->execute();
-            $affectedRows = $statement->rowCount();
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
-        } else { 
-                $errorInfo = '23505';
-                 $pdo->rollback();
-                $result= $kontrol;
-                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
+                SET
+                    name = '".$params['name']."',
+                    parent_id = ".  intval($ParentId).",
+                    op_user_id= ".  intval($opUserIdValue).",
+                    description = '".$params['description']."'
+                WHERE id = ".intval($params['id'])."
+                    ";
+                    $statement = $pdo->prepare($sql);
+                    // echo debugPDO($sql, $params);
+                    $update = $statement->execute();
+                    $affectedRows = $statement->rowCount();
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                } else {
+                    $errorInfo = '23505';
+                    $pdo->rollback();
+                    $result = $kontrol;
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
+                }
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
-        }        
-        catch (\PDOException $e /* Exception $e */) {
+        } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-    
+
     /**     
      * @author Okan CIRAN
      * @ sys_acl_roles tablosunda name sutununda daha önce oluşturulmuş mu? 
@@ -224,12 +241,12 @@ class SysAclResources extends \DAL\DalSlim {
                 name ='" . $params['name'] . "' as control,
                 concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
             FROM sys_acl_resources                
-            WHERE name = '" . $params['name'] . "'"
+            WHERE LOWER(REPLACE(name,' ','')) = LOWER(REPLACE('" . $params['name'] . "',' ',''))"
                     . $addSql . " 
                AND deleted =0   
                                ";
             $statement = $pdo->prepare($sql);        
-      //  echo debugPDO($sql, $params);
+            // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -242,8 +259,6 @@ class SysAclResources extends \DAL\DalSlim {
     }
 
     /**
-     * Datagrid fill function used for testing
-     * user interface datagrid fill operation   
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_acl_resources tablosundan kayıtları döndürür !!
      * @version v 1.0  07.01.2016
@@ -285,21 +300,20 @@ class SysAclResources extends \DAL\DalSlim {
             $sql = "                   
                 SELECT 
                         a.id,                       
-                        a.name AS name,
-                        a.icon_class, 
+                        a.name AS name,                    
                         a.c_date AS create_date,		
-                        a.parent,                   
+                        a.parent_id,                   
                         a.deleted, 
                         sd.description AS state_deleted,                 
                         a.active, 
                         sd1.description AS state_active,  
                         a.description,                                     
-                        a.user_id,
+                        a.op_user_id,
                         u.username                    
                 FROM sys_acl_resources a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
-                INNER JOIN info_users u ON u.id = a.user_id    
+                INNER JOIN info_users u ON u.id = a.op_user_id    
                 WHERE a.deleted =0  
                   " . $whereSQL . "
                 ORDER BY " . $sort . " "
@@ -337,27 +351,15 @@ class SysAclResources extends \DAL\DalSlim {
     public function fillGridRowTotalCount($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $whereSQL = '';
-            $whereSQL1 = ' WHERE a1.deleted =0 ';
-            $whereSQL2 = ' WHERE a2.deleted =1 ';
-            
+            $whereSQL = ' WHERE a. deleted =0 ';
+             
             $sql = "
                 SELECT 
-                    COUNT(a.id) AS COUNT ,
-                    (SELECT COUNT(a1.id) FROM sys_acl_resources a1  
-                    INNER JOIN sys_specific_definitions sd1x ON sd1x.main_group = 15 AND sd1x.first_group= a1.deleted AND sd1x.language_code = 'tr' AND sd1x.deleted = 0 AND sd1x.active = 0
-                    INNER JOIN sys_specific_definitions sd11 ON sd11.main_group = 16 AND sd11.first_group= a1.active AND sd11.language_code = 'tr' AND sd11.deleted = 0 AND sd11.active = 0                             
-                    INNER JOIN info_users u1 ON u1.id = a1.user_id 
-                     " . $whereSQL1 . " ) AS undeleted_count, 
-                    (SELECT COUNT(a2.id) FROM sys_acl_resources a2
-                    INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_code = 'tr' AND sd2.deleted = 0 AND sd2.active = 0
-                    INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group= a2.active AND sd12.language_code = 'tr' AND sd12.deleted = 0 AND sd12.active = 0                             
-                    INNER JOIN info_users u2 ON u2.id = a2.user_id 			
-                    " . $whereSQL2 . " ) AS deleted_count                        
+                    COUNT(a.id) AS COUNT               
                 FROM sys_acl_resources a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = 'tr' AND sd.deleted = 0 AND sd.active = 0
                 INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = 'tr' AND sd1.deleted = 0 AND sd1.active = 0                             
-                INNER JOIN info_users u ON u.id = a.user_id 
+                INNER JOIN info_users u ON u.id = a.op_user_id 
                 " . $whereSQL . "
                     ";
             $statement = $pdo->prepare($sql);
@@ -374,8 +376,6 @@ class SysAclResources extends \DAL\DalSlim {
     }
 
     /**
-     * Combobox fill function used for testing
-     * user interface combobox fill operation   
      * @author Okan CIRAN
      * @ combobox doldurmak için sys_acl_resources tablosundan parent ı 0 olan kayıtları (Ana grup) döndürür !!
      * @version v 1.0  07.01.2016
@@ -391,7 +391,7 @@ class SysAclResources extends \DAL\DalSlim {
                   a.id, 	
                   a.name AS name                                 
               FROM sys_acl_resources a       
-              WHERE a.active =0 AND a.deleted = 0 AND parent =0                 
+              WHERE a.active =0 AND a.deleted = 0 AND parent_id =0                 
               ORDER BY name                
                                ");
             $statement->execute();
@@ -425,13 +425,13 @@ class SysAclResources extends \DAL\DalSlim {
                     a.id, 	
                     a.name AS name  ,
                     CASE 
-                        (SELECT DISTINCT 1 state_type FROM sys_acl_resources WHERE parent = a.id AND deleted = 0)    
+                        (SELECT DISTINCT 1 state_type FROM sys_acl_resources WHERE parent_id = a.id AND deleted = 0)    
                     WHEN 1 THEN 'closed'
                     ELSE 'open'   
                     END AS state_type  
                 FROM sys_acl_resources a       
                 WHERE                    
-                    a.parent = " . $id . " AND 
+                    a.parent_id = " . $id . " AND 
                     a.deleted = 0     
                 ORDER BY name                 
                                  ");
@@ -445,5 +445,318 @@ class SysAclResources extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+    
+    /**    
+     * @author Okan CIRAN
+     * @ tree doldurmak için sys_acl_resources tablosundan tüm kayıtları döndürür !!
+     * @version v 1.0  12.08.2016
+     * @param array $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillResourcesTree($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $id = 0;
+            if (isset($params['id']) && $params['id'] != "") {
+                $id = $params['id'];
+            }
+            $sql = " 
+                SELECT
+                    a.id,
+                    a.name AS name,
+                    CASE 
+                        (SELECT DISTINCT 1 state_type FROM sys_acl_resources z WHERE z.parent_id = a.id AND z.deleted = 0)
+                    WHEN 1 THEN 'closed'
+                    ELSE 'open' END AS state_type,
+                    a.active
+                FROM sys_acl_resources a
+                WHERE
+                    a.parent_id = " . $id . " AND 
+                    a.deleted = 0
+                ORDER BY name
+                                 ";
+            $statement = $pdo->prepare($sql);   
+              // echo debugPDO($sql, $params);
+            $statement->execute();            
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {        
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }    
 
+    /**
+     * @author Okan CIRAN
+     * @ resource bilgilerini döndürür !!
+     * filterRules aktif 
+     * @version v 1.0  13.06.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillPropertieslist($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+                $limit = intval($params['rows']);
+            } else {
+                $limit = 10;
+                $offset = 0;
+            }
+
+            $sortArr = array();
+            $orderArr = array();
+            if (isset($params['sort']) && $params['sort'] != "") {
+                $sort = trim($params['sort']);
+                $sortArr = explode(",", $sort);
+                if (count($sortArr) === 1)
+                    $sort = trim($params['sort']);
+            } else {
+                $sort = "a.parent_id, a.name";
+            }
+
+            if (isset($params['order']) && $params['order'] != "") {
+                $order = trim($params['order']);
+                $orderArr = explode(",", $order);
+                //print_r($orderArr);
+                if (count($orderArr) === 1)
+                    $order = trim($params['order']);
+            } else {
+                $order = "ASC";
+            }
+
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND a.name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'description':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND a.description" . $sorguExpression . ' ';
+
+                                break;     
+                            case 'parent_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND COALESCE(NULLIF((SELECT z.name FROM sys_acl_resources z where z.id = a.parent_id), ''),'Root')" . $sorguExpression . ' ';
+                            
+                                break;  
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+                if (isset($params['name']) && $params['name'] != "") {
+                    $sorguStr .= " AND a.name Like '%" . $params['name'] . "%'";
+                }
+                if (isset($params['description']) && $params['description'] != "") {
+                    $sorguStr .= " AND a.description Like '%" . $params['description'] . "%'";
+                }  
+                if (isset($params['parent_name']) && $params['parent_name'] != "") {
+                    $sorguStr .= " AND COALESCE(NULLIF((SELECT z.name FROM sys_acl_resources z where z.id = a.parent_id), ''),'Root') Like '%" . $params['parent_name'] . "%'";
+                }   
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+            $sql = "                 
+		SELECT 
+                        a.id,
+                        a.name AS name,                        
+                        a.parent_id,
+                        COALESCE(NULLIF((SELECT z.name FROM sys_acl_resources z where z.id = a.parent_id), ''),'Root') AS parent_name,
+                        a.deleted,
+                        sd15.description AS state_deleted,
+                        a.active,
+                        sd16.description AS state_active,
+                        a.description                     
+                FROM sys_acl_resources a
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_code = 'tr' AND sd15.deleted = 0 AND sd15.active = 0
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_code = 'tr' AND sd16.deleted = 0 AND sd16.active = 0         
+                WHERE a.deleted =0 
+                ".$sorguStr."
+                ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            );
+            $statement = $pdo->prepare($sql);
+          //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+        
+    /**
+     * @author Okan CIRAN
+     * @ resource bilgilerinin sayısını döndürür !!
+     * filterRules aktif 
+     * @version v 1.0  13.06.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillPropertieslistRtc($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'description':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND description" . $sorguExpression . ' ';
+
+                                break;     
+                            case 'parent_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND parent_name" . $sorguExpression . ' ';
+                            
+                                break;  
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+                if (isset($params['name']) && $params['name'] != "") {
+                    $sorguStr .= " AND name Like '%" . $params['name'] . "%'";
+                }
+                if (isset($params['description']) && $params['description'] != "") {
+                    $sorguStr .= " AND description Like '%" . $params['description'] . "%'";
+                }  
+                if (isset($params['parent_name']) && $params['parent_name'] != "") {
+                    $sorguStr .= " AND parent_name Like '%" . $params['parent_name'] . "%'";
+                }   
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+            $sql = "   
+                SELECT COUNT(id) as count 
+                FROM (
+                    SELECT id,name,parent_id,parent_name,deleted,active,description
+                    FROM (
+                        SELECT 
+                                a.id,
+                                a.name AS name,                        
+                                a.parent_id,
+                                COALESCE(NULLIF((SELECT z.name FROM sys_acl_resources z where z.id = a.parent_id), ''),'Root') AS parent_name,
+                                a.deleted,
+                                sd15.description AS state_deleted,
+                                a.active,
+                                sd16.description AS state_active,
+                                a.description                     
+                        FROM sys_acl_resources a
+                        INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_code = 'tr' AND sd15.deleted = 0 AND sd15.active = 0
+                        INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_code = 'tr' AND sd16.deleted = 0 AND sd16.active = 0         
+                        WHERE a.deleted =0 
+                    ) as xtable
+                    WHERE deleted =0 
+                    ".$sorguStr."
+                ) AS xxTable    
+                ";        
+                            
+            $statement = $pdo->prepare($sql);
+         // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ sys_machine_tool_property_definition tablosundan parametre olarak  gelen id kaydın aktifliğini
+     *  0(aktif) ise 1 , 1 (pasif) ise 0  yapar. !!
+     * @version v 1.0  13.06.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function makeActiveOrPassive($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                if (isset($params['id']) && $params['id'] != "") {
+
+                    $sql = "                 
+                UPDATE sys_acl_resources
+                SET active = (  SELECT   
+                                CASE active
+                                    WHEN 0 THEN 1
+                                    ELSE 0
+                                END activex
+                                FROM sys_acl_resources
+                                WHERE id = " . intval($params['id']) . "
+                ),
+                op_user_id = " . intval($opUserIdValue) . "
+                WHERE id = " . intval($params['id']);
+                    $statement = $pdo->prepare($sql);
+                    //  echo debugPDO($sql, $params);
+                    $update = $statement->execute();
+                    $afterRows = $statement->rowCount();
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                }
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
 }

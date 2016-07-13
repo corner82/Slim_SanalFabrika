@@ -107,6 +107,47 @@ class SysAclResources extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
     
+        /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillResourcesTree ($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysAclResourcesPDO');
+        $resultSet = $DAL->fillResourcesTree($params);  
+        return $resultSet['resultSet'];
+    }
     
+   /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillPropertieslist ($params = array()) {
+        
+        $DAL = $this->slimApp->getDALManager()->get('sysAclResourcesPDO');
+        $resultSet = $DAL->fillPropertieslist($params);  
+        return $resultSet['resultSet'];
+    }
+    
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillPropertieslistRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclResourcesPDO');
+        $resultSet = $DAL->fillPropertieslistRtc($params);  
+        return $resultSet['resultSet'];
+    }    
+    /**
+     * public key / private key and value update function
+     * @param array | null $params
+     * @return array
+     */
+    public function makeActiveOrPassive($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclResourcesPDO');
+        return $DAL->makeActiveOrPassive($params);
+    }
 }
 

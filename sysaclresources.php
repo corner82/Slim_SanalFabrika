@@ -4,7 +4,7 @@
 require 'vendor/autoload.php';
 
 
-
+use \Services\Filter\Helper\FilterFactoryNames as stripChainers;
 
 /* $app = new \Slim\Slim(array(
   'mode' => 'development',
@@ -176,177 +176,45 @@ $app->get("/pkFillGrid_sysAclResources/", function () use ($app ) {
  * @since 13-01-2016
  */
 $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
-    
-    ///////////////////**** validator 
-     /**
-     * validat chain test
-     * @author Mustafa Zeynel Dağlı
-     * @since 15/01/2016
-     */
-    
-    $vName = $_GET['name'];
-    $vUrl = $_GET['url'];
-    $vParent = $_GET['parent'];
-    $vIconClass = $_GET['icon_class'];
-    $vDescription = $_GET['description']; 
-    $vUserId =$_GET['user_ID'];
-    
-    
-    $validater = $app->getServiceManager()->get('validationChainerServiceForZendChainer');    
-    $validatorChainUrl = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet(array_search($_GET['url'], $_GET), 
-            new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                              $_GET['url'], 
-                                                              $validatorChainUrl->attach(
-                                                                        new Zend\Validator\StringLength(array('min' => 6,
-                                                                                                              'max' => 50)))
-                                                                              // ->attach(new Zend\I18n\Validator\Alnum())    
-                    ) );
- 
-     
-    $validatorChainName = new Zend\Validator\ValidatorChain();
-    $validater->offsetSet('name', 
-            new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                              $vName, 
-                                                              $validatorChainName->attach(
-                                                                        new Zend\Validator\StringLength(array('min' => 3,
-                                                                                                              'max' => 10)))
-                                                                              ->attach(new Zend\I18n\Validator\Alnum())    
-                    ) );
-  
-    $validater->offsetSet('parent', 
-        new \Utill\Validation\Chain\ZendValidationChainer($app, 
-                                                          $vParent, 
-                                                          $validatorChainName->attach(
-                                                                    new Zend\Validator\StringLength(array('min' => 3,
-                                                                                                          'max' => 10)))
-                                                                          ->attach(new Zend\I18n\Validator\Alnum())    
-                ) );
-  
-    $validater->validate();
-    $messager = $app->getServiceManager()->get('validatorMessager');  
-    print_r( $messager->getValidationMessage());
-   
- 
-    /***validator ***/ 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
- 
-    //print_r('---'.array_search($_GET['url'], $_GET).'???');
-    $stripper->offsetSet(array_search($_GET['url'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['url'], array(\Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_CUSTOM_ADVANCED,
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_JAVASCRIPT_FUNCTIONS,
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED,
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_ONLY_ALPHABETIC_ALLOWED,        
-                                                                                                )));
-    $stripper->offsetSet('name', new \Utill\Strip\Chain\StripChainer($app, $_GET['name'], array(
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_DEFAULT,  
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED,  
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_CUSTOM_ADVANCED,
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_JAVASCRIPT_FUNCTIONS ,
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_LOWER_CASE,
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS, 
-        
-        )));
-  /*$stripper->offsetSet(array_search($_GET['icon_class'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['icon_class'], array(
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_DEFAULT,  
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED,  
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_CUSTOM_ADVANCED,
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_JAVASCRIPT_FUNCTIONS ,
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_LOWER_CASE,
-                                                                                              \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,        
-    )));*/
-    $stripper->offsetSet('parent', new \Utill\Strip\Chain\StripChainer($app, $_GET['parent'], array(
-                                                                                        \Services\Filter\FilterServiceNames::FILTER_ONLY_NUMBER_ALLOWED,                                                                                             
-    )));
-    $stripper->offsetGet('parent');    
-    $stripper->offsetSet('user_ID', new \Utill\Strip\Chain\StripChainer($app, $_GET['user_id'], array(
-                                                                                          \Services\Filter\FilterServiceNames::FILTER_ONLY_NUMBER_ALLOWED,                                                                                             
-    )));
-    /*$stripper->offsetSet(array_search($_GET['description'], $_GET), new \Utill\Strip\Chain\StripChainer($app, $_GET['description'], array(
-                                                                                          \Services\Filter\FilterServiceNames::FILTER_DEFAULT,  
-                                                                                          \Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED,  
-                                                                                          \Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_CUSTOM_ADVANCED,
-                                                                                          \Services\Filter\FilterServiceNames::FILTER_JAVASCRIPT_FUNCTIONS ,
-                                                                                          \Services\Filter\FilterServiceNames::FILTER_LOWER_CASE,
-                                                                                          \Services\Filter\FilterServiceNames::FILTER_SQL_RESERVEDWORDS,        
-    )));*/
-    
-       
-    $stripper->strip();
-    
-    $filterMessager = $app->getServiceManager()->get('filterMessager');
-    print_r($filterMessager->getFilterMessage());
-    
-   // $filteredValue = $stripper->offsetGet(array_search($_GET['url'], $_GET))->getFilterValue();
-    $vName = urldecode(trim( $stripper->offsetGet(array_search($_GET['name'], $_GET))->getFilterValue()));
-    $vParent = trim( $stripper->offsetGet(array_search($_GET['parent'], $_GET))->getFilterValue());
-    $vUserId = trim( $stripper->offsetGet('user_ID')->getFilterValue());
-   // $vIconClass = urldecode(trim( $stripper->offsetGet(array_search($_GET['icon_class'], $_GET))->getFilterValue()));
-
-   // $vDescription = urldecode(trim( $stripper->offsetGet(array_search($_GET['description'], $_GET))->getFilterValue()));
-        
-    
-   // print_r('--$vParent =-->'.$vParent.'----');
-    //print_r($stripChainer->offsetGet('test'));
-    
-          
-    $vIconClass = $_GET['icon_class'];
-    $vDescription = $_GET['description']; 
-    
-    $headerParams = $app->request()->headers();
-    $vPk = $headerParams['X-Public'];
-     
-      
-   
-    
-    
-    
-    
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
     $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');  
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkInsert_sysAclResources" end point, X-Public variable not found');    
+    $pk = $headerParams['X-Public'];
     
-
-
-
-
-        $resDataInsert = $BLL->insert(array('name' => $vName,
-            'icon_class' => $vIconClass,
-            'parent' => $vParent,
-            'user_id' => $vUserId, 
+    $vName = NULL;
+    if (isset($_GET['name'])) {
+         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_ONLY_ALPHABETIC_ALLOWED,
+                                                $app,
+                                                $_GET['name']));
+    }
+    $vDescription = NULL;
+    if (isset($_GET['description'])) {
+         $stripper->offsetSet('description',$stripChainerFactory->get(stripChainers::FILTER_ONLY_ALPHABETIC_ALLOWED,
+                                                $app,
+                                                $_GET['description']));
+    }
+    $vParent = NULL;
+    if (isset($_GET['parent_id'])) {
+         $stripper->offsetSet('parent_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['parent_id']));
+    }
+   
+    $stripper->strip();
+    if($stripper->offsetExists('name')) $vName = $stripper->offsetGet('name')->getFilterValue();
+    if($stripper->offsetExists('description')) $vDescription = $stripper->offsetGet('description')->getFilterValue();
+    if($stripper->offsetExists('parent_id')) $vParent = $stripper->offsetGet('parent_id')->getFilterValue();
+      
+    $resDataInsert = $BLL->insert(array(
+            'name' => $vName,       
+            'parent_id' => $vParent,          
             'description' => $vDescription,
-            'pk' => $vPk));
-        // print_r($resDataInsert);    
-
-
-
-        $app->response()->header("Content-Type", "application/json");
-
-
-
-        /* $app->contentType('application/json');
-          $app->halt(302, '{"error":"Something went wrong"}');
-          $app->stop(); */
-
-        $app->response()->body(json_encode($resDataInsert));
+            'pk' => $pk));
+        
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($resDataInsert));
     
 }
 );
@@ -355,37 +223,57 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
  * @since 13-01-2016
  */
 $app->get("/pkUpdate_sysAclResources/", function () use ($app ) {
-
-
-    $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');
-
-    // Filters are called from service manager
-    //$filterHtmlAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
-    //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
-    //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
-
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');  
     $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkUpdate_sysAclResources" end point, X-Public variable not found');    
     $pk = $headerParams['X-Public'];
-
-    $resDataUpdate = $BLL->update($_GET['id'], array('name' => $vName,
-            'icon_class' => $vIconClass,
-            'parent' => $vParent,
-            'user_id' => $vUserId,
+    
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+         $stripper->offsetSet('id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    }
+    $vName = NULL;
+    if (isset($_GET['name'])) {
+         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_ONLY_ALPHABETIC_ALLOWED,
+                                                $app,
+                                                $_GET['name']));
+    }
+    $vDescription = NULL;
+    if (isset($_GET['description'])) {
+         $stripper->offsetSet('description',$stripChainerFactory->get(stripChainers::FILTER_ONLY_ALPHABETIC_ALLOWED,
+                                                $app,
+                                                $_GET['description']));
+    }
+    $vParent = NULL;
+    if (isset($_GET['parent'])) {
+         $stripper->offsetSet('parent',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['parent']));
+    }
+   
+    $stripper->strip();
+    if($stripper->offsetExists('id')) $vId = $stripper->offsetGet('id')->getFilterValue();
+    if($stripper->offsetExists('name')) $vName = $stripper->offsetGet('name')->getFilterValue();
+    if($stripper->offsetExists('description')) $vDescription = $stripper->offsetGet('description')->getFilterValue();
+    if($stripper->offsetExists('parent')) $vParent = $stripper->offsetGet('parent')->getFilterValue();
+      
+    $resDataInsert = $BLL->update(array(
+            'id' => $vId,  
+            'name' => $vName,       
+            'parent' => $vParent,          
             'description' => $vDescription,
-            'id' =>$_GET['id'],
-            'pk' => $vPk));
-    //print_r($resDataGrid);    
-
-    $app->response()->header("Content-Type", "application/json");
-
-
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
-    $app->response()->body(json_encode($resDataUpdate));
-});
+            'pk' => $pk));
+        
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($resDataInsert));
+    
+}
+);
+ 
 /**
  *  * Okan CIRAN
  * @since 11-01-2016
@@ -453,29 +341,224 @@ $app->get("/pkGetAll_sysAclResources/", function () use ($app ) {
  *  * Okan CIRAN
  * @since 13-01-2016
  */
+ 
 $app->get("/pkDelete_sysAclResources/", function () use ($app ) {
-
-
-    $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');
-
-
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');   
     $headerParams = $app->request()->headers();
-    $pk = $headerParams['X-Public'];
+    $Pk = $headerParams['X-Public'];  
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    } 
+    $stripper->strip(); 
+    if ($stripper->offsetExists('id')) {$vId = $stripper->offsetGet('id')->getFilterValue(); }  
+    $resDataDeleted = $BLL->Delete(array(                  
+            'id' => $vId ,    
+            'pk' => $Pk,        
+            ));
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($resDataDeleted));
+}
+); 
+ 
 
-    $resDataUpdate = $BLL->delete($_GET['id'], array(
-        'user_id' => $_GET['user_id'],
-        'pk' => $pk));
+/**
+ *  * Okan CIRAN
+ * @since 12-08-2016
+ */
+$app->get("/pkFillResourcesTree_sysAclResources/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');    
+     $vParentId = 0;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    }    
+    $vsearch = null;
+    if(isset($_GET['search'])) {
+        $stripper->offsetSet('search', 
+                $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                        $app,
+                        $_GET['search']));
+    }
+    
+    $stripper->strip();    
+    if($stripper->offsetExists('id')) $vParentId = $stripper->offsetGet('id')->getFilterValue();
+    if($stripper->offsetExists('search')) $vsearch = $stripper->offsetGet('search')->getFilterValue();
 
+    $resCombobox = $BLL->fillResourcesTree(array('id' => $vParentId,                                                         
+                                                         'search' => $vsearch,
+                                                                ));
+ 
+    $flows = array();
+    foreach ($resCombobox as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+            "text" => $flow["name"],
+            "state" => $flow["state_type"], //   'closed',
+            "checked" => false,
+           // "icon_class"=>$flow["icon_class"], 
+            "attributes" => array("active" => $flow["active"]
+                 ),
+        );
+    }
 
     $app->response()->header("Content-Type", "application/json");
-
-
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
-    $app->response()->body(json_encode($resDataUpdate));
+    $app->response()->body(json_encode($flows));
 });
+
+/**
+ *  * Okan CIRAN
+ * @since 15-06-2016
+ */
+$app->get("/pkFillPropertieslist_sysAclResources/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillPropertieslist_sysAclResources" end point, X-Public variable not found');
+    }
+  //  $pk = $headerParams['X-Public'];
+
+    $vName = NULL;
+    if (isset($_GET['name'])) {
+        $stripper->offsetSet('name', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ALPHABETIC_ALLOWED, 
+                $app, $_GET['name']));
+    }     
+    $vDescription = NULL;
+    if (isset($_GET['description'])) {
+        $stripper->offsetSet('description', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['description']));
+    }
+    $vParentName = NULL;
+    if (isset($_GET['parent_name'])) {
+        $stripper->offsetSet('parent_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['parent_name']));
+    }
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, 
+                $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+                $app, $_GET['filterRules']));
+    }
+
+    $stripper->strip(); 
+    if ($stripper->offsetExists('name')) {
+        $vName = $stripper->offsetGet('name')->getFilterValue();
+    }
+    if ($stripper->offsetExists('parent_name')) {
+        $vParentName = $stripper->offsetGet('parent_name')->getFilterValue();
+    }
+    if ($stripper->offsetExists('description')) {
+        $vDescription = $stripper->offsetGet('description')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    }
+    
+    $resDataGrid = $BLL->fillPropertieslist(array(        
+        'page' => $vPage,
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,
+        'name' => $vName,
+        'parent_name' => $vParentName,
+        'description' => $vDescription,       
+        'filterRules' => $filterRules,
+    ));
+    $resTotalRowCount = $BLL->fillPropertieslistRtc(array(
+        'name' => $vName,
+        'parent_name' => $vParentName,
+        'description' => $vDescription,
+        'filterRules' => $filterRules,
+    ));
+    $counts = 0;
+    $flows = array();
+    if (isset($resDataGrid[0]['id'])) {
+        foreach ($resDataGrid as $flow) {
+            $flows[] = array(
+            "id" => $flow["id"],
+            "name" => $flow["name"],
+            "parent_id" => $flow["parent_id"],
+            "parent_name" => $flow["parent_name"],
+            "description" => $flow["description"],                        
+            "attributes" => array(
+                "notroot" => true,
+                "active" => $flow["active"], ) );
+        };
+        $counts = $resTotalRowCount[0]['count'];
+    }   
+    
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['total'] = $counts;
+    $resultArray['rows'] = $flows;
+    $app->response()->body(json_encode($resultArray));
+});
+
+ /**x
+ *  * Okan CIRAN
+ * @since 13-06-2016
+ */
+$app->get("/pkUpdateMakeActiveOrPassive_sysAclResources/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');
+    $headerParams = $app->request()->headers();
+    $Pk = $headerParams['X-Public'];      
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    } 
+    $stripper->strip(); 
+    if ($stripper->offsetExists('id')) {$vId = $stripper->offsetGet('id')->getFilterValue(); }
+    $resData = $BLL->makeActiveOrPassive(array(                  
+            'id' => $vId ,    
+            'pk' => $Pk,        
+            ));
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($resData));
+}
+); 
 
 $app->run();
