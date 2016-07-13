@@ -107,7 +107,7 @@ class PhpMailWrapper extends \Utill\Mail\AbstractMailWrapper implements \Utill\M
         //$mail->headerLine($headers, $value);
         $this->mailObj->IsSMTP(); // telling the class to use SMTP 
         $this->mailObj->Host       = "mail.ostimteknoloji.com"; // SMTP server 
-        $this->mailObj->SMTPDebug  = $this->getDebugMode(); // enables SMTP debug information (for testing) 
+        //$this->mailObj->SMTPDebug  = $this->getDebugMode(); // enables SMTP debug information (for testing) 
                                                     // 1 = errors and messages
                                                     // 2 = messages only
         $this->mailObj->SMTPAuth   = true;                  // enable SMTP authentication
@@ -123,6 +123,7 @@ class PhpMailWrapper extends \Utill\Mail\AbstractMailWrapper implements \Utill\M
         //$mail->AltBody    = " ıı öö ğğ işş çç !"; // optional, comment out and test
 
         $this->mailObj->MsgHTML($this->getMessage());
+        //$this->mailObj->MsgHTML($body);
         $address = "311corner82@gmail.com";
         //$mail->addCC('bahram.metu@gmail.com');
         //$mail->addBCC('311corner82@gmail.com'); 
