@@ -304,7 +304,7 @@ class SysUnitSystems extends \DAL\DalSlim {
                     $statement->bindValue(':system_eng', $params['system_eng'], \PDO::PARAM_STR);                    
                     $statement->bindValue(':system', $params['system'], \PDO::PARAM_STR);                                        
                     $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);   
-                    echo debugPDO($sql, $params);
+                 //   echo debugPDO($sql, $params);
                     $update = $statement->execute();
                     $affectedRows = $statement->rowCount();
                     $errorInfo = $statement->errorInfo();

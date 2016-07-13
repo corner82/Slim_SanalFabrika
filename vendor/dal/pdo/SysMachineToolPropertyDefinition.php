@@ -606,12 +606,11 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                         $xc = $this->updatePropertyUnitGroup(array('property_id' =>  intval($params['id']),
                             'unit_grup_id' => $params['unit_grup_id'],
                             'opUserIdValue' => $opUserIdValue,));
-                        print_r($xc);  
+                      
                         if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
                             throw new \PDOException($xc['errorInfo']);
                         
-                    }
-                            
+                    }                            
 
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
@@ -908,11 +907,11 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                     'open' AS state_type,
                     false AS root_type,
                     CASE 
-                        (SELECT COUNT(id) FROM sys_machine_groups_property_definition WHERE property_id = a.id) 
+                        (SELECT COUNT(DISTINCT property_id) FROM sys_machine_groups_property_definition WHERE property_id = a.id) 
                     WHEN 1 THEN true
                     ELSE false END AS machinegroup,
 		    CASE
-                        (SELECT COUNT(id) FROM sys_unit_groups_property_definition WHERE property_id = a.id) 
+                        (SELECT COUNT(DISTINCT property_id) FROM sys_unit_groups_property_definition WHERE property_id = a.id) 
 		    WHEN 1 THEN true
 		    ELSE false END AS unitgroup
 		FROM sys_machine_tool_property_definition a
@@ -1038,7 +1037,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                     'open' AS state_type,
                     false AS root_type,                   
 		    CASE
-                        (SELECT COUNT(id) FROM sys_unit_groups_property_definition WHERE property_id = a.id) 
+                        (SELECT COUNT(DISTINCT property_id) FROM sys_unit_groups_property_definition WHERE property_id = a.id) 
 		    WHEN 1 THEN true
 		    ELSE false END AS unitgroup
 		FROM sys_machine_tool_property_definition a
@@ -1110,7 +1109,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                     'open' AS state_type,
                     false AS root_type,                   
 		    CASE
-                        (SELECT COUNT(id) FROM sys_unit_groups_property_definition WHERE property_id = a.id) 
+                        (SELECT COUNT(DISTINCT property_id) FROM sys_unit_groups_property_definition WHERE property_id = a.id) 
 		    WHEN 1 THEN true
 		    ELSE false END AS unitgroup
 		FROM sys_machine_tool_property_definition a
@@ -1213,7 +1212,7 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             $ekSql = " sss.machine_tool_property_definition_id = a.id ";             
             if (isset($params['machine_id']) && $params['machine_id'] != "") {
                 $MachineId = $params['machine_id'];
-                $innerSql .=" INNER JOIN sys_machine_tools smt ON smt.machine_tool_grup_id = mpd.machine_grup_id AND smt.active =0 AND smt.deleted =0 AND smt.language_parent_id =0
+                $innerSql .=" INNER JOIN sys_machine_tools smt ON smt.machine_tool_grup_id = mpd.machine_grup_id AND smt.active =0 AND smt.deleted =0 AND smt.language_parent_id =0 
                             LEFT JOIN sys_machine_tools smtx ON (smtx.id =smt.id OR smtx.language_parent_id = smt.id) AND smtx.deleted =0 AND smtx.active =0 AND lx.id = smtx.language_id
                             ";
                 $whereSql .= " AND smt.id = " . $MachineId; 
@@ -1233,31 +1232,40 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                 SELECT DISTINCT
                     a.id,
                     mpd.machine_grup_id,
+                    smt.id AS machine_tool_id,
                     COALESCE(NULLIF(su.property_name, ''), a.property_name_eng) AS property_name,
                     a.property_name_eng,
                     'open' AS state_type,                    
                     CASE 
-                        (SELECT COUNT(ssz.id) FROM sys_machine_groups_property_definition ssz WHERE ssz.property_id = a.id) 
+                        (SELECT COUNT(DISTINCT ssz.property_id) FROM sys_machine_groups_property_definition ssz WHERE ssz.property_id = a.id) 
                     WHEN 1 THEN true
                     ELSE false END AS machinegroup, 
                     CASE
-                        (SELECT COUNT(sss.id) FROM sys_machine_tool_properties sss WHERE sss.machine_tool_property_definition_id = a.id AND sss.language_parent_id =0 ) 
+                        (SELECT COUNT(DISTINCT sss.machine_tool_property_definition_id) FROM sys_machine_tool_properties sss WHERE sss.machine_tool_property_definition_id = a.id AND sss.language_parent_id =0 AND sss.machine_tool_id=smt.id  ) 
 		    WHEN 1 THEN true 
 		    ELSE false END AS checked ,
                     CASE
-                        (SELECT COUNT(sss.id) FROM sys_machine_tool_properties sss WHERE sss.machine_tool_property_definition_id = a.id AND sss.language_parent_id =0 ) 
+                        (SELECT COUNT(DISTINCT sss.machine_tool_property_definition_id) FROM sys_machine_tool_properties sss 
+                                WHERE sss.active =0 AND 
+                                    sss.deleted= 0 AND 
+                                    sss.machine_tool_property_definition_id = a.id AND 
+                                    sss.language_parent_id =0 AND 
+                                    sss.machine_tool_id=smt.id) 
 		    WHEN 1 THEN true 
-		    ELSE false END AS active 
+		    ELSE false END AS active ,
+                    smtp.unit_id ,
+                    smtp.property_value
  		FROM sys_machine_tool_property_definition a
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                 " . $innerSql . " 
                 LEFT JOIN sys_machine_tool_property_definition su ON (su.id = a.id OR su.language_parent_id = a.id) AND su.deleted =0 AND su.active =0 AND lx.id = su.language_id 
+                LEFT JOIN sys_machine_tool_properties smtp ON smtp.machine_tool_id=smt.id AND smtp.machine_tool_property_definition_id = a.id AND smtp.active =0 AND smtp.deleted =0 
                 " . $whereSql . " 
                 ORDER BY property_name 
                                  ";
              $statement = $pdo->prepare($sql);
-           //  echo debugPDO($sql, $params);
+         //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1379,7 +1387,8 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
                     COALESCE(NULLIF(sux.unitcode, ''), su.unitcode_eng) AS unitcode,
                     su.unitcode_eng,                    
                     a.active,
-                    COALESCE(NULLIF(sd16x.description , ''), sd16.description_eng) AS state_active                                  
+                    COALESCE(NULLIF(sd16x.description , ''), sd16.description_eng) AS state_active ,
+                    sugpd.unit_grup_id
                 FROM sys_machine_tool_property_definition  a                                
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                       

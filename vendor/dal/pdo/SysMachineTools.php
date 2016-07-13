@@ -568,20 +568,20 @@ class SysMachineTools extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-                SELECT                    
+                SELECT
                     mt.id, 
                     COALESCE(NULLIF( (mtx.machine_tool_name), ''), mt.machine_tool_name_eng) AS machine_tool_name,   
                     mt.machine_tool_name_eng,
                     COALESCE(NULLIF((ax.group_name), ''), a.group_name_eng) AS group_name,   
-                    a.group_name_eng,
-                    m.manufacturer_name,
+                    a.group_name_eng,                 
+                    COALESCE(NULLIF((m.manufacturer_name), ''), ' ') AS manufacturer_name,
                     mt.active,
                     mt.machine_tool_grup_id, 
-                    mt.manufactuer_id, 
-                    mt.model, 
-                    mt.model_year,
-                    mt.machine_code, 
-                    mt.language_id,                  
+                    mt.manufactuer_id,                     
+                    COALESCE(NULLIF((mt.model), ''), ' ') AS model,
+                    mt.model_year,                    
+                    COALESCE(NULLIF((mt.machine_code), ''), ' ') AS machine_code,
+                    mt.language_id,
                     CASE COALESCE(NULLIF(mt.picture, ''),'-')
                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(mt.picture, ''),'image_not_found.png'))
                         ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(mt.picture, ''),'image_not_found.png')) END AS picture

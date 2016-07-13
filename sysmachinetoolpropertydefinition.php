@@ -676,7 +676,10 @@ $app->get("/pkFillMachineGroupProperties_sysMachineToolPropertyDefinition/", fun
             "checked" => $flow["checked"],
             //"icon_class"=>"icon_class", 
             "attributes" => array(  "active" => $flow["active"],
-                "machine_grup_id" => $flow["machine_grup_id"], //"machinegroup" => $flow["machinegroup"],  
+                "machine_grup_id" => $flow["machine_grup_id"], 
+                "machine_tool_id" => $flow["machine_tool_id"], 
+                "property_value" => $flow["property_value"],  
+                "unit_id" => $flow["unit_id"],  
                 "property_name_eng" => html_entity_decode($flow["property_name_eng"]),
                 ),
         );
@@ -707,7 +710,7 @@ $app->get("/pkTransferPropertyMachineGroup_sysMachineToolPropertyDefinition/", f
          $stripper->offsetSet('property_id',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1,
                                                 $app,
                                                 $_GET['property_id']));
-    }  
+    }   
     $stripper->strip();           
     if ($stripper->offsetExists('machine_grup_id')) {
         $vMachineGrupId = $stripper->offsetGet('machine_grup_id')->getFilterValue();
@@ -847,8 +850,9 @@ $app->get("/pkFillPropertieslist_sysMachineToolPropertyDefinition/", function ()
             "id" => $flow["id"],
             "property_name" => $flow["property_name"],
             "property_name_eng" => $flow["property_name_eng"],
+            "unit_grup_id" => $flow["unit_grup_id"],  
             "unitcode" => $flow["unitcode"],
-            "unitcode_eng" => $flow["unitcode_eng"],            
+            "unitcode_eng" => $flow["unitcode_eng"],              
             "attributes" => array(
                 "notroot" => true,
                 "active" => $flow["active"], ) );
