@@ -129,7 +129,47 @@ class SysAclRoles extends \BLL\BLLSlim {
         return $resultSet['resultSet'];
     }
     
+    /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillRolesTree ($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
+        $resultSet = $DAL->fillRolesTree($params);  
+        return $resultSet['resultSet'];
+    }
     
+   /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillRolesPropertiesList ($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
+        $resultSet = $DAL->fillRolesPropertiesList($params);  
+        return $resultSet['resultSet'];
+    }
+    
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillRolesPropertiesListRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
+        $resultSet = $DAL->fillRolesPropertiesListRtc($params);  
+        return $resultSet['resultSet'];
+    }    
+    /**
+     * public key / private key and value update function
+     * @param array | null $params
+     * @return array
+     */
+    public function makeActiveOrPassive($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
+        return $DAL->makeActiveOrPassive($params);
+    } 
     
     
 
