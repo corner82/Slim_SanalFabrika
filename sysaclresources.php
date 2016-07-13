@@ -185,13 +185,13 @@ $app->get("/pkInsert_sysAclResources/", function () use ($app ) {
     
     $vName = NULL;
     if (isset($_GET['name'])) {
-         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_ONLY_ALPHABETIC_ALLOWED,
+         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
                                                 $_GET['name']));
     }
     $vDescription = NULL;
     if (isset($_GET['description'])) {
-         $stripper->offsetSet('description',$stripChainerFactory->get(stripChainers::FILTER_ONLY_ALPHABETIC_ALLOWED,
+         $stripper->offsetSet('description',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
                                                 $_GET['description']));
     }
@@ -238,13 +238,13 @@ $app->get("/pkUpdate_sysAclResources/", function () use ($app ) {
     }
     $vName = NULL;
     if (isset($_GET['name'])) {
-         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_ONLY_ALPHABETIC_ALLOWED,
+         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
                                                 $_GET['name']));
     }
     $vDescription = NULL;
     if (isset($_GET['description'])) {
-         $stripper->offsetSet('description',$stripChainerFactory->get(stripChainers::FILTER_ONLY_ALPHABETIC_ALLOWED,
+         $stripper->offsetSet('description',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
                                                 $_GET['description']));
     }
@@ -429,7 +429,7 @@ $app->get("/pkFillPropertieslist_sysAclResources/", function () use ($app ) {
 
     $vName = NULL;
     if (isset($_GET['name'])) {
-        $stripper->offsetSet('name', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ALPHABETIC_ALLOWED, 
+        $stripper->offsetSet('name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
                 $app, $_GET['name']));
     }     
     $vDescription = NULL;
@@ -521,7 +521,7 @@ $app->get("/pkFillPropertieslist_sysAclResources/", function () use ($app ) {
             "parent_name" => $flow["parent_name"],
             "description" => $flow["description"],                        
             "attributes" => array(
-                "notroot" => true,
+                 
                 "active" => $flow["active"], ) );
         };
         $counts = $resTotalRowCount[0]['count'];

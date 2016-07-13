@@ -113,11 +113,12 @@ class SysAclResources extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $kontrol = $this->haveRecords($params);
-            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
                 if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                     $opUserIdValue = $opUserId ['resultSet'][0]['user_id']; 
+            $kontrol = $this->haveRecords($params);
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+               
                     $ParentId = 0;
                     if ((isset($params['parent_id']) && $params['parent_id'] != "")) {                        
                         $ParentId = $params['parent_id'];                        
@@ -246,7 +247,7 @@ class SysAclResources extends \DAL\DalSlim {
                AND deleted =0   
                                ";
             $statement = $pdo->prepare($sql);        
-            // echo debugPDO($sql, $params);
+         //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
