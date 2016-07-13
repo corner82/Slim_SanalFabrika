@@ -240,18 +240,6 @@ class InfoFirmProductsServices extends \DAL\DalSlim {
                         if (\Utill\Dal\Helper::haveRecord($operationId)) {
                             $operationIdValue = $operationId ['resultSet'][0]['id'];
                         }
-
-                        $ConsultantId = 1001;
-                        $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_products_services' , 'operation_type_id' => $operationIdValue));
-                        if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
-                            $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
-                        }
-
-                        $profilePublic = 0;
-                        if ((isset($params['profile_public']) && $params['profile_public'] != "")) {
-                            $profilePublic = $params['profile_public'];
-                        }
-
                         $languageId = NULL;
                         $languageIdValue = 647;
                         if ((isset($params['language_code']) && $params['language_code'] != "")) {                
@@ -259,7 +247,21 @@ class InfoFirmProductsServices extends \DAL\DalSlim {
                             if (\Utill\Dal\Helper::haveRecord($languageId)) {
                                 $languageIdValue = $languageId ['resultSet'][0]['id'];                    
                             }
-                        }                          
+                        } 
+
+                        $ConsultantId = 1001;
+                        $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_products_services' , 
+                                                                                              'operation_type_id' => $operationIdValue, 
+                                                                                              'language_id' => $languageIdValue,  
+                                                                                               ));
+                        if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
+                            $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
+                        }
+
+                        $profilePublic = 0;
+                        if ((isset($params['profile_public']) && $params['profile_public'] != "")) {
+                            $profilePublic = $params['profile_public'];
+                        }                       
 
                         $sql = " 
                         INSERT INTO info_firm_products_services(

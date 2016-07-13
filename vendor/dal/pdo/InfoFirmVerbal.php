@@ -251,9 +251,20 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                         if (\Utill\Dal\Helper::haveRecord($operationId)) {
                             $operationIdValue = $operationId ['resultSet'][0]['id'];
                         }
+                        $languageId = NULL;
+                        $languageIdValue = 647;
+                        if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                                $languageIdValue = $languageId ['resultSet'][0]['id'];
+                            }
+                        }
 
                         $ConsultantId = 1001;
-                        $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_verbal' , 'operation_type_id' => $operationIdValue));
+                        $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_verbal' , 
+                                                                                        'operation_type_id' => $operationIdValue, 
+                                                                                        'language_id' => $languageIdValue,  
+                                                                                               ));
                         if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                             $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                         }
@@ -265,18 +276,8 @@ class InfoFirmVerbal extends \DAL\DalSlim {
                         $countryId = 91;
                         if ((isset($params['country_id']) && $params['country_id'] != "")) {
                             $countryId = intval($params['country_id']);
-                        }
-
-                        $languageId = NULL;
-                        $languageIdValue = 647;
-                        if ((isset($params['language_code']) && $params['language_code'] != "")) {
-                            $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                            if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                                $languageIdValue = $languageId ['resultSet'][0]['id'];
-                            }
-                        }
+                        } 
                         
-                       
                         $xc= InfoFirmProfile::updateVerbal(array(
                             'op_user_id' => $opUserIdValue, 
                             'firm_id' => $getFirmId,
@@ -1451,8 +1452,8 @@ class InfoFirmVerbal extends \DAL\DalSlim {
            $mailTemplate->setContentRetrieverStartegyClass(new \Utill\Mail\Template\ContentRetrieverFromFileStrategy);
            $mailTemplate->setTemplateContent(array('fileName'=>'test'));
            $message = $mailTemplate->getTemplateContent();
-           //print_r($message);
-               
+          // print_r($message);
+            
            $mail = new \Utill\Mail\PhpMailer\PhpMailWrapper();
            $mail->setCharset('UTF-8');
            $mail->setSMTPServerHost('mail.ostimteknoloji.com');

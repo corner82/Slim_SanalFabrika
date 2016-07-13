@@ -180,7 +180,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 " . $addSql . "                  
                                ";
             $statement = $pdo->prepare($sql);
-             echo debugPDO($sql, $params);
+            // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -254,18 +254,6 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         if (\Utill\Dal\Helper::haveRecord($operationId)) {
                         $operationIdValue = $operationId ['resultSet'][0]['id'];
                         }
-                        
-                        $ConsultantId = 1001;
-                        $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_machine_tool' , 'operation_type_id' => $operationIdValue));
-                        if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
-                            $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
-                        } 
-                        
-                        if (isset($params['profile_public'])) {
-                            $addSql .= " profile_public, ";
-                            $addSqlValue .= intval($params['profile_public']) . ", ";
-                        }
-
                         $languageId = NULL;
                         $languageIdValue = 647;
                         if ((isset($params['language_code']) && $params['language_code'] != "")) {                
@@ -274,6 +262,19 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                                 $languageIdValue = $languageId ['resultSet'][0]['id'];                    
                             }
                         }  
+                        $ConsultantId = 1001;
+                        $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_machine_tool' , 
+                                                                                              'operation_type_id' => $operationIdValue, 
+                                                                                              'language_id' => $languageIdValue,  
+                                                                                               ));
+                        if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
+                            $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
+                        } 
+                        
+                        if (isset($params['profile_public'])) {
+                            $addSql .= " profile_public, ";
+                            $addSqlValue .= intval($params['profile_public']) . ", ";
+                        } 
                         
                         $addSql .= " language_id, ";
                         $addSqlValue .= " " . $languageIdValue . ",";

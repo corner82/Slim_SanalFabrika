@@ -197,7 +197,10 @@ class InfoFirmUsers extends \DAL\DalSlim {
                         }
                     }
 
-                    $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_users' , 'operation_type_id' => $operationIdValue));
+                    $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_users' , 
+                                                                                        'operation_type_id' => $operationIdValue, 
+                                                                                        'language_id' => $languageIdValue,  
+                                                                                               ));
                     if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                         $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                     } else {
