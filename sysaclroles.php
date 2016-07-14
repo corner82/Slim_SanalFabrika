@@ -252,6 +252,13 @@ $app->get("/pkInsert_sysAclRoles/", function () use ($app ) {
                                                 $app,
                                                 $_GET['parent']));
     }
+    $vResourceId = NULL;
+    if (isset($_GET['resource_id'])) {
+         $stripper->offsetSet('resource_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['resource_id']));
+    }
+    
     $vInherited = NULL;
     if (isset($_GET['inherited_id'])) {
          $stripper->offsetSet('inherited_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
@@ -264,12 +271,14 @@ $app->get("/pkInsert_sysAclRoles/", function () use ($app ) {
     if($stripper->offsetExists('name_tr')) $vNameTr = $stripper->offsetGet('name_tr')->getFilterValue();
     if($stripper->offsetExists('description')) $vDescription = $stripper->offsetGet('description')->getFilterValue();
     if($stripper->offsetExists('parent')) $vParent = $stripper->offsetGet('parent')->getFilterValue();
+    if($stripper->offsetExists('resource_id')) $vResourceId = $stripper->offsetGet('resource_id')->getFilterValue();
     if($stripper->offsetExists('inherited_id')) $vInherited = $stripper->offsetGet('inherited_id')->getFilterValue();
       
     $resDataInsert = $BLL->insert(array(
             'name' => $vName,      
             'name_tr' => $vNameTr,   
             'parent_id' => $vParent,    
+            'resource_id' => $vResourceId,    
             'inherited' => $vInherited,  
             'description' => $vDescription,
             'pk' => $pk));
@@ -321,6 +330,12 @@ $app->get("/pkUpdate_sysAclRoles/", function () use ($app ) {
                                                 $app,
                                                 $_GET['parent']));
     }
+    $vResourceId = NULL;
+    if (isset($_GET['resource_id'])) {
+         $stripper->offsetSet('resource_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['resource_id']));
+    }
     $vInherited = NULL;
     if (isset($_GET['inherited_id'])) {
          $stripper->offsetSet('inherited_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
@@ -334,13 +349,15 @@ $app->get("/pkUpdate_sysAclRoles/", function () use ($app ) {
     if($stripper->offsetExists('name_tr')) $vNameTr = $stripper->offsetGet('name_tr')->getFilterValue();
     if($stripper->offsetExists('description')) $vDescription = $stripper->offsetGet('description')->getFilterValue();
     if($stripper->offsetExists('parent')) $vParent = $stripper->offsetGet('parent')->getFilterValue();
+    if($stripper->offsetExists('resource_id')) $vResourceId = $stripper->offsetGet('resource_id')->getFilterValue();
     if($stripper->offsetExists('inherited_id')) $vInherited = $stripper->offsetGet('inherited_id')->getFilterValue();
       
     $resDataInsert = $BLL->update(array(
             'id' => $vId,
             'name' => $vName,      
             'name_tr' => $vNameTr,   
-            'parent_id' => $vParent,    
+            'parent_id' => $vParent, 
+            'resource_id' => $vResourceId,    
             'inherited' => $vInherited,  
             'description' => $vDescription,
             'pk' => $pk));
@@ -600,6 +617,11 @@ $app->get("/pkFillRolesPropertiesList_sysAclRoles/", function () use ($app ) {
         $stripper->offsetSet('parent_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
                 $app, $_GET['parent_name']));
     }
+    $vResourceName = NULL;
+    if (isset($_GET['resource_name'])) {
+        $stripper->offsetSet('resource_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['resource_name']));
+    }
     $vInheritedName = NULL;
     if (isset($_GET['inherited_name'])) {
         $stripper->offsetSet('inherited_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
@@ -640,6 +662,9 @@ $app->get("/pkFillRolesPropertiesList_sysAclRoles/", function () use ($app ) {
     }
     if ($stripper->offsetExists('parent_name')) {
         $vParentName = $stripper->offsetGet('parent_name')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('resource_name')) {
+        $vResourceName = $stripper->offsetGet('resource_name')->getFilterValue();
     }
     if ($stripper->offsetExists('inherited_name')) {
         $vInheritedName = $stripper->offsetGet('inherited_name')->getFilterValue();
@@ -672,6 +697,7 @@ $app->get("/pkFillRolesPropertiesList_sysAclRoles/", function () use ($app ) {
         'name_tr' => $vNameTr,
         'inherited_name' => $vInheritedName,        
         'parent_name' => $vParentName,
+        'resource_name' => $vResourceName,
         'description' => $vDescription,       
         'filterRules' => $filterRules,
     ));
@@ -679,6 +705,7 @@ $app->get("/pkFillRolesPropertiesList_sysAclRoles/", function () use ($app ) {
         'name' => $vName,
         'name_tr' => $vNameTr,
         'inherited_name' => $vInheritedName,   
+        'resource_name' => $vResourceName,
         'parent_name' => $vParentName,
         'description' => $vDescription,
         'filterRules' => $filterRules,
@@ -693,6 +720,8 @@ $app->get("/pkFillRolesPropertiesList_sysAclRoles/", function () use ($app ) {
             "name_tr" => $flow["name_tr"],
             "parent_id" => $flow["parent_id"],
             "parent_name" => $flow["parent_name"],
+            "resource_id" => $flow["resource_id"],
+            "resource_name" => $flow["resource_name"],
             "inherited" => $flow["inherited"],
             "inherited_name" => $flow["inherited_name"],
             "description" => $flow["description"],                        

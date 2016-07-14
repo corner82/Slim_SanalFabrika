@@ -74,6 +74,8 @@ class SysAclRoles extends \DAL\DalSlim {
                 a.id, 
                 a.name AS name,
                 a.name_tr,
+                a.resource_id,
+                sare.name AS resource_name,
                 a.icon_class, 
                 a.c_date as create_date,
                 a.start_date,
@@ -90,13 +92,14 @@ class SysAclRoles extends \DAL\DalSlim {
                 a.inherited,
                 sar.name AS inherited_name                                            
             FROM sys_acl_roles a
+            LEFT JOIN sys_acl_resources sare ON sare.id = a.resource_id 
             INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted = 0 AND sd15.active = 0
             INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
             INNER JOIN info_users u ON u.id = a.op_user_id 
             LEFT JOIN sys_acl_roles sar ON a.inherited > 0 AND sar.id = a.inherited AND sar.active =0 AND sar.deleted =0 
             LEFT JOIN sys_acl_roles sar1 ON a.parent_id > 0 AND sar1.id = a.parent_id AND sar1.active =0 AND sar1.deleted =0 
             WHERE a.deleted =0  
-            ORDER BY a.name
+            ORDER BY a.name             
                                  ");            
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);     
@@ -130,6 +133,10 @@ class SysAclRoles extends \DAL\DalSlim {
                     if ((isset($params['parent_id']) && $params['parent_id'] != "")) {
                         $ParentId = $params['parent_id'];
                     }
+                    $ResourceId = 0;
+                    if ((isset($params['resource_id']) && $params['resource_id'] != "")) {
+                        $ResourceId = $params['resource_id'];
+                    }
                     $Inherited = 0;
                     if ((isset($params['inherited']) && $params['inherited'] != "")) {
                         $ParentId = $params['inherited'];
@@ -143,6 +150,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 INSERT INTO sys_acl_roles(
                         name, 
                         name_tr,
+                        resource_id,
                         icon_class,  
                         parent_id, 
                         op_user_id, 
@@ -151,8 +159,9 @@ class SysAclRoles extends \DAL\DalSlim {
                 VALUES (
                         '" . $params['name'] . "', 
                         '" . $params['name_tr'] . "', 
+                        " . intval($ResourceId) . ",
                         '" . $IconClass . "', 
-                        " . intval($ParentId) . ",                      
+                        " . intval($ParentId) . ",
                         " . intval($opUserIdValue) . ",
                         '" . $params['description'] . "',
                         " . intval($Inherited) . "
@@ -247,20 +256,25 @@ class SysAclRoles extends \DAL\DalSlim {
                     }
                     $Inherited = 0;
                     if ((isset($params['inherited']) && $params['inherited'] != "")) {
-                        $ParentId = $params['inherited'];
+                        $Inherited = $params['inherited'];
                     }
                     $IconClass = '';
                     if ((isset($params['icon_class']) && $params['icon_class'] != "")) {
-                        $ParentId = $params['icon_class'];
+                        $IconClass = $params['icon_class'];
+                    }                    
+                    $ResourceId = '';
+                    if ((isset($params['resource_id']) && $params['resource_id'] != "")) {
+                        $ResourceId = $params['resource_id'];
                     }
 
                     $sql = "
                 UPDATE sys_acl_roles
                 SET 
                     name = '" . $params['name'] . "',
-                    name_tr = '" . $params['name_tr'] . "',                        
+                    name_tr = '" . $params['name_tr'] . "',
                     icon_class =  '" . $IconClass . "',
                     parent_id = " . intval($ParentId) . ",
+                    resource_id = " . intval($ResourceId) . ",
                     description =  '" . $params['description'] . "',
                     op_user_id = " . intval($opUserIdValue) . ",
                     inherited = " . intval($Inherited) . "
@@ -377,6 +391,8 @@ class SysAclRoles extends \DAL\DalSlim {
                 a.id, 
                 a.name AS name,
                 a.name_tr,
+                a.resource_id,
+                sare.name AS resource_name,
                 a.icon_class, 
                 a.c_date as create_date,
                 a.start_date,
@@ -393,13 +409,13 @@ class SysAclRoles extends \DAL\DalSlim {
                 a.inherited,
                 sar.name AS inherited_name                                            
             FROM sys_acl_roles a
+            LEFT JOIN sys_acl_resources sare ON sare.id = a.resource_id 
             INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted = 0 AND sd15.active = 0
-            INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0                             
+            INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
             INNER JOIN info_users u ON u.id = a.op_user_id 
             LEFT JOIN sys_acl_roles sar ON a.inherited > 0 AND sar.id = a.inherited AND sar.active =0 AND sar.deleted =0 
             LEFT JOIN sys_acl_roles sar1 ON a.parent_id > 0 AND sar1.id = a.parent_id AND sar1.active =0 AND sar1.deleted =0 
-            WHERE a.deleted =0 
-          
+            WHERE a.deleted =0  
             ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -691,6 +707,11 @@ class SysAclRoles extends \DAL\DalSlim {
                                 $sorguStr.=" AND inherited_name" . $sorguExpression . ' ';
                             
                                 break;  
+                            case 'resource_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND resource_name" . $sorguExpression . ' ';
+                            
+                                break;  
                             default:
                                 break;
                         }
@@ -713,14 +734,19 @@ class SysAclRoles extends \DAL\DalSlim {
                 }  
                 if (isset($params['parent_name']) && $params['parent_name'] != "") {
                     $sorguStr .= " AND parent_name Like '%" . $params['parent_name'] . "%'";
-                }   
+                }  
+                if (isset($params['resource_name']) && $params['resource_name'] != "") {
+                    $sorguStr .= " AND resource_name Like '%" . $params['resource_name'] . "%'";
+                } 
             }
             $sorguStr = rtrim($sorguStr, "AND ");
             $sql = "  
                 SELECT   
                     id, 
                     name,
-                    name_tr,                    
+                    name_tr, 
+                    resource_id,
+                    resource_name,
                     parent_id, 
                     COALESCE(NULLIF(parent_name, ''),'Root') AS parent_name, 
                     deleted, 
@@ -737,6 +763,8 @@ class SysAclRoles extends \DAL\DalSlim {
                         a.id, 
                         a.name ,
                         a.name_tr,
+                        a.resource_id,
+                        sare.name AS resource_name,
                         a.start_date,
                         a.end_date,
                         a.parent_id, 
@@ -751,13 +779,14 @@ class SysAclRoles extends \DAL\DalSlim {
                         a.inherited,
                         sar.name AS inherited_name                                            
                     FROM sys_acl_roles a
+                    LEFT JOIN sys_acl_resources sare ON sare.id = a.resource_id 
                     INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted = 0 AND sd15.active = 0
                     INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0                             
                     INNER JOIN info_users u ON u.id = a.op_user_id 
                     LEFT JOIN sys_acl_roles sar ON a.inherited > 0 AND sar.id = a.inherited AND sar.active =0 AND sar.deleted =0 
                     LEFT JOIN sys_acl_roles sar1 ON a.parent_id > 0 AND sar1.id = a.parent_id AND sar1.active =0 AND sar1.deleted =0 
                     WHERE a.deleted =0 
-                    ) AS xtable
+                    ) AS xtable WHERE deleted =0 
                 ".$sorguStr."
             ORDER BY    " . $sort . " "
                     . "" . $order . " "
@@ -771,7 +800,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             $statement = $pdo->prepare($sql);
-          //echo debugPDO($sql, $params);
+        // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -829,6 +858,11 @@ class SysAclRoles extends \DAL\DalSlim {
                                 $sorguStr.=" AND inherited_name" . $sorguExpression . ' ';
                             
                                 break;  
+                            case 'resource_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND resource_name" . $sorguExpression . ' ';
+                            
+                                break; 
                             default:
                                 break;
                         }
@@ -852,6 +886,9 @@ class SysAclRoles extends \DAL\DalSlim {
                 if (isset($params['parent_name']) && $params['parent_name'] != "") {
                     $sorguStr .= " AND parent_name Like '%" . $params['parent_name'] . "%'";
                 }   
+                if (isset($params['resource_name']) && $params['resource_name'] != "") {
+                    $sorguStr .= " AND resource_name Like '%" . $params['resource_name'] . "%'";
+                } 
             }
             $sorguStr = rtrim($sorguStr, "AND ");
             $sql = " 
@@ -863,6 +900,8 @@ class SysAclRoles extends \DAL\DalSlim {
                         name_tr,                    
                         parent_id, 
                         COALESCE(NULLIF(parent_name, ''),'Root') AS parent_name, 
+                        resource_id,
+                        resource_name,
                         deleted, 
                         state_deleted,                 
                         active, 
@@ -881,6 +920,8 @@ class SysAclRoles extends \DAL\DalSlim {
                             a.end_date,
                             a.parent_id, 
                             sar1.name AS parent_name,
+                            a.resource_id,
+                            sare.name AS resource_name,
                             a.deleted, 
                             sd15.description AS state_deleted,                 
                             a.active, 
@@ -891,14 +932,15 @@ class SysAclRoles extends \DAL\DalSlim {
                             a.inherited,
                             sar.name AS inherited_name                                            
                         FROM sys_acl_roles a
+                        LEFT JOIN sys_acl_resources sare ON sare.id = a.resource_id 
                         INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted = 0 AND sd15.active = 0
                         INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0                             
                         INNER JOIN info_users u ON u.id = a.op_user_id 
                         LEFT JOIN sys_acl_roles sar ON a.inherited > 0 AND sar.id = a.inherited AND sar.active =0 AND sar.deleted =0 
                         LEFT JOIN sys_acl_roles sar1 ON a.parent_id > 0 AND sar1.id = a.parent_id AND sar1.active =0 AND sar1.deleted =0 
                         WHERE a.deleted =0 
-                        ) AS xtable
-                    ) AS xxtable
+                        ) AS xtable 
+                    ) AS xxtable  WHERE deleted =0 
                 ".$sorguStr."
                 ";           
             $statement = $pdo->prepare($sql);
