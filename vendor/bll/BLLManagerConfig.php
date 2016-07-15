@@ -96,6 +96,7 @@ class BLLManagerConfig{
                  'infoUsersProductsServicesBLL' => 'BLL\BLL\InfoUsersProductsServices',
                  'sysOsbClustersAllianceBLL' => 'BLL\BLL\SysOsbClustersAlliance',
                  'sysMembershipTypesBLL' => 'BLL\BLL\SysMembershipTypes',
+                 'sysAclRrpBLL' => 'BLL\BLL\SysAclRrp',
                  
                                  
                  

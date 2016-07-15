@@ -101,6 +101,7 @@ class DalManagerConfig {
                 'infoUsersProductsServicesPDO' => 'DAL\Factory\PDO\InfoUsersProductsServicesFactory',
                 'sysOsbClustersAlliancePDO' => 'DAL\Factory\PDO\SysOsbClustersAllianceFactory',
                 'sysMembershipTypesPDO' => 'DAL\Factory\PDO\SysMembershipTypesFactory',
+                'sysAclRrpPDO' => 'DAL\Factory\PDO\SysAclRrpFactory',
                 
                 
                 
