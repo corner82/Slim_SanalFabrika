@@ -149,5 +149,16 @@ class SysAclResources extends \BLL\BLLSlim{
         $DAL = $this->slimApp->getDALManager()->get('sysAclResourcesPDO');
         return $DAL->makeActiveOrPassive($params);
     }
+    /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillResourcesDdList($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclResourcesPDO');
+        $resultSet = $DAL->fillResourcesDdList($params);
+        return $resultSet['resultSet'];
+    }
+    
 }
 

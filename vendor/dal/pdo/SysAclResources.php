@@ -18,7 +18,7 @@ namespace DAL\PDO;
  */
 class SysAclResources extends \DAL\DalSlim {
 
-    /**       
+    /**
      * @author Okan CIRAN
      * @ sys_acl_resources tablosundan parametre olarak  gelen id kaydını siler. !!
      * @version v 1.0  07.01.2016
@@ -27,7 +27,7 @@ class SysAclResources extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function delete($params = array()) {
-       try {
+        try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
@@ -36,9 +36,9 @@ class SysAclResources extends \DAL\DalSlim {
                 $statement = $pdo->prepare(" 
                 UPDATE sys_acl_resources
                 SET  deleted= 1, active = 1,
-                     op_user_id = " .intval($opUserIdValue) . "
-                WHERE id = ".intval($params['id']) 
-                        );
+                     op_user_id = " . intval($opUserIdValue) . "
+                WHERE id = " . intval($params['id'])
+                );
                 //Execute our DELETE statement.
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
@@ -56,9 +56,9 @@ class SysAclResources extends \DAL\DalSlim {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
-    } 
+    }
 
-    /**  
+    /**
      * @author Okan CIRAN
      * @ sys_acl_resources tablosundaki tüm kayıtları getirir.  !!
      * @version v 1.0  07.01.2016    
@@ -89,19 +89,19 @@ class SysAclResources extends \DAL\DalSlim {
                 INNER JOIN info_users u ON u.id = a.op_user_id
                 WHERE a.deleted =0 AND a.language_code = :language_code     
                 ORDER BY a.name
-                                 ");            
+                                 ");
             $statement->execute();
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);   
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {     
+        } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
-    /** 
+    /**
      * @author Okan CIRAN
      * @ sys_acl_resources tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  07.01.2016
@@ -113,28 +113,28 @@ class SysAclResources extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
-                if (\Utill\Dal\Helper::haveRecord($opUserId)) {
-                    $opUserIdValue = $opUserId ['resultSet'][0]['user_id']; 
-            $kontrol = $this->haveRecords($params);
-            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-               
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $kontrol = $this->haveRecords($params);
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+
                     $ParentId = 0;
-                    if ((isset($params['parent_id']) && $params['parent_id'] != "")) {                        
-                        $ParentId = $params['parent_id'];                        
+                    if ((isset($params['parent_id']) && $params['parent_id'] != "")) {
+                        $ParentId = $params['parent_id'];
                     }
-                    
+
                     $sql = "
                 INSERT INTO sys_acl_resources(
                         name, parent_id, op_user_id, description)
                 VALUES (
                         :name,                               
-                        ".intval($ParentId).",                      
-                        ".intval($opUserIdValue).",
+                        " . intval($ParentId) . ",                      
+                        " . intval($opUserIdValue) . ",
                         :description                      
                                               )  ";
                     $statement = $pdo->prepare($sql);
-                    $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);                    
+                    $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
                     $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
                     //   echo debugPDO($sql, $params);
                     $result = $statement->execute();
@@ -147,7 +147,7 @@ class SysAclResources extends \DAL\DalSlim {
                 } else {
                     $errorInfo = '23505';
                     $errorInfoColumn = 'name';
-                    $pdo->rollback();             
+                    $pdo->rollback();
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
             } else {
@@ -162,7 +162,7 @@ class SysAclResources extends \DAL\DalSlim {
         }
     }
 
-    /**    
+    /**
      * @author Okan CIRAN
      * sys_acl_resources tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  07.01.2016
@@ -178,20 +178,20 @@ class SysAclResources extends \DAL\DalSlim {
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
-                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {                 
-                    $ParentId =0 ;
-                    if ((isset($params['parent_id']) && $params['parent_id'] != "")) {                        
-                        $ParentId = $params['parent_id'];                        
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                    $ParentId = 0;
+                    if ((isset($params['parent_id']) && $params['parent_id'] != "")) {
+                        $ParentId = $params['parent_id'];
                     }
-                    
+
                     $sql = "
                 UPDATE sys_acl_resources
                 SET
-                    name = '".$params['name']."',
-                    parent_id = ".  intval($ParentId).",
-                    op_user_id= ".  intval($opUserIdValue).",
-                    description = '".$params['description']."'
-                WHERE id = ".intval($params['id'])."
+                    name = '" . $params['name'] . "',
+                    parent_id = " . intval($ParentId) . ",
+                    op_user_id= " . intval($opUserIdValue) . ",
+                    description = '" . $params['description'] . "'
+                WHERE id = " . intval($params['id']) . "
                     ";
                     $statement = $pdo->prepare($sql);
                     // echo debugPDO($sql, $params);
@@ -220,7 +220,7 @@ class SysAclResources extends \DAL\DalSlim {
         }
     }
 
-    /**     
+    /**
      * @author Okan CIRAN
      * @ sys_acl_roles tablosunda name sutununda daha önce oluşturulmuş mu? 
      * @version v 1.0 15.01.2016
@@ -246,13 +246,13 @@ class SysAclResources extends \DAL\DalSlim {
                     . $addSql . " 
                AND deleted =0   
                                ";
-            $statement = $pdo->prepare($sql);        
-         //  echo debugPDO($sql, $params);
+            $statement = $pdo->prepare($sql);
+            //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);             
+                throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -283,7 +283,7 @@ class SysAclResources extends \DAL\DalSlim {
             $sortArr = explode(",", $sort);
             if (count($sortArr) === 1)
                 $sort = trim($args['sort']);
-        } else {        
+        } else {
             $sort = "a.name";
         }
 
@@ -294,8 +294,8 @@ class SysAclResources extends \DAL\DalSlim {
                 $order = trim($args['order']);
         } else {
             $order = "ASC";
-        }  
-      
+        }
+
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "                   
@@ -321,7 +321,7 @@ class SysAclResources extends \DAL\DalSlim {
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
                     . "OFFSET " . $pdo->quote($offset) . " ";
-            $statement = $pdo->prepare($sql);      
+            $statement = $pdo->prepare($sql);
             $parameters = array(
                 'sort' => $sort,
                 'order' => $order,
@@ -353,7 +353,7 @@ class SysAclResources extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $whereSQL = ' WHERE a. deleted =0 ';
-             
+
             $sql = "
                 SELECT 
                     COUNT(a.id) AS COUNT               
@@ -401,12 +401,12 @@ class SysAclResources extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {         
+        } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
-    /**    
+    /**
      * @author Okan CIRAN
      * @ combobox doldurmak için sys_acl_resources tablosundan tüm kayıtları döndürür !!
      * @version v 1.0  07.01.2016
@@ -442,12 +442,12 @@ class SysAclResources extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {        
+        } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-    
-    /**    
+
+    /**
      * @author Okan CIRAN
      * @ tree doldurmak için sys_acl_resources tablosundan tüm kayıtları döndürür !!
      * @version v 1.0  12.08.2016
@@ -477,24 +477,24 @@ class SysAclResources extends \DAL\DalSlim {
                     a.deleted = 0
                 ORDER BY name
                                  ";
-            $statement = $pdo->prepare($sql);   
-              // echo debugPDO($sql, $params);
-            $statement->execute();            
+            $statement = $pdo->prepare($sql);
+            // echo debugPDO($sql, $params);
+            $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {        
+        } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
-    }    
+    }
 
     /**
      * @author Okan CIRAN
      * @ resource bilgilerini döndürür !!
      * filterRules aktif 
-     * @version v 1.0  13.06.2016
+     * @version v 1.0  13.07.2016
      * @param array | null $args
      * @return array
      * @throws \PDOException
@@ -549,12 +549,12 @@ class SysAclResources extends \DAL\DalSlim {
                                 $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
                                 $sorguStr.=" AND a.description" . $sorguExpression . ' ';
 
-                                break;     
+                                break;
                             case 'parent_name':
                                 $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
                                 $sorguStr.=" AND COALESCE(NULLIF((SELECT z.name FROM sys_acl_resources z where z.id = a.parent_id), ''),'Root')" . $sorguExpression . ' ';
-                            
-                                break;  
+
+                                break;
                             default:
                                 break;
                         }
@@ -568,10 +568,10 @@ class SysAclResources extends \DAL\DalSlim {
                 }
                 if (isset($params['description']) && $params['description'] != "") {
                     $sorguStr .= " AND a.description Like '%" . $params['description'] . "%'";
-                }  
+                }
                 if (isset($params['parent_name']) && $params['parent_name'] != "") {
                     $sorguStr .= " AND COALESCE(NULLIF((SELECT z.name FROM sys_acl_resources z where z.id = a.parent_id), ''),'Root') Like '%" . $params['parent_name'] . "%'";
-                }   
+                }
             }
             $sorguStr = rtrim($sorguStr, "AND ");
             $sql = "                 
@@ -589,7 +589,7 @@ class SysAclResources extends \DAL\DalSlim {
                 INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_code = 'tr' AND sd15.deleted = 0 AND sd15.active = 0
                 INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_code = 'tr' AND sd16.deleted = 0 AND sd16.active = 0         
                 WHERE a.deleted =0 
-                ".$sorguStr."
+                " . $sorguStr . "
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -602,7 +602,7 @@ class SysAclResources extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             $statement = $pdo->prepare($sql);
-          //echo debugPDO($sql, $params);
+            //echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -613,12 +613,12 @@ class SysAclResources extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-        
+
     /**
      * @author Okan CIRAN
      * @ resource bilgilerinin sayısını döndürür !!
      * filterRules aktif 
-     * @version v 1.0  13.06.2016
+     * @version v 1.0  13.07.2016
      * @param array | null $args
      * @return array
      * @throws \PDOException
@@ -644,12 +644,12 @@ class SysAclResources extends \DAL\DalSlim {
                                 $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
                                 $sorguStr.=" AND description" . $sorguExpression . ' ';
 
-                                break;     
+                                break;
                             case 'parent_name':
                                 $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
                                 $sorguStr.=" AND parent_name" . $sorguExpression . ' ';
-                            
-                                break;  
+
+                                break;
                             default:
                                 break;
                         }
@@ -663,14 +663,14 @@ class SysAclResources extends \DAL\DalSlim {
                 }
                 if (isset($params['description']) && $params['description'] != "") {
                     $sorguStr .= " AND description Like '%" . $params['description'] . "%'";
-                }  
+                }
                 if (isset($params['parent_name']) && $params['parent_name'] != "") {
                     $sorguStr .= " AND parent_name Like '%" . $params['parent_name'] . "%'";
-                }   
+                }
             }
             $sorguStr = rtrim($sorguStr, "AND ");
             $sql = "   
-                SELECT COUNT(id) as count 
+                SELECT COUNT(id) AS count 
                 FROM (
                     SELECT id,name,parent_id,parent_name,deleted,active,description
                     FROM (
@@ -690,12 +690,12 @@ class SysAclResources extends \DAL\DalSlim {
                         WHERE a.deleted =0 
                     ) as xtable
                     WHERE deleted =0 
-                    ".$sorguStr."
+                    " . $sorguStr . "
                 ) AS xxTable    
-                ";        
-                            
+                ";
+
             $statement = $pdo->prepare($sql);
-         // echo debugPDO($sql, $params);
+            // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -709,9 +709,9 @@ class SysAclResources extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
-     * @ sys_machine_tool_property_definition tablosundan parametre olarak  gelen id kaydın aktifliğini
+     * @ sys_acl_resources tablosundan parametre olarak  gelen id kaydın aktifliğini
      *  0(aktif) ise 1 , 1 (pasif) ise 0  yapar. !!
-     * @version v 1.0  13.06.2016
+     * @version v 1.0  13.07.2016
      * @param type $params
      * @return array
      * @throws \PDOException
@@ -759,5 +759,38 @@ class SysAclResources extends \DAL\DalSlim {
         }
     }
 
-    
+    /**
+     * @author Okan CIRAN
+     * @ sys_acl_resources tablosundan kayıtları döndürür !!
+     * @version v 1.0 13.07.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException 
+     */
+    public function fillResourcesDdList($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $statement = $pdo->prepare("        
+               SELECT                    
+                    a.id, 	
+                    a.name,  
+                    a.description,                                    
+                    a.active,
+                    'open' AS state_type  
+	         FROM sys_acl_resources a    
+                 WHERE                    
+                    a.deleted = 0                    
+               ORDER BY a.name 
+                                 ");
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
 }

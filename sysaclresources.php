@@ -561,4 +561,46 @@ $app->get("/pkUpdateMakeActiveOrPassive_sysAclResources/", function () use ($app
 }
 ); 
 
+
+/**
+ *  * Okan CIRAN
+ * @since 05.05.2016
+ */
+$app->get("/pkFillResourcesDdList_sysAclResources/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysAclResourcesBLL');
+    
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkFillResourcesDdList_sysAclResources" end point, X-Public variable not found');
+    //$pk = $headerParams['X-Public']; 
+    $resCombobox = $BLL->fillResourcesDdList(array(                                   
+                                  //  'language_code' => $vLanguageCode,
+                        ));    
+
+      
+    $flows = array();
+    $flows[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
+    foreach ($resCombobox as $flow) {
+        $flows[] = array(            
+            "text" => $flow["name"],
+            "value" =>  intval($flow["id"]),
+            "selected" => false,
+            "description" => $flow["description"],
+           // "imageSrc"=>$flow["logo"],             
+            "attributes" => array(  
+                                "active" => $flow["active"],                                                    
+                                   
+                ),
+        );
+    }
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($flows));
+});
+ 
+
 $app->run();
