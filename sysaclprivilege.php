@@ -523,17 +523,17 @@ $app->get("/pkUpdateMakeActiveOrPassive_sysAclPrivilege/", function () use ($app
 
 /**
  *  * Okan CIRAN
- * @since 15-02-2016
+ * @since 15-07-2016
  */
 $app->get("/pkFillResourceGroups_sysAclPrivilege/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
     $BLL = $app->getBLLManager()->get('sysAclPrivilegeBLL');    
     $vParentId = 0;
-    if (isset($_GET['parent_id'])) {
-        $stripper->offsetSet('parent_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
-                                                $_GET['parent_id']));
+                                                $_GET['id']));
     }
     $vState =NULL;
     if (isset($_GET['state'])) {
@@ -567,12 +567,12 @@ $app->get("/pkFillResourceGroups_sysAclPrivilege/", function () use ($app ) {
     
     $stripper->strip();
     if($stripper->offsetExists('machine')) $vMachine = $stripper->offsetGet('machine')->getFilterValue();    
-    if($stripper->offsetExists('parent_id')) $vParentId = $stripper->offsetGet('parent_id')->getFilterValue();
+    if($stripper->offsetExists('id')) $vParentId = $stripper->offsetGet('id')->getFilterValue();
     if($stripper->offsetExists('state')) $vState = $stripper->offsetGet('state')->getFilterValue();
     if($stripper->offsetExists('last_node')) $vLastNode = $stripper->offsetGet('last_node')->getFilterValue();
     if($stripper->offsetExists('search')) $vsearch = $stripper->offsetGet('search')->getFilterValue();
 
-    if (isset($_GET['parent_id'])) {
+    if (isset($_GET['id'])) {
         $resCombobox = $BLL->FillResourceGroups(array('parent_id' => $vParentId,
                                                          'state' => $vState,
                                                          'last_node' => $vLastNode,
@@ -606,6 +606,124 @@ $app->get("/pkFillResourceGroups_sysAclPrivilege/", function () use ($app ) {
     $app->response()->body(json_encode($flows));
 });
 
+/**
+ *  * Okan CIRAN
+ * @since 15-07-2016
+ */
+$app->get("/pkFillPrivilegesOfRoles_sysAclPrivilege/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysAclPrivilegeBLL');
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkFillPrivilegesOfRoles_sysAclPrivilege" end point, X-Public variable not found');
+    //$pk = $headerParams['X-Public'];
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vRoleId = NULL;
+    if (isset($_GET['role_id'])) {
+         $stripper->offsetSet('role_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['role_id']));
+    }  
+    
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('role_id')) $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
+    
+    
+    $resCombobox = $BLL->fillPrivilegesOfRoles(array(
+                                    'role_id' => $vRoleId,
+                                    'language_code' => $vLanguageCode,
+                        ));    
 
+    $flows = array();
+    foreach ($resCombobox as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+            //"text" => strtolower($flow["name"]),
+            "text" => html_entity_decode($flow["privilege_name"]),
+            "state" => $flow["state_type"], //   'closed',
+            "checked" => false,
+            "icon_class"=>"icon_class", 
+            "attributes" => array( "active" => $flow["active"],
+                "resource_id" => $flow["resource_id"], 
+                "role_id" =>$flow["role_id"], 
+                "privilege_id" => $flow["privilege_id"], 
+                "privilege_name_eng" => html_entity_decode($flow["privilege_name_eng"]),
+                ),
+        );
+    }
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($flows));
+});
+  
+/**
+ *  * Okan CIRAN
+ * @since 15-07-2016
+ */
+$app->get("/pkFillNotInPrivilegesOfRoles_sysAclPrivilege/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysAclPrivilegeBLL');
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkFillNotInPrivilegesOfRoles_sysAclPrivilege" end point, X-Public variable not found');
+    //$pk = $headerParams['X-Public'];
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vRoleId = NULL;
+    if (isset($_GET['role_id'])) {
+         $stripper->offsetSet('role_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['role_id']));
+    }  
+    
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('role_id')) $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
+    
+    
+    $resCombobox = $BLL->fillNotInPrivilegesOfRoles(array(
+                                    'role_id' => $vRoleId,
+                                    'language_code' => $vLanguageCode,
+                        ));    
 
+    $flows = array();
+    foreach ($resCombobox as $flow) {
+        $flows[] = array(
+            "id" => 0 , // $flow["id"],
+            //"text" => strtolower($flow["name"]),
+            "text" => html_entity_decode($flow["privilege_name"]),
+            "state" => $flow["state_type"], //   'closed',
+            "checked" => false,
+            "icon_class"=>"icon_class", 
+            "attributes" => array( "active" => $flow["active"],
+                "resource_id" => $flow["resource_id"], 
+                "role_id" =>$flow["role_id"], 
+                "privilege_id" => $flow["privilege_id"], 
+                "privilege_name_eng" => html_entity_decode($flow["privilege_name_eng"]),
+                ),
+        );
+    }
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($flows));
+});
+ 
 $app->run();

@@ -735,8 +735,7 @@ class SysAclPrivilege extends \DAL\DalSlim {
         }
     }
     
-      /**
-     * user interface fill operation   
+    /**  
      * @author Okan CIRAN
      * @ tree doldurmak için sys_acl_privilege tablosundan tüm kayıtları döndürür !!
      * @version v 1.0  14.07.2016
@@ -834,6 +833,107 @@ class SysAclPrivilege extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+    /**
+     * @author Okan CIRAN
+     * @ sys_acl_privilege tablosundan role_id si 
+     * verilen kayıtları döndürür !!  role_id boş ise tüm kayıtları döndürür.
+     * @version v 1.0  15.07.2016 
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillPrivilegesOfRoles($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $RoleId = 0;
+            $whereSql = "  WHERE a.deleted =0 ";
+            if (isset($params['role_id']) && $params['role_id'] != "") {
+                $RoleId = $params['role_id'];
+            }
+            $whereSql .= " AND saro.id  = " . $RoleId; 
+                            
+            $sql ="             
+                SELECT
+                    rrp.id,
+                    a.resource_id, 
+		    saro.id AS role_id,
+                    a.id AS privilege_id,
+                    a.name AS privilege_name,
+                    a.name_eng AS privilege_name_eng,
+                    a.active,
+                    'open' AS state_type,
+                    false AS root_type
+		FROM sys_acl_privilege a
+                INNER JOIN sys_acl_resources sare ON sare.id = a.resource_id AND sare.active =0 AND sare.deleted =0                 
+                INNER JOIN sys_acl_roles saro ON saro.resource_id = sare.id AND saro.active =0 AND saro.deleted =0
+                INNER JOIN sys_acl_rrp rrp ON rrp.role_id = saro.id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id
+                " . $whereSql . "
+                ORDER BY privilege_name
+                                 ";
+            $statement = $pdo->prepare($sql); 
+           //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
+    /**
+     * @author Okan CIRAN
+     * @ sys_acl_privilege tablosundan role_id si dısında kalan property leri 
+     * döndürür !!  role_id boş ise tüm kayıtları döndürür.
+     * @version v 1.0  15.07.2016 
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillNotInPrivilegesOfRoles($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $RoleId = 0;    
+            if (isset($params['role_id']) && $params['role_id'] != "") {
+                $RoleId = $params['role_id'];
+            }             
+
+            $sql =" 
+                 SELECT DISTINCT 
+                    rrp.id, 
+		    a.resource_id, 
+		    saro.id AS role_id,
+                    a.id AS privilege_id,
+                    a.name AS privilege_name,
+                    a.name_eng AS privilege_name_eng,
+                    a.active,
+                    'open' AS state_type,
+                    false AS root_type
+		FROM sys_acl_privilege a
+                INNER JOIN sys_acl_resources sare ON sare.id = a.resource_id AND sare.active =0 AND sare.deleted =0
+                INNER JOIN sys_acl_roles saro ON saro.resource_id = sare.id AND saro.active =0 AND saro.deleted =0
+                LEFT JOIN sys_acl_rrp rrp ON rrp.role_id = saro.id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id
+                WHERE 
+                    a.deleted =0 AND 
+                    saro.id = ".intval($RoleId)." AND 
+                    rrp.id IS NULL 
+                ORDER BY privilege_name 
+                        ";
+            $statement = $pdo->prepare($sql); 
+           // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+   
 
     
 }
