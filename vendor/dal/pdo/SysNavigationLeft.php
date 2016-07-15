@@ -566,7 +566,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                                   COALESCE(NULLIF( 
                                  (SELECT COALESCE(NULLIF(sar.id, 0),az.id)  
                                                    FROM sys_acl_roles az
-                                                   LEFT JOIN sys_acl_roles sar ON sar.id = az.root AND sar.active =0 AND sar.deleted =0  
+                                                   LEFT JOIN sys_acl_roles sar ON sar.id = az.inherited AND sar.active =0 AND sar.deleted =0  
                                                    WHERE az.id= av.role_id),0), sarv.id ) AS Menu_type  
                                  FROM info_users av
                                  INNER JOIN sys_acl_roles sarv ON sarv.id = av.role_id AND sarv.active=0 AND sarv.deleted=0                          

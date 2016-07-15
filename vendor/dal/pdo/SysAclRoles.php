@@ -753,7 +753,7 @@ class SysAclRoles extends \DAL\DalSlim {
                     state_deleted,                 
                     active, 
                     state_active,  
-                    description,                                     
+                    COALESCE(NULLIF(description, ''),' ') AS description,
                     op_user_id,
                     username,
                     inherited,                      
@@ -872,7 +872,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 $sorguStr = null;
                 $filterRules = "";
                  if (isset($params['name']) && $params['name'] != "") {
-                    $sorguStr .= " AND a.name Like '%" . $params['name'] . "%'";
+                    $sorguStr .= " AND name Like '%" . $params['name'] . "%'";
                 }
                 if (isset($params['name_tr']) && $params['name_tr'] != "") {
                     $sorguStr .= " AND name_tr Like '%" . $params['name_tr'] . "%'";
@@ -939,9 +939,11 @@ class SysAclRoles extends \DAL\DalSlim {
                         LEFT JOIN sys_acl_roles sar ON a.inherited > 0 AND sar.id = a.inherited AND sar.active =0 AND sar.deleted =0 
                         LEFT JOIN sys_acl_roles sar1 ON a.parent_id > 0 AND sar1.id = a.parent_id AND sar1.active =0 AND sar1.deleted =0 
                         WHERE a.deleted =0 
-                        ) AS xtable 
-                    ) AS xxtable  WHERE deleted =0 
-                ".$sorguStr."
+                        ) AS xtable   
+                        WHERE deleted =0  
+                        ".$sorguStr." 
+                    ) AS xxtable 
+              
                 ";           
             $statement = $pdo->prepare($sql);
          // echo debugPDO($sql, $params);

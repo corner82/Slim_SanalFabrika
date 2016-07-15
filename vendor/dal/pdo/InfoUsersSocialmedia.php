@@ -158,9 +158,20 @@ class InfoUsersSocialmedia extends \DAL\DalSlim {
                     if (\Utill\Dal\Helper::haveRecord($operationId)) {
                         $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
+                    $languageId = NULL;
+                    $languageIdValue = 647;
+                    if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                            $languageIdValue = $languageId ['resultSet'][0]['id'];
+                        }
+                    }
 
                     $ConsultantId = 1001;
-                    $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users_socialmedia' , 'operation_type_id' => $operationIdValue));
+                    $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users_socialmedia', 
+                                                                                          'operation_type_id' => $operationIdValue, 
+                                                                                          'language_id' => $languageIdValue, 
+                                                                                            ));
                     if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                         $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                     }
@@ -204,7 +215,7 @@ class InfoUsersSocialmedia extends \DAL\DalSlim {
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
                     $errorInfo = '23505';
-                    $errorInfoColumn = 'attribute_name';
+                    $errorInfoColumn = 'sys_socialmedia_id';
                     $pdo->rollback();
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
@@ -255,7 +266,7 @@ class InfoUsersSocialmedia extends \DAL\DalSlim {
                    WHERE user_link = '" . $params['user_link'] . "' 
                ";
             $statement = $pdo->prepare($sql);
-            echo debugPDO($sql, $params);
+         //   echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();

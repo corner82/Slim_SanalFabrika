@@ -234,13 +234,13 @@ $app->get("/pkInsert_sysAclRoles/", function () use ($app ) {
                                                 $app,
                                                 $_GET['name']));
     }
-    $vNameTr = NULL;
+    $vNameTr = '';
     if (isset($_GET['name_tr'])) {
          $stripper->offsetSet('name_tr',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
                                                 $_GET['name_tr']));
     }
-    $vDescription = NULL;
+    $vDescription = '';
     if (isset($_GET['description'])) {
          $stripper->offsetSet('description',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
@@ -312,13 +312,13 @@ $app->get("/pkUpdate_sysAclRoles/", function () use ($app ) {
                                                 $app,
                                                 $_GET['name']));
     }
-    $vNameTr = NULL;
+    $vNameTr = '';
     if (isset($_GET['name_tr'])) {
          $stripper->offsetSet('name_tr',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
                                                 $_GET['name_tr']));
     }
-    $vDescription = NULL;
+    $vDescription = '';
     if (isset($_GET['description'])) {
          $stripper->offsetSet('description',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
