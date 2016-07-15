@@ -96,7 +96,55 @@ class SysAclPrivilege extends \BLL\BLLSlim{
         $resultSet = $DAL->fillComboBoxFullPrivilege($params);  
         return $resultSet['resultSet'];
     }
+     
+    /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillPrivilegesList ($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysAclPrivilegePDO');
+        $resultSet = $DAL->fillPrivilegesList($params);  
+        return $resultSet['resultSet'];
+    }
     
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillPrivilegesListRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclPrivilegePDO');
+        $resultSet = $DAL->fillPrivilegesListRtc($params);  
+        return $resultSet['resultSet'];
+    }     
+    public function makeActiveOrPassive($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclPrivilegePDO');
+        return $DAL->makeActiveOrPassive($params);
+    } 
+    
+    
+    /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillResourceGroups($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclPrivilegePDO');        
+         if (isset($params['parent_id']) && ($params['parent_id'] == 0))  { 
+            $resultSet = $DAL->fillResourceGroups($params);
+        } else {            
+            if (isset($params['state']) && ($params['state'] == "closed") && 
+                isset($params['last_node']) && ($params['last_node'] == "true") &&   
+                isset($params['machine']) && $params['machine'] == "false" )  
+            {            
+                $resultSet = $DAL->fillResourceGroupsPrivileges($params);
+            } else {                        
+                $resultSet = $DAL->fillResourceGroups($params);                
+            }
+        }        
+        return $resultSet['resultSet'];
+    }
     
 }
 
