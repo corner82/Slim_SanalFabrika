@@ -102,6 +102,7 @@ class DalManagerConfig {
                 'sysOsbClustersAlliancePDO' => 'DAL\Factory\PDO\SysOsbClustersAllianceFactory',
                 'sysMembershipTypesPDO' => 'DAL\Factory\PDO\SysMembershipTypesFactory',
                 'sysAclRrpPDO' => 'DAL\Factory\PDO\SysAclRrpFactory',
+                'sysUniversitiesPDO' => 'DAL\Factory\PDO\SysUniversitiesFactory',
                 
                 
                 

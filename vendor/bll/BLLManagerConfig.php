@@ -97,8 +97,9 @@ class BLLManagerConfig{
                  'sysOsbClustersAllianceBLL' => 'BLL\BLL\SysOsbClustersAlliance',
                  'sysMembershipTypesBLL' => 'BLL\BLL\SysMembershipTypes',
                  'sysAclRrpBLL' => 'BLL\BLL\SysAclRrp',
+                 'sysUniversitiesBLL' => 'BLL\BLL\SysUniversities',
                  
-                                 
+               
                  
                  'logConnectionBLL' => 'BLL\BLL\LogConnection',  
                  'logServicesBLL' => 'BLL\BLL\LogServices',
