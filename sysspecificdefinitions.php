@@ -391,6 +391,53 @@ $app->get("/fillAddressTypes_sysSpecificDefinitions/", function () use ($app ) {
     $app->response()->body(json_encode($menus));
 });
 
+/**
+ *  * Okan CIRAN
+ * @since 15-07-2016
+ */
+$app->get("/fillSexTypes_sysSpecificDefinitions/", function () use ($app ) {
+    $BLL = $app->getBLLManager()->get('sysSpecificDefinitionsBLL');
+    $languageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $languageCode = strtolower(trim($_GET['language_code']));
+    }
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+
+    $resCombobox = $BLL->fillSexTypes(array('language_code' => $languageCode
+    ));
+
+        $menus = array();
+        $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
+    if ($componentType == 'bootstrap') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "text" => $menu["name"],
+                "state" => $menu["state_type"], //   'closed',
+                "checked" => false,
+                "attributes" => array("notroot" => true, "active" => $menu["active"]),
+            );
+        }
+    } else if ($componentType == 'ddslick') {       
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" =>  intval($menu["id"]),
+                "selected" => false,
+                "description" => $menu["name_eng"],
+               // "imageSrc" => ""
+            );
+        }
+    }
+
+    $app->response()->header("Content-Type", "application/json");
+
+    $app->response()->body(json_encode($menus));
+});
+
 
 
 $app->run();
