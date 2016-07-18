@@ -793,4 +793,119 @@ class SysAclResources extends \DAL\DalSlim {
         }
     }
 
+    
+        
+    /** 
+     * @author Okan CIRAN
+     * @ tree doldurmak için sys_acl_resources tablosundan tüm kayıtları döndürür !!
+     * @version v 1.0  14.07.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillResourceGroups($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                            
+            $parentId = 0;
+            if (isset($params['parent_id']) && $params['parent_id'] != "") {
+                $parentId = $params['parent_id'];
+            }
+                            
+            $sql = "                
+                SELECT                    
+                    sare.id,                     
+                    sare.name ,
+                    sare.parent_id,
+                    sare.active ,
+                    CASE
+                        (CASE 
+                            (SELECT DISTINCT 1 state_type FROM sys_acl_resources xz WHERE xz.parent_id = sare.id AND xz.deleted = 0)    
+                             WHEN 1 THEN 'closed'
+                             ELSE 'open'   
+                             END ) 
+                         WHEN 'open' THEN COALESCE(NULLIF((SELECT DISTINCT 'closed' FROM sys_acl_roles mz WHERE mz.resource_id =sare.id AND mz.deleted = 0), ''), 'open')   
+                    ELSE 'closed'
+                    END AS state_type,
+                    CASE
+                        (SELECT DISTINCT 1 parent_id FROM sys_acl_resources WHERE id = sare.id AND deleted = 0 AND parent_id =0 )    
+                        WHEN 1 THEN 'true'
+                    ELSE 'false'   
+                    END AS root_type,             
+                    CASE 
+                        (SELECT DISTINCT 1 state_type FROM sys_acl_resources WHERE parent_id = sare.id AND deleted = 0)    
+                         WHEN 1 THEN 'false'			 
+                    ELSE 'true'   
+                    END AS last_node,
+                    'false' AS roles
+                FROM sys_acl_resources sare  
+                WHERE                    
+                    sare.parent_id = " .intval($parentId) . " AND                 
+                    sare.deleted = 0  
+                ORDER BY name  
+                                 ";
+              $statement = $pdo->prepare($sql);
+      // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {      
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
+    /**  
+     * @author Okan CIRAN
+     * @ tree doldurmak için sys_acl_privilege tablosundan tüm kayıtları döndürür !!
+     * @version v 1.0  14.07.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillResourceGroupsRoles($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                            
+            $parentId = 0;
+            if (isset($params['parent_id']) && $params['parent_id'] != "") {
+                $parentId = $params['parent_id'];
+            }
+           
+            $sql ="                
+                SELECT                    
+                    mt.id, 
+                    COALESCE(NULLIF( (mt.name_tr), ''), mt.name) AS name,            
+                    -1 AS parent_id,
+                    a.active ,
+                    'open' AS state_type,                                          
+                    'false' AS root_type,
+                    Null AS icon_class,
+                    'true' AS last_node,
+                    'true' AS roles,
+		    mt.resource_id
+                FROM sys_acl_resources a                 
+		INNER join sys_acl_roles mt ON mt.resource_id = a.id AND mt.active =0 AND mt.deleted =0                 
+                WHERE                    
+                   a.id = " .intval($parentId) . " AND 
+                   a.deleted = 0 AND
+                   a.active =0 
+                ORDER BY name 
+                                 ";
+             $statement = $pdo->prepare( $sql);
+          //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {      
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
+    
+    
 }

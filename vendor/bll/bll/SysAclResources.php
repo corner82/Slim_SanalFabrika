@@ -160,5 +160,30 @@ class SysAclResources extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
     
+       
+    /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillResourceGroups($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclResourcesPDO');  
+     // print_r($params);
+         if (isset($params['parent_id']) && ($params['parent_id'] == 0))  { 
+            $resultSet = $DAL->fillResourceGroups($params);
+        } else {        
+            //if (isset($params['state']) && ($params['state'] == "closed") && 
+            //    isset($params['last_node']) && ($params['last_node'] == "true") &&   
+           //     isset($params['roles']) && $params['roles'] == "false" )  
+           // {            
+                $resultSet = $DAL->fillResourceGroupsRoles($params);
+           // } else {                        
+           //     $resultSet = $DAL->fillResourceGroups($params);                
+           // }
+        }        
+        return $resultSet['resultSet'];
+    }
+    
+    
 }
 
