@@ -98,6 +98,7 @@ class BLLManagerConfig{
                  'sysMembershipTypesBLL' => 'BLL\BLL\SysMembershipTypes',
                  'sysAclRrpBLL' => 'BLL\BLL\SysAclRrp',
                  'sysUniversitiesBLL' => 'BLL\BLL\SysUniversities',
+                 'infoFirmWorkingPersonnelBLL' => 'BLL\BLL\InfoFirmWorkingPersonnel',
                  
                
                  

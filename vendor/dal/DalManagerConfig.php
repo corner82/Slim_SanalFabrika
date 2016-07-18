@@ -103,6 +103,7 @@ class DalManagerConfig {
                 'sysMembershipTypesPDO' => 'DAL\Factory\PDO\SysMembershipTypesFactory',
                 'sysAclRrpPDO' => 'DAL\Factory\PDO\SysAclRrpFactory',
                 'sysUniversitiesPDO' => 'DAL\Factory\PDO\SysUniversitiesFactory',
+                'infoFirmWorkingPersonnelPDO' => 'DAL\Factory\PDO\InfoFirmWorkingPersonnelFactory',
                 
                 
                 
