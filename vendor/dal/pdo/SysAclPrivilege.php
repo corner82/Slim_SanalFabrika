@@ -866,7 +866,7 @@ class SysAclPrivilege extends \DAL\DalSlim {
 		FROM sys_acl_privilege a
                 INNER JOIN sys_acl_resources sare ON sare.id = a.resource_id AND sare.active =0 AND sare.deleted =0                 
                 INNER JOIN sys_acl_roles saro ON saro.resource_id = sare.id AND saro.active =0 AND saro.deleted =0
-                INNER JOIN sys_acl_rrp rrp ON rrp.role_id = saro.id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id
+                INNER JOIN sys_acl_rrp rrp ON rrp.role_id = saro.id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id AND rrp.active =0 AND rrp.deleted =0
                 " . $whereSql . "
                 ORDER BY privilege_name
                                  ";
@@ -914,7 +914,7 @@ class SysAclPrivilege extends \DAL\DalSlim {
 		FROM sys_acl_privilege a
                 INNER JOIN sys_acl_resources sare ON sare.id = a.resource_id AND sare.active =0 AND sare.deleted =0
                 INNER JOIN sys_acl_roles saro ON saro.resource_id = sare.id AND saro.active =0 AND saro.deleted =0
-                LEFT JOIN sys_acl_rrp rrp ON rrp.role_id = saro.id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id
+                LEFT JOIN sys_acl_rrp rrp ON rrp.role_id = saro.id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id AND rrp.active =0 AND rrp.deleted =0
                 WHERE 
                     a.deleted =0 AND 
                     saro.id = ".intval($RoleId)." AND 

@@ -475,11 +475,11 @@ $app->get("/pkFillPrivilegesList_sysAclPrivilege/", function () use ($app ) {
         foreach ($resDataGrid as $flow) {
             $flows[] = array(
             "id" => $flow["id"],
-            "name" => $flow["name"],            
-            "name_eng" => $flow["name_eng"],
+            "name" => html_entity_decode($flow["name"]),            
+            "name_eng" => html_entity_decode($flow["name_eng"]),
             "resource_id" => $flow["resource_id"],
-            "resource_name" => $flow["resource_name"],          
-            "description" => $flow["description"],                        
+            "resource_name" => html_entity_decode($flow["resource_name"]),          
+            "description" => html_entity_decode($flow["description"]),                        
             "attributes" => array(              
                 "active" => $flow["active"], ) );
         };
@@ -588,7 +588,7 @@ $app->get("/pkFillResourceGroups_sysAclPrivilege/", function () use ($app ) {
         $flows[] = array(
             "id" => $flow["id"],
             //"text" => strtolower($flow["name"]),
-            "text" => $flow["name"],
+            "text" => html_entity_decode($flow["name"]),
             "state" => $flow["state_type"], //   'closed',
             "checked" => false,
            // "icon_class"=>$flow["icon_class"], 

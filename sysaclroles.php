@@ -544,12 +544,18 @@ $app->get("/pkFillRolesTree_sysAclRoles/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
     $BLL = $app->getBLLManager()->get('sysAclRolesBLL');    
-     $vParentId = 0;
+    $vParentId = 0;
     if (isset($_GET['id'])) {
         $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['id']));
-    }    
+    } 
+    $vResourceId = NULL;
+    if (isset($_GET['resource_id'])) {
+        $stripper->offsetSet('resource_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['resource_id']));
+    } 
     $vsearch = null;
     if(isset($_GET['search'])) {
         $stripper->offsetSet('search', 
@@ -560,21 +566,24 @@ $app->get("/pkFillRolesTree_sysAclRoles/", function () use ($app ) {
     
     $stripper->strip();    
     if($stripper->offsetExists('id')) $vParentId = $stripper->offsetGet('id')->getFilterValue();
+    if($stripper->offsetExists('resource_id')) $vResourceId = $stripper->offsetGet('resource_id')->getFilterValue();
     if($stripper->offsetExists('search')) $vsearch = $stripper->offsetGet('search')->getFilterValue();
 
-    $resCombobox = $BLL->FillRolesTree(array('id' => $vParentId,                                                         
-                                                         'search' => $vsearch,
+    $resCombobox = $BLL->FillRolesTree(array('id' => $vParentId,  
+                                            'resource_id' => $vResourceId, 
+                                            'search' => $vsearch,
                                                                 ));
  
     $flows = array();
     foreach ($resCombobox as $flow) {
         $flows[] = array(
             "id" => $flow["id"],
-            "text" => $flow["name"],
+            "text" => html_entity_decode($flow["name"]),
             "state" => $flow["state_type"], //   'closed',
-            "checked" => false,
+            "checked" => false,           
            // "icon_class"=>$flow["icon_class"], 
-            "attributes" => array("active" => $flow["active"]
+            "attributes" => array("active" => $flow["active"] ,
+                                  "resource_id"=>$flow["resource_id"],
                  ),
         );
     }
@@ -716,15 +725,15 @@ $app->get("/pkFillRolesPropertiesList_sysAclRoles/", function () use ($app ) {
         foreach ($resDataGrid as $flow) {
             $flows[] = array(
             "id" => $flow["id"],
-            "name" => $flow["name"],
-            "name_tr" => $flow["name_tr"],
+            "name" => html_entity_decode($flow["name"]),
+            "name_tr" => html_entity_decode($flow["name_tr"]),
             "parent_id" => $flow["parent_id"],
-            "parent_name" => $flow["parent_name"],
+            "parent_name" => html_entity_decode($flow["parent_name"]),
             "resource_id" => $flow["resource_id"],
-            "resource_name" => $flow["resource_name"],
+            "resource_name" => html_entity_decode($flow["resource_name"]),
             "inherited" => $flow["inherited"],
-            "inherited_name" => $flow["inherited_name"],
-            "description" => $flow["description"],                        
+            "inherited_name" => html_entity_decode($flow["inherited_name"]),
+            "description" => html_entity_decode($flow["description"]),
             "attributes" => array(              
                 "active" => $flow["active"], ) );
         };

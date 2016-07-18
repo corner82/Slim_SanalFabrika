@@ -599,9 +599,14 @@ class SysAclRoles extends \DAL\DalSlim {
     public function fillRolesTree($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $addSql = "";
             $id = 0;
             if (isset($params['id']) && $params['id'] != "") {
                 $id = $params['id'];
+            }
+            if (isset($params['resource_id']) && $params['resource_id'] != "") {
+                $ResourceId = $params['resource_id'];
+                $addSql .= " AND a.resource_id = " .  intval($ResourceId);
             }
             $sql = " 
                 SELECT
@@ -612,11 +617,13 @@ class SysAclRoles extends \DAL\DalSlim {
                         (SELECT DISTINCT 1 state_type FROM sys_acl_roles z WHERE z.parent_id = a.id AND z.deleted = 0)
                     WHEN 1 THEN 'closed'
                     ELSE 'open' END AS state_type,
-                    a.active
+                    a.active,
+                    a.resource_id
                 FROM sys_acl_roles a
                 WHERE
                     a.parent_id = " . $id . " AND 
                     a.deleted = 0
+                    ".$addSql."
                 ORDER BY name
                                  ";
             $statement = $pdo->prepare($sql);   
