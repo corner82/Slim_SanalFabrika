@@ -112,12 +112,21 @@ $app->get("/pkGetAll_infoFirmWorkingPersonnel/", function () use ($app ) {
  *  * Okan CIRAN
 * @since 18.07.2016
  */
-$app->get("/pkDeletedAct_infoFirmWorkingPersonnel/", function () use ($app ) {
+$app->get("/pkcpkDeletedAct_infoFirmWorkingPersonnel/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
     $BLL = $app->getBLLManager()->get('infoFirmWorkingPersonnelBLL');
     $headerParams = $app->request()->headers();
-    $Pk = $headerParams['X-Public'];  
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkcpkDeletedAct_infoFirmWorkingPersonnel" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];    
+    
+    $vCpk = NULL;
+    if (isset($_GET['cpk'])) {
+        $stripper->offsetSet('cpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['cpk']));
+    }
     $vId = NULL;
     if (isset($_GET['id'])) {
         $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
@@ -127,10 +136,12 @@ $app->get("/pkDeletedAct_infoFirmWorkingPersonnel/", function () use ($app ) {
 
     $stripper->strip(); 
     if ($stripper->offsetExists('id')) {$vId = $stripper->offsetGet('id')->getFilterValue(); }     
+    if ($stripper->offsetExists('cpk')) {$vCpk = $stripper->offsetGet('cpk')->getFilterValue(); }     
     
-    $resDataDeleted = $BLL->DeletedAct(array(                  
+    $resDataDeleted = $BLL->deletedAct(array(                  
             'id' => $vId ,    
-            'pk' => $Pk,        
+            'pk' => $pk,        
+            'cpk' => $vCpk,  
             ));
     $app->response()->header("Content-Type", "application/json"); 
     $app->response()->body(json_encode($resDataDeleted));
@@ -142,14 +153,20 @@ $app->get("/pkDeletedAct_infoFirmWorkingPersonnel/", function () use ($app ) {
  *  * Okan CIRAN
 * @since 18.07.2016
  */
-$app->get("/pkUpdate_infoFirmWorkingPersonnel/", function () use ($app ) {    
+$app->get("/pkcpkUpdate_infoFirmWorkingPersonnel/", function () use ($app ) {    
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
     $BLL = $app->getBLLManager()->get('infoFirmWorkingPersonnelBLL');   
     $headerParams = $app->request()->headers();
     if (!isset($headerParams['X-Public']))
-        throw new Exception('rest api "pkUpdate_infoFirmWorkingPersonnel" end point, X-Public variable not found');
-    $pk = $headerParams['X-Public'];        
+        throw new Exception('rest api "pkcpkUpdate_infoFirmWorkingPersonnel" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];    
+    $vCpk = NULL;
+    if (isset($_GET['cpk'])) {
+        $stripper->offsetSet('cpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['cpk']));
+    }
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
          $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
@@ -242,9 +259,12 @@ $app->get("/pkUpdate_infoFirmWorkingPersonnel/", function () use ($app ) {
     if ($stripper->offsetExists('positions_eng')) {
         $vPositionsEng = $stripper->offsetGet('positions_eng')->getFilterValue();
     }
-  
-
-    $resData = $BLL->update(array(  
+    if ($stripper->offsetExists('cpk')) {
+        $vCpk = $stripper->offsetGet('cpk')->getFilterValue();
+    }
+   
+    $resData = $BLL->update(array( 
+            'cpk'=> $vCpk,  
             'id' => $vId,
             'language_code' => $vLanguageCode,
             'profile_public' => $vProfilePublic,
@@ -267,16 +287,25 @@ $app->get("/pkUpdate_infoFirmWorkingPersonnel/", function () use ($app ) {
 /**x
  *  * Okan CIRAN
 * @since 18.07.2016
- */
-$app->get("/pkInsert_infoFirmWorkingPersonnel/", function () use ($app ) {    
+ */ 
+$app->get("/pkcpkInsert_infoFirmWorkingPersonnel/", function () use ($app ) {  
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
-    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
-    $BLL = $app->getBLLManager()->get('infoFirmWorkingPersonnelBLL');   
-    $headerParams = $app->request()->headers();
-    if (!isset($headerParams['X-Public']))
-        throw new Exception('rest api "pkInsert_infoFirmWorkingPersonnel" end point, X-Public variable not found');
-    $pk = $headerParams['X-Public'];        
-    $vLanguageCode = 'tr';
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('infoFirmWorkingPersonnelBLL');  
+    $headerParams = $app->request()->headers();  
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkcpkInsert_infoFirmWorkingPersonnel" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+ 
+    $vCpk = NULL;
+    if (isset($_GET['cpk'])) {
+        $stripper->offsetSet('cpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['cpk']));
+    }
+    
+     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
          $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
                                                 $app,
@@ -359,8 +388,12 @@ $app->get("/pkInsert_infoFirmWorkingPersonnel/", function () use ($app ) {
     if ($stripper->offsetExists('positions_eng')) {
         $vPositionsEng = $stripper->offsetGet('positions_eng')->getFilterValue();
     }
+    if ($stripper->offsetExists('cpk')) {
+        $vCpk = $stripper->offsetGet('cpk')->getFilterValue();
+    }   
    
-    $resData = $BLL->insert(array(              
+    $resDataInsert = $BLL->insert(array( 
+            'cpk'=> $vCpk,  
             'language_code' => $vLanguageCode,
             'profile_public' => $vProfilePublic,
             'name' => $vName,  
@@ -374,7 +407,7 @@ $app->get("/pkInsert_infoFirmWorkingPersonnel/", function () use ($app ) {
             ));
 
     $app->response()->header("Content-Type", "application/json"); 
-    $app->response()->body(json_encode($resData));
+    $app->response()->body(json_encode($resDataInsert));
 }
 ); 
 
