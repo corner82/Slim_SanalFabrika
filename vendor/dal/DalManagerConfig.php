@@ -104,6 +104,8 @@ class DalManagerConfig {
                 'sysAclRrpPDO' => 'DAL\Factory\PDO\SysAclRrpFactory',
                 'sysUniversitiesPDO' => 'DAL\Factory\PDO\SysUniversitiesFactory',
                 'infoFirmWorkingPersonnelPDO' => 'DAL\Factory\PDO\InfoFirmWorkingPersonnelFactory',
+                'infoFirmWorkingPersonnelEducationPDO' => 'DAL\Factory\PDO\InfoFirmWorkingPersonnelEducationFactory',
+                'sysMenuTypesPDO' => 'DAL\Factory\PDO\SysMenuTypesFactory',
                 
                 
                 

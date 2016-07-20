@@ -99,7 +99,8 @@ class BLLManagerConfig{
                  'sysAclRrpBLL' => 'BLL\BLL\SysAclRrp',
                  'sysUniversitiesBLL' => 'BLL\BLL\SysUniversities',
                  'infoFirmWorkingPersonnelBLL' => 'BLL\BLL\InfoFirmWorkingPersonnel',
-                 
+                 'infoFirmWorkingPersonnelEducationBLL' => 'BLL\BLL\InfoFirmWorkingPersonnelEducation',
+                 'sysMenuTypesBLL' => 'BLL\BLL\SysMenuTypes',
                
                  
                  'logConnectionBLL' => 'BLL\BLL\LogConnection',  
