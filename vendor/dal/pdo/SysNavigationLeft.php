@@ -42,7 +42,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                      user_id = " . $opUserIdValue . "     
                 WHERE id = " . intval($params['id']);
                     $statement = $pdo->prepare($sql);
-                    //  echo debugPDO($sql, $params);
+                  //   echo debugPDO($sql, $params);
                     $update = $statement->execute();
                     $afterRows = $statement->rowCount();
                     $errorInfo = $statement->errorInfo();
@@ -163,6 +163,11 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 if ((isset($params['z_index']) && $params['z_index'] != "")) {
                     $Zindex = $params ['z_index'];
                 }
+                $MenuTypesId = 0;
+                if ((isset($params['menu_types_id']) && $params['menu_types_id'] != "")) {
+                    $MenuTypesId = $params ['menu_types_id'];
+                }                
+                
                 $languageId = NULL;
                 $languageIdValue = 647;
                 if ((isset($params['language_code']) && $params['language_code'] != "")) {                
@@ -182,6 +187,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     z_index,                  
                     user_id,
                     menu_type,
+                    menu_types_id,
                     language_id,
                     root_id,
                     root_json
@@ -195,6 +201,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                         :z_index,                  
                         :user_id,
                         :menu_type,
+                        :menu_types_id,
                         :language_id,
                          (SELECT CASE
 				WHEN (SELECT CASE 
@@ -228,6 +235,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 $statement->bindValue(':user_id', $opUserIdValue, \PDO::PARAM_INT);
                 $statement->bindValue(':menu_type', $params['menu_type'], \PDO::PARAM_INT);
                 $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
+                $statement->bindValue(':menu_types_id', $MenuTypesId, \PDO::PARAM_INT);
                 
               // echo debugPDO($sql, $params);
                 $result = $statement->execute();
@@ -235,8 +243,16 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);            
-                $this->setCollapseOpen();             
-                $this->setCollapseClose();
+                $xc = $this->setCollapseOpen(array('id' => $insertID));             
+                if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                    throw new \PDOException($xc['errorInfo']);
+                
+                $xc = $this->setCollapseClose(array('id' => $insertID));                 
+                if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                    throw new \PDOException($xc['errorInfo']);
+
+                
+                
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
             } else {
@@ -282,18 +298,22 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     $RoleId = $params ['role_id'];
                     $addSql =  " menu_type = ". intval($RoleId).","; 
                 }
+                $MenuTypesId = 0;
+                if ((isset($params['menu_types_id']) && $params['menu_types_id'] != "")) {
+                    $MenuTypesId = $params ['menu_types_id'];
+                }
                  
                 $sql = " 
                 UPDATE sys_navigation_left
                 SET                                  
                     language_id = ". intval($languageIdValue).", 
+                    menu_types_id = ". intval($MenuTypesId).", 
                     menu_name = :menu_name, 
                     menu_name_eng = :menu_name_eng,
                     icon_class = :icon_class,                     
                     url = :url,
                     ". $addSql ."
-                    user_id = ". intval($opUserIdValue)."
-                  
+                    user_id = ". intval($opUserIdValue)."                  
                 WHERE id = :id";                
                  $statement = $pdo->prepare($sql);
                 $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);                
@@ -307,8 +327,14 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
-                $this->setCollapseOpen();
-                $this->setCollapseClose();
+                $xc = $this->setCollapseOpen(array('id' =>  $params['id']));             
+                if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                    throw new \PDOException($xc['errorInfo']);
+                
+                $xc = $this->setCollapseClose(array('id' =>  $params['id']));                 
+                if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                    throw new \PDOException($xc['errorInfo']);
+
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
             } else {
@@ -876,6 +902,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             
+            $addSql ="";
             $RoleId = 1;                
             if ((isset($params['role_id']) && $params['role_id'] != "")) {                                 
                 $RoleId = $params ['role_id']; 
@@ -883,6 +910,11 @@ class SysNavigationLeft extends \DAL\DalSlim {
             $ParentId = 0;
             if (isset($params['parent_id']) && $params['parent_id'] != "") {
                 $ParentId = intval($params['parent_id']) ;                             
+            }  
+            $MenuTypesId = NULL;
+            if (isset($params['menu_types_id']) && $params['menu_types_id'] != "") {
+                $MenuTypesId = intval($params['menu_types_id']) ;   
+                $addSql .=" AND a.menu_types_id = ". intval($MenuTypesId);
             }  
             $languageId = NULL;
             $languageIdValue = 647;
@@ -894,7 +926,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
             }  
 
             $sql = "
-             SELECT a.id, 
+                SELECT a.id, 
                     COALESCE(NULLIF(axz.menu_name, ''), a.menu_name_eng) AS menu_name, 
                     a.menu_name_eng,                                         
                     a.active, 		                                   
@@ -904,21 +936,18 @@ class SysNavigationLeft extends \DAL\DalSlim {
                             ELSE 'open'   
                     END AS state_type,
                     a.url,
-                    a.icon_class
+                    a.icon_class,
+                    a.menu_types_id  
                 FROM sys_navigation_left a  
                 INNER JOIN sys_acl_roles sar on sar.id = a.menu_type 
 		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
-                LEFT JOIN sys_language lx ON lx.deleted =0 AND lx.active =0 AND lx.id = " . intval($languageIdValue) . "
-                -- INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = a.language_id AND sd15.deleted =0 AND sd15.active =0 
-                -- INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0 AND sd16.active = 0
+                LEFT JOIN sys_language lx ON lx.deleted =0 AND lx.active =0 AND lx.id = " . intval($languageIdValue) . "                
                 LEFT JOIN sys_navigation_left axz ON (axz.id = a.id OR axz.language_parent_id = a.id) AND axz.language_id = lx.id
-                -- LEFT JOIN sys_specific_definitions sd15x ON sd15x.main_group = 15 AND sd15x.first_group= a.deleted AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
-                -- LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.first_group= a.active AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
-                WHERE a.language_parent_id = 0 AND 
-                   
+                WHERE a.language_parent_id = 0 AND    
                     a.deleted = 0 AND
                     a.parent =". intval($ParentId)." AND
                     a.menu_type = ". intval($RoleId)." 
+                    ".$addSql."
                 ORDER BY a.parent, a.z_index           
                                  ";
             $statement = $pdo->prepare($sql);            
@@ -1006,7 +1035,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                         WHERE active = 1 AND 
                         deleted = 1 AND
                         parent NOT IN (
-                            SELECT parent FROM sys_navigation_left 
+                            SELECT DISTINCT parent FROM sys_navigation_left 
                             WHERE 
                                 parent IN (SELECT DISTINCT parent FROM sys_navigation_left 
                                         WHERE 
@@ -1046,32 +1075,38 @@ class SysNavigationLeft extends \DAL\DalSlim {
     public function setCollapseClose($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            //$pdo->beginTransaction();    
+            //$pdo->beginTransaction();  
+          
+            $addSql= " abz.id =  xxc.id  ";
+            if ((isset($params['id']) && $params['id'] != "")) {
+                $addSql= "abz.id = ". intval($params['id']) ;
+            }
+          
  
-                $sql  = " 
-                    UPDATE sys_navigation_left 
-                    SET collapse = 1 
-                    WHERE id IN (
-                        SELECT DISTINCT id FROM sys_navigation_left 
-                            WHERE active = 0 AND 
-                            deleted = 0 AND
-                            collapse = 0 AND
-                            id IN (
-                                SELECT DISTINCT parent FROM sys_navigation_left 
-                                WHERE 
-                                     parent NOT IN (SELECT DISTINCT parent FROM sys_navigation_left 
-                                            WHERE 
-                                                active = 1 AND 
-                                                deleted = 1) AND                                          
-                                    active = 0 AND 
-                                    deleted = 0 
-                                GROUP BY parent  
-                                    )
-                        )
-                    AND collapse = 0 
-                    " ;
+            $sql  = " 
+                UPDATE sys_navigation_left 
+                SET collapse = 1 
+                WHERE id IN (
+                    SELECT DISTINCT id FROM sys_navigation_left  xxc
+                        WHERE active = 0 AND 
+                        deleted = 0 AND
+                        collapse = 0 AND
+                        id IN (
+                            SELECT DISTINCT  mtxz.parent FROM sys_navigation_left mtxz 
+                                      WHERE  mtxz.parent IN ( 
+                                      SELECT DISTINCT dddz FROM (
+                                              SELECT 
+                                                      CAST( CAST (json_array_elements(abz.root_json) AS text) AS integer) AS dddz 
+                                              FROM sys_navigation_left abz WHERE   ".$addSql."				
+                                              ) AS xtable 				
+                                          ) AND mtxz.active = xxc.active 
+                                             AND mtxz.language_id = xxc.language_id AND mtxz.deleted = xxc.deleted  
+                                )
+                    )
+                AND collapse = 0 
+                " ;
                 $statement = $pdo->prepare($sql);
-              //  echo debugPDO($sql, $params);
+             // echo debugPDO($sql, $params);
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();

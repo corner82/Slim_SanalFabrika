@@ -274,7 +274,7 @@ $app->get("/pkFillForAdminTree_leftnavigation/", function () use ($app ) {
     }
     
     if (!isset($headerParams['X-Public'])) {
-        throw new Exception('rest api "pkFillMachineToolFullProperties_sysMachineToolProperties" end point, X-Public variable not found');
+        throw new Exception('rest api "pkFillForAdminTree_leftnavigation" end point, X-Public variable not found');
     }
     $pk = $headerParams['X-Public'];
 
@@ -296,21 +296,25 @@ $app->get("/pkFillForAdminTree_leftnavigation/", function () use ($app ) {
                                                 $app,
                                                 $_GET['id']));
     }
-    
-    
-    
-    
+    $vMenuTypesId = NULL;
+    if (isset($_GET['menu_types_id'])) {
+        $stripper->offsetSet('menu_types_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['menu_types_id']));
+    } 
     
      $stripper->strip();
     if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     if($stripper->offsetExists('role_id')) $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
     if($stripper->offsetExists('id')) $vParentId = $stripper->offsetGet('id')->getFilterValue();
+     if($stripper->offsetExists('menu_types_id')) $vMenuTypesId = $stripper->offsetGet('menu_types_id')->getFilterValue();
     
    
    
     $resDataGrid = $BLL->fillForAdminTree(array(
                                             'language_code' => $vLanguageCode,                                          
                                             'role_id' => $vRoleId,
+                                            'menu_types_id' => $vMenuTypesId,
                                             'parent_id' => $vParentId,
                                             'pk' => $pk,
         
@@ -328,8 +332,14 @@ $app->get("/pkFillForAdminTree_leftnavigation/", function () use ($app ) {
                 "text" =>  $flow["menu_name"],
                 "state" => $flow["state_type"],
                 "checked" => false,
-                "attributes" => array ("notroot"=>true,"text_eng"=>$flow["menu_name_eng"],"active" => $flow["active"],
-                    "url"=>$flow["url"],"icon_class"=>$flow["icon_class"], ),               
+                "attributes" => array ("notroot"=>true,
+                    "text_eng"=>$flow["menu_name_eng"],
+                    "active" => $flow["active"],
+                    "url"=>$flow["url"],
+                    "icon_class"=>$flow["icon_class"],
+                    "menu_types_id"=>$flow["menu_types_id"],
+                    
+                    ),               
                 
             );
         }        
@@ -465,10 +475,14 @@ $app->get("/pkUpdate_leftnavigation/", function () use ($app ) {
          $stripper->offsetSet('role_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['role_id']));
+    }  
+    $vMenuTypesId = NULL;
+    if (isset($_GET['menu_types_id'])) {
+         $stripper->offsetSet('menu_types_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['menu_types_id']));
     }   
-     
-    
-    
+      
     $vIconClass = NULL;
     if (isset($_GET['icon_class'])) {
         $stripper->offsetSet('icon_class', $stripChainerFactory->get(stripChainers::FILTER_DEFAULT,
@@ -495,7 +509,9 @@ $app->get("/pkUpdate_leftnavigation/", function () use ($app ) {
                                                 $_GET['menu_name_eng']));
     } 
     */
-    
+     if ($stripper->offsetExists('menu_types_id')) {
+        $vMenuTypesId = $stripper->offsetGet('menu_types_id')->getFilterValue();
+    }     
     if ($stripper->offsetExists('role_id')) {
         $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
     } 
@@ -523,7 +539,8 @@ $app->get("/pkUpdate_leftnavigation/", function () use ($app ) {
 
     $resData = $BLL->update(array(  
             'id' => $vId , 
-            'role_id' => $vRoleId , 
+            'role_id' => $vRoleId ,          
+            'menu_types_id' => $vMenuTypesId ,
             'language_code' => $vLanguageCode,                 
             'icon_class' => $vIconClass , 
             'url' => $vUrl , 
@@ -559,7 +576,7 @@ $app->get("/pkInsert_leftnavigation/", function () use ($app ) {
                                                 $_GET['language_code']));
     }   
     
-    $vMenuType = NULL;
+    $vRoleId = NULL;
     if (isset($_GET['role_id'])) {
          $stripper->offsetSet('role_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
@@ -577,8 +594,12 @@ $app->get("/pkInsert_leftnavigation/", function () use ($app ) {
                                                 $app,
                                                 $_GET['z_index']));
     } 
-    
-   
+    $vMenuTypesId= 0;
+    if (isset($_GET['menu_types_id'])) {
+         $stripper->offsetSet('menu_types_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['menu_types_id']));
+    }  
     $vIconClass = NULL;
     if (isset($_GET['icon_class'])) {
         $stripper->offsetSet('icon_class', $stripChainerFactory->get(stripChainers::FILTER_DEFAULT,
@@ -592,10 +613,11 @@ $app->get("/pkInsert_leftnavigation/", function () use ($app ) {
                                                 $_GET['urlx']));
     } 
     
- 
-    
+    if ($stripper->offsetExists('menu_types_id')) {
+        $vMenuTypesId = $stripper->offsetGet('menu_types_id')->getFilterValue();
+    }    
     if ($stripper->offsetExists('role_id')) {
-        $vMenuType = $stripper->offsetGet('role_id')->getFilterValue();
+        $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
     }
     if ($stripper->offsetExists('parent')) {
         $vParent = $stripper->offsetGet('parent')->getFilterValue();
@@ -624,7 +646,8 @@ $app->get("/pkInsert_leftnavigation/", function () use ($app ) {
 
     $resData = $BLL->insert(array(  
             'language_code' => $vLanguageCode, 
-            'menu_type' => $vMenuType ,
+            'menu_type' => $vRoleId ,
+            'menu_types_id' => $vMenuTypesId ,        
             'parent'=> $vParent, 
             'icon_class' => $vIconClass , 
             'url' => $vUrl , 
