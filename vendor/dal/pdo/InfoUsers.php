@@ -306,13 +306,6 @@ class InfoUsers extends \DAL\DalSlim {
                     if ((isset($params['preferred_language']) && $params['preferred_language'] != "")) {                                    
                         $languageIdValue = $params['preferred_language'];
                     }
-                   //uzerinde az iş olan consultantı alalım.  
-                   $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users' , 'operation_type_id' => $operationIdValue));
-                    if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
-                        $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
-                    } else {
-                        $ConsultantId = 1001;
-                    } 
                     
                     $operationIdValue = -1;
                     $operationId = SysOperationTypes::getTypeIdToGoOperationId(
@@ -320,6 +313,15 @@ class InfoUsers extends \DAL\DalSlim {
                     if (\Utill\Dal\Helper::haveRecord($operationId)) {
                     $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
+                   //uzerinde az iş olan consultantı alalım. 
+                    $ConsultantId = 1001;
+                   $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users' , 
+                                                                                        'operation_type_id' => $operationIdValue, 
+                                                                                        'language_id' => $languageIdValue,  
+                                                                                               ));
+                    if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
+                        $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
+                    } 
                     
                     $CountryCode = NULL;
                     $CountryCodeValue = 'TR';
@@ -1263,7 +1265,7 @@ class InfoUsers extends \DAL\DalSlim {
                         WHERE pkey = TRUE 
                 ";
             $statement = $pdo->prepare($sql);
-            // echo debugPDO($sql, $params);
+           //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1921,4 +1923,44 @@ class InfoUsers extends \DAL\DalSlim {
         }
     }
 
+         /**  
+     * @author Okan CIRAN
+     * @ network key den firm id sini döndürür  !!     
+     * @version v 1.0  09.05.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getUserIdsForNetworkKey($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                                
+            if (isset($params['network_key'])) {                                
+                $npk = $params['network_key'];  
+                $sql = " 
+                    SELECT user_id, 1=1 AS control FROM (
+                            SELECT a.id AS user_id
+                            FROM info_users a                            			    
+                            WHERE
+                             a.network_key = '".$npk."'
+                ) AS xtable limit 1                             
+                                 ";
+                $statement = $pdo->prepare($sql);
+               //echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  network_key not_null_violation
+                $errorInfoColumn = 'network_key';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+  
+    
 }

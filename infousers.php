@@ -660,17 +660,17 @@ $app->get("/pkFillUsersInformationNpk_infoUsers/", function () use ($app ) {
                                                 $_GET['language_code']));
     }  
     $vNetworkKey = NULL;
-    if (isset($_GET['npk'])) {
-        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+    if (isset($_GET['unpk'])) {
+        $stripper->offsetSet('unpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
-                                                $_GET['npk']));
+                                                $_GET['unpk']));
     }   
     $stripper->strip();
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     }     
-    if ($stripper->offsetExists('npk')) {
-        $vNetworkKey = $stripper->offsetGet('npk')->getFilterValue();
+    if ($stripper->offsetExists('unpk')) {
+        $vNetworkKey = $stripper->offsetGet('unpk')->getFilterValue();
     }      
     $resDataGrid = $BLL->fillUsersInformationNpk(array(
         'language_code' => $vLanguageCode,
