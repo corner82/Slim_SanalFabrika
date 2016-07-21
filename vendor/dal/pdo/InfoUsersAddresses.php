@@ -275,6 +275,19 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
+                
+                $xjobs = ActProcessConfirm::insert(array(
+                              'op_user_id' => intval($opUserIdValue),
+                              'operation_type_id' => intval($operationIdValue),
+                              'table_column_id' => intval($insertID),
+                              'cons_id' => intval($ConsultantId),
+                              'preferred_language_id' => intval($languageIdValue),
+                                  )
+                      );
+                if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                throw new \PDOException($xjobs['errorInfo']);
+
+                 
                 $pdo->commit();
 
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
@@ -449,9 +462,35 @@ class InfoUsersAddresses extends \DAL\DalSlim {
 
                 $result = $statementInsert->execute();
                 $insertID = $pdo->lastInsertId('info_users_addresses_id_seq');
-                $errorInfo = $statement->errorInfo();
+                $affectedRows = $statementInsert->rowCount();
+                $errorInfo = $statementInsert->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
+
+                /*
+                * ufak bir trik var. 
+                * işlem update oldugunda update işlemini yapan kişinin dil bilgisini kullanıcaz. 
+                * ancak delete işlemi oldugunda delete işlemini yapan user in dil bilgisini değil 
+                * silinen kaydı yapan kişinin dil bilgisini alıcaz.
+                */
+                 $consIdAndLanguageId = SysOperationTypes::getConsIdAndLanguageId(
+                            array('table_name' => 'info_users_addresses', 'id' => $params['id'],));
+                if (\Utill\Dal\Helper::haveRecord($consIdAndLanguageId)) {
+                    $ConsultantId = $consIdAndLanguageId ['resultSet'][0]['consultant_id'];
+                    // $languageIdValue = $consIdAndLanguageId ['resultSet'][0]['language_id'];                       
+                }
+
+                $xjobs = ActProcessConfirm::insert(array(
+                            'op_user_id' => intval($opUserIdValue), // işlemi yapan user
+                            'operation_type_id' => intval($operationIdValue), // operasyon 
+                            'table_column_id' => intval($insertID), // işlem yapılan tablo id si
+                            'cons_id' => intval($ConsultantId), // atanmış olan danısman 
+                            'preferred_language_id' => intval($languageIdValue), // dil bilgisi
+                                )
+                );
+
+                if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                   throw new \PDOException($xjobs['errorInfo']); 
 
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
@@ -1116,9 +1155,31 @@ class InfoUsersAddresses extends \DAL\DalSlim {
 
                 $insertAct = $statementInsert->execute();
                 $affectedRows = $statementInsert->rowCount();
-                $errorInfo = $statementInsert->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
+                $insertID = $pdo->lastInsertId('info_users_addresses_id_seq');
+                /*
+                 * ufak bir trik var. 
+                 * işlem update oldugunda update işlemini yapan kişinin dil bilgisini kullanıcaz. 
+                 * ancak delete işlemi oldugunda delete işlemini yapan user in dil bilgisini değil 
+                 * silinen kaydı yapan kişinin dil bilgisini alıcaz.
+                 */
+                $consIdAndLanguageId = SysOperationTypes::getConsIdAndLanguageId(
+                                array('table_name' => 'info_users_addresses', 'id' => $params['id'],));
+                if (\Utill\Dal\Helper::haveRecord($consIdAndLanguageId)) {
+                    $ConsultantId = $consIdAndLanguageId ['resultSet'][0]['consultant_id'];
+                    $languageIdValue = $consIdAndLanguageId ['resultSet'][0]['language_id'];                       
+                }
+
+                $xjobs = ActProcessConfirm::insert(array(
+                            'op_user_id' => intval($opUserIdValue), // işlemi yapan user
+                            'operation_type_id' => intval($operationIdValue), // operasyon 
+                            'table_column_id' => intval($insertID), // işlem yapılan tablo id si
+                            'cons_id' => intval($ConsultantId), // atanmış olan danısman 
+                            'preferred_language_id' => intval($languageIdValue), // dil bilgisi
+                                )
+                );
+
+                if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                    throw new \PDOException($xjobs['errorInfo']);
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
             } else {

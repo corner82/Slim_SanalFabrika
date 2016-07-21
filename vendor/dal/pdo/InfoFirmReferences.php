@@ -16,7 +16,7 @@ namespace DAL\PDO;
  * @
  * @author Okan CIRAN
  */
-class InfoUsersAddresses extends \DAL\DalSlim {
+class InfoFirmReferences extends \DAL\DalSlim {
 
     /**
 
@@ -38,7 +38,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 UPDATE info_firm_references
                 SET  deleted= 1 , active = 1 ,
                      op_user_id = " . $opUserIdValue . "     
-                WHERE id = ". intval($params['id']));         
+                WHERE id = " . intval($params['id']));
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
@@ -55,7 +55,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
-    } 
+    }
 
     /**
      * @author Okan CIRAN
@@ -69,12 +69,12 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $languageId = NULL;
             $languageIdValue = 647;
-            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
                 $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
                 }
-            }   
+            }
             $statement = $pdo->prepare("
                 SELECT
                     a.id,
@@ -106,7 +106,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 INNER JOIN info_users u ON u.id = a.op_user_id
                 INNER JOIN info_firm_profile fpref ON  fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id=2 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
-                LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
                 LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
                 LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.cons_allow_id=2 AND fprefx.language_id = lx.id 
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0                
@@ -120,7 +120,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 LEFT JOIN sys_specific_definitions sd16x ON (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0                
 	        WHERE fp.language_parent_id = 0 
                ORDER BY firm_names  
-                                 ");               
+                                 ");
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -165,6 +165,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+
     /**
      * @author Okan CIRAN
      * @ kayıtlı kullanıcılar info_firm_references tablosuna yeni bir kayıt oluşturur.  !!
@@ -178,7 +179,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $pdo->beginTransaction();
             $kontrol = $this->haveRecords($params);
             if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+                $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));               
                 if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                     $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                     $operationIdValue = -1;
@@ -196,10 +197,10 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                         }
                     }
 
-                    $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_references' , 
-                                                                                            'operation_type_id' => $operationIdValue, 
-                                                                                            'language_id' => $languageIdValue,  
-                                                                                               )); 
+                    $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_references',
+                                'operation_type_id' => $operationIdValue,
+                                'language_id' => $languageIdValue,
+                    ));
                     if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                         $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                     } else {
@@ -239,6 +240,21 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                     $errorInfo = $statement->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
+
+
+
+                    $xjobs = ActProcessConfirm::insert(array(
+                                'op_user_id' => intval($opUserIdValue),
+                                'operation_type_id' => intval($operationIdValue),
+                                'table_column_id' => intval($insertID),
+                                'cons_id' => intval($ConsultantId),
+                                'preferred_language_id' => intval($languageIdValue),
+                                    )
+                    );
+
+                    if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                        throw new \PDOException($xjobs['errorInfo']);
+
                     $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
@@ -260,10 +276,6 @@ class InfoUsersAddresses extends \DAL\DalSlim {
     }
 
     /**
-     * basic have records control  
-     * * returned result set example;
-     * for success result  
-     * usage     
      * @author Okan CIRAN
      * @ info_firm_references tablosunda ref_firm_id & firm_id sutununda daha önce oluşturulmuş mu?      
      * @version v 1.0 25.03.2016
@@ -279,19 +291,19 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             }
             $sql = " 
             SELECT   
-                a.firm_id AS firm_id  , 
-                a.firm_id  AS value , 
-                a.firm_id  = " . $params['firm_id'] . " AS control,                
-                CONCAT('Bu Firma daha önce referans edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message                             
+                a.firm_id AS firm_id, 
+                a.firm_id  AS value, 
+                a.firm_id  = " . intval($params['firm_id']) . " AS control,                
+                CONCAT('Bu Firma daha önce referans edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
             FROM info_firm_references a
-            WHERE a.ref_firm_id = '" . $params['ref_firm_id'] . "' AND 		
-                a.firm_id =  '" . $params['firm_id'] . "' AND 		
+            WHERE a.ref_firm_id = " . intval($params['ref_firm_id']) . " AND
+                a.firm_id =  " . intval($params['firm_id']) . " AND
                 " . $addSql . "
-                 a.active =0 and
-                 a.deleted=0  
-                               ";
+                 a.active =0 AND
+                 a.deleted=0
+                ";
             $statement = $pdo->prepare($sql);
-            //echo debugPDO($sql, $params);
+           //echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -319,7 +331,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                 $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
                 if (\Utill\Dal\Helper::haveRecord($userId)) {
-                    $userIdValue = $userId ['resultSet'][0]['user_id'];
+                    $opUserIdValue = $userId ['resultSet'][0]['user_id'];
                     $this->makePassive(array('id' => $params['id']));
 
                     $operationIdValue = -2;
@@ -382,7 +394,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 SELECT 
                     " . intval($active) . " AS active, 
                     deleted,
-                    " . intval($userIdValue) . " AS op_user_id,
+                    " . intval($opUserIdValue) . " AS op_user_id,
                     " . intval($operationIdValue) . " AS operation_type_id,
                     act_parent_id,  
                     " . intval($params['firm_id']) . " AS firm_id,
@@ -397,15 +409,43 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 WHERE id  =" . intval($params['id']) . "                  
                                                 ");
                     $result = $statementInsert->execute();
+                    $affectedRows = $statement->rowCount();
                     $insertID = $pdo->lastInsertId('info_firm_references_id_seq');
                     $errorInfo = $statement->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
+
+
+                    /*
+                     * ufak bir trik var. 
+                     * işlem update oldugunda update işlemini yapan kişinin dil bilgisini kullanıcaz. 
+                     * ancak delete işlemi oldugunda delete işlemini yapan user in dil bilgisini değil 
+                     * silinen kaydı yapan kişinin dil bilgisini alıcaz.
+                     */
+                    $consIdAndLanguageId = SysOperationTypes::getConsIdAndLanguageId(
+                                    array('table_name' => 'info_firm_references', 'id' => $params['id'],));
+                    if (\Utill\Dal\Helper::haveRecord($consIdAndLanguageId)) {
+                        $ConsultantId = $consIdAndLanguageId ['resultSet'][0]['consultant_id'];
+                        // $languageIdValue = $consIdAndLanguageId ['resultSet'][0]['language_id'];                       
+                    }
+
+                    $xjobs = ActProcessConfirm::insert(array(
+                                'op_user_id' => intval($opUserIdValue), // işlemi yapan user
+                                'operation_type_id' => intval($operationIdValue), // operasyon 
+                                'table_column_id' => intval($insertID), // işlem yapılan tablo id si
+                                'cons_id' => intval($ConsultantId), // atanmış olan danısman 
+                                'preferred_language_id' => intval($languageIdValue), // dil bilgisi
+                                    )
+                    );
+
+                    if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                        throw new \PDOException($xjobs['errorInfo']);
+
                     $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
                 } else {
                     $errorInfo = '23502';   // 23502  user_id not_null_violation
-                    $errorInfoColumn = 'user_id';
+                    $errorInfoColumn = 'pk';
                     $pdo->rollback();
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
@@ -452,8 +492,9 @@ class InfoUsersAddresses extends \DAL\DalSlim {
         }
 
         if (isset($args['order']) && $args['order'] != "") {
-            $order = trim($args['order']);            $orderArr = explode(",", $order);
-        
+            $order = trim($args['order']);
+            $orderArr = explode(",", $order);
+
             if (count($orderArr) === 1)
                 $order = trim($args['order']);
         } else {
@@ -461,12 +502,12 @@ class InfoUsersAddresses extends \DAL\DalSlim {
         }
         $languageId = NULL;
         $languageIdValue = 647;
-        if ((isset($args['language_code']) && $args['language_code'] != "")) {                
+        if ((isset($args['language_code']) && $args['language_code'] != "")) {
             $languageId = SysLanguage::getLanguageId(array('language_code' => $args['language_code']));
             if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
             }
-        } 
+        }
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -500,7 +541,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 INNER JOIN info_users u ON u.id = a.op_user_id
                 INNER JOIN info_firm_profile fpref ON  fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id=2 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
-                LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
                 LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
                 LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.cons_allow_id=2 AND fprefx.language_id = lx.id 
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0                
@@ -537,7 +578,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
         }
     }
 
-    /** 
+    /**
      * @author Okan CIRAN
      * @ user in ref oldugu firmaları info_firm_references tablosundan döndürür !!
      * @version v 1.0  25.03.2016
@@ -550,15 +591,15 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $userId = InfoUsers::getUserId(array('pk' => $args['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $whereSql = " AND a.op_user_id = " . $userId ['resultSet'][0]['user_id'];    
+                $whereSql = " AND a.op_user_id = " . $userId ['resultSet'][0]['user_id'];
                 $languageId = NULL;
                 $languageIdValue = 647;
-                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
                     $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                     if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
                     }
-                }  
+                }
                 $sql = "
                 SELECT
                     a.id,
@@ -590,7 +631,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 INNER JOIN info_users u ON u.id = a.op_user_id
                 INNER JOIN info_firm_profile fpref ON  fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id=2 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
-                LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
                 LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
                 LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.cons_allow_id=2 AND fprefx.language_id = lx.id 
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0                
@@ -616,7 +657,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             } else {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
-                $errorInfoColumn = 'user_id';              
+                $errorInfoColumn = 'user_id';
                 return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -638,9 +679,9 @@ class InfoUsersAddresses extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $userId = InfoUsers::getUserId(array('pk' => $args['pk']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) { 
+            if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
-                $whereSql = " AND a.op_user_id = " . $userIdValue;                                
+                $whereSql = " AND a.op_user_id = " . $userIdValue;
                 $sql = "                              
                 SELECT 
                     COUNT(a.id) AS COUNT      
@@ -665,7 +706,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             } else {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
-                $errorInfoColumn = 'pk';            
+                $errorInfoColumn = 'pk';
                 return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -714,7 +755,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-    
+
     /**
      * @author Okan CIRAN     
      * @ info_firm_references tablosundan parametre olarak  gelen id kaydın active alanını 1 yapar ve 
@@ -730,17 +771,17 @@ class InfoUsersAddresses extends \DAL\DalSlim {
             $pdo->beginTransaction();
             $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $userIdValue = $userId ['resultSet'][0]['user_id'];         
-                
-                $operationIdValue = -3;  
+                $opUserIdValue = $userId ['resultSet'][0]['user_id'];
+ 
+                $operationIdValue = -3;
                 $operationId = SysOperationTypes::getTypeIdToGoOperationId(
-                            array('parent_id' =>3,'main_group' =>3,'sub_grup_id' =>27,'type_id'=>3, ));                
+                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 27, 'type_id' => 3,));
                 if (\Utill\Dal\Helper::haveRecord($operationId)) {
                     $operationIdValue = $operationId ['resultSet'][0]['id'];
                 }
-                 
+
                 $this->makePassive(array('id' => $params['id']));
-                
+
                 $statementInsert = $pdo->prepare(" 
                      INSERT INTO info_firm_references (
                         active,
@@ -760,7 +801,7 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 SELECT                 
                     1 AS active, 
                     1 as deleted,    
-                    " . intval($userIdValue) . " AS op_user_id,  
+                    " . intval($opUserIdValue) . " AS op_user_id,  
                     " . intval($operationIdValue) . " AS operation_type_id,                                        
                     act_parent_id, 
                     consultant_id, 
@@ -776,24 +817,51 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                      ");
                 $insertAct = $statementInsert->execute();
                 $affectedRows = $statementInsert->rowCount();
+                $insertID = $pdo->lastInsertId('info_firm_references_id_seq');
                 $errorInfo = $statementInsert->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
+
+                /*
+                 * ufak bir trik var. 
+                 * işlem update oldugunda update işlemini yapan kişinin dil bilgisini kullanıcaz. 
+                 * ancak delete işlemi oldugunda delete işlemini yapan user in dil bilgisini değil 
+                 * silinen kaydı yapan kişinin dil bilgisini alıcaz.
+                 */
+                $consIdAndLanguageId = SysOperationTypes::getConsIdAndLanguageId(
+                                array('table_name' => 'info_firm_references', 'id' => $params['id'],));
+                if (\Utill\Dal\Helper::haveRecord($consIdAndLanguageId)) {
+                    $ConsultantId = $consIdAndLanguageId ['resultSet'][0]['consultant_id'];
+                    $languageIdValue = $consIdAndLanguageId ['resultSet'][0]['language_id'];                       
+                }
+
+                $xjobs = ActProcessConfirm::insert(array(
+                            'op_user_id' => intval($opUserIdValue), // işlemi yapan user
+                            'operation_type_id' => intval($operationIdValue), // operasyon 
+                            'table_column_id' => intval($insertID), // işlem yapılan tablo id si
+                            'cons_id' => intval($ConsultantId), // atanmış olan danısman 
+                            'preferred_language_id' => intval($languageIdValue), // dil bilgisi
+                                )
+                );
+
+                if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                    throw new \PDOException($xjobs['errorInfo']);
+
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
             } else {
                 $errorInfo = '23502';  /// 23502  not_null_violation
                 $errorInfoColumn = 'pk';
-                 $pdo->rollback();
+                $pdo->rollback();
                 return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
-    }    
-    
-    /**   
+    }
+
+    /**
      * @author Okan CIRAN
      * @ info_firm_references tablosundan firmalara referans olan firmaları döndürür!!
      * firm_id gönderirseniz o firmaya referans olan firmaları döndürür.
@@ -804,52 +872,52 @@ class InfoUsersAddresses extends \DAL\DalSlim {
      */
     public function fillWithReference($params = array()) {
         try {
-                $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
-                if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
                 $offset = ((intval($params['page']) - 1) * intval($params['rows']));
                 $limit = intval($params['rows']);
-                } else {
-                    $limit = 10;
-                    $offset = 0;
-                }
+            } else {
+                $limit = 10;
+                $offset = 0;
+            }
 
-                $sortArr = array();
-                $orderArr = array();
-                $whereSql = "";
-                if (isset($params['sort']) && $params['sort'] != "") {
+            $sortArr = array();
+            $orderArr = array();
+            $whereSql = "";
+            if (isset($params['sort']) && $params['sort'] != "") {
+                $sort = trim($params['sort']);
+                $sortArr = explode(",", $sort);
+                if (count($sortArr) === 1)
                     $sort = trim($params['sort']);
-                    $sortArr = explode(",", $sort);
-                    if (count($sortArr) === 1)
-                        $sort = trim($params['sort']);
-                } else {
-                    $sort = " ref_names";
-                }
+            } else {
+                $sort = " ref_names";
+            }
 
-                if (isset($params['order']) && $params['order'] != "") {
+            if (isset($params['order']) && $params['order'] != "") {
+                $order = trim($params['order']);
+                $orderArr = explode(",", $order);
+                if (count($orderArr) === 1)
                     $order = trim($params['order']);
-                    $orderArr = explode(",", $order); 
-                    if (count($orderArr) === 1)
-                        $order = trim($params['order']);
-                } else {
-                    $order = "ASC";
+            } else {
+                $order = "ASC";
+            }
+
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
                 }
+            }
 
-                $languageId = NULL;
-                $languageIdValue = 647;
-                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
-                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
-                    }
-                }         
-                
-                $FirmId = NULL;                
-                if ((isset($params['firm_id']) && $params['firm_id'] != "")) {                                 
-                        $FirmId = $params ['firm_id'];   
-                        $addSql =" AND a.firm_id = ". intval($FirmId);
-                }  
+            $FirmId = NULL;
+            if ((isset($params['firm_id']) && $params['firm_id'] != "")) {
+                $FirmId = $params ['firm_id'];
+                $addSql = " AND a.firm_id = " . intval($FirmId);
+            }
 
-                $sql = "                                 
+            $sql = "                                 
                 SELECT 
 		    a.id,		    
 		    COALESCE(NULLIF(COALESCE(NULLIF(fprefx.firm_name, ''), fpref.firm_name_eng), ''), fpref.firm_name) AS ref_firm_names,
@@ -865,38 +933,38 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
                 INNER JOIN info_firm_profile fpref ON fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id =2 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
-                LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
                 LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.cons_allow_id =2 AND fpx.language_id = lx.id
                 LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.cons_allow_id =2 AND fprefx.language_id = lx.id
 	        WHERE  
                     fp.language_parent_id = 0 AND 
                     fp.cons_allow_id =2
-                   ".$addSql."
+                   " . $addSql . "
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
                     . "OFFSET " . $pdo->quote($offset) . " ";
-                $statement = $pdo->prepare($sql);
-                $parameters = array(
-                    'sort' => $sort,
-                    'order' => $order,
-                    'limit' => $pdo->quote($limit),
-                    'offset' => $pdo->quote($offset),
-                );             
-                //  echo debugPDO($sql, $parameters);                
-                $statement->execute();
-                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-            
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            );
+            //  echo debugPDO($sql, $parameters);                
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
             //$debugSQLParams = $statement->debugDumpParams();
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-    /**   
+
+    /**
      * @author Okan CIRAN
      * @ info_firm_references tablosundan firmalara referans olan firmaların sayısını döndürür!!
      * firm_id gönderirseniz o firmaya referans olan firmaların sayısını döndürür.
@@ -907,13 +975,13 @@ class InfoUsersAddresses extends \DAL\DalSlim {
      */
     public function fillWithReferenceRtc($params = array()) {
         try {
-                $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                                    
-                $FirmId = NULL;                
-                if ((isset($params['firm_id']) && $params['firm_id'] != "")) {                                 
-                        $FirmId = $params ['firm_id'];   
-                        $addSql =" AND a.firm_id = ". intval($FirmId);
-                }  
-                $sql = "                                 
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $FirmId = NULL;
+            if ((isset($params['firm_id']) && $params['firm_id'] != "")) {
+                $FirmId = $params ['firm_id'];
+                $addSql = " AND a.firm_id = " . intval($FirmId);
+            }
+            $sql = "                                 
                 SELECT 
 		     COUNT(a.id) AS COUNT 
                 FROM info_firm_profile fp
@@ -924,23 +992,23 @@ class InfoUsersAddresses extends \DAL\DalSlim {
 	        WHERE  
                     fp.language_parent_id = 0 AND 
                     fp.cons_allow_id =2
-                   ".$addSql."
+                   " . $addSql . "
                  ";
-                $statement = $pdo->prepare($sql);
-                //  echo debugPDO($sql, $parameters);                
-                $statement->execute();
-                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            $statement = $pdo->prepare($sql);
+            //  echo debugPDO($sql, $parameters);                
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
             //$debugSQLParams = $statement->debugDumpParams();
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
 
-    /**   
+    /**
      * @author Okan CIRAN
      * @ info_firm_references tablosundan referans olunan firmaları döndürür!!
      * firm_id gönderirseniz o firmanın referans oldugu firmaları döndürür.
@@ -951,52 +1019,52 @@ class InfoUsersAddresses extends \DAL\DalSlim {
      */
     public function fillBeReferenced($params = array()) {
         try {
-                $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
-                 if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
                 $offset = ((intval($params['page']) - 1) * intval($params['rows']));
                 $limit = intval($params['rows']);
-                } else {
-                    $limit = 10;
-                    $offset = 0;
-                }
+            } else {
+                $limit = 10;
+                $offset = 0;
+            }
 
-                $sortArr = array();
-                $orderArr = array();
-                $addSql = "";
-                if (isset($params['sort']) && $params['sort'] != "") {
+            $sortArr = array();
+            $orderArr = array();
+            $addSql = "";
+            if (isset($params['sort']) && $params['sort'] != "") {
+                $sort = trim($params['sort']);
+                $sortArr = explode(",", $sort);
+                if (count($sortArr) === 1)
                     $sort = trim($params['sort']);
-                    $sortArr = explode(",", $sort);
-                    if (count($sortArr) === 1)
-                        $sort = trim($params['sort']);
-                } else {
-                    $sort = " firm_names";
-                }
+            } else {
+                $sort = " firm_names";
+            }
 
-                if (isset($params['order']) && $params['order'] != "") {
+            if (isset($params['order']) && $params['order'] != "") {
+                $order = trim($params['order']);
+                $orderArr = explode(",", $order);
+                if (count($orderArr) === 1)
                     $order = trim($params['order']);
-                    $orderArr = explode(",", $order); 
-                    if (count($orderArr) === 1)
-                        $order = trim($params['order']);
-                } else {
-                    $order = "ASC";
+            } else {
+                $order = "ASC";
+            }
+
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
                 }
+            }
 
-                $languageId = NULL;
-                $languageIdValue = 647;
-                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
-                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
-                    }
-                }         
-                
-                $FirmId = NULL;                
-                if ((isset($params['ref_firm_id']) && $params['ref_firm_id'] != "")) {                                 
-                        $FirmId = $params ['ref_firm_id'];   
-                        $addSql =" AND a.ref_firm_id = ". intval($FirmId);
-                }  
+            $FirmId = NULL;
+            if ((isset($params['ref_firm_id']) && $params['ref_firm_id'] != "")) {
+                $FirmId = $params ['ref_firm_id'];
+                $addSql = " AND a.ref_firm_id = " . intval($FirmId);
+            }
 
-                $sql = "                 
+            $sql = "                 
                SELECT 
 		    a.id,		    
 		    COALESCE(NULLIF(COALESCE(NULLIF(fprefx.firm_name, ''), fpref.firm_name_eng), ''), fpref.firm_name) AS ref_firm_names,
@@ -1012,40 +1080,38 @@ class InfoUsersAddresses extends \DAL\DalSlim {
                 INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                                     
                 INNER JOIN info_firm_profile fpref ON  fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id =2 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
-                LEFT JOIN sys_language lx ON lx.id =". intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0 
+                LEFT JOIN sys_language lx ON lx.id =" . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
                 LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
                 LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.cons_allow_id =2 AND fprefx.language_id = lx.id                 
 	        WHERE  
                     fp.language_parent_id = 0 AND 
                     fp.cons_allow_id =2
-                    ".$addSql."
+                    " . $addSql . "
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
                     . "OFFSET " . $pdo->quote($offset) . " ";
-                $statement = $pdo->prepare($sql);
-                $parameters = array(
-                    'sort' => $sort,
-                    'order' => $order,
-                    'limit' => $pdo->quote($limit),
-                    'offset' => $pdo->quote($offset),
-                );             
-                //  echo debugPDO($sql, $parameters);                
-                $statement->execute();
-                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-            
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            );
+            //  echo debugPDO($sql, $parameters);                
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
             //$debugSQLParams = $statement->debugDumpParams();
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
 
-     
-       /**   
+    /**
      * @author Okan CIRAN
      * @ info_firm_references tablosundan referans olunan firmaların sayısını döndürür!!
      * firm_id gönderirseniz o firmanın referans oldugu firmaların sayısını döndürür.
@@ -1056,14 +1122,14 @@ class InfoUsersAddresses extends \DAL\DalSlim {
      */
     public function fillBeReferencedRtc($params = array()) {
         try {
-                $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                   
-                $addSql = "";
-                $FirmId = NULL;                
-                if ((isset($params['ref_firm_id']) && $params['ref_firm_id'] != "")) {                                 
-                        $FirmId = $params ['ref_firm_id'];   
-                        $addSql =" AND a.ref_firm_id = ". intval($FirmId);
-                }  
-                $sql = "                 
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $addSql = "";
+            $FirmId = NULL;
+            if ((isset($params['ref_firm_id']) && $params['ref_firm_id'] != "")) {
+                $FirmId = $params ['ref_firm_id'];
+                $addSql = " AND a.ref_firm_id = " . intval($FirmId);
+            }
+            $sql = "                 
                 SELECT 
 		     COUNT(a.id) AS COUNT                 
                 FROM info_firm_profile fp                                
@@ -1074,27 +1140,20 @@ class InfoUsersAddresses extends \DAL\DalSlim {
 	        WHERE  
                     fp.language_parent_id = 0 AND 
                     fp.cons_allow_id =2
-                   ".$addSql."
+                   " . $addSql . "
                 ";
-                $statement = $pdo->prepare($sql);                
-                //  echo debugPDO($sql, $parameters);                
-                $statement->execute();
-                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-            
+            $statement = $pdo->prepare($sql);
+            //  echo debugPDO($sql, $parameters);                
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
         } catch (\PDOException $e /* Exception $e */) {
             //$debugSQLParams = $statement->debugDumpParams();
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-
-     
-    
-    
-    
-    
 
 }

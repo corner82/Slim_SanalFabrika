@@ -235,7 +235,7 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
                 if (\Utill\Dal\Helper::haveRecord($getFirm)) {
                     $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
 
-                    $kontrol = $this->haveRecords(array('firm_id' => $getFirmId,'unspsc_codes_id' => $params['unspsc_codes_id'],));
+                    $kontrol = $this->haveRecords(array('firm_id' => $getFirmId, 'unspsc_codes_id' => $params['unspsc_codes_id'],));
                     if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                         $operationIdValue = -1;
                         $operationId = SysOperationTypes::getTypeIdToGoOperationId(
@@ -245,7 +245,7 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
                         }
 
                         $ConsultantId = 1001;
-                        $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users_products_services' , 'operation_type_id' => $operationIdValue));
+                        $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users_products_services', 'operation_type_id' => $operationIdValue));
                         if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                             $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                         }
@@ -257,12 +257,12 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
 
                         $languageId = NULL;
                         $languageIdValue = 647;
-                        if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                        if ((isset($params['language_code']) && $params['language_code'] != "")) {
                             $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                             if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                                $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                                $languageIdValue = $languageId ['resultSet'][0]['id'];
                             }
-                        }                          
+                        }
 
                         $sql = " 
                         INSERT INTO info_users_products_services(
@@ -287,13 +287,25 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
                              )";
                         $statement = $pdo->prepare($sql);
                         $statement->bindValue(':firm_id', $getFirmId, \PDO::PARAM_INT);
-                        $statement->bindValue(':unspsc_codes_id', $params['unspsc_codes_id'], \PDO::PARAM_INT);                        
-                      //  echo debugPDO($sql, $params);
+                        $statement->bindValue(':unspsc_codes_id', $params['unspsc_codes_id'], \PDO::PARAM_INT);
+                        //  echo debugPDO($sql, $params);
                         $result = $statement->execute();
                         $insertID = $pdo->lastInsertId('info_users_products_services_id_seq');
                         $errorInfo = $statement->errorInfo();
                         if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                             throw new \PDOException($errorInfo[0]);
+
+                        $xjobs = ActProcessConfirm::insert(array(
+                                    'op_user_id' => intval($opUserIdValue),
+                                    'operation_type_id' => intval($operationIdValue),
+                                    'table_column_id' => intval($insertID),
+                                    'cons_id' => intval($ConsultantId),
+                                    'preferred_language_id' => intval($languageIdValue),
+                                        )
+                        );
+                        if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                            throw new \PDOException($xjobs['errorInfo']);
+
                         $pdo->commit();
                         return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                     } else {
@@ -339,12 +351,12 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
                 if (\Utill\Dal\Helper::haveRecord($kontrol)) {
-                    $this->makePassive(array('id' => $params['id']));               
+                    $this->makePassive(array('id' => $params['id']));
                     $operationIdValue = -2;
                     $operationId = SysOperationTypes::getTypeIdToGoOperationId(
-                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 46, 'type_id' => 2,));
+                                    array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 46, 'type_id' => 2,));
                     if (\Utill\Dal\Helper::haveRecord($operationId)) {
-                    $operationIdValue = $operationId ['resultSet'][0]['id'];
+                        $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
                     $languageId = NULL;
                     $languageIdValue = 647;
@@ -353,7 +365,7 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
                         if (\Utill\Dal\Helper::haveRecord($languageId)) {
                             $languageIdValue = $languageId ['resultSet'][0]['id'];
                         }
-                    } 
+                    }
 
                     $profilePublic = 0;
                     if ((isset($params['profile_public']) && $params['profile_public'] != "")) {
@@ -363,7 +375,7 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
                     if ((isset($params['active']) && $params['active'] != "")) {
                         $active = $params['active'];
                     }
-                    
+
                     $statement_act_insert = $pdo->prepare(" 
                  INSERT INTO info_users_products_services(
                             firm_id, 
@@ -391,12 +403,38 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
                             " . intval($params['unspsc_codes_id']) . " AS unspsc_codes_id                            
                         FROM info_users_products_services 
                         WHERE id =  " . intval($params['id']) . " 
-                        "); 
+                        ");
                     $insert_act_insert = $statement_act_insert->execute();
                     $affectedRows = $statement_act_insert->rowCount();
-                    $errorInfo = $statement_act_insert->errorInfo();
+                    $insertID = $pdo->lastInsertId('info_users_products_services_id_seq');
+                    $errorInfo = $insert_act_insert->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
+
+                    /*
+                     * ufak bir trik var. 
+                     * işlem update oldugunda update işlemini yapan kişinin dil bilgisini kullanıcaz. 
+                     * ancak delete işlemi oldugunda delete işlemini yapan user in dil bilgisini değil 
+                     * silinen kaydı yapan kişinin dil bilgisini alıcaz.
+                     */
+                    $consIdAndLanguageId = SysOperationTypes::getConsIdAndLanguageId(
+                                    array('table_name' => 'info_users_products_services', 'id' => $params['id'],));
+                    if (\Utill\Dal\Helper::haveRecord($consIdAndLanguageId)) {
+                        $ConsultantId = $consIdAndLanguageId ['resultSet'][0]['consultant_id'];
+                        // $languageIdValue = $consIdAndLanguageId ['resultSet'][0]['language_id'];                       
+                    }
+
+                    $xjobs = ActProcessConfirm::insert(array(
+                                'op_user_id' => intval($opUserIdValue), // işlemi yapan user
+                                'operation_type_id' => intval($operationIdValue), // operasyon 
+                                'table_column_id' => intval($insertID), // işlem yapılan tablo id si
+                                'cons_id' => intval($ConsultantId), // atanmış olan danısman 
+                                'preferred_language_id' => intval($languageIdValue), // dil bilgisi
+                                    )
+                    );
+
+                    if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                        throw new \PDOException($xjobs['errorInfo']);
                     $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
                 } else {
@@ -419,7 +457,7 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
         }
     }
 
-    /**     
+    /**
      * @author Okan CIRAN
      * @ Gridi doldurmak için info_users_products_services tablosundan kayıtları döndürür !!
      * @version v 1.0  24.06.2016
@@ -544,7 +582,7 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
         }
     }
 
-    /**     
+    /**
      * @author Okan CIRAN
      * @ Gridi doldurmak için info_users_products_services tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
      * @version v 1.0  24.06.2016
@@ -554,8 +592,8 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
      */
     public function fillGridRowTotalCount($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');             
-            $whereSQL = " WHERE a.deleted =0 "; 
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $whereSQL = " WHERE a.deleted =0 ";
 
             $sql = "
                 SELECT 
@@ -586,7 +624,7 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
- 
+
     /**
      * delete olayında önce kaydın active özelliğini pasif e olarak değiştiriyoruz. 
      * daha sonra deleted= 1 ve active = 1 olan kaydı oluşturuyor. 
@@ -653,10 +691,32 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
                 $statement_act_insert = $pdo->prepare($sql);
                 //  echo debugPDO($sql, $params);
                 $insert_act_insert = $statement_act_insert->execute();
-                $affectedRows = $statement_act_insert->rowCount();
-                $errorInfo = $statement_act_insert->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
+                $affectedRows = $statementInsert->rowCount();
+                $insertID = $pdo->lastInsertId('info_users_products_services_id_seq');
+                /*
+                 * ufak bir trik var. 
+                 * işlem update oldugunda update işlemini yapan kişinin dil bilgisini kullanıcaz. 
+                 * ancak delete işlemi oldugunda delete işlemini yapan user in dil bilgisini değil 
+                 * silinen kaydı yapan kişinin dil bilgisini alıcaz.
+                 */
+                $consIdAndLanguageId = SysOperationTypes::getConsIdAndLanguageId(
+                                array('table_name' => 'info_users_products_services', 'id' => $params['id'],));
+                if (\Utill\Dal\Helper::haveRecord($consIdAndLanguageId)) {
+                    $ConsultantId = $consIdAndLanguageId ['resultSet'][0]['consultant_id'];
+                    $languageIdValue = $consIdAndLanguageId ['resultSet'][0]['language_id'];                       
+                }
+
+                $xjobs = ActProcessConfirm::insert(array(
+                            'op_user_id' => intval($opUserIdValue), // işlemi yapan user
+                            'operation_type_id' => intval($operationIdValue), // operasyon 
+                            'table_column_id' => intval($insertID), // işlem yapılan tablo id si
+                            'cons_id' => intval($ConsultantId), // atanmış olan danısman 
+                            'preferred_language_id' => intval($languageIdValue), // dil bilgisi
+                                )
+                );
+
+                if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                    throw new \PDOException($xjobs['errorInfo']);
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
             } else {
@@ -670,7 +730,7 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
- 
+
     /**
      * @author Okan CIRAN
      * @ npk lı userın danısman tarafından onaylanmış kayıtlarını döndürür !!
@@ -684,11 +744,11 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
-              //  $opUserIdValue = $userId ['resultSet'][0]['user_id'];    
+                //  $opUserIdValue = $userId ['resultSet'][0]['user_id'];    
                 $getUserIdValue = NULL;
                 $getUser = InfoUsers:: getUserIdsForNetworkKey(array('network_key' => $params['network_key']));
                 if (\Utill\Dal\Helper::haveRecord($getUser)) {
-                    $getUserIdValue = $getUser ['resultSet'][0]['user_id'];                    
+                    $getUserIdValue = $getUser ['resultSet'][0]['user_id'];
                     $languageId = NULL;
                     $languageIdValue = 647;
                     if ((isset($params['language_code']) && $params['language_code'] != "")) {
@@ -744,7 +804,7 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-    
+
     /**
      * @author Okan CIRAN
      * @ npk lı userin danısman tarafından onaylanmış kayıtların sayısını döndürür !!
@@ -758,11 +818,11 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $opUserIdValue = $userId ['resultSet'][0]['user_id'];    
+                $opUserIdValue = $userId ['resultSet'][0]['user_id'];
                 $getUserIdValue = NULL;
                 $getUser = InfoUsers:: getUserIdsForNetworkKey(array('network_key' => $params['network_key']));
                 if (\Utill\Dal\Helper::haveRecord($getUser)) {
-                    $getUserIdValue = $getUser ['resultSet'][0]['user_id']; 
+                    $getUserIdValue = $getUser ['resultSet'][0]['user_id'];
 
                     $sql = " 
                     SELECT 
@@ -801,21 +861,21 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-  
-    /**  
+
+    /**
      * @author Okan CIRAN
      * @ quest için npk lı firmanın danısman tarafından onaylanmış kayıtlarını döndürür !!
      * @version v 1.0  24.06.2016
      * @param array | null $args
      * @return array
      * @throws \PDOException
-     */ 
+     */
     public function fillUserProductsServicesNpkQuest($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');             
-            $getUserIdValue = NULL;       
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $getUserIdValue = NULL;
             $getUser = InfoUsers:: getUserIdsForNetworkKey(array('network_key' => $params['network_key']));
-            if (\Utill\Dal\Helper::haveRecord($getUser)) {                  
+            if (\Utill\Dal\Helper::haveRecord($getUser)) {
                 $getUserIdValue = $getUser ['resultSet'][0]['user_id'];
                 $languageId = NULL;
                 $languageIdValue = 647;
@@ -850,7 +910,7 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
 		    ORDER BY unspsc_name
                 ";
                 $statement = $pdo->prepare($sql);
-                 echo debugPDO($sql, $params);
+                echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -859,7 +919,7 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
-                $errorInfoColumn = 'unpk';          
+                $errorInfoColumn = 'unpk';
                 return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -867,7 +927,7 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
         }
     }
 
-    /**      
+    /**
      * @author Okan CIRAN
      * @ Quest için npk lı firmanın danısman tarafından onaylanmış kayıtların sayısını döndürür !!
      * @version v 1.0  24.06.2016
@@ -877,13 +937,13 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
      */
     public function fillUserProductsServicesNpkQuestRtc($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
-                $getUserIdValue = NULL;
-                $getUser = InfoUsers:: getUserIdsForNetworkKey(array('network_key' => $params['network_key']));
-                if (\Utill\Dal\Helper::haveRecord($getUser)) {
-                    $getUserIdValue = $getUser ['resultSet'][0]['user_id']; 
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $getUserIdValue = NULL;
+            $getUser = InfoUsers:: getUserIdsForNetworkKey(array('network_key' => $params['network_key']));
+            if (\Utill\Dal\Helper::haveRecord($getUser)) {
+                $getUserIdValue = $getUser ['resultSet'][0]['user_id'];
 
-                    $sql = " 
+                $sql = " 
                     SELECT 
                        COUNT(a.id) AS count
                     FROM info_users_products_services a
@@ -897,24 +957,22 @@ class InfoUsersProductsServices extends \DAL\DalSlim {
 			a.profile_public = 0 
 		    ORDER BY unspsc_name
                 ";
-                    $statement = $pdo->prepare($sql);
-                   //echo debugPDO($sql, $params);
-                    $statement->execute();
-                    $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-                    $errorInfo = $statement->errorInfo();
-                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                        throw new \PDOException($errorInfo[0]);
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-                } else {
-                    $errorInfo = '23502';   // 23502  not_null_violation
-                    $errorInfoColumn = 'unpk';                  
-                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
-                }            
+                $statement = $pdo->prepare($sql);
+                //echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'unpk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
         } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-  
-    
-    
+
 }
