@@ -525,17 +525,23 @@ class SysNavigationLeft extends \DAL\DalSlim {
     public function pkGetLeftMenu($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-              $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                    $languageIdValue = $languageId ['resultSet'][0]['id'];
-                } else {
-                    $languageIdValue = 647;
-                }          
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }   
+            $MenuTypesId = 1;
+            if ((isset($params['menu_types_id']) && $params['menu_types_id'] != "")) {
+                $MenuTypesId = $params['menu_types_id'];
+            }
             $sql = "
                 SELECT 
                     id, menu_name, language_id, menu_name_eng, url, parent, icon_class, page_state, 
                     collapse, active, deleted, state,warning,warning_type, hint, z_index, language_parent_id, 
-                    hint_eng,warning_class,acl_type,language_code,active_control,menu_type		
+                    hint_eng,warning_class,acl_type,language_code,active_control,menu_type,menu_types_id		
                 FROM (                
                         SELECT a.id, 
                             COALESCE(NULLIF(axz.menu_name, ''), a.menu_name_eng) AS menu_name, 
@@ -560,22 +566,10 @@ class SysNavigationLeft extends \DAL\DalSlim {
                             a.hint_eng, 
                             a.warning_class,
                             a.acl_type,
-                            a.language_code,
-                          /* CASE buraya gerek  yok artık sadece alan adı  donduruyoz. 
-                                ( 
-                                SELECT DISTINCT  mtx.active FROM sys_navigation_left mtx 
-                                WHERE  mtx.id IN ( 
-                                SELECT DISTINCT ddd FROM (
-                                        SELECT -- ab.id,  ab.root_json::json#>>'{1}', ab.root_json, 
-                                                CAST( CAST (json_array_elements(ab.root_json) AS text) AS integer) AS ddd 
-                                        FROM sys_navigation_left ab WHERE ab.id = a.id 				
-                                        ) AS xtable 				
-                                    ) AND mtx.active =1 AND mtx.language_id = a.language_id	 --AND mtx.deleted =0 
-                                )    
-                                WHEN 1 THEN 1
-                                ELSE 0 
-                            END */ 0 AS active_control,
-                                a.menu_type			
+                            a.language_code,                        
+                            0 AS active_control,
+                            a.menu_type,
+                            a.menu_types_id
                         FROM sys_navigation_left a 
                         INNER JOIN info_users iu ON iu.active =0 AND iu.deleted =0	     	
                         INNER JOIN act_session ssx ON CRYPT(iu.sf_private_key_value,CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))) = CONCAT('_J9..',REPLACE(ssx.public_key,'*','/'))  
@@ -586,6 +580,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                             a.acl_type = 0 AND 
                             a.active = 0 AND 
                             a.deleted = 0 AND 
+                            a.menu_types_id = ".intval($MenuTypesId)." AND   
                             a.parent = ".intval($params['parent'])." AND                    
                             a.menu_type = CAST(
                               (SELECT 
@@ -621,7 +616,7 @@ class SysNavigationLeft extends \DAL\DalSlim {
                                  ";           
             $statement = $pdo->prepare($sql);
    
-           //echo debugPDO($sql, $params);  
+         //echo debugPDO($sql, $params);  
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();

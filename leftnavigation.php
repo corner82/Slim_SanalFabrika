@@ -57,19 +57,15 @@ $app->get("/pkGetLeftMenu_leftnavigation/", function () use ($app ) {
 
     
     $BLL = $app->getBLLManager()->get('sysNavigationLeftBLL'); 
- 
-    // Filters are called from service manager
-    //$filterHtmlAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
-  //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
-    //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
-
+  
     $headerParams = $app->request()->headers();
     $pk = $headerParams['X-Public']  ;     
     $resDataMenu = $BLL->pkGetLeftMenu(array('parent' => $_GET['parent'],
                                            'language_code' => $_GET['language_code'], 
+                                         //   'menu_types_id' => $_GET['menu_types_id'] ,
                                            'pk' => $pk ,
                                            ) );
-    //print_r($resDataMenu);
+     
    
      
         
@@ -88,7 +84,7 @@ $app->get("/pkGetLeftMenu_leftnavigation/", function () use ($app ) {
              "page_state" => $menu["page_state"],
              "collapse" => $menu["collapse"],
              "active" => $menu["active"],
-              "deleted" => $menu["deleted"],
+             "deleted" => $menu["deleted"],
              "state" => $menu["state"],
              "warning" => $menu["warning"],
              "warning_type" => $menu["warning_type"],
@@ -100,12 +96,10 @@ $app->get("/pkGetLeftMenu_leftnavigation/", function () use ($app ) {
              "acl_type" => $menu["acl_type"],
              "language_code" => $menu["language_code"],
              "active_control" => $menu["active_control"],
-            
-            
+             "menu_types_id" => $menu["menu_types_id"],
             
             
              
-            
            
         );
     }
