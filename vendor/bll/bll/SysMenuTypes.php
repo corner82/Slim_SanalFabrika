@@ -89,9 +89,9 @@ class SysMenuTypes extends \BLL\BLLSlim {
      * @param array $params
      * @return array
      */
-    public function fillMemuTypeList($params = array()) {       
+    public function fillMenuTypeList($params = array()) {       
         $DAL = $this->slimApp->getDALManager()->get('sysMenuTypesPDO');        
-        $resultSet = $DAL->fillMemuTypeList($params);       
+        $resultSet = $DAL->fillMenuTypeList($params);       
         return $resultSet['resultSet'];
     }
     
@@ -105,5 +105,26 @@ class SysMenuTypes extends \BLL\BLLSlim {
         return $DAL->makeActiveOrPassive($params);
     }
     
+     /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillMenuTypeListGrid ($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysMenuTypesPDO');
+        $resultSet = $DAL->fillMenuTypeListGrid($params);  
+        return $resultSet['resultSet'];
+    }
     
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillMenuTypeListGridRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysMenuTypesPDO');
+        $resultSet = $DAL->fillMenuTypeListGridRtc($params);  
+        return $resultSet['resultSet'];
+    }    
+     
 }

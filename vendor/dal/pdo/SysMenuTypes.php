@@ -440,7 +440,7 @@ class SysMenuTypes extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException 
      */
-    public function fillMemuTypeList($params = array()) {
+    public function fillMenuTypeList($params = array()) {
         try {             
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
             $languageId = NULL;
@@ -534,4 +534,353 @@ class SysMenuTypes extends \DAL\DalSlim {
         }
     }
 
+    /**
+     * @author Okan CIRAN
+     * @ sys_menu_types bilgilerini döndürür !!
+     * filterRules aktif 
+     * @version v 1.0  21.07.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillMenuTypeListGrid($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+                $limit = intval($params['rows']);
+            } else {
+                $limit = 10;
+                $offset = 0;
+            }
+
+            $sortArr = array();
+            $orderArr = array();
+            if (isset($params['sort']) && $params['sort'] != "") {
+                $sort = trim($params['sort']);
+                $sortArr = explode(",", $sort);
+                if (count($sortArr) === 1)
+                    $sort = trim($params['sort']);
+            } else {
+                $sort = "name";
+            }
+
+            if (isset($params['order']) && $params['order'] != "") {
+                $order = trim($params['order']);
+                $orderArr = explode(",", $order);
+                //print_r($orderArr);
+                if (count($orderArr) === 1)
+                    $order = trim($params['order']);
+            } else {
+                $order = "ASC";
+            }
+
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'name_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND name_eng" . $sorguExpression . ' ';
+
+                                break;
+                            case 'description':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND description" . $sorguExpression . ' ';
+
+                                break;     
+                            case 'description_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND description_eng" . $sorguExpression . ' ';
+                            
+                                break;                             
+                            case 'state_active':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND state_active" . $sorguExpression . ' ';
+                            
+                                break; 
+                            case 'op_user_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND op_user_name" . $sorguExpression . ' ';
+                            
+                                break;
+                            case 'language_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND language_name" . $sorguExpression . ' ';
+                            
+                                break; 
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+                if (isset($params['name']) && $params['name'] != "") {
+                    $sorguStr .= " AND name Like '%" . $params['name'] . "%'";
+                }
+                if (isset($params['name_eng']) && $params['name_eng'] != "") {
+                    $sorguStr .= " AND name_eng Like '%" . $params['name_eng'] . "%'";
+                }
+                if (isset($params['description']) && $params['description'] != "") {
+                    $sorguStr .= " AND description Like '%" . $params['description'] . "%'";
+                }
+                if (isset($params['description_eng']) && $params['description_eng'] != "") {
+                    $sorguStr .= " AND description_eng Like '%" . $params['description_eng'] . "%'";
+                }           
+                if (isset($params['active']) && $params['active'] != "") {
+                    $sorguStr .= " AND active = " . intval($params['active']) ;
+                }
+                if (isset($params['op_user_name']) && $params['op_user_name'] != "") {
+                    $sorguStr .= " AND op_user_name Like '%" . $params['op_user_name'] . "%'";
+                }            
+                
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+            
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+
+            
+            $sql = "  
+                SELECT   
+                    id,
+                    name,
+                    name_eng,	
+                    COALESCE(NULLIF(description, ''), ' ') AS description,                    
+                    COALESCE(NULLIF(description_eng, ''), ' ') AS description_eng,
+                    deleted,
+                    state_deleted,
+                    active,
+                    state_active,
+                    language_id,
+                    language_name,			 
+                    op_user_id,
+                    op_user_name
+                FROM (
+                   SELECT 
+                        a.id,
+                        COALESCE(NULLIF(ax.name, ''), a.name_eng) AS name,
+                        a.name_eng,
+			COALESCE(NULLIF(ax.description, ''), a.description_eng) AS description,
+                        a.description_eng,
+                        a.deleted,
+			COALESCE(NULLIF(sd15x.description , ''), sd15.description_eng) AS state_deleted,
+                        a.active,
+			COALESCE(NULLIF(sd16x.description , ''), sd16.description_eng) AS state_active,
+			COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
+			COALESCE(NULLIF(lx.language, ''), l.language_eng) AS language_name,			 
+                        a.op_user_id,
+                        u.username AS op_user_name
+                FROM sys_menu_types a
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+                LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = a.language_id AND sd15.deleted = 0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0
+                INNER JOIN info_users u ON u.id = a.op_user_id    
+                LEFT JOIN sys_specific_definitions sd15x ON (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
+                LEFT JOIN sys_specific_definitions sd16x ON (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id)AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
+                LEFT JOIN sys_menu_types ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.deleted =0 AND ax.active =0 AND lx.id = ax.language_id                                
+                WHERE a.deleted =0 AND a.language_parent_id =0
+                    ) AS xtable WHERE deleted =0 
+                ".$sorguStr."
+            ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";            
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            );
+            $statement = $pdo->prepare($sql);
+        // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+        
+    /**
+     * @author Okan CIRAN
+     * @ sys_menu_types bilgilerinin sayısını döndürür !!
+     * filterRules aktif 
+     * @version v 1.0  21.07.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */                            
+    public function fillMenuTypeListGridRtc($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'name_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND name_eng" . $sorguExpression . ' ';
+
+                                break;
+                            case 'description':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND description" . $sorguExpression . ' ';
+
+                                break;     
+                            case 'description_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND description_eng" . $sorguExpression . ' ';
+                            
+                                break;                             
+                            case 'state_active':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND state_active" . $sorguExpression . ' ';
+                            
+                                break; 
+                            case 'op_user_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND op_user_name" . $sorguExpression . ' ';
+                            
+                                break;
+                            case 'language_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND language_name" . $sorguExpression . ' ';
+                            
+                                break; 
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+                if (isset($params['name']) && $params['name'] != "") {
+                    $sorguStr .= " AND name Like '%" . $params['name'] . "%'";
+                }
+                if (isset($params['name_eng']) && $params['name_eng'] != "") {
+                    $sorguStr .= " AND name_eng Like '%" . $params['name_eng'] . "%'";
+                }
+                if (isset($params['description']) && $params['description'] != "") {
+                    $sorguStr .= " AND description Like '%" . $params['description'] . "%'";
+                }
+                if (isset($params['description_eng']) && $params['description_eng'] != "") {
+                    $sorguStr .= " AND description_eng Like '%" . $params['description_eng'] . "%'";
+                }           
+                if (isset($params['active']) && $params['active'] != "") {
+                    $sorguStr .= " AND active = " . intval($params['active']) ;
+                }
+                if (isset($params['op_user_name']) && $params['op_user_name'] != "") {
+                    $sorguStr .= " AND op_user_name Like '%" . $params['op_user_name'] . "%'";
+                }            
+                
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+            
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+
+            
+            $sql = "  
+                SELECT COUNT(id) AS count FROM ( 
+                SELECT   
+                    id,
+                    name,
+                    name_eng,	                    
+                    COALESCE(NULLIF(description, ''), ' ') AS description,                    
+                    COALESCE(NULLIF(description_eng, ''), ' ') AS description_eng,
+                    deleted,
+                    state_deleted,
+                    active,
+                    state_active,
+                    language_id,
+                    language_name,			 
+                    op_user_id,
+                    op_user_name
+                FROM (
+                   SELECT 
+                        a.id,
+                        COALESCE(NULLIF(ax.name, ''), a.name_eng) AS name,
+                        a.name_eng ,	
+			COALESCE(NULLIF(ax.description, ''), a.description_eng) AS description,
+                        a.description_eng,
+                        a.deleted,
+			COALESCE(NULLIF(sd15x.description , ''), sd15.description_eng) AS state_deleted,
+                        a.active,
+			COALESCE(NULLIF(sd16x.description , ''), sd16.description_eng) AS state_active,
+			COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
+			COALESCE(NULLIF(lx.language, ''), l.language_eng) AS language_name,			 
+                        a.op_user_id,
+                        u.username AS op_user_name
+                FROM sys_menu_types a
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
+                LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = a.language_id AND sd15.deleted = 0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0
+                INNER JOIN info_users u ON u.id = a.op_user_id    
+                LEFT JOIN sys_specific_definitions sd15x ON (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15x.language_id =lx.id  AND sd15x.deleted =0 AND sd15x.active =0 
+                LEFT JOIN sys_specific_definitions sd16x ON (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id)AND sd16x.language_id = lx.id  AND sd16x.deleted = 0 AND sd16x.active = 0
+                LEFT JOIN sys_menu_types ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.deleted =0 AND ax.active =0 AND lx.id = ax.language_id                                
+                WHERE a.deleted =0 AND a.language_parent_id =0
+                    ) AS xtable WHERE deleted =0 
+                ".$sorguStr."
+                ) AS xxtable     
+                 ";
+            $statement = $pdo->prepare($sql);            
+            // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+   
+   
+    
+    
+    
+    
 }

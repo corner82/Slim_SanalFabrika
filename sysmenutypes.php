@@ -44,7 +44,7 @@ $app->add(new \Slim\Middleware\MiddlewareServiceManager());
  *  * Okan CIRAN
  * @since 28.06.2016
  */
-$app->get("/pkFillMemuTypeList_sysMenuTypes/", function () use ($app ) {   
+$app->get("/pkFillMenuTypeList_sysMenuTypes/", function () use ($app ) {   
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
     $BLL = $app->getBLLManager()->get('sysMenuTypesBLL');
@@ -54,7 +54,7 @@ $app->get("/pkFillMemuTypeList_sysMenuTypes/", function () use ($app ) {
         $componentType = strtolower(trim($_GET['component_type']));
     }
     $headerParams = $app->request()->headers();
-    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkFillMemuTypeList_sysMenuTypes" end point, X-Public variable not found');
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkFillMenuTypeList_sysMenuTypes" end point, X-Public variable not found');
    // $pk = $headerParams['X-Public'];
     
     $vLanguageCode = 'tr';
@@ -66,7 +66,7 @@ $app->get("/pkFillMemuTypeList_sysMenuTypes/", function () use ($app ) {
     $stripper->strip();
     if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
    
-    $resCombobox = $BLL->fillMemuTypeList(array(                                   
+    $resCombobox = $BLL->fillMenuTypeList(array(                                   
                                     'language_code' => $vLanguageCode,
                         ));        
  
@@ -89,57 +89,7 @@ $app->get("/pkFillMemuTypeList_sysMenuTypes/", function () use ($app ) {
     $app->response()->body(json_encode($flows)); 
 });
  
-/**
- *  * Okan CIRAN
- * @since 28.06.2016
- */
-$app->get("/fillMemberShipList_sysMenuTypes/", function () use ($app ) {
-    $stripper = $app->getServiceManager()->get('filterChainerCustom');
-    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
-    $BLL = $app->getBLLManager()->get('sysMenuTypesBLL');
-    
-    $componentType = 'ddslick';
-    if (isset($_GET['component_type'])) {
-        $componentType = strtolower(trim($_GET['component_type']));
-    }
-   /* $headerParams = $app->request()->headers();
-    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkFillMemberShipList_sysMenuTypes" end point, X-Public variable not found');
-    //$pk = $headerParams['X-Public'];
-    */
-    $vLanguageCode = 'tr';
-    if (isset($_GET['language_code'])) {
-         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
-                                                $app,
-                                                $_GET['language_code']));
-    }
-    $stripper->strip();
-    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-        
-    $resCombobox = $BLL->fillMemberShipList(array(                                   
-                                    'language_code' => $vLanguageCode,
-                        ));    
-
-    $flows = array();
-    $flows[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
-    foreach ($resCombobox as $flow) {
-        $flows[] = array(            
-            "text" => $flow["mem_type"],
-            "value" =>  intval($flow["id"]),
-            "selected" => false,
-            "description" => $flow["mem_type_eng"],
-            "imageSrc"=>$flow["logo"],             
-            "attributes" => array(  "abbreviation" => $flow["abbreviation"], 
-                                    "active" => $flow["active"],                                                    
-                                    
-                ),
-        );
-    }
-        $app->response()->header("Content-Type", "application/json");
-    $app->response()->body(json_encode($flows));
-   
-});
  
-
 /**
  *  * Okan CIRAN
  * @since 28.06.2016
@@ -244,13 +194,13 @@ $app->get("/pkUpdate_sysMenuTypes/", function () use ($app ) {
                                                 $app,
                                                 $_GET['name_eng']));
     } 
-    $vDescription = NULL;
+    $vDescription = '';
     if (isset($_GET['description'])) {
          $stripper->offsetSet('description',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
                                                 $_GET['description']));
     } 
-    $vDescriptionEng = NULL;
+    $vDescriptionEng = '' ;
     if (isset($_GET['description_eng'])) {
          $stripper->offsetSet('description_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
@@ -352,5 +302,167 @@ $app->get("/pkDelete_sysMenuTypes/", function () use ($app ) {
     $app->response()->body(json_encode($resDataDeleted));
 }
 ); 
+
+/**
+ *  * Okan CIRAN
+* @since 21.07.2016
+ */
+$app->get("/pkFillMenuTypeListGrid_sysMenuTypes/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysMenuTypesBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillMenuTypeListGrid_sysMenuTypes" end point, X-Public variable not found');
+    }
+  //  $pk = $headerParams['X-Public'];
+
+    $vName = NULL;
+    if (isset($_GET['name'])) {
+        $stripper->offsetSet('name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['name']));
+    }     
+    $vNameEng = NULL;
+    if (isset($_GET['name_eng'])) {
+        $stripper->offsetSet('name_eng', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['name_eng']));
+    }     
+    $vDescription = '';
+    if (isset($_GET['description'])) {
+        $stripper->offsetSet('description', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['description']));
+    }
+    $vDescriptionEng = '';
+    if (isset($_GET['description_eng'])) {
+        $stripper->offsetSet('description_eng', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['description_eng']));
+    }  
+    $vActive = NULL;
+    if (isset($_GET['active'])) {
+        $stripper->offsetSet('active', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['active']));
+    }
+    $vOpUserName = NULL;
+    if (isset($_GET['op_user_name'])) {
+        $stripper->offsetSet('op_user_name', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ALPHABETIC_ALLOWED, 
+                $app, $_GET['op_user_name']));
+    }
+    
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, 
+                $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+                $app, $_GET['filterRules']));
+    }
+
+    $stripper->strip(); 
+    if ($stripper->offsetExists('name')) {
+        $vName = $stripper->offsetGet('name')->getFilterValue();
+    }
+    if ($stripper->offsetExists('name_eng')) {
+        $vNameEng = $stripper->offsetGet('name_eng')->getFilterValue();
+    }
+    if ($stripper->offsetExists('description')) {
+        $vDescription = $stripper->offsetGet('description')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('description_eng')) {
+        $vDescriptionEng = $stripper->offsetGet('description_eng')->getFilterValue();
+    }          
+    if ($stripper->offsetExists('active')) {
+        $vActive = $stripper->offsetGet('active')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('op_user_name')) {
+        $vOpUserName = $stripper->offsetGet('op_user_name')->getFilterValue();
+    }
+    
+    
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    }
+    
+    $resDataGrid = $BLL->fillMenuTypeListGrid(array(        
+        'page' => $vPage,
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,
+        'name' => $vName,
+        'name_eng' => $vNameEng,
+        'description' => $vDescription,        
+        'description_eng' => $vDescriptionEng,
+        'active' => $vActive,       
+        'op_user_name' => $vOpUserName,        
+        'filterRules' => $filterRules,
+    ));
+    $resTotalRowCount = $BLL->fillMenuTypeListGridRtc(array(
+        'name' => $vName,
+        'name_eng' => $vNameEng,
+        'description' => $vDescription,        
+        'description_eng' => $vDescriptionEng,
+        'active' => $vActive,       
+        'op_user_name' => $vOpUserName,        
+        'filterRules' => $filterRules,
+    ));
+    $counts = 0;
+    $flows = array();
+    if (isset($resDataGrid[0]['id'])) {
+        foreach ($resDataGrid as $flow) {
+            $flows[] = array(
+            "id" => $flow["id"],
+            "name" => $flow["name"],
+            "name_eng" => $flow["name_eng"],
+            "description" => $flow["description"],
+            "description_eng" => $flow["description_eng"],
+            "language_id" => $flow["language_id"],   
+            "language_name" => $flow["language_name"],   
+            "state_active" => $flow["state_active"],  
+            "op_user_id" => $flow["op_user_id"],  
+            "op_user_name" => $flow["op_user_name"],
+            "attributes" => array(              
+                "active" => $flow["active"], ) );
+        };
+        $counts = $resTotalRowCount[0]['count'];
+    }   
+    
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['total'] = $counts;
+    $resultArray['rows'] = $flows;
+    $app->response()->body(json_encode($resultArray));
+});
+
+
+
+
 
 $app->run();
