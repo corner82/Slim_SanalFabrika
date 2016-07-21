@@ -114,7 +114,7 @@ class SysOperationTypes extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
-            if (!\Utill\Dal\Helper::haveRecord($opUserId)) {
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (\Utill\Dal\Helper::haveRecord($languageId)) {
@@ -454,4 +454,92 @@ class SysOperationTypes extends \DAL\DalSlim {
     }
 
     
+    /**    
+    * @author Okan CIRAN
+    * @ sys_operation_types tablosundan type_id ye karsılık gelen base_id yi döndürür   !!
+    * @ parent_id => 
+    * @ 6 = Danışman Kayıt işlemleri,  7= Danışman Onay işlemleri gösterir.
+    * @ main_group_id =>  Not istersek ayırabiliriz. su  an  için gerek yok 
+    * @ 6 = Danışman Kayıt işlemleri,  7= Danışman Onay işlemleri gösterir.
+     * @ type_id => danısmanın sectiği operasyon tipinin type_id sidir. tablo bazlı değişebilir. 
+    * danısmanın karsısına o tabloda  hangi  operasyonlar olabilir bunun listesini döndürücez. 
+    * sectiği operasyonun type_id si ni parametre olarak  göndericez. buradan da danısmanın 
+    * yaptıgı operasyonun base_idsine ulasıcaz. 
+    * @version v 1.0  20.07.2016
+    * @param array | null $args
+    * @return array
+    * @throws \PDOException
+    */
+    public function getConsTypeIdToGoOperationId($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $sql = "
+               SELECT                    
+                    a.base_id AS id, 
+                    1=1 as control
+                FROM sys_operation_types a                
+                WHERE 
+		    a.language_parent_id = 0 AND 
+                    a.active = 0 AND 
+                    a.deleted = 0 AND 
+                    a.table_name = '". $params['table_name'] ."' AND 
+                    a.parent_id IN (6,7) AND 
+                    a.main_group IN (6,7) AND                  
+                    a.type_id = ". intval($params['type_id'])." 
+                                 ";
+            $statement = $pdo->prepare($sql);            
+            //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+  
+     * @author Okan CIRAN
+     * @ info_firm_references tablosunda ref_firm_id & firm_id sutununda daha önce oluşturulmuş mu?      
+     * @version v 1.0 21.07.2016
+     * @return array
+     * @throws \PDOException
+     */
+    public function getConsIdAndLanguageId($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $Id = 0;
+            if (isset($params['id']) && $params['id'] != "") {
+                $Id = intval($params['id']);
+            }
+            $tableName= 'info_users';
+            if (isset($params['table_name']) && $params['table_name'] != "") {
+                $tableName = $params['table_name'];
+            }
+            $sql = " 
+            SELECT 
+                iu.language_id,
+                a.consultant_id,
+                a.id  = " . intval($Id) . " AS control
+            FROM ".$tableName." a
+            INNER JOIN info_users iu ON iu.id = a.op_user_id 
+            WHERE 
+                a.id = " . intval($Id) . "
+                               ";
+            $statement = $pdo->prepare($sql);
+            //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+ 
 }
