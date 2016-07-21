@@ -1606,8 +1606,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 $cpk = $params['cpk'];  
                 $user = $params['op_user_id'];                 
                 $sql = " 
-                SELECT firm_id AS firm_id, 1=1 AS control FROM (
-                            SELECT a.firm_id ,
+                SELECT firm_id AS firm_id, 1=1 AS control ,user_id FROM (
+                            SELECT a.firm_id ,ifu.user_id ,
                              CRYPT(sf_private_key_value,CONCAT('_J9..',REPLACE('".$cpk."','*','/'))) = CONCAT('_J9..',REPLACE('".$cpk."','*','/')) as cpk 
                             FROM info_firm_keys a                                                        
 			    INNER JOIN info_firm_profile ifp ON ifp.active =0 AND ifp.deleted =0 AND ifp.language_parent_id =0 AND a.firm_id = ifp.act_parent_id     
@@ -1615,7 +1615,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 ) AS xtable WHERE cpk = TRUE  limit 1
                 ";
                 $statement = $pdo->prepare($sql);
-               //echo debugPDO($sql, $params);
+              // echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
