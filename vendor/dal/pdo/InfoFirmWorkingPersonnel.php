@@ -83,9 +83,9 @@ class InfoFirmWorkingPersonnel extends \DAL\DalSlim {
 			a.name, 
 			a.surname, 			 
 			COALESCE(NULLIF(ax.positions, ''), a.positions_eng) AS positions,
-			ax.positions_eng,
+			a.positions_eng,
 			COALESCE(NULLIF(ax.title, ''), a.title_eng) AS title,
-			ax.title_eng,
+			a.title_eng,
 			a.sex_id,		
 			COALESCE(NULLIF(sd3x.description, ''), sd3.description_eng) AS sex_name,
 			a.s_date,
@@ -510,9 +510,9 @@ class InfoFirmWorkingPersonnel extends \DAL\DalSlim {
 			a.name, 
 			a.surname, 			 
 			COALESCE(NULLIF(ax.positions, ''), a.positions_eng) AS positions,
-			ax.positions_eng,
+			a.positions_eng,
 			COALESCE(NULLIF(ax.title, ''), a.title_eng) AS title,
-			ax.title_eng,
+			a.title_eng,
 			a.sex_id,		
 			COALESCE(NULLIF(sd3x.description, ''), sd3.description_eng) AS sex_name,
 			a.s_date,
@@ -738,7 +738,6 @@ class InfoFirmWorkingPersonnel extends \DAL\DalSlim {
                 $firmIdValue = NULL;              
                 $getFirm = InfoFirmProfile :: getFirmIdsForNetworkKey(array('network_key' => $params['network_key']));                     
                 if (\Utill\Dal\Helper::haveRecord($getFirm)) {
-                            print_r("asasd2");
                     $firmIdValue = $getFirm ['resultSet'][0]['firm_id'];
                     $languageId = NULL;
                     $languageIdValue = 647;
@@ -968,7 +967,7 @@ class InfoFirmWorkingPersonnel extends \DAL\DalSlim {
  
     /**
      * @author Okan CIRAN
-     * @ role bilgilerini döndürür !!
+     * @ info_firm_working_personnel bilgilerini döndürür !!
      * filterRules aktif 
      * @version v 1.0  18.07.2016
      * @param array | null $args
@@ -1088,13 +1087,13 @@ class InfoFirmWorkingPersonnel extends \DAL\DalSlim {
                     $sorguStr .= " AND title_eng Like '%" . $params['title_eng'] . "%'";
                 }
                 if (isset($params['sex_id']) && $params['sex_id'] != "") {
-                    $sorguStr .= " AND sex_id = " . $params['sex_id'] ;
+                    $sorguStr .= " AND sex_id = " . intval($params['sex_id']) ;
                 }
                 if (isset($params['profile_public']) && $params['profile_public'] != "") {
-                    $sorguStr .= " AND profile_public = " . $params['profile_public'] ;
+                    $sorguStr .= " AND profile_public = " . intval($params['profile_public']) ;
                 }
                 if (isset($params['active']) && $params['active'] != "") {
-                    $sorguStr .= " AND active = " . $params['active'] ;
+                    $sorguStr .= " AND active = " . intval($params['active']) ;
                 }
                 if (isset($params['op_user_name']) && $params['op_user_name'] != "") {
                     $sorguStr .= " AND op_user_name Like '%" . $params['op_user_name'] . "%'";
@@ -1149,9 +1148,9 @@ class InfoFirmWorkingPersonnel extends \DAL\DalSlim {
 			a.name, 
 			a.surname, 			 
 			COALESCE(NULLIF(ax.positions, ''), a.positions_eng) AS positions,
-			ax.positions_eng,
+			a.positions_eng,
 			COALESCE(NULLIF(ax.title, ''), a.title_eng) AS title,
-			ax.title_eng,
+			a.title_eng,
 			a.sex_id,		
 			COALESCE(NULLIF(sd3x.description, ''), sd3.description_eng) AS sex_name,
 			a.s_date,
@@ -1196,7 +1195,7 @@ class InfoFirmWorkingPersonnel extends \DAL\DalSlim {
                     LEFT JOIN sys_specific_definitions sd16x ON sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.deleted = 0 AND sd16x.active = 0
                     LEFT JOIN sys_specific_definitions sd19x ON sd19x.language_id = lx.id AND (sd19x.id = sd19.id OR sd19x.language_parent_id = sd19.id) AND sd19x.deleted = 0 AND sd19x.active = 0
                     LEFT JOIN sys_specific_definitions sd3x ON sd3x.language_id = lx.id AND (sd3x.id = sd3.id OR sd3x.language_parent_id = sd3.id) AND sd3x.deleted = 0 AND sd3x.active = 0
-                    WHERE a.deleted =0 AND a.language_parent_id =0
+                    WHERE a.deleted =0 AND a.c_date IS NULL AND a.language_parent_id =0
                     ) AS xtable WHERE deleted =0 
                 ".$sorguStr."
             ORDER BY    " . $sort . " "
@@ -1225,7 +1224,7 @@ class InfoFirmWorkingPersonnel extends \DAL\DalSlim {
         
     /**
      * @author Okan CIRAN
-     * @ resource bilgilerinin sayısını döndürür !!
+     * @ info_firm_working_personnel bilgilerinin sayısını döndürür !!
      * filterRules aktif 
      * @version v 1.0  18.07.2016
      * @param array | null $args
@@ -1316,13 +1315,13 @@ class InfoFirmWorkingPersonnel extends \DAL\DalSlim {
                     $sorguStr .= " AND title_eng Like '%" . $params['title_eng'] . "%'";
                 }
                 if (isset($params['sex_id']) && $params['sex_id'] != "") {
-                    $sorguStr .= " AND sex_id = " . $params['sex_id'] ;
+                    $sorguStr .= " AND sex_id = " . intval($params['sex_id']) ;
                 }
                 if (isset($params['profile_public']) && $params['profile_public'] != "") {
-                    $sorguStr .= " AND profile_public = " . $params['profile_public'] ;
+                    $sorguStr .= " AND profile_public = " . intval($params['profile_public']) ;
                 }
                 if (isset($params['active']) && $params['active'] != "") {
-                    $sorguStr .= " AND active = " . $params['active'] ;
+                    $sorguStr .= " AND active = " . intval($params['active']) ;
                 }
                 if (isset($params['op_user_name']) && $params['op_user_name'] != "") {
                     $sorguStr .= " AND op_user_name Like '%" . $params['op_user_name'] . "%'";
@@ -1348,9 +1347,9 @@ class InfoFirmWorkingPersonnel extends \DAL\DalSlim {
 			a.name, 
 			a.surname, 			 
 			COALESCE(NULLIF(ax.positions, ''), a.positions_eng) AS positions,
-			ax.positions_eng,
+			a.positions_eng,
 			COALESCE(NULLIF(ax.title, ''), a.title_eng) AS title,
-			ax.title_eng,
+			a.title_eng,
 			a.sex_id,		
 			COALESCE(NULLIF(sd3x.description, ''), sd3.description_eng) AS sex_name,
 			a.s_date,
@@ -1395,7 +1394,7 @@ class InfoFirmWorkingPersonnel extends \DAL\DalSlim {
                     LEFT JOIN sys_specific_definitions sd16x ON sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.deleted = 0 AND sd16x.active = 0
                     LEFT JOIN sys_specific_definitions sd19x ON sd19x.language_id = lx.id AND (sd19x.id = sd19.id OR sd19x.language_parent_id = sd19.id) AND sd19x.deleted = 0 AND sd19x.active = 0
                     LEFT JOIN sys_specific_definitions sd3x ON sd3x.language_id = lx.id AND (sd3x.id = sd3.id OR sd3x.language_parent_id = sd3.id) AND sd3x.deleted = 0 AND sd3x.active = 0
-                    WHERE a.deleted =0 AND a.language_parent_id =0
+                    WHERE a.deleted =0 AND a.c_date IS NULL AND a.language_parent_id =0
                     ) AS xtable WHERE deleted =0  
                         ".$sorguStr."  
                 ";           

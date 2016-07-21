@@ -768,7 +768,7 @@ class InfoFirmProductsServices extends \DAL\DalSlim {
                         a.firm_id = " . intval($firmIdValue) . " AND
                         a.cons_allow_id =2 AND                         
 			a.profile_public=0 
-		    ORDER BY a.firm_id		                              
+		  	                              
                             ";
                     $statement = $pdo->prepare($sql);
                     //echo debugPDO($sql, $params);
@@ -889,7 +889,7 @@ class InfoFirmProductsServices extends \DAL\DalSlim {
                         a.firm_id = " . intval($firmIdValue) . " AND
                         a.cons_allow_id =2 AND                         
 			a.profile_public=0 
-		    ORDER BY unspsc_name    		                              
+		    		                              
                             ";
                 $statement = $pdo->prepare($sql);
                 //echo debugPDO($sql, $params);
@@ -908,7 +908,7 @@ class InfoFirmProductsServices extends \DAL\DalSlim {
         } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
-    }
+    } 
 
  
     
