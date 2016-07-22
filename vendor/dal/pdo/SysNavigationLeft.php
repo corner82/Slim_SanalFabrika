@@ -932,7 +932,8 @@ class SysNavigationLeft extends \DAL\DalSlim {
                     END AS state_type,
                     a.url,
                     a.icon_class,
-                    a.menu_types_id  
+                    a.menu_types_id ,
+                    a.menu_type AS role_id
                 FROM sys_navigation_left a  
                 INNER JOIN sys_acl_roles sar on sar.id = a.menu_type 
 		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 

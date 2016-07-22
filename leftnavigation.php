@@ -332,6 +332,8 @@ $app->get("/pkFillForAdminTree_leftnavigation/", function () use ($app ) {
                     "url"=>$flow["url"],
                     "icon_class"=>$flow["icon_class"],
                     "menu_types_id"=>$flow["menu_types_id"],
+                    "role_id"=>$flow["role_id"], 
+                    
                     
                     ),               
                 
