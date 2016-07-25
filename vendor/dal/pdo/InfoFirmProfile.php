@@ -183,8 +183,9 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 firm_name ='" . $params['firm_name'] . "' AS control,
                 CONCAT(firm_name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message                             
             FROM info_firm_profile                
-            WHERE firm_name = '" . $params['firm_name'] . "'"
-                    . $addSql . " 
+            WHERE 
+                LOWER(REPLACE(firm_name,' ','')) = LOWER(REPLACE('" . $params['firm_name'] . "',' ',''))
+                ". $addSql . " 
                AND deleted =0   
                                ";
             $statement = $pdo->prepare($sql);
@@ -249,8 +250,6 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
                 if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                    $addSql = " op_user_id, ";
-                    $addSqlValue = " " . $opUserIdValue . ",";
                  
                     $operationIdValue = -1;
                     $operationId = SysOperationTypes::getTypeIdToGoOperationId(
@@ -275,52 +274,56 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
                     }      
                     
+                    $foundationYear = NULL;
                     if ((isset($params['foundation_year']) && $params['foundation_year'] != "")) {
                         $foundationYear = $params['foundation_year'];
-                        $addSql .= " foundation_year,  ";
-                        $addSqlValue .= " " . $FoundationYear . ",";
+                    }
+                    $countryId = 91;
+                    if ((isset($params['country_id']) && $params['country_id'] != "")) {
+                        $countryId = $params['country_id'];
+                    }
+                    $profilePublic = 0;
+                    if ((isset($params['profile_public']) && $params['profile_public'] != "")) {
+                        $active = intval($params['profile_public']);
                     }
        
                     $statement = $pdo->prepare("
                    INSERT INTO info_firm_profile(
                         profile_public, 
-                        country_id,                    
+                        country_id,
                         firm_name, 
                         web_address, 
                         tax_office, 
                         tax_no, 
                         sgk_sicil_no, 
-                        ownership_status_id, 
-                        foundation_year, 
-                        language_code,  
+                        ownership_status_id,                         
                         language_id,
                         consultant_id, 
                         operation_type_id,
-                        " . $addSql . "   
+                        op_user_id,  
+                        foundation_year, 
                         firm_name_eng, 
                         firm_name_short,
-                        act_parent_id,                   
+                        act_parent_id,
                         description,
                         description_eng,
                         duns_number,
-                        logo
-                     
+                        logo                     
                         )
                 VALUES (
-                        :profile_public, 
-                        :country_id,                     
+                        ". intval($profilePublic).",
+                        ". intval($countryId).",
                         :firm_name, 
                         :web_address, 
                         :tax_office, 
                         :tax_no, 
                         :sgk_sicil_no, 
-                        :ownership_status_id, 
-                        :foundation_year, 
-                        :language_code,  
+                        :ownership_status_id,                         
                         ". intval($languageIdValue).",
                         ". intval($ConsultantId).",
-                        ". intval($operationIdValue)."    
-                        ". $addSqlValue . " 
+                        ". intval($operationIdValue).",    
+                        ". intval($opUserIdValue).",
+                        ". intval($foundationYear).",
                         :firm_name_eng, 
                         :firm_name_short,
                         (SELECT last_value FROM info_firm_profile_id_seq),                       
@@ -328,24 +331,19 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         :description_eng,
                         :duns_number,
                         :logo                       
-                                                ");
-                    $statement->bindValue(':profile_public', $params['profile_public'], \PDO::PARAM_INT);
-                    $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
+                                                ");                                        
                     $statement->bindValue(':firm_name', $params['firm_name'], \PDO::PARAM_STR);
                     $statement->bindValue(':web_address', $params['web_address'], \PDO::PARAM_STR);
                     $statement->bindValue(':tax_office', $params['tax_office'], \PDO::PARAM_STR);
                     $statement->bindValue(':tax_no', $params['tax_no'], \PDO::PARAM_STR);
                     $statement->bindValue(':sgk_sicil_no', $params['sgk_sicil_no'], \PDO::PARAM_STR);
-                    $statement->bindValue(':ownership_status_id', $params['ownership_status_id'], \PDO::PARAM_INT);                  
-                    $statement->bindValue(':foundation_year', $params['foundation_year'], \PDO::PARAM_INT);
-                    $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+                    $statement->bindValue(':ownership_status_id', $params['ownership_status_id'], \PDO::PARAM_INT);                                                          
                     $statement->bindValue(':firm_name_eng', $params['firm_name_eng'], \PDO::PARAM_STR);
                     $statement->bindValue(':firm_name_short', $params['firm_name_short'], \PDO::PARAM_STR);
                     $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
                     $statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
                     $statement->bindValue(':duns_number', $params['duns_number'], \PDO::PARAM_STR);
-                    $statement->bindValue(':logo', $params['logo'], \PDO::PARAM_STR);
-                    
+                    $statement->bindValue(':logo', $params['logo'], \PDO::PARAM_STR);                    
                     $result = $statement->execute();
                     $insertID = $pdo->lastInsertId('info_firm_profile_id_seq');
                     $errorInfo = $statement->errorInfo();
@@ -440,10 +438,9 @@ class InfoFirmProfile extends \DAL\DalSlim {
                                 $languageIdValue = $languageId ['resultSet'][0]['id'];
                             }
                         }
+                        $foundationYearx =NULL;
                         if ((isset($params['foundation_yearx']) && $params['foundation_yearx'] != "")) {
                             $foundationYearx = $params['foundation_yearx'];
-                            $addSql .= " foundation_yearx, ";
-                            $addSqlValue .= " " . intval($foundationYearx) . " ,";
                         }
 
                         $statement_act_insert = $pdo->prepare(" 
@@ -458,8 +455,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         web_address, 
                         tax_office, 
                         tax_no, 
-                        sgk_sicil_no,     
-                        " . $addSql . ", 
+                        sgk_sicil_no,                             
+                        foundation_yearx,     
                         firm_name_eng, 
                         firm_name_short,
                         firm_name_short_eng,
@@ -482,8 +479,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                             '" . $params['web_address'] . "' AS web_address, 
                             '" . $params['tax_office'] . "' AS tax_office, 
                             '" . $params['tax_no'] . "' AS tax_no, 
-                            '" . $params['sgk_sicil_no'] . "' AS sgk_sicil_no,                             
-                            " . $addSqlValue . "  
+                            '" . $params['sgk_sicil_no'] . "' AS sgk_sicil_no,                                                         
+                            " . intval($foundationYearx) . " AS foundation_yearx,
                             '" . $params['firm_name_eng'] . "' AS firm_name_eng, 
                             '" . $params['firm_name_short'] . "' AS firm_name_short,
                             '" . $params['firm_name_short_eng'] . "' AS firm_name_short_eng,
@@ -575,8 +572,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 $endOfIdValue = $endOfId ['resultSet'][0]['firm_id'];
             }
             InfoFirmProfile::makePassive(array('id' => $endOfIdValue));
-            $addSql = NULL;
-            $addSqlValue = NULL;
+            
             $operationIdValue = -2;
             $operationId = SysOperationTypes::getTypeIdToGoOperationId(
                             array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 23, 'type_id' => 2,));
@@ -602,10 +598,9 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 $languageIdValue = $params['language_id'];
             }
 
+            $foundationYearx = NULL;
             if ((isset($params['foundation_yearx']) && $params['foundation_yearx'] != "")) {
-                $foundationYearx = $params['foundation_yearx'];
-                $addSql .= " foundation_yearx, ";
-                $addSqlValue .= " " . intval($foundationYearx) . " ,";
+                $foundationYearx = $params['foundation_yearx'];              
             }
 
             $sql = " 
@@ -620,8 +615,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         web_address, 
                         tax_office, 
                         tax_no, 
-                        sgk_sicil_no,     
-                        " . $addSql . "
+                        sgk_sicil_no,
+                        foundation_yearx, 
                         firm_name_eng, 
                         firm_name_short,
                         firm_name_short_eng,
@@ -645,7 +640,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                             '" . $params['tax_office'] . "' AS tax_office, 
                             '" . $params['tax_no'] . "' AS tax_no,
                             '" . $params['sgk_sicil_no'] . "' AS sgk_sicil_no,
-                            " . $addSqlValue . "  
+                            " . intval($foundationYearx) . " AS foundation_yearx ,
                             '" . $params['firm_name_eng'] . "' AS firm_name_eng, 
                             '" . $params['firm_name_short'] . "' AS firm_name_short,
                             '" . $params['firm_name_short_eng'] . "' AS firm_name_short_eng,
@@ -657,7 +652,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                             '" . $params['duns_number'] . "' AS duns_number,
                             logo
                         FROM info_firm_profile 
-                        WHERE id =  " . intval($endOfIdValue) . "                                
+                        WHERE id =  " . intval($endOfIdValue) . "
                         ";
             $statement_act_insert = $pdo->prepare($sql);
          //   echo debugPDO($sql, $params);
@@ -675,7 +670,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
             * silinen kaydı yapan kişinin dil bilgisini alıcaz.
             */
             $consIdAndLanguageId = SysOperationTypes::getConsIdAndLanguageId(
-                           array('table_name' => 'info_firm_references', 'id' => $params['id'],));
+                           array('table_name' => 'info_firm_profile', 'id' => $params['id'],));
             if (\Utill\Dal\Helper::haveRecord($consIdAndLanguageId)) {
                $ConsultantId = $consIdAndLanguageId ['resultSet'][0]['consultant_id'];
                $languageIdValue = $consIdAndLanguageId ['resultSet'][0]['language_id'];                       
@@ -1225,36 +1220,24 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
 
                 $this->makePassive(array('id' => $params['id']));
-
-                $addSql = " op_user_id, ";
-                $addSqlValue = " " . intval($opUserIdValue) . ",";
-                $addSql .= " owner_user_id, ";
-                $addSqlValue .= " owner_user_id,";
-                $addSql .= " active,  ";
-                $addSqlValue .= " 1,";
-                $addSql .= " deleted,  ";
-                $addSqlValue .= " 1,";
-                $addSql .= " consultant_id,  ";
-                $addSqlValue .= " consultant_id, ";
-                $addSql .= " consultant_confirm_type_id,  ";
-                $addSqlValue .= " consultant_confirm_type_id,  ";
-                $addSql .= " confirm_id,  ";
-                $addSqlValue .= " confirm_id,";
-
-
-                $addSql .= " operation_type_id,  ";
-                if ((isset($params['operation_type_id']) && $params['operation_type_id'] != "")) {
-                    $addSqlValue .= " " . intval($params['operation_type_id']) . ",";
-                } ELSE {
-                    $addSqlValue .= " 3,";
+                $operationIdValue = -3;
+                $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 23, 'type_id' => 3,));
+                if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                    $operationIdValue = $operationId ['resultSet'][0]['id'];
                 }
-
-
+                
                 $statement_act_insert = $pdo->prepare(" 
                  INSERT INTO info_firm_profile(
-                        profile_public, 
-                        ".$addSql."
-                        country_id,                        
+                        profile_public,
+                        operation_type_id, 
+                        active,
+                        deleted, 
+                        consultant_id, 
+                        consultant_confirm_type_id, 
+                        confirm_id,
+                        op_user_id,
+                        country_id,
                         firm_name, 
                         web_address, 
                         tax_office, 
@@ -1262,10 +1245,10 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         sgk_sicil_no, 
                         ownership_status_id, 
                         foundation_year, 
-                        language_code,                         
+                        language_code,
                         firm_name_eng, 
                         firm_name_short,
-                        act_parent_id, 
+                        act_parent_id,
                         auth_allow_id,
                         language_id,
                         description,
@@ -1275,9 +1258,15 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         place_point
                         )
                         SELECT  
-                            profile_public, 
-                            ".$addSqlValue."
-                            country_id,                             
+                            profile_public,                             
+                            " . intval($operationIdValue) . ",
+                            1,
+                            1,
+                            consultant_id,
+                            consultant_confirm_type_id, 
+                            confirm_id,
+                            " . intval($opUserIdValue) . ",
+                            country_id,
                             firm_name, 
                             web_address, 
                             tax_office, 
@@ -1285,7 +1274,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                             sgk_sicil_no, 
                             ownership_status_id, 
                             foundation_year, 
-                            language_code,                             
+                            language_code,
                             firm_name_eng, 
                             firm_name_short,
                             act_parent_id,  
@@ -1469,13 +1458,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
-                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                    $addSql = "  ";
-                    $addSqlValue = " "  ;
-                  //  $addSql .= " operation_type_id,  ";
-                  //  $addSqlValue .= " 1,";
-                 //   $addSql .= " owner_user_id,  ";
-                 //   $addSqlValue .= " " . $opUserIdValue . ",";
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {                    
                     $operationIdValue = -1;
                     $operationId = SysOperationTypes::getTypeIdToGoOperationId(
                                 array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 23, 'type_id' => 1,));
@@ -1483,22 +1466,15 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
                     
+                    $ConsultantId = 1001;
                     $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_profile' , 'operation_type_id' => $operationIdValue));
                     if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                         $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
-                    } else {
-                        $ConsultantId = 1001;
-                    }
-
-                    if ((isset($params['foundation_year']) && $params['foundation_year'] != "")) {
-                        $foundationYear = $params['foundation_year'];
-                        $addSql .= " foundation_year,  ";
-                        $addSqlValue .= " '" . $foundationYear . "',";
-                    }
+                    } 
+                    
+                    $foundationYearx=NULL;
                     if ((isset($params['foundation_yearx']) && $params['foundation_yearx'] != "")) {
-                        $foundationYearx = $params['foundation_yearx'];
-                        $addSql .= " foundation_yearx, ";
-                        $addSqlValue .= " " .intval($foundationYearx) . " ,";
+                        $foundationYearx = $params['foundation_yearx'];                      
                     }
                     //to_timestamp(1451599200 )
 
@@ -1525,8 +1501,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         language_id,
                         op_user_id, 
                         consultant_id,
-                        operation_type_id,
-                         " . $addSql . "                     
+                        operation_type_id,                      
+                        foundation_yearx, 
                         firm_name_short,
                         act_parent_id,                      
                         description,
@@ -1536,21 +1512,21 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         )
                 VALUES (
                         " . intval($params['profile_public']) . ", 
-                        " . intval($params['country_id']) . ",                     
+                        " . intval($params['country_id']) . ",
                         :firm_name, 
                         :web_address, 
                         :tax_office, 
-                        :tax_no, 
+                        :tax_no,
                         :sgk_sicil_no, 
-                        " . intval($params['ownership_status_id']) . ",                         
+                        " . intval($params['ownership_status_id']) . ",
                         :language_code,  
                         ". intval($languageIdValue) . ",
                         ". intval($opUserIdValue) .",
                         ". intval($ConsultantId).",
-                        ". intval($operationIdValue).",    
-                        ". $addSqlValue . "                     
+                        ". intval($operationIdValue).",
+                        " .intval($foundationYearx) . " ,
                         :firm_name_short,
-                        (SELECT last_value FROM info_firm_profile_id_seq),                   
+                        (SELECT last_value FROM info_firm_profile_id_seq),
                         :description,
                         :description_eng,
                         :duns_number,
@@ -1713,7 +1689,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 ) AS xtable WHERE cpk = TRUE  limit 1
                 ";
                 $statement = $pdo->prepare($sql);
-              // echo debugPDO($sql, $params);
+            // echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
