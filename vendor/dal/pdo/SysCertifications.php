@@ -380,7 +380,7 @@ class SysCertifications extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
-                 SELECT 
+                SELECT 
                     a.id,                                  
                     COALESCE(NULLIF(su.certificate, ''), a.certificate_eng) AS certificates,  
                     a.certificate_eng,
@@ -480,6 +480,62 @@ class SysCertifications extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
+     
+  /** 
+     * @author Okan CIRAN
+     * @  dropdown ya da tree ye doldurmak için sys_language tablosundan kayıtları döndürür !!
+     * @version v 1.0  25.07.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException 
+     */
+    public function fillCertificationsDdList($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
+            $statement = $pdo->prepare("
+                SELECT 
+                    a.id,
+                    COALESCE(NULLIF(su.certificate, ''), a.certificate_eng) AS certificate_name,  
+                    a.certificate_eng AS certificate_name_eng,
+		    COALESCE(NULLIF(su.certificate_short, ''), a.certificate_short_eng) AS certificate_shorts,  
+                    a.certificate_short_eng,
+		    COALESCE(NULLIF(su.description, ''), a.description_eng) AS descriptions,  
+                    a.description_eng,
+                    a.active,
+                    COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng) AS state_active,
+		    CASE COALESCE(NULLIF(a.logo, ''),'-')
+                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/' ,COALESCE(NULLIF(a.logo, ''),'image_not_found.png'))
+                        ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/' ,COALESCE(NULLIF(a.logo, ''),'image_not_found.png')) END AS logo	
+                FROM sys_certifications a
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = l.id  AND sd16.deleted = 0 AND sd16.active = 0
+		LEFT JOIN sys_specific_definitions sd16x ON (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.deleted =0 AND sd16x.active =0 AND lx.id = sd16x.language_id
+                LEFT JOIN sys_certifications su ON (su.id =a.id OR su.language_parent_id = a.id) AND su.deleted =0 AND su.active =0 AND lx.id = su.language_id 
+                WHERE a.language_parent_id = 0 AND a.active =0 AND a.deleted =0 
+                ORDER BY a.priority, certificate_name
 
+                                 ");
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {           
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
+    
  
 }

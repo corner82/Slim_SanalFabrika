@@ -423,6 +423,57 @@ $app->get("/pkInsert_sysCertifications/", function () use ($app ) {
     $app->response()->body(json_encode($resData));
 }
 ); 
+/**
+ *  * Okan CIRAN
+ * @since 25.07.2016
+ */
+$app->get("/pkFillCertificationsDdList_sysCertifications/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysCertificationsBLL');
+    
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkFillCertificationsDdList_sysCertifications" end point, X-Public variable not found');
+    //$pk = $headerParams['X-Public'];
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+        
+    $resCombobox = $BLL->fillCertificationsDdList(array(                                   
+                                    'language_code' => $vLanguageCode,
+                        ));    
+
+    $flows = array();
+    $flows[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
+    foreach ($resCombobox as $flow) {
+        $flows[] = array(            
+            "text" => $flow["certificate_name"],
+            "value" =>  intval($flow["id"]),
+            "selected" => false,
+            "description" => $flow["certificate_name_eng"],
+            "imageSrc"=>$flow["logo"],              
+            "attributes" => array( 
+                                    "active" => $flow["active"], 
+                                    "certificate_shorts" => $flow["certificate_shorts"],
+                                    "certificate_short_eng" => $flow["certificate_short_eng"],
+                                    "descriptions" => $flow["descriptions"],
+                ),
+        );
+    }
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($flows));
+});
+ 
 
 
 $app->run();
