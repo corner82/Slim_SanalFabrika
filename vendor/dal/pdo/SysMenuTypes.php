@@ -142,31 +142,28 @@ class SysMenuTypes extends \DAL\DalSlim {
                 $kontrol = $this->haveRecords(array('name' => $params['name']));
                 if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
 
-                    $sql = "
-                INSERT INTO sys_menu_types(                        
+                $sql = "
+                INSERT INTO sys_menu_types(
                         name, 
                         name_eng, 
                         description, 
-                        description_eng,
+                        description_eng, 
                         language_id,
                         op_user_id
-                         )
+                        )
                 VALUES (
-                        :name, 
-                        :name_eng, 
-                        :description, 
-                        :description_eng,                         
+                        '".$params['name']."',
+                        '".$params['name_eng']."',
+                        '".$params['description']."',
+                        '".$params['description_eng']."',
                         ".intval($languageIdValue).",
                         ".intval($opUserIdValue)."
                                              )   ";
-                    $statement = $pdo->prepare($sql);
-                    $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-                    $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
-                    $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
-                 //   echo debugPDO($sql, $params);
-                    $result = $statement->execute();
+                    $statement = $pdo->prepare($sql);                            
+                //   echo debugPDO($sql, $params);
+                    $result = $statement->execute();                  
                     $insertID = $pdo->lastInsertId('sys_menu_types_id_seq');
-                    $errorInfo = $statement->errorInfo();
+                    $errorInfo = $statement->errorInfo();  
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
                     $pdo->commit();
@@ -217,7 +214,7 @@ class SysMenuTypes extends \DAL\DalSlim {
                 AND a.deleted =0    
                                ";
             $statement = $pdo->prepare($sql);
-          //echo debugPDO($sql, $params);
+         // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -257,19 +254,14 @@ class SysMenuTypes extends \DAL\DalSlim {
                     $sql = "
                     UPDATE sys_menu_types
                     SET 
-                        name= :name,  
-                        name_eng= :name_eng,  
-                        description= :description,  
-                        description_eng= :description_eng,                          
+                        name= '".$params['name']."',  
+                        name_eng=  '".$params['name_eng']."',  
+                        description= '".$params['description']."',  
+                        description_eng=  '".$params['description_eng']."',                         
                         language_id = ".intval($languageIdValue).",
                         op_user_id = ".intval($opUserIdValue)."
                     WHERE id = " . intval($params['id']);
                     $statement = $pdo->prepare($sql);
-                    $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-                    $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
-                    $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
-                    $statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);                    
-                    
                     //echo debugPDO($sql, $params);
                     $update = $statement->execute();
                     $affectedRows = $statement->rowCount();
