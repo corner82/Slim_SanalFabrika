@@ -687,6 +687,7 @@ $app->get("/pkFillFirmWorkingPersonalEducationListGrid_infoFirmWorkingPersonnelE
         foreach ($resDataGrid as $flow) {
             $flows[] = array(
             "id" => $flow["id"],
+            "working_personnel_id" => $flow["working_personnel_id"],
             "name" => html_entity_decode($flow["name"]),
             "surname" => html_entity_decode($flow["surname"]),
             "diploma_name" => html_entity_decode($flow["diploma_name"]),

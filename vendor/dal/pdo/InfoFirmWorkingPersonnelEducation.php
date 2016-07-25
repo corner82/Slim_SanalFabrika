@@ -182,7 +182,7 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
                 " . $addSql . "                  
                                ";
             $statement = $pdo->prepare($sql);
-          // echo debugPDO($sql, $params);
+         // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -373,8 +373,12 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $getFirm = InfoFirmProfile :: getCheckIsThisFirmRegisteredUser(array('cpk' => $params['cpk'], 'op_user_id' => $opUserIdValue));
                 if (\Utill\Dal\Helper::haveRecord($getFirm)) {
-                    $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
-                    $kontrol = $this->haveRecords(array( 'working_personnel_id' =>  $params['working_personnel_id'], 'diploma_name' => $params['diploma_name'], ));
+                  //  $getFirmId = $getFirm ['resultSet'][0]['firm_id'];  
+                    $Id = 0;
+                    if ((isset($params['id']) && $params['id'] != "")) {
+                        $profilePublic = $params['id'];
+                    }
+                    $kontrol = $this->haveRecords(array( 'id' => $Id, 'working_personnel_id' =>  $params['working_personnel_id'], 'diploma_name' => $params['diploma_name'], ));
                     if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                         $this->makePassive(array('id' => $params['id']));
                         $operationIdValue = -2;
@@ -429,7 +433,7 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
                             " . intval($UniversityId) . ", 
                             " . intval($params['graduation_date']) . "  
                         FROM info_firm_working_personnel_education 
-                        WHERE id =  " . intval($params['id']) . " 
+                        WHERE id =  " . intval($Id) . " 
                         ");
                         $insert_act_insert = $statement_act_insert->execute();
                         $affectedRows = $statement_act_insert->rowCount();
@@ -444,12 +448,15 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
                         * ancak delete işlemi oldugunda delete işlemini yapan user in dil bilgisini değil 
                         * silinen kaydı yapan kişinin dil bilgisini alıcaz.
                         */
+                            
+                     //   $Id= intval($params['working_personnel_id']) ;
                          $consIdAndLanguageId = SysOperationTypes::getConsIdAndLanguageId(
-                                    array('table_name' => 'info_firm_working_personnel_education', 'id' => $params['id'],));
+                                    array('table_name' => 'info_firm_working_personnel_education', 'id' => $Id,));
                         if (\Utill\Dal\Helper::haveRecord($consIdAndLanguageId)) {
                             $ConsultantId = $consIdAndLanguageId ['resultSet'][0]['consultant_id'];
                             // $languageIdValue = $consIdAndLanguageId ['resultSet'][0]['language_id'];                       
                         }
+                       // print_r($consIdAndLanguageId);
 
                         $xjobs = ActProcessConfirm::insert(array(
                                     'op_user_id' => intval($opUserIdValue), // işlemi yapan user
