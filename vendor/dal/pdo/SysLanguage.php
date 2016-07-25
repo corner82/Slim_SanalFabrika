@@ -113,7 +113,50 @@ class SysLanguage extends \DAL\DalSlim {
         }
     }
 
-    /**      
+    
+    /**
+     * @author Okan CIRAN
+     * @ info_firm_working_personnel_education tablosunda name sutununda daha önce oluşturulmuş mu? 
+     * @version v 1.0  25.07.2016 
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function haveRecords($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $addSql = " AND deleted =0  ";
+            if (isset($params['id'])) {
+                $addSql .= " AND id != " . intval($params['id']);
+            }
+            $sql = " 
+            SELECT  
+                language_code AS name , 
+                '" . $params['language_code'] . "' AS value , 
+                language_code ='" . $params['language_code'] . "' as control,
+                concat(language_code , ' dil kodu daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
+            FROM sys_language
+            WHERE language_code = '" . $params['language_code'] . "'
+                LOWER(REPLACE(language_code,' ','')) = LOWER(REPLACE('" . $params['language_code'] . "',' ','')) AND 
+                LOWER(REPLACE(language_eng,' ','')) = LOWER(REPLACE('" . $params['language_eng'] . "',' ',''))                      
+                " . $addSql . "  
+                               ";
+            $statement = $pdo->prepare($sql);
+         // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
+    
+    /**
      * @author Okan CIRAN
      * @ sys_language tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  08.12.2015
@@ -123,29 +166,28 @@ class SysLanguage extends \DAL\DalSlim {
     public function insert($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $sql = " 
-            SELECT  
-                language_code as name , 
-                '" . $params['language_code'] . "' as value , 
-                language_code ='" . $params['language_code'] . "' as control,
-                concat(language_code , ' dil kodu daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
-            FROM sys_language        
-            WHERE language_code = '" . $params['language_code'] . "'               
-                               ";
-            $statement = $pdo->prepare($sql);            
-            $statement->execute();
-            $kontrol = $statement->fetchAll(\PDO::FETCH_ASSOC);         
-
-            if (!isset($kontrol[0]['control'])) {  
-            $pdo->beginTransaction();
-            /**
-             * table names and column names will be changed for specific use
-             */
-            $statement = $pdo->prepare("
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $kontrol = $this->haveRecords($params);
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                    $pdo->beginTransaction();
+                    $statement = $pdo->prepare("
                 INSERT INTO sys_language(
-                        country_name, country_name_eng, country_id, language_parent_id, 
-                        icon_road, user_id, country_code3, link, language_code, 
-                        language_id, parent_id, language_eng, language_main_code, language, 
+                        country_name, 
+                        country_name_eng, 
+                        country_id, 
+                        language_parent_id, 
+                        icon_road, 
+                        op_user_id, 
+                        country_code3, 
+                        link,  
+                        language_code,
+                        language_id, 
+                        parent_id, 
+                        language_eng, 
+                        language_main_code, 
+                        language, 
                         priority)  
                 VALUES (
                         :country_name, 
@@ -153,10 +195,10 @@ class SysLanguage extends \DAL\DalSlim {
                         :country_id, 
                         :language_parent_id, 
                         :icon_road, 
-                        :user_id, 
+                        ".intval($opUserIdValue).", 
                         :country_code3, 
+                        :language_code,
                         :link, 
-                        :language_code, 
                         :language_id, 
                         :parent_id, 
                         :language_eng, 
@@ -164,30 +206,40 @@ class SysLanguage extends \DAL\DalSlim {
                         :language, 
                         :priority
                                                 ");
-            $statement->bindValue(':country_name', $params['country_name'], \PDO::PARAM_STR);
-            $statement->bindValue(':country_name_eng', $params['country_name_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':icon_road', $params['icon_road'], \PDO::PARAM_STR);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_STR);
-            $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
-            $statement->bindValue(':link', $params['link'], \PDO::PARAM_STR);            
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_eng', $params['language_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':language_main_code', $params['language_main_code'], \PDO::PARAM_STR);
-            $statement->bindValue(':language', $params['language'], \PDO::PARAM_STR);
-            $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);  
-            $result = $statement->execute();
-            $insertID = $pdo->lastInsertId('sys_language_id_seq');
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);           
-            } else {           
-               // $result  = $kontrol;             
+                    $statement->bindValue(':country_name', $params['country_name'], \PDO::PARAM_STR);
+                    $statement->bindValue(':country_name_eng', $params['country_name_eng'], \PDO::PARAM_STR);
+                    $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
+                    $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
+                    $statement->bindValue(':icon_road', $params['icon_road'], \PDO::PARAM_STR);                    
+                    $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
+                    $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);                    
+                    $statement->bindValue(':link', $params['link'], \PDO::PARAM_STR);                    
+                    $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
+                    $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);
+                    $statement->bindValue(':language_eng', $params['language_eng'], \PDO::PARAM_STR);
+                    $statement->bindValue(':language_main_code', $params['language_main_code'], \PDO::PARAM_STR);
+                    $statement->bindValue(':language', $params['language'], \PDO::PARAM_STR);
+                    $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);
+                    $result = $statement->execute();
+                    $insertID = $pdo->lastInsertId('sys_language_id_seq');
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                } else {
+                        // 23505  unique_violation
+                        $errorInfo = '23505';
+                        $errorInfoColumn = 'language_code';
+                        $pdo->rollback();
+                        // $result = $kontrol;
+                        return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                    }
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
@@ -206,8 +258,13 @@ class SysLanguage extends \DAL\DalSlim {
     public function update($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();          
-            $statement = $pdo->prepare("
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $kontrol = $this->haveRecords($params);
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                    $pdo->beginTransaction();
+                    $statement = $pdo->prepare("
                 UPDATE sys_language
                 SET              
                     country_name = :country_name, 
@@ -215,7 +272,7 @@ class SysLanguage extends \DAL\DalSlim {
                     country_id  = :country_id, 
                     language_parent_id  = :language_parent_id, 
                     icon_road  = :icon_road, 
-                    user_id  = :user_id, 
+                    op_user_id  = ".intval($opUserIdValue).",
                     country_code3  = :country_code3, 
                     link  = :link, 
                     language_code  = :language_code, 
@@ -226,41 +283,52 @@ class SysLanguage extends \DAL\DalSlim {
                     language  = :language, 
                     priority  = :priority
                 WHERE id = :id");
-            //Bind our value to the parameter :id.
-            $statement->bindValue(':id',  $params['id'], \PDO::PARAM_INT);
-            //Bind our :model parameter.     
-            $statement->bindValue(':country_name', $params['country_name'], \PDO::PARAM_STR);
-            $statement->bindValue(':country_name_eng', $params['country_name_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':icon_road', $params['icon_road'], \PDO::PARAM_STR);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_STR);
-            $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
-            $statement->bindValue(':link', $params['link'], \PDO::PARAM_STR);            
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':language_eng', $params['language_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':language_main_code', $params['language_main_code'], \PDO::PARAM_STR);
-            $statement->bindValue(':language', $params['language'], \PDO::PARAM_STR);
-            $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);           
-            //Execute our UPDATE statement.
-            $update = $statement->execute(); 
-            $affectedRows = $statement->rowCount();
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                    //Bind our value to the parameter :id.
+                    $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
+                    //Bind our :model parameter.     
+                    $statement->bindValue(':country_name', $params['country_name'], \PDO::PARAM_STR);
+                    $statement->bindValue(':country_name_eng', $params['country_name_eng'], \PDO::PARAM_STR);
+                    $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
+                    $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
+                    $statement->bindValue(':icon_road', $params['icon_road'], \PDO::PARAM_STR);                    
+                    $statement->bindValue(':country_code3', $params['country_code3'], \PDO::PARAM_STR);
+                    $statement->bindValue(':link', $params['link'], \PDO::PARAM_STR);
+                    $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_INT);
+                    $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
+                    $statement->bindValue(':parent_id', $params['parent_id'], \PDO::PARAM_INT);
+                    $statement->bindValue(':language_eng', $params['language_eng'], \PDO::PARAM_STR);
+                    $statement->bindValue(':language_main_code', $params['language_main_code'], \PDO::PARAM_STR);
+                    $statement->bindValue(':language', $params['language'], \PDO::PARAM_STR);
+                    $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);
+                    //Execute our UPDATE statement.
+                    $update = $statement->execute();
+                    $affectedRows = $statement->rowCount();
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                } else {
+                        // 23505  unique_violation
+                        $errorInfo = '23505';
+                        $errorInfoColumn = 'language_code';
+                        $pdo->rollback();
+                        // $result = $kontrol;
+                        return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                    }
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
-    /**
-     * Datagrid fill function used for testing
-     * user interface datagrid fill operation   
+    /** 
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_language tablosundan kayıtları döndürür !!
      * @version v 1.0  08.12.2015
@@ -295,7 +363,15 @@ class SysLanguage extends \DAL\DalSlim {
                 $order = trim($args['order']);
         } else {     
             $order = "ASC";
-        }        
+        }    
+        $languageId = NULL;
+        $languageIdValue = 647;
+        if ((isset($args['language_code']) && $args['language_code'] != "")) {
+            $languageId = SysLanguage::getLanguageId(array('language_code' => $args['language_code']));
+            if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                $languageIdValue = $languageId ['resultSet'][0]['id'];
+            }
+        }
 
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -329,8 +405,8 @@ class SysLanguage extends \DAL\DalSlim {
 		INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND 
 			sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
-		INNER JOIN info_users u ON u.id = a.user_id  
-                WHERE a.language_id = :language_id                                               
+		INNER JOIN info_users u ON u.id = a.op_user_id  
+                WHERE a.language_id = ".intval($languageIdValue).",                                              
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -342,8 +418,7 @@ class SysLanguage extends \DAL\DalSlim {
                 'limit' => $pdo->quote($limit),
                 'offset' => $pdo->quote($offset),
             );
-           // echo debugPDO($sql, $parameters);
-            $statement->bindValue(':language_id', $args['language_id'], \PDO::PARAM_INT);
+           // echo debugPDO($sql, $parameters);            
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -356,8 +431,7 @@ class SysLanguage extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * user interface datagrid fill operation get row count for widget
+    /**     
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_language tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
      * @version v 1.0  08.12.2015
@@ -368,33 +442,26 @@ class SysLanguage extends \DAL\DalSlim {
     public function fillGridRowTotalCount($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+
             $sql = "             
-	     SELECT                    
-			COUNT(a.id) AS COUNT , 
-			(SELECT COUNT(a1.id) FROM sys_language a1
-			INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 15 AND sd1.first_group= a1.deleted AND 
-				sd1.language_id = a1.language_id AND sd1.active =0 AND sd1.deleted = 0
-			INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group = a1.active AND 
-				sd12.language_id = a1.language_id AND sd12.deleted = 0 AND sd12.active = 0
-			INNER JOIN sys_language l1 ON l1.id = a1.language_id AND l1.deleted = 0 AND l1.active = 0 
-			INNER JOIN info_users u1 ON u1.id = a1.user_id               
-			WHERE a1.language_id = :language_id AND a1.deleted =0) AS undeleted_count, 
-		       (SELECT COUNT(a2.id) FROM sys_language a2
-			INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group = a2.deleted AND 
-				sd2.language_id = a2.language_id AND sd2.active =0 AND sd2.deleted=0
-			INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group = a2.active AND 
-				sd12.language_id = a2.language_id AND sd12.deleted = 0 AND sd12.active = 0
-			INNER JOIN sys_language l2 ON l2.id = a2.language_id AND l2.deleted = 0 AND l2.active = 0 
-			INNER JOIN info_users u2 ON u2.id = a2.user_id               
-			WHERE a2.language_id = :language_id AND a2.deleted =1) AS deleted_count  		
+                SELECT 
+                    COUNT(a.id) AS COUNT
                 FROM sys_language a
                 INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND 
 			sd.language_id = a.language_id AND sd.active =0 AND sd.deleted=0
 		INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND 
 			sd1.language_id = a.language_id AND sd1.deleted = 0 AND sd1.active = 0
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
-		INNER JOIN info_users u ON u.id = a.user_id  
-	    where a.language_id = :language_id
+		INNER JOIN info_users u ON u.id = a.op_user_id  
+                WHERE a.language_id = ".intval($languageIdValue).",  
                     ";
             $statement = $pdo->prepare($sql);
             $statement->bindValue(':language_id', $args['language_id'], \PDO::PARAM_INT);
@@ -409,8 +476,7 @@ class SysLanguage extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-    /**
-     * user interface datagrid fill operation get row count for widget
+    /**     
      * @author Okan CIRAN
      * @ combobox ı doldurmak için sys_language tablosundan çekilen kayıtları döndürür   !!
      * @version v 1.0  17.12.2015
@@ -442,8 +508,7 @@ class SysLanguage extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-    
-     /**     
+    /**     
      * @author Okan CIRAN
      * @ sys_language tablosundan id degerini getirir.  !!
      * @version v 1.0  03.02.2016    
@@ -474,7 +539,52 @@ class SysLanguage extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-
+ 
+    /** 
+     * @author Okan CIRAN
+     * @  dropdown ya da tree ye doldurmak için sys_language tablosundan kayıtları döndürür !!
+     * @version v 1.0  25.07.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException 
+     */
+    public function fillLanguageDdList($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');         
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
+            $statement = $pdo->prepare("        
+                SELECT 
+                    a.id,
+                    COALESCE(NULLIF(sd.language_local, ''), a.language_eng) AS name,  
+                    a.language_eng AS name_eng,
+                    0 AS active,
+                    'open' AS state_type
+                FROM sys_language a
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue). " AND lx.deleted =0 AND lx.active =0
+                LEFT JOIN sys_language sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND lx.id = sd.language_id
+                WHERE  a.lang_choose = 1  
+                ORDER BY a.priority ,name
+                                 ");
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {           
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
+    
     
 
 }
