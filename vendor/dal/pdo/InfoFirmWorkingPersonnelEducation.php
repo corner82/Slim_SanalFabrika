@@ -175,11 +175,15 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
             FROM info_firm_working_personnel_education a             
             WHERE 
                 a.working_personnel_id = " . intval($params['working_personnel_id']) . " AND
+                a.country_id = " . intval($params['country_id']) . " AND
+                a.university_id = " . intval($params['university_id']) . " AND
+                a.graduation_date = " . intval($params['graduation_date']) . " AND
                 LOWER(REPLACE(diploma_name,' ','')) = LOWER(REPLACE('" . $params['diploma_name'] . "',' ','')) AND 
                
                 a.active = 0 AND
                 a.deleted = 0     
-                " . $addSql . "                  
+                " . $addSql . "     
+    
                                ";
             $statement = $pdo->prepare($sql);
          // echo debugPDO($sql, $params);
@@ -376,9 +380,9 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
                   //  $getFirmId = $getFirm ['resultSet'][0]['firm_id'];  
                     $Id = 0;
                     if ((isset($params['id']) && $params['id'] != "")) {
-                        $profilePublic = $params['id'];
+                        $Id = $params['id'];
                     }
-                    $kontrol = $this->haveRecords(array( 'id' => $Id, 'working_personnel_id' =>  $params['working_personnel_id'], 'diploma_name' => $params['diploma_name'], ));
+                    $kontrol = $this->haveRecords($params);
                     if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                         $this->makePassive(array('id' => $params['id']));
                         $operationIdValue = -2;
@@ -405,7 +409,7 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
                             $UniversityId = $params['university_id'];
                         }
 
-                        $statement_act_insert = $pdo->prepare(" 
+                        $sql = " 
                  INSERT INTO info_firm_working_personnel_education(                            
                             consultant_id,
                             operation_type_id,
@@ -434,14 +438,16 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
                             " . intval($params['graduation_date']) . "  
                         FROM info_firm_working_personnel_education 
                         WHERE id =  " . intval($Id) . " 
-                        ");
+                        ";
+                        $statement_act_insert = $pdo->prepare($sql);
+                       // echo debugPDO($sql, $params);
                         $insert_act_insert = $statement_act_insert->execute();
                         $affectedRows = $statement_act_insert->rowCount();
                         $insertID = $pdo->lastInsertId('info_firm_working_personnel_education_id_seq');                    
                         $errorInfo = $statement_act_insert->errorInfo();
                         if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                             throw new \PDOException($errorInfo[0]);
-
+                            
                         /*
                         * ufak bir trik var. 
                         * işlem update oldugunda update işlemini yapan kişinin dil bilgisini kullanıcaz. 
@@ -450,13 +456,15 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
                         */
                             
                      //   $Id= intval($params['working_personnel_id']) ;
+                        
+                            
                          $consIdAndLanguageId = SysOperationTypes::getConsIdAndLanguageId(
                                     array('table_name' => 'info_firm_working_personnel_education', 'id' => $Id,));
                         if (\Utill\Dal\Helper::haveRecord($consIdAndLanguageId)) {
                             $ConsultantId = $consIdAndLanguageId ['resultSet'][0]['consultant_id'];
                             // $languageIdValue = $consIdAndLanguageId ['resultSet'][0]['language_id'];                       
                         }
-                       // print_r($consIdAndLanguageId);
+                      
 
                         $xjobs = ActProcessConfirm::insert(array(
                                     'op_user_id' => intval($opUserIdValue), // işlemi yapan user
@@ -1109,12 +1117,13 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
             }
 
             $sorguStr = null;
+            $sorguStr2 = null;
             if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
                 $filterRules = trim($params['filterRules']);
                 $jsonFilter = json_decode($filterRules, true);
-
+               
                 $sorguExpression = null;
-                foreach ($jsonFilter as $std) {
+                foreach ($jsonFilter as $std) {                            
                     if ($std['value'] != null) {
                         switch (trim($std['field'])) {
                             case 'name':
@@ -1173,30 +1182,31 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
                     }
                 }
             } else {
-                $sorguStr = null;
-                $filterRules = "";
-                if (isset($params['diploma_name']) && $params['diploma_name'] != "") {
-                    $sorguStr .= " AND diploma_name Like '%" . $params['diploma_name'] . "%'";
-                } 
-                if (isset($params['country_id']) && $params['country_id'] != "") {
-                    $sorguStr .= " AND country_id = " . intval($params['country_id']) ;
-                } 
-                if (isset($params['university_id']) && $params['university_id'] != "") {
-                    $sorguStr .= " AND university_id = " . intval($params['university_id']) ;
-                }
-                if (isset($params['profile_public']) && $params['profile_public'] != "") {
-                    $sorguStr .= " AND profile_public = " . intval($params['profile_public']) ;
-                }
-                if (isset($params['active']) && $params['active'] != "") {
-                    $sorguStr .= " AND active = " . intval($params['active']) ;
-                }
-                if (isset($params['working_personnel_id']) && $params['working_personnel_id'] != "") {
-                    $sorguStr .= " AND working_personnel_id = " . intval($params['working_personnel_id']) ;
-                }
-                
-                
+                $sorguStr = null;                            
+                $filterRules = ""; 
             }
             $sorguStr = rtrim($sorguStr, "AND ");
+            
+                            
+            if (isset($params['diploma_name']) && $params['diploma_name'] != "") {
+                $sorguStr2 .= " AND a.diploma_name Like '%" . $params['diploma_name'] . "%'";
+            } 
+            if (isset($params['country_id']) && $params['country_id'] != "") {
+                $sorguStr2 .= " AND a.country_id = " . intval($params['country_id']) ;
+            } 
+            if (isset($params['university_id']) && $params['university_id'] != "") {
+                $sorguStr2 .= " AND a.university_id = " . intval($params['university_id']) ;
+            }
+            if (isset($params['profile_public']) && $params['profile_public'] != "") {
+                $sorguStr2 .= " AND a.profile_public = " . intval($params['profile_public']) ;
+            }
+            if (isset($params['active']) && $params['active'] != "") {
+                $sorguStr2 .= " AND a.active = " . intval($params['active']) ;
+            }
+            if (isset($params['working_personnel_id']) && $params['working_personnel_id'] != "") {
+                $sorguStr2 .= " AND a.working_personnel_id = " . intval($params['working_personnel_id']) ;
+
+            }            
             
             $languageId = NULL;
             $languageIdValue = 647;
@@ -1205,9 +1215,8 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
                 if (\Utill\Dal\Helper::haveRecord($languageId)) {
                     $languageIdValue = $languageId ['resultSet'][0]['id'];
                 }
-            }
-
-            
+            } 
+        
             $sql = "  
                 SELECT   
 			id,
@@ -1302,6 +1311,7 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
                     LEFT JOIN sys_specific_definitions sd16x ON sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.deleted = 0 AND sd16x.active = 0
                     LEFT JOIN sys_specific_definitions sd19x ON sd19x.language_id = lx.id AND (sd19x.id = sd19.id OR sd19x.language_parent_id = sd19.id) AND sd19x.deleted = 0 AND sd19x.active = 0                    
                     WHERE a.deleted =0 AND a.language_parent_id =0 
+                     ".$sorguStr2."
                     ) AS xtable WHERE deleted =0 
                 ".$sorguStr."
             ORDER BY    " . $sort . " "
@@ -1316,7 +1326,7 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             $statement = $pdo->prepare($sql);
-           // echo debugPDO($sql, $params);
+         // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1341,10 +1351,10 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
              $sorguStr = null;
+             $sorguStr2 = null;
             if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
                 $filterRules = trim($params['filterRules']);
                 $jsonFilter = json_decode($filterRules, true);
-
                 $sorguExpression = null;
                 foreach ($jsonFilter as $std) {
                     if ($std['value'] != null) {
@@ -1406,29 +1416,30 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
                 }
             } else {
                 $sorguStr = null;
-                $filterRules = "";
-                if (isset($params['diploma_name']) && $params['diploma_name'] != "") {
-                    $sorguStr .= " AND diploma_name Like '%" . $params['diploma_name'] . "%'";
-                } 
-                if (isset($params['country_id']) && $params['country_id'] != "") {
-                    $sorguStr .= " AND country_id = " . intval($params['country_id']) ;
-                } 
-                if (isset($params['university_id']) && $params['university_id'] != "") {
-                    $sorguStr .= " AND university_id = " . intval($params['university_id']) ;
-                }
-                if (isset($params['profile_public']) && $params['profile_public'] != "") {
-                    $sorguStr .= " AND profile_public = " . intval($params['profile_public']) ;
-                }
-                if (isset($params['active']) && $params['active'] != "") {
-                    $sorguStr .= " AND active = " . intval($params['active']) ;
-                }
-                if (isset($params['working_personnel_id']) && $params['working_personnel_id'] != "") {
-                    $sorguStr .= " AND working_personnel_id = " . intval($params['working_personnel_id']) ;
-                }                
-                
+                $filterRules = ""; 
             }
             $sorguStr = rtrim($sorguStr, "AND ");
             
+            
+            if (isset($params['diploma_name']) && $params['diploma_name'] != "") {
+                $sorguStr2 .= " AND a.diploma_name Like '%" . $params['diploma_name'] . "%'";
+            } 
+            if (isset($params['country_id']) && $params['country_id'] != "") {
+                $sorguStr2 .= " AND a.country_id = " . intval($params['country_id']) ;
+            } 
+            if (isset($params['university_id']) && $params['university_id'] != "") {
+                $sorguStr2 .= " AND a.university_id = " . intval($params['university_id']) ;
+            }
+            if (isset($params['profile_public']) && $params['profile_public'] != "") {
+                $sorguStr2 .= " AND a.profile_public = " . intval($params['profile_public']) ;
+            }
+            if (isset($params['active']) && $params['active'] != "") {
+                $sorguStr2 .= " AND a.active = " . intval($params['active']) ;
+            }
+            if (isset($params['working_personnel_id']) && $params['working_personnel_id'] != "") {
+                $sorguStr2 .= " AND a.working_personnel_id = " . intval($params['working_personnel_id']) ;
+
+            }            
             $languageId = NULL;
             $languageIdValue = 647;
             if ((isset($params['language_code']) && $params['language_code'] != "")) {
@@ -1500,6 +1511,7 @@ class InfoFirmWorkingPersonnelEducation extends \DAL\DalSlim {
                     LEFT JOIN sys_specific_definitions sd16x ON sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.deleted = 0 AND sd16x.active = 0
                     LEFT JOIN sys_specific_definitions sd19x ON sd19x.language_id = lx.id AND (sd19x.id = sd19.id OR sd19x.language_parent_id = sd19.id) AND sd19x.deleted = 0 AND sd19x.active = 0                    
                     WHERE a.deleted =0 AND a.language_parent_id =0
+                    ".$sorguStr2."
                     ) AS xtable WHERE deleted =0  
                         ".$sorguStr."   
                 ";           
