@@ -470,19 +470,19 @@ $app->get("/pkInsert_infoFirmReferences/", function () use ($app ) {
                                                 $app,
                                                 $_GET['ref_firm_id']));
     } 
-    $vTotalProject = NULL;
+    $vTotalProject = 0;
     if (isset($_GET['total_project'])) {
          $stripper->offsetSet('total_project',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['total_project']));
     }
-    $vContinuingProject = NULL;
+    $vContinuingProject = 0;
     if (isset($_GET['continuing_project'])) {
          $stripper->offsetSet('continuing_project',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['continuing_project']));
     }
-    $vUnsuccessfulProject = NULL;
+    $vUnsuccessfulProject = 0;
     if (isset($_GET['unsuccessful_project'])) {
          $stripper->offsetSet('unsuccessful_project',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,

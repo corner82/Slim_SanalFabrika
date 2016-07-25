@@ -356,23 +356,23 @@ class InfoFirmReferences extends \DAL\DalSlim {
 
                     $FirmId = 0;
                     if ((isset($params['firm_id']) && $params['firm_id'] != "")) {
-                        $active = intval($params['firm_id']);
+                        $FirmId = intval($params['firm_id']);
                     }
                     $RefFirmId = 0;
                     if ((isset($params['ref_firm_id']) && $params['ref_firm_id'] != "")) {
-                        $active = intval($params['ref_firm_id']);
+                        $RefFirmId = intval($params['ref_firm_id']);
                     }
                     $Totalproject = 0;
                     if ((isset($params['total_project']) && $params['total_project'] != "")) {
-                        $active = intval($params['total_project']);
+                        $Totalproject = intval($params['total_project']);
                     }
                     $ContinuingProject = 0;
                     if ((isset($params['continuing_project']) && $params['continuing_project'] != "")) {
-                        $active = intval($params['continuing_project']);
+                        $ContinuingProject = intval($params['continuing_project']);
                     }
                     $UnsuccessfulProject = 0;
                     if ((isset($params['unsuccessful_project']) && $params['unsuccessful_project'] != "")) {
-                        $active = intval($params['unsuccessful_project']);
+                        $UnsuccessfulProject = intval($params['unsuccessful_project']);
                     }
 
                     $statementInsert = $pdo->prepare("
@@ -397,8 +397,8 @@ class InfoFirmReferences extends \DAL\DalSlim {
                     " . intval($opUserIdValue) . " AS op_user_id,
                     " . intval($operationIdValue) . " AS operation_type_id,
                     act_parent_id,  
-                    " . intval($params['firm_id']) . " AS firm_id,
-                    " . intval($params['ref_firm_id']) . " AS ref_firm_id,
+                    " . intval($FirmId) . " AS firm_id,
+                    " . intval($RefFirmId) . " AS ref_firm_id,
                     " . intval($Totalproject) . " AS total_project,
                     " . intval($ContinuingProject) . " AS continuing_project,
                     " . intval($UnsuccessfulProject) . " AS unsuccessful_project ,
@@ -409,9 +409,9 @@ class InfoFirmReferences extends \DAL\DalSlim {
                 WHERE id  =" . intval($params['id']) . "                  
                                                 ");
                     $result = $statementInsert->execute();
-                    $affectedRows = $statement->rowCount();
+                    $affectedRows = $statementInsert->rowCount();
                     $insertID = $pdo->lastInsertId('info_firm_references_id_seq');
-                    $errorInfo = $statement->errorInfo();
+                    $errorInfo = $statementInsert->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
 
@@ -479,7 +479,7 @@ class InfoFirmReferences extends \DAL\DalSlim {
             $limit = 10;
             $offset = 0;
         }
-        $whereSql = '';
+       
         $sortArr = array();
         $orderArr = array();
         if (isset($args['sort']) && $args['sort'] != "") {
@@ -800,7 +800,7 @@ class InfoFirmReferences extends \DAL\DalSlim {
                         )  
                 SELECT                 
                     1 AS active, 
-                    1 as deleted,    
+                    1 AS deleted,    
                     " . intval($opUserIdValue) . " AS op_user_id,  
                     " . intval($operationIdValue) . " AS operation_type_id,                                        
                     act_parent_id, 
@@ -883,7 +883,7 @@ class InfoFirmReferences extends \DAL\DalSlim {
 
             $sortArr = array();
             $orderArr = array();
-            $whereSql = "";
+         
             if (isset($params['sort']) && $params['sort'] != "") {
                 $sort = trim($params['sort']);
                 $sortArr = explode(",", $sort);
@@ -921,7 +921,7 @@ class InfoFirmReferences extends \DAL\DalSlim {
                 SELECT 
 		    a.id,		    
 		    COALESCE(NULLIF(COALESCE(NULLIF(fprefx.firm_name, ''), fpref.firm_name_eng), ''), fpref.firm_name) AS ref_firm_names,
-		    a.s_date as ref_date,
+		    a.s_date AS ref_date,
 		    ifk.network_key AS Ref_network_key,
                     a.active,                    
                     fpref.web_address,
