@@ -112,25 +112,36 @@ $app->get("/pkGetAll_infoFirmLanguageInfo/", function () use ($app ) {
  *  * Okan CIRAN
 * @since 31.05.2016
  */
-$app->get("/pkDeletedAct_infoFirmLanguageInfo/", function () use ($app ) {
+$app->get("/pkcpkDeletedAct_infoFirmLanguageInfo/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
     $BLL = $app->getBLLManager()->get('infoFirmLanguageInfoBLL');
     $headerParams = $app->request()->headers();
-    $Pk = $headerParams['X-Public'];  
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkcpkDeletedAct_infoFirmLanguageInfo" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+
     $vId = NULL;
     if (isset($_GET['id'])) {
         $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['id']));
     } 
+    $vCpk = NULL;
+    if (isset($_GET['cpk'])) {
+        $stripper->offsetSet('cpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['cpk']));
+    }
 
     $stripper->strip(); 
     if ($stripper->offsetExists('id')) {$vId = $stripper->offsetGet('id')->getFilterValue(); }     
+    if ($stripper->offsetExists('cpk')) {$vCpk = $stripper->offsetGet('cpk')->getFilterValue(); } 
     
     $resDataDeleted = $BLL->DeletedAct(array(                  
             'id' => $vId ,    
-            'pk' => $Pk,        
+            'pk' => $pk,  
+            'cpk' => $vCpk, 
             ));
     $app->response()->header("Content-Type", "application/json"); 
     $app->response()->body(json_encode($resDataDeleted));
@@ -142,14 +153,20 @@ $app->get("/pkDeletedAct_infoFirmLanguageInfo/", function () use ($app ) {
  *  * Okan CIRAN
 * @since 31.05.2016
  */
-$app->get("/pkUpdate_infoFirmLanguageInfo/", function () use ($app ) {    
+$app->get("/pkcpkUpdate_infoFirmLanguageInfo/", function () use ($app ) {    
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
     $BLL = $app->getBLLManager()->get('infoFirmLanguageInfoBLL');   
     $headerParams = $app->request()->headers();
     if (!isset($headerParams['X-Public']))
-        throw new Exception('rest api "pkUpdate_infoFirmLanguageInfo" end point, X-Public variable not found');
-    $pk = $headerParams['X-Public'];        
+        throw new Exception('rest api "pkcpkUpdate_infoFirmLanguageInfo" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];   
+    $vCpk = NULL;
+    if (isset($_GET['cpk'])) {
+        $stripper->offsetSet('cpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['cpk']));
+    }
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
          $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
@@ -197,6 +214,8 @@ $app->get("/pkUpdate_infoFirmLanguageInfo/", function () use ($app ) {
     if ($stripper->offsetExists('firm_language_id')) {
         $vFirmLanguageId = $stripper->offsetGet('firm_language_id')->getFilterValue();
     } 
+    if ($stripper->offsetExists('cpk'))
+        {$vCpk = $stripper->offsetGet('cpk')->getFilterValue(); } 
   
 
     $resData = $BLL->update(array(  
@@ -205,7 +224,8 @@ $app->get("/pkUpdate_infoFirmLanguageInfo/", function () use ($app ) {
             'language_code' => $vLanguageCode,    
             'profile_public' => $vProfilePublic ,                         
             'firm_language_id' => $vFirmLanguageId, 
-            'pk' => $Pk,        
+            'pk' => $pk,  
+            'cpk' => $vCpk, 
             ));
 
 
@@ -219,13 +239,13 @@ $app->get("/pkUpdate_infoFirmLanguageInfo/", function () use ($app ) {
  *  * Okan CIRAN
 * @since 31.05.2016
  */
-$app->get("/pkInsert_infoFirmLanguageInfo/", function () use ($app ) {    
+$app->get("/pkcpkInsert_infoFirmLanguageInfo/", function () use ($app ) {    
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
     $BLL = $app->getBLLManager()->get('infoFirmLanguageInfoBLL');   
     $headerParams = $app->request()->headers();
     if (!isset($headerParams['X-Public']))
-        throw new Exception('rest api "pkInsert_infoFirmLanguageInfo" end point, X-Public variable not found');
+        throw new Exception('rest api "pkcpkInsert_infoFirmLanguageInfo" end point, X-Public variable not found');
     $pk = $headerParams['X-Public'];          
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
@@ -257,6 +277,12 @@ $app->get("/pkInsert_infoFirmLanguageInfo/", function () use ($app ) {
                                                 $app,
                                                 $_GET['firm_language_id']));
     } 
+    $vCpk = NULL;
+    if (isset($_GET['cpk'])) {
+        $stripper->offsetSet('cpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['cpk']));
+    }
     
     $stripper->strip(); 
     if ($stripper->offsetExists('language_code')) {
@@ -274,6 +300,8 @@ $app->get("/pkInsert_infoFirmLanguageInfo/", function () use ($app ) {
     if ($stripper->offsetExists('firm_language_id')) {
         $vFirmLanguageId = $stripper->offsetGet('firm_language_id')->getFilterValue();
     } 
+    if ($stripper->offsetExists('cpk')) 
+        {$vCpk = $stripper->offsetGet('cpk')->getFilterValue(); }     
   
 
     $resData = $BLL->insert(array(  
@@ -281,7 +309,8 @@ $app->get("/pkInsert_infoFirmLanguageInfo/", function () use ($app ) {
             'language_code' => $vLanguageCode,    
             'profile_public' => $vProfilePublic ,                         
             'firm_language_id' => $vFirmLanguageId, 
-            'pk' => $pk,        
+            'pk' => $pk,   
+            'cpk' => $vCpk,  
             ));
 
 
