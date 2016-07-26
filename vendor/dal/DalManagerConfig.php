@@ -108,6 +108,7 @@ class DalManagerConfig {
                 'sysMenuTypesPDO' => 'DAL\Factory\PDO\SysMenuTypesFactory',
                 'sysAclModulesPDO' => 'DAL\Factory\PDO\SysAclModulesFactory',
                 'sysAclActionsPDO' => 'DAL\Factory\PDO\SysAclActionsFactory',
+                'sysAclMenuTypesActionsPDO' => 'DAL\Factory\PDO\SysAclMenuTypesActionsFactory',
                 
                 
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',

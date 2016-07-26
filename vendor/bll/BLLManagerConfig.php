@@ -103,6 +103,7 @@ class BLLManagerConfig{
                  'sysMenuTypesBLL' => 'BLL\BLL\SysMenuTypes',
                  'sysAclModulesBLL' => 'BLL\BLL\SysAclModules',
                  'sysAclActionsBLL' => 'BLL\BLL\SysAclActions',
+                 'sysAclMenuTypesActionsBLL' => 'BLL\BLL\SysAclMenuTypesActions',
                
                  
                  
