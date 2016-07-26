@@ -654,9 +654,10 @@ class SysAclModules extends \DAL\DalSlim {
                         INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = l.id AND sd1.deleted = 0 AND sd1.active = 0
                         INNER JOIN info_users u ON u.id = a.op_user_id 
                         WHERE a.deleted =0 
+                        " . $sorguStr . "
+                        " . $sorguStr2 . "
                     ) as xtable
-                    WHERE deleted =0 
-                    " . $sorguStr . "
+                    WHERE deleted =0                  
                 ) AS xxTable    
                 ";
 
@@ -761,8 +762,8 @@ class SysAclModules extends \DAL\DalSlim {
         
       /**
      * @author Okan CIRAN
-     * @ sys_machine_tool_groups tablosunda user_id li consultant daha önce kaydedilmiş mi ?  
-     * @version v 1.0 15.01.2016
+     * @ sys_acl_actions tablosunda module_id li action daha önce kaydedilmiş mi ?  
+     * @version v 1.0  26.07.2016
      * @param type $params
      * @return array
      * @throws \PDOException
