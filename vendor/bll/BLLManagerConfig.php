@@ -102,6 +102,7 @@ class BLLManagerConfig{
                  'infoFirmWorkingPersonnelEducationBLL' => 'BLL\BLL\InfoFirmWorkingPersonnelEducation',
                  'sysMenuTypesBLL' => 'BLL\BLL\SysMenuTypes',
                  'sysAclModulesBLL' => 'BLL\BLL\SysAclModules',
+                 'sysAclActionsBLL' => 'BLL\BLL\SysAclActions',
                
                  
                  

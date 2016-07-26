@@ -107,6 +107,7 @@ class DalManagerConfig {
                 'infoFirmWorkingPersonnelEducationPDO' => 'DAL\Factory\PDO\InfoFirmWorkingPersonnelEducationFactory',
                 'sysMenuTypesPDO' => 'DAL\Factory\PDO\SysMenuTypesFactory',
                 'sysAclModulesPDO' => 'DAL\Factory\PDO\SysAclModulesFactory',
+                'sysAclActionsPDO' => 'DAL\Factory\PDO\SysAclActionsFactory',
                 
                 
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
