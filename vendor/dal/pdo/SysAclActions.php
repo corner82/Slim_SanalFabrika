@@ -794,7 +794,7 @@ class SysAclActions extends \DAL\DalSlim {
         
       /**
      * @author Okan CIRAN
-     * @ sys_acl_modules_actions tablosunda action_id li menu_type_id daha önce kaydedilmiş mi ?  
+     * @ sys_acl_menu_types_actions tablosunda action_id li menu_type_id daha önce kaydedilmiş mi ?  
      * @version v 1.0  26.07.2016
      * @param type $params
      * @return array
@@ -808,7 +808,7 @@ class SysAclActions extends \DAL\DalSlim {
                 a.action_id AS name ,             
                 a.action_id = " . $params['id'] . " AS control,
                 'Bu Action Altında Menu Tipi Kaydı Bulunmakta. Lütfen Kontrol Ediniz !!!' AS message   
-            FROM sys_acl_modules_actions  a                          
+            FROM sys_acl_menu_types_actions  a                          
             WHERE a.action_id = ".$params['id']. "
                 AND a.deleted =0    
             LIMIT 1                     
