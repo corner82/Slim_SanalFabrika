@@ -54,22 +54,49 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
  * @since 11-09-2014
  */
 $app->get("/pkGetLeftMenu_leftnavigation/", function () use ($app ) {
-
-    
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();        
     $BLL = $app->getBLLManager()->get('sysNavigationLeftBLL'); 
-  
     $headerParams = $app->request()->headers();
-    $pk = $headerParams['X-Public']  ;     
-    $resDataMenu = $BLL->pkGetLeftMenu(array('parent' => $_GET['parent'],
-                                           'language_code' => $_GET['language_code'], 
-                                         //   'menu_types_id' => $_GET['menu_types_id'] ,
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkGetLeftMenu_leftnavigation" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];    
+    
+    $vMenuTypesId= NULL;
+    if (isset($_GET['menu_types_id'])) {
+        $stripper->offsetSet('menu_types_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                                                        $app, 
+                                                        $_GET['menu_types_id']));
+    }
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, 
+                                                                $app, 
+                                                                $_GET['language_code']));
+    }
+    $vParent = 0;
+    if (isset($_GET['parent'])) {
+        $stripper->offsetSet('parent', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                                                                $app, 
+                                                                $_GET['parent']));
+    }
+    
+    $stripper->strip(); 
+    if ($stripper->offsetExists('parent')) 
+        {$vParent = $stripper->offsetGet('parent')->getFilterValue(); }     
+    if ($stripper->offsetExists('menu_types_id')) 
+        {$vMenuTypesId = $stripper->offsetGet('menu_types_id')->getFilterValue(); }     
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }  
+    
+    $resDataMenu = $BLL->pkGetLeftMenu(array('parent' => $vParent,
+                                            'language_code' => $vLanguageCode, 
+                                            'menu_types_id' => $vMenuTypesId ,
                                            'pk' => $pk ,
                                            ) );
      
-   
-     
-        
-        
+       
  
     $menus = array();
     foreach ($resDataMenu as $menu){
@@ -104,15 +131,8 @@ $app->get("/pkGetLeftMenu_leftnavigation/", function () use ($app ) {
         );
     }
     
-    $app->response()->header("Content-Type", "application/json");
-    
-  
-    
-    /*$app->contentType('application/json');
-    $app->halt(302, '{"error":"Something went wrong"}');
-    $app->stop();*/
-    
-  $app->response()->body(json_encode($menus));
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($menus));
   
 });
 
