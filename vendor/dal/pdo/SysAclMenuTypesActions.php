@@ -759,7 +759,7 @@ class SysAclMenuTypesActions extends \DAL\DalSlim {
                 if (count($sortArr) === 1)
                     $sort = trim($params['sort']);
             } else {
-                $sort = "  sam.name, sac.name, smt.name";
+                $sort = "  sam.name, sac.name ";
             }
 
             if (isset($params['order']) && $params['order'] != "") {
