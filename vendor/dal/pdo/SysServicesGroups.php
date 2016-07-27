@@ -362,7 +362,7 @@ class SysServicesGroups extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ sys_services_groups tablosundan parametre olarak  gelen id kaydın aktifliğini
      *  0(aktif) ise 1 , 1 (pasif) ise 0  yapar. !!
-     * @version v 1.0  13.07.2016
+     * @version v 1.0  27.07.2016
      * @param type $params
      * @return array
      * @throws \PDOException
@@ -413,7 +413,7 @@ class SysServicesGroups extends \DAL\DalSlim {
     /**
      * @author Okan CIRAN
      * @ sys_services_groups tablosundan kayıtları döndürür !!
-     * @version v 1.0 13.07.2016
+     * @version v 1.0  27.07.2016
      * @param array | null $args
      * @return array
      * @throws \PDOException 
@@ -444,7 +444,44 @@ class SysServicesGroups extends \DAL\DalSlim {
         }
     }
 
-                            
+     /**
+     * @author Okan CIRAN
+     * @ tree doldurmak için sys_services_groups ve sys_acl_restservices tablosundan kayıtları döndürür !!
+     * @version v 1.0  27.07.2016
+     * @param array $params
+     * @return array
+     * @throws \PDOException
+     */                
+    public function fillServicesGroupsTree($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $addSql = ""; 
+             
+            $sql = " 
+                SELECT
+                    a.id,
+                    a.name AS name,
+                    a.description,
+                    'open' state_type,
+                    a.active                    
+                FROM sys_services_groups a
+                WHERE 
+                    a.deleted = 0 
+                ORDER BY name
+                                 ";
+            $statement = $pdo->prepare($sql);   
+              // echo debugPDO($sql, $params);
+            $statement->execute();            
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {        
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }    
+                        
     
     
     

@@ -106,6 +106,7 @@ class BLLManagerConfig{
                  'sysAclMenuTypesActionsBLL' => 'BLL\BLL\SysAclMenuTypesActions',
                  'sysAclRrpRestservicesBLL' => 'BLL\BLL\SysAclRrpRestservices',
                  'sysServicesGroupsBLL' => 'BLL\BLL\SysServicesGroups',
+                 'sysAclRestservicesBLL' => 'BLL\BLL\SysAclRestservices',
                
                  
                  

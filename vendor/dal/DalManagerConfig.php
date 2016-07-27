@@ -111,6 +111,7 @@ class DalManagerConfig {
                 'sysAclMenuTypesActionsPDO' => 'DAL\Factory\PDO\SysAclMenuTypesActionsFactory',
                 'sysAclRrpRestservicesPDO' => 'DAL\Factory\PDO\SysAclRrpRestservicesFactory',
                 'sysServicesGroupsPDO' => 'DAL\Factory\PDO\SysServicesGroupsFactory',
+                'sysAclRestservicesPDO' => 'DAL\Factory\PDO\SysAclRestservicesFactory',
                 
                 
                 
