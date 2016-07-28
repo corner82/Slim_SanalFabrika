@@ -21,7 +21,7 @@ class SysAclActions extends \DAL\DalSlim {
     /**
      * @author Okan CIRAN
      * @ sys_acl_actions tablosundan parametre olarak  gelen id kaydını siler. !!
-     * @version v 1.0  26.07.2016
+     * @version v 1.0 26.07.2016
      * @param type $params
      * @return array
      * @throws \PDOException
@@ -52,10 +52,51 @@ class SysAclActions extends \DAL\DalSlim {
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
                  } else {
                 $errorInfo = '23503';   // 23503  foreign_key_violation
-                $errorInfoColumn = 'module_id';
+                $errorInfoColumn = 'menu_type_id';
                 $pdo->rollback();
                 return array("found" =>false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
+            } else {
+                $errorInfo = '23502';  /// 23502  not_null_violation
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+        /**
+     * @author Okan CIRAN
+     * @ sys_acl_actions tablosundan parametre olarak  gelen id kaydını siler. !!
+     * @version v 1.0  26.07.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function deleteAct($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {                
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $sql = " 
+                UPDATE sys_acl_actions
+                SET  deleted= 1, active = 1,
+                     op_user_id = " . intval($opUserIdValue) . "
+                WHERE id = " . intval($params['id'])
+                ;
+                $statement = $pdo->prepare($sql);
+               // echo debugPDO($sql, $params);                
+                $update = $statement->execute();
+                $afterRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);                 
             } else {
                 $errorInfo = '23502';  /// 23502  not_null_violation
                 $pdo->rollback();
@@ -456,7 +497,7 @@ class SysAclActions extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
-     * @ resource bilgilerini döndürür !!
+     * @ sys_acl_actions bilgilerini döndürür !!
      * filterRules aktif 
      * @version v 1.0  26.07.2016
      * @param array | null $args
@@ -600,7 +641,7 @@ class SysAclActions extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
-     * @ resource bilgilerinin sayısını döndürür !!
+     * @ sys_acl_actions bilgilerinin sayısını döndürür !!
      * filterRules aktif 
      * @version v 1.0  26.07.2016
      * @param array | null $args

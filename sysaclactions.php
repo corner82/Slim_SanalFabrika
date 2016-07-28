@@ -196,6 +196,36 @@ $app->get("/pkDelete_sysAclActions/", function () use ($app ) {
 }
 );
 
+/**
+ *  * Okan CIRAN
+ * @since 26.07.2016
+ */
+$app->get("/pkDeleteAct_sysAclActions/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysAclActionsBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkDeleteAct_sysAclActions" end point, X-Public variable not found');
+    $Pk = $headerParams['X-Public'];
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['id']));
+    }
+    $stripper->strip();
+    if ($stripper->offsetExists('id')) {
+        $vId = $stripper->offsetGet('id')->getFilterValue();
+    }
+    $resDataDeleted = $BLL->deleteAct(array(
+        'id' => $vId,
+        'pk' => $Pk,
+    ));
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($resDataDeleted));
+}
+);
+
+
 
 /**
  *  * Okan CIRAN
