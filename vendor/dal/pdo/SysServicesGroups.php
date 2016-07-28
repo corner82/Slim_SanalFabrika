@@ -32,6 +32,8 @@ class SysServicesGroups extends \DAL\DalSlim {
             $pdo->beginTransaction();
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $servicesGroupId = $this -> haveActionRecords(array('id' => $params['id']));
+                if (!\Utill\Dal\Helper::haveRecord($servicesGroupId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $statement = $pdo->prepare(" 
                 UPDATE sys_services_groups
@@ -47,6 +49,53 @@ class SysServicesGroups extends \DAL\DalSlim {
                     throw new \PDOException($errorInfo[0]);
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+                } else {
+                $errorInfo = '23503';   // 23503  foreign_key_violation
+                $errorInfoColumn = 'services_group_id';
+                $pdo->rollback();
+                return array("found" =>false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+            } else {
+                $errorInfo = '23502';  /// 23502  not_null_violation
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
+    /**
+     * @author Okan CIRAN
+     * @ sys_services_groups tablosundan parametre olarak  gelen id kaydını siler. !!
+     * @version v 1.0  27.07.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function deleteAct($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {                
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $statement = $pdo->prepare(" 
+                UPDATE sys_services_groups
+                SET  deleted= 1, active = 1,
+                     op_user_id = " . intval($opUserIdValue) . "
+                WHERE id = " . intval($params['id'])
+                );
+                //Execute our DELETE statement.
+                $update = $statement->execute();
+                $afterRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);                            
             } else {
                 $errorInfo = '23502';  /// 23502  not_null_violation
                 $pdo->rollback();
@@ -483,6 +532,268 @@ class SysServicesGroups extends \DAL\DalSlim {
     }    
                         
     
-    
+    /**
+     * @author Okan CIRAN
+     * @ sys_services_groups bilgilerini döndürür !!
+     * filterRules aktif 
+     * @version v 1.0  28.07.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillServicesGroupsList($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+                $limit = intval($params['rows']);
+            } else {
+                $limit = 10;
+                $offset = 0;
+            }
+
+            $sortArr = array();
+            $orderArr = array();
+            if (isset($params['sort']) && $params['sort'] != "") {
+                $sort = trim($params['sort']);
+                $sortArr = explode(",", $sort);
+                if (count($sortArr) === 1)
+                    $sort = trim($params['sort']);
+            } else {
+                $sort = " a.name";
+            }
+
+            if (isset($params['order']) && $params['order'] != "") {
+                $order = trim($params['order']);
+                $orderArr = explode(",", $order);
+                //print_r($orderArr);
+                if (count($orderArr) === 1)
+                    $order = trim($params['order']);
+            } else {
+                $order = "ASC";
+            }
+
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND a.name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'description':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND a.description" . $sorguExpression . ' ';
+
+                                break;
+                            case 'state_active':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND sd1.description" . $sorguExpression . ' ';
+
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+            
+            $sorguStr2 = null;
+            if (isset($params['name']) && $params['name'] != "") {
+                $sorguStr2 .= " AND a.name Like '%" . $params['name'] . "%'";
+            }
+            if (isset($params['description']) && $params['description'] != "") {
+                $sorguStr2 .= " AND a.description Like '%" . $params['description'] . "%'";
+            }
+            if (isset($params['active']) && $params['active'] != "") {
+                $sorguStr2 .= " AND a.active = " . $params['active'] ;
+            }
+            
+            
+            $sql = "                 
+		SELECT 
+                        a.id,
+                        a.name AS name,    
+                        a.deleted,
+                        sd.description AS state_deleted,
+                        a.active,
+                        sd1.description AS state_active,
+                        a.description,
+                        a.op_user_id,
+                        u.username AS op_user_name
+                FROM sys_services_groups a                
+                INNER JOIN sys_language l ON l.id = 647 AND l.deleted =0 AND l.active =0 
+                INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = l.id AND sd.deleted = 0 AND sd.active = 0
+                INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = l.id AND sd1.deleted = 0 AND sd1.active = 0
+                INNER JOIN info_users u ON u.id = a.op_user_id 
+                WHERE a.deleted =0 
+                " . $sorguStr . "
+                " . $sorguStr2 . "
+                ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            );
+            $statement = $pdo->prepare($sql);
+            //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ sys_services_groups bilgilerinin sayısını döndürür !!
+     * filterRules aktif 
+     * @version v 1.0  28.07.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillServicesGroupsListRtc($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                             case 'name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND a.name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'description':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND a.description" . $sorguExpression . ' ';
+
+                                break;
+                            case 'state_active':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND sd1.description" . $sorguExpression . ' ';
+
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+             $sorguStr2 = null;
+            if (isset($params['name']) && $params['name'] != "") {
+                $sorguStr2 .= " AND a.name Like '%" . $params['name'] . "%'";
+            }
+            if (isset($params['description']) && $params['description'] != "") {
+                $sorguStr2 .= " AND a.description Like '%" . $params['description'] . "%'";
+            }
+            if (isset($params['active']) && $params['active'] != "") {
+                $sorguStr2 .= " AND a.active = " . $params['active'] ;
+            }
+            $sql = "   
+                SELECT COUNT(id) AS count 
+                FROM (
+                    SELECT id,name,deleted,active,description,state_deleted,state_active
+                    FROM (
+                        SELECT 
+                            a.id,
+                            a.name AS name,    
+                            a.deleted,
+                            sd.description AS state_deleted,
+                            a.active,
+                            sd1.description AS state_active,
+                            a.description,
+                            a.op_user_id,
+                            u.username AS op_user_name
+                        FROM sys_services_groups a                
+                        INNER JOIN sys_language l ON l.id = 647 AND l.deleted =0 AND l.active =0 
+                        INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_id = l.id AND sd.deleted = 0 AND sd.active = 0
+                        INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_id = l.id AND sd1.deleted = 0 AND sd1.active = 0
+                        INNER JOIN info_users u ON u.id = a.op_user_id 
+                        WHERE a.deleted =0 
+                        " . $sorguStr . "
+                        " . $sorguStr2 . "
+                    ) as xtable
+                    WHERE deleted =0                  
+                ) AS xxTable    
+                ";
+
+            $statement = $pdo->prepare($sql);
+            // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ sys_acl_restservices tablosunda services_group_id li rest servis daha önce kaydedilmiş mi ?  
+     * @version v 1.0  28.07.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function haveActionRecords($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                             
+            $sql = " 
+            SELECT  
+                a.services_group_id AS name ,             
+                a.services_group_id = " . $params['id'] . " AS control,
+                'Bu Servis Grubunda Rest Servis Kaydı Bulunmakta. Lütfen Kontrol Ediniz !!!' AS message   
+            FROM sys_acl_restservices  a                          
+            WHERE a.services_group_id =  ".$params['id']. "
+                AND a.deleted =0    
+            LIMIT 1                     
+                               ";
+            $statement = $pdo->prepare($sql);
+           //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+ 
+     
     
 }

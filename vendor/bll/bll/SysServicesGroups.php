@@ -50,6 +50,16 @@ class SysServicesGroups extends \BLL\BLLSlim{
         $DAL = $this->slimApp->getDALManager()->get('sysServicesGroupsPDO');
         return $DAL->delete($params);
     }
+        /**
+     * Data delete function
+     * @param array $params
+     * @return array
+     */
+    public function deleteAct( $params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysServicesGroupsPDO');
+        return $DAL->deleteAct($params);
+    }
+    
 
     /**
      * get all data
@@ -101,8 +111,38 @@ class SysServicesGroups extends \BLL\BLLSlim{
         $resultSet = $DAL->fillServicesGroupsDdList($params);
         return $resultSet['resultSet'];
     }
+      /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillServicesGroupsTree ($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysServicesGroupsPDO');
+        $resultSet = $DAL->fillServicesGroupsTree($params);  
+        return $resultSet['resultSet'];
+    }
     
-      
+     /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillServicesGroupsList ($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysServicesGroupsPDO');
+        $resultSet = $DAL->fillServicesGroupsList($params);  
+        return $resultSet['resultSet'];
+    }
+    
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillServicesGroupsListRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysServicesGroupsPDO');
+        $resultSet = $DAL->fillServicesGroupsListRtc($params);  
+        return $resultSet['resultSet'];
+    }      
     
     
 }
