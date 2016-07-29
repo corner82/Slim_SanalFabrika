@@ -846,7 +846,7 @@ class SysAclPrivilege extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $RoleId = 0;
-            $whereSql = "  WHERE a.deleted =0 ";
+            $whereSql = "  WHERE a.deleted =0 AND a.active =0 ";
             if (isset($params['role_id']) && $params['role_id'] != "") {
                 $RoleId = $params['role_id'];
             }
@@ -871,7 +871,7 @@ class SysAclPrivilege extends \DAL\DalSlim {
                 ORDER BY privilege_name
                                  ";
             $statement = $pdo->prepare($sql); 
-           //echo debugPDO($sql, $params);
+         //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -934,6 +934,333 @@ class SysAclPrivilege extends \DAL\DalSlim {
         }
     }
    
+    /**
+     * @author Okan CIRAN
+     * @ sys_acl_privilege tablosundan role_id si verilen kayıtları döndürür !!  
+     * @version v 1.0  28.07.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException 
+     */
+    public function fillPrivilegesOfRolesDdList($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $RoleId = 0;
+            $whereSql = "  WHERE a.deleted =0 ";
+            if (isset($params['role_id']) && $params['role_id'] != "") {
+                $RoleId = $params['role_id'];
+            }
+            $whereSql .= " AND saro.id  = " . $RoleId; 
+            $statement = $pdo->prepare("        
+               SELECT                    
+                    a.id, 	
+                    a.name,  
+                    a.description,                                    
+                    a.active,
+                    'open' AS state_type  
+	        FROM sys_acl_privilege a
+                INNER JOIN sys_acl_resources sare ON sare.id = a.resource_id AND sare.active =0 AND sare.deleted =0                 
+                INNER JOIN sys_acl_roles saro ON saro.resource_id = sare.id AND saro.active =0 AND saro.deleted =0
+                INNER JOIN sys_acl_rrp rrp ON rrp.role_id = saro.id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id AND rrp.active =0 AND rrp.deleted =0
+                " . $whereSql . "
+                ORDER BY privilege_name
+                                 ");
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
 
     
+       /**
+     * @author Okan CIRAN
+     * @ sys_acl_privilege bilgilerini döndürür !!
+     * filterRules aktif 
+     * @version v 1.0  28.07.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillPrivilegesOfRolesList($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+                $limit = intval($params['rows']);
+            } else {
+                $limit = 10;
+                $offset = 0;
+            }
+
+            $sortArr = array();
+            $orderArr = array();
+            if (isset($params['sort']) && $params['sort'] != "") {
+                $sort = trim($params['sort']);
+                $sortArr = explode(",", $sort);
+                if (count($sortArr) === 1)
+                    $sort = trim($params['sort']);
+            } else {
+                $sort = " resource_name, role_name, privilege_name ";
+            }
+
+            if (isset($params['order']) && $params['order'] != "") {
+                $order = trim($params['order']);
+                $orderArr = explode(",", $order);
+                //print_r($orderArr);
+                if (count($orderArr) === 1)
+                    $order = trim($params['order']);
+            } else {
+                $order = "ASC";
+            }
+
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                              case 'privilege_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND privilege_name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'privilege_name_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND privilege_name_eng" . $sorguExpression . ' ';
+
+                                break;
+                            case 'description':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND a.description" . $sorguExpression . ' ';
+
+                                break;
+                            case 'state_active':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND sd1.description" . $sorguExpression . ' ';
+
+                                break;                            
+                            case 'role_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND role_name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'role_name_tr':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND role_name_tr" . $sorguExpression . ' ';
+
+                                break;
+                            case 'resource_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND resource_name" . $sorguExpression . ' ';
+
+                                break;
+                          
+                            
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+            
+            $sorguStr2 = null;                            
+            if (isset($params['role_id']) && $params['role_id'] != "") {
+                $sorguStr2 .= " AND role_id = " . $params['role_id'] ;
+            }
+                            
+            
+            $sql = " 
+                SELECT
+                    rrp_id AS id, 
+                    privilege_id,
+                    privilege_name,
+                    privilege_name_eng,
+                    resource_id, 
+                    resource_name,
+                    role_id,  
+                    role_name,  
+                    role_name_tr,
+                    active ,
+                    deleted,
+                    rrp_id
+                    FROM (
+                         SELECT
+                            a.id AS privilege_id,
+                            a.name AS privilege_name,
+                            a.name_eng AS privilege_name_eng,
+                            a.resource_id, 
+                            sare.name AS resource_name,
+                            saro.id AS role_id,  
+                            saro.name AS role_name, 
+                            saro.name_tr AS role_name_tr,
+                            a.active ,
+                            a.deleted,
+                            rrp.id AS rrp_id
+                        FROM sys_acl_privilege a
+                        INNER JOIN sys_acl_resources sare ON sare.id = a.resource_id AND sare.active =0 AND sare.deleted =0                 
+                        INNER JOIN sys_acl_roles saro ON saro.resource_id = sare.id AND saro.active =0 AND saro.deleted =0
+                        INNER JOIN sys_acl_rrp rrp ON rrp.role_id = saro.id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id AND rrp.active =0 AND rrp.deleted =0
+                        WHERE a.deleted =0 AND a.active =0
+                    ) AS xtable WHERE deleted=0  
+                    " . $sorguStr . "
+                    " . $sorguStr2 . "                        
+                ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            );
+            $statement = $pdo->prepare($sql);
+            //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ sys_acl_privilege bilgilerinin sayısını döndürür !!
+     * filterRules aktif 
+     * @version v 1.0  28.07.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */                       
+    public function fillPrivilegesOfRolesListRtc($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                              case 'privilege_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND privilege_name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'privilege_name_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND privilege_name_eng" . $sorguExpression . ' ';
+
+                                break;
+                            case 'description':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND a.description" . $sorguExpression . ' ';
+
+                                break;
+                            case 'state_active':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND sd1.description" . $sorguExpression . ' ';
+
+                                break;                            
+                            case 'role_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND role_name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'role_name_tr':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND role_name_tr" . $sorguExpression . ' ';
+
+                                break;
+                            case 'resource_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND resource_name" . $sorguExpression . ' ';
+
+                                break;
+                          
+                            
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+            
+            $sorguStr2 = null;                            
+            if (isset($params['role_id']) && $params['role_id'] != "") {
+                $sorguStr2 .= " AND role_id = " . $params['role_id'] ;
+            }             
+            
+            $sql = " SELECT count(id) FROM (
+                SELECT
+                    rrp_id AS id, 
+                    privilege_id,
+                    privilege_name,
+                    privilege_name_eng,
+                    resource_id, 
+                    resource_name,
+                    role_id,  
+                    role_name,  
+                    role_name_tr,
+                    active ,
+                    deleted,
+                    rrp_id
+                    FROM (
+                         SELECT
+                            a.id AS privilege_id,
+                            a.name AS privilege_name,
+                            a.name_eng AS privilege_name_eng,
+                            a.resource_id, 
+                            sare.name AS resource_name,
+                            saro.id AS role_id,  
+                            saro.name AS role_name, 
+                            saro.name_tr AS role_name_tr,
+                            a.active ,
+                            a.deleted,
+                            rrp.id AS rrp_id
+                        FROM sys_acl_privilege a
+                        INNER JOIN sys_acl_resources sare ON sare.id = a.resource_id AND sare.active =0 AND sare.deleted =0                 
+                        INNER JOIN sys_acl_roles saro ON saro.resource_id = sare.id AND saro.active =0 AND saro.deleted =0
+                        INNER JOIN sys_acl_rrp rrp ON rrp.role_id = saro.id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id AND rrp.active =0 AND rrp.deleted =0
+                        WHERE a.deleted =0 AND a.active =0
+                    ) AS xtable WHERE deleted=0   
+                    " . $sorguStr . "
+                    " . $sorguStr2 . " 
+                        ) AS xtable
+                 ";           
+            $statement = $pdo->prepare($sql);
+           //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
 }

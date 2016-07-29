@@ -726,4 +726,171 @@ $app->get("/pkFillNotInPrivilegesOfRoles_sysAclPrivilege/", function () use ($ap
     $app->response()->body(json_encode($flows));
 });
  
+
+/**
+ *  * Okan CIRAN
+ * @since 28.07.2016
+ */
+$app->get("/pkFillPrivilegesOfRolesDdList_sysAclPrivilege/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysAclPrivilegeBLL');
+    
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkFillPrivilegesOfRolesDdList_sysAclPrivilege" end point, X-Public variable not found');
+    //$pk = $headerParams['X-Public']; 
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vRoleId = NULL;
+    if (isset($_GET['role_id'])) {
+         $stripper->offsetSet('role_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['role_id']));
+    }  
+    
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    if($stripper->offsetExists('role_id')) $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
+    
+    
+    
+    
+    $resCombobox = $BLL->fillPrivilegesOfRolesDdList();    
+      
+    $flows = array();
+    $flows[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
+    foreach ($resCombobox as $flow) {
+        $flows[] = array(            
+            "text" => html_entity_decode($flow["name"]),
+            "value" =>  intval($flow["id"]),
+            "selected" => false,
+            "description" => html_entity_decode($flow["description"]),
+           // "imageSrc"=>$flow["logo"],             
+            "attributes" => array(  
+                                "active" => $flow["active"],                                                    
+                                   
+                ),
+        );
+    }
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($flows));
+});
+  
+/**
+ *  * Okan CIRAN
+ * @since 28-07-2016
+ */
+$app->get("/pkFillPrivilegesOfRolesList_sysAclPrivilege/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysAclPrivilegeBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillRrpRestServicesList_sysAclPrivilege" end point, X-Public variable not found');
+    }
+  //  $pk = $headerParams['X-Public'];
+
+   
+    $vRoleId = NULL;
+    if (isset($_GET['role_id'])) {
+        $stripper->offsetSet('role_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['role_id']));
+    }
+    
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, 
+                $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+                $app, $_GET['filterRules']));
+    }
+
+    $stripper->strip();    
+    if ($stripper->offsetExists('role_id')) {
+        $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    }
+    
+    $resDataGrid = $BLL->fillPrivilegesOfRolesList(array(        
+        'page' => $vPage,
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,
+        'role_id' => $vRoleId,       
+        'filterRules' => $filterRules,
+    ));
+    $resTotalRowCount = $BLL->fillPrivilegesOfRolesListRtc(array(
+        'role_id' => $vRoleId,  
+        'filterRules' => $filterRules,
+    ));
+    $counts = 0;
+    $flows = array();
+    if (isset($resDataGrid[0]['id'])) {
+        foreach ($resDataGrid as $flow) {
+            $flows[] = array(
+            "id" => $flow["id"],
+            "privilege_id" => $flow["privilege_id"],                
+            "privilege_name" => html_entity_decode($flow["privilege_name"]),                        
+            "privilege_name_eng" => html_entity_decode($flow["privilege_name_eng"]),  
+            "resource_id" => $flow["resource_id"],
+            "resource_name" => html_entity_decode($flow["resource_name"]),          
+            "role_id" => $flow["role_id"],
+            "role_name" => html_entity_decode($flow["role_name"]),  
+            "role_name_tr" => html_entity_decode($flow["role_name_tr"]),  
+            "attributes" => array(                 
+                "active" => $flow["active"], ) );
+        };
+        $counts = $resTotalRowCount[0]['count'];
+    }   
+    
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['total'] = $counts;
+    $resultArray['rows'] = $flows;
+    $app->response()->body(json_encode($resultArray));
+});
+
+
+
 $app->run();

@@ -165,8 +165,38 @@ class SysAclPrivilege extends \BLL\BLLSlim{
         $resultSet = $DAL->fillNotInPrivilegesOfRoles($params);
         return $resultSet['resultSet'];
     }
+    /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillPrivilegesOfRolesDdList($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclPrivilegePDO');
+        $resultSet = $DAL->fillPrivilegesOfRolesDdList($params);
+        return $resultSet['resultSet'];
+    }
+     
+    /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+    */
+    public function fillPrivilegesOfRolesList($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysAclPrivilegePDO');
+        $resultSet = $DAL->fillPrivilegesOfRolesList($params);  
+        return $resultSet['resultSet'];
+    }
     
-    
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillPrivilegesOfRolesListRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclPrivilegePDO');
+        $resultSet = $DAL->fillPrivilegesOfRolesListRtc($params);  
+        return $resultSet['resultSet'];
+    }    
     
 }
 
