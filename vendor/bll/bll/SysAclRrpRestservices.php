@@ -106,6 +106,56 @@ class SysAclRrpRestservices extends \BLL\BLLSlim {
         $resultSet = $DAL->fillRrpRestServicesListRtc($params);  
         return $resultSet['resultSet'];
     }    
-  
+ 
+    /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillRestServicesOfPrivileges($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRrpRestservicesPDO');
+        $resultSet = $DAL->fillRestServicesOfPrivileges($params);
+        return $resultSet['resultSet'];
+    }     
+    
+     /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillNotInRestServicesOfPrivileges ($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRrpRestservicesPDO');
+        $resultSet = $DAL->fillNotInRestServicesOfPrivileges($params);  
+        return $resultSet['resultSet'];
+    }
+    
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillNotInRestServicesOfPrivilegesRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRrpRestservicesPDO');
+        $resultSet = $DAL->fillNotInRestServicesOfPrivilegesRtc($params);  
+        return $resultSet['resultSet'];
+    }    
+    
+    /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillNotInRestServicesOfPrivilegesTree($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRrpRestservicesPDO');  
+     // print_r($params);
+         if (isset($params['parent_id']) && ($params['parent_id'] == 0))  { 
+            $resultSet = $DAL->fillNotInServicesGroupsTree($params);
+        } else {     
+            $resultSet = $DAL->fillNotInRestServicesTree($params);
+        }        
+        return $resultSet['resultSet'];
+    }
+    
+    
 
 }

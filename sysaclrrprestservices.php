@@ -45,6 +45,7 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
 /**
  *  * Okan CIRAN
  * @since 27-07-2016
+ * rest servislere eklendi
  */ 
 $app->get("/pkInsert_sysAclRrpRestservices/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -93,6 +94,7 @@ $app->get("/pkInsert_sysAclRrpRestservices/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 27-07-2016
+ * rest servislere eklendi
  */ 
 $app->get("/pkUpdate_sysAclRrpRestservices/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -149,6 +151,7 @@ $app->get("/pkUpdate_sysAclRrpRestservices/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 27-07-2016
+ *  rest servislere eklendi
  */
 $app->get("/pkDelete_sysAclRrpRestservices/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -177,6 +180,7 @@ $app->get("/pkDelete_sysAclRrpRestservices/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 27-07-2016
+ * rest servislere eklendi
  */
 $app->get("/pkFillRrpRestServicesList_sysAclRrpRestservices/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -336,8 +340,240 @@ $app->get("/pkFillRrpRestServicesList_sysAclRrpRestservices/", function () use (
     $resultArray['rows'] = $flows;
     $app->response()->body(json_encode($resultArray));
 });
-  
  
+/**
+ *  * Okan CIRAN
+ * @since 28-07-2016
+ *  rest servislere eklendi
+ */
+$app->get("/pkFillRestServicesOfPrivileges_sysAclRrpRestservices/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysAclRrpRestservicesBLL');
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkFillRestServicesOfPrivileges_sysAclRrpRestservices" end point, X-Public variable not found');
+    //$pk = $headerParams['X-Public'];
+    
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+         $stripper->offsetSet('id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    }  
+    
+    $stripper->strip();    
+    if($stripper->offsetExists('id')) {
+        $vId = $stripper->offsetGet('id')->getFilterValue();
+    }
+    
+    
+    $resCombobox = $BLL->fillRestServicesOfPrivileges(array(
+                                    'id' => $vId,                                    
+                        ));    
+
+    $flows = array();
+    foreach ($resCombobox as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+            //"text" => strtolower($flow["name"]),
+            "text" => html_entity_decode($flow["restservice_name"]),
+            "state" => $flow["state_type"], //   'closed',
+            "checked" => false,
+            "icon_class"=>"icon_class", 
+            "attributes" => array( "active" => $flow["active"],
+                "rrp_id" =>$flow["rrp_id"], 
+                "restservices_id" =>$flow["restservices_id"],       
+                "resource_id" => $flow["resource_id"], 
+                "role_id" =>$flow["role_id"], 
+                "privilege_id" => $flow["privilege_id"],
+                "description" => html_entity_decode($flow["description"]),
+                ),
+        );
+    }
+     
+    
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($flows));
+});
+ 
+/**
+ *  * Okan CIRAN
+ * @since 27-07-2016
+ *  rest servislere eklendi
+ */
+$app->get("/pkFillNotInRestServicesOfPrivileges_sysAclRrpRestservices/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysAclRrpRestservicesBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillNotInRestServicesOfPrivileges_sysAclRrpRestservices" end point, X-Public variable not found');
+    }
+  //  $pk = $headerParams['X-Public'];
+
+   
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['id']));
+    }          
+         
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, 
+                $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+                $app, $_GET['filterRules']));
+    }
+
+    $stripper->strip(); 
+     
+    if ($stripper->offsetExists('id')) {
+        $vId = $stripper->offsetGet('id')->getFilterValue();
+    }   
+    
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    }
+    
+    $resDataGrid = $BLL->fillNotInRestServicesOfPrivileges(array(        
+        'page' => $vPage,
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,           
+        'id' => $vId,
+        'filterRules' => $filterRules,
+    ));
+    $resTotalRowCount = $BLL->fillNotInRestServicesOfPrivilegesRtc(array(
+        'id' => $vId,
+        'filterRules' => $filterRules,
+    ));
+    $counts = 0;
+    $flows = array();
+    if (isset($resDataGrid[0]['id'])) {
+        foreach ($resDataGrid as $flow) {
+            $flows[] = array(
+            "id" => $flow["id"],
+            "restservice_name" => html_entity_decode($flow["restservice_name"]),
+            "services_group_id" => $flow["services_group_id"],
+            "services_group_name" => html_entity_decode($flow["services_group_name"]),            
+            "description" => html_entity_decode($flow["description"]),            
+            "attributes" => array(              
+                "active" => $flow["active"], ) );
+        };
+        $counts = $resTotalRowCount[0]['count'];
+    }   
+    
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['total'] = $counts;
+    $resultArray['rows'] = $flows;
+    $app->response()->body(json_encode($resultArray));
+});
+ 
+
+/**
+ *  * Okan CIRAN
+ * @since 28-07-2016
+ * rest servislere eklendi
+ */
+$app->get("/pkFillNotInRestServicesOfPrivilegesTree_sysAclRrpRestservices/", function () use ($app ) { 
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('sysAclRrpRestservicesBLL');  
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkFillNotInRestServicesOfPrivilegesTree_sysAclRrpRestservices" end point, X-Public variable not found');    
+   // $pk = $headerParams['X-Public'];
+    $vParentId = 0;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    } 
+    $vRrpId = 0;
+    if (isset($_GET['rrp_id'])) {
+        $stripper->offsetSet('rrp_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['rrp_id']));
+    } 
+    
+    $vsearch = null;
+    if(isset($_GET['search'])) {
+        $stripper->offsetSet('search', 
+                $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                        $app,
+                        $_GET['search']));
+    }
+     
+    $stripper->strip();        
+    if($stripper->offsetExists('id')) $vParentId = $stripper->offsetGet('id')->getFilterValue();    
+    if($stripper->offsetExists('rrp_id')) $vRrpId = $stripper->offsetGet('rrp_id')->getFilterValue();    
+    if($stripper->offsetExists('search')) $vsearch = $stripper->offsetGet('search')->getFilterValue();
+ 
+   
+    $resTree = $BLL->fillNotInRestServicesOfPrivilegesTree(array('parent_id' => $vParentId, 
+                                              'rrp_id' =>  $vRrpId ,
+                                              'search' => $vsearch,
+                                                                ));
+   
+    $flows = array();
+    foreach ($resTree as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+            //"text" => strtolower($flow["name"]),
+            "text" => html_entity_decode($flow["name"]),
+            "state" => $flow["state_type"], //   'closed',
+            "checked" => false,
+           // "icon_class"=>$flow["icon_class"], 
+            "attributes" =>
+            array(  "root" => $flow["root_type"], 
+                    "active" => $flow["active"],
+                    "services_group_id" => $flow["services_group_id"],
+                    "service" => html_entity_decode($flow["service"]),
+                    "description" => html_entity_decode($flow["description"]),
+                    "last_node" => $flow["last_node"]
+                    ),
+        );
+    }
+    
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($flows));
+});
+
 
 
 $app->run();

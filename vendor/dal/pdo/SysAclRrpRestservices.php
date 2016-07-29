@@ -562,7 +562,7 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             $statement = $pdo->prepare($sql);
-           //echo debugPDO($sql, $params);
+          //echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -731,4 +731,476 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
         }
     }
 
+      /**
+     * @author Okan CIRAN
+     * @ sys_acl_rrp_restservices tablosundan rrp_id si verilen kayıtları döndürür !! 
+     * @version v 1.0  28.07.2016 
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillRestServicesOfPrivileges($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $RrpId = 0;
+            $whereSql = "  WHERE a.deleted =0 AND a.active =0  ";
+            if (isset($params['id']) && $params['id'] != "") {
+                $RrpId = $params['id'];
+            }
+            $whereSql .= " AND a.rrp_id  = " . $RrpId; 
+                            
+            $sql ="             
+                SELECT 
+                    a.id,
+                    a.rrp_id,
+                    a.restservices_id,
+                    aclr.name AS restservice_name,
+                    aclr.description,
+                    rrp.role_id,
+                    rrp.resource_id,
+                    rrp.privilege_id,
+                    a.active,
+                    a.description,
+                    'open' AS state_type
+                FROM sys_acl_rrp_restservices a
+                INNER JOIN sys_acl_restservices aclr ON aclr.id = a.restservices_id AND aclr.deleted = 0 AND aclr.active = 0  
+                INNER JOIN sys_acl_rrp rrp ON rrp.id = a.rrp_id AND rrp.deleted =0 AND rrp.active =0
+                INNER JOIN sys_acl_roles rr ON rr.id = rrp.role_id AND rr.deleted = 0 AND rr.active = 0 
+                INNER JOIN sys_acl_resources rs ON rs.id = rrp.resource_id AND rs.deleted = 0 AND rs.active = 0 
+                INNER JOIN sys_acl_privilege rp ON rp.id = rrp.privilege_id AND rp.deleted = 0 AND rp.active = 0
+                " . $whereSql . "
+                ORDER BY aclr.name
+                                 ";
+            $statement = $pdo->prepare($sql); 
+           //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
+    /**
+     * @author Okan CIRAN
+     * @ sys_acl_rrp_restservices tablosundan rrp_id si dısında kalan kayıtları döndürür !! 
+     * @version v 1.0  28.07.2016 
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */                      
+    public function fillNotInRestServicesOfPrivileges($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+                $limit = intval($params['rows']);
+            } else {
+                $limit = 10;
+                $offset = 0;
+            }
+
+            $sortArr = array();
+            $orderArr = array();
+            if (isset($params['sort']) && $params['sort'] != "") {
+                $sort = trim($params['sort']);
+                $sortArr = explode(",", $sort);
+                if (count($sortArr) === 1)
+                    $sort = trim($params['sort']);
+            } else {
+                $sort = " services_group_name ,restservice_name ";
+            }
+
+            if (isset($params['order']) && $params['order'] != "") {
+                $order = trim($params['order']);
+                $orderArr = explode(",", $order);
+                //print_r($orderArr);
+                if (count($orderArr) === 1)
+                    $order = trim($params['order']);
+            } else {
+                $order = "ASC";
+            }
+
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'restservice_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND restservice_name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'description':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND a.description" . $sorguExpression . ' ';
+
+                                break; 
+                            case 'services_group_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND services_group_name" . $sorguExpression . ' ';
+
+                                break;                            
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+            
+            $sorguStr2 = null;            
+            if (isset($params['id']) && $params['id'] != "") {
+                $sorguStr2 .= " AND a.rrp_id = " . $params['id'] ;
+            } 
+            
+            $sql = " 
+                SELECT
+                    id,			    
+                    restservice_name,
+                    services_group_id,
+                    services_group_name,
+                    description,
+                    active,
+                    deleted
+                    FROM (
+                        SELECT 
+                            a.id,			    
+                            a.name AS restservice_name,
+                            ssg.id AS services_group_id,
+                            ssg.name AS services_group_name,
+			    a.description,
+                            a.active,
+                            a.deleted
+                        FROM sys_acl_restservices a
+                        INNER JOIN sys_services_groups ssg ON ssg.id = a.services_group_id AND ssg.deleted = 0 AND ssg.active = 0 
+                        WHERE a.deleted =0 AND a.active =0 AND
+                              a.id not in (
+				SELECT a.restservices_id
+				FROM sys_acl_rrp_restservices a
+				INNER JOIN sys_acl_restservices aclr ON aclr.id = a.restservices_id AND aclr.deleted = 0 AND aclr.active = 0  
+				INNER JOIN sys_acl_rrp rrp ON rrp.id = a.rrp_id AND rrp.deleted =0 AND rrp.active =0
+				INNER JOIN sys_acl_roles rr ON rr.id = rrp.role_id AND rr.deleted = 0 AND rr.active = 0 
+				INNER JOIN sys_acl_resources rs ON rs.id = rrp.resource_id AND rs.deleted = 0 AND rs.active = 0 
+				INNER JOIN sys_acl_privilege rp ON rp.id = rrp.privilege_id AND rp.deleted = 0 AND rp.active = 0
+				WHERE a.deleted =0 AND a.active =0
+				" . $sorguStr2 . "
+				)
+                    ) AS xtable WHERE deleted=0  
+                    " . $sorguStr . "
+                ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            );
+            $statement = $pdo->prepare($sql);
+           //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ sys_acl_rrp_restservices tablosundan rrp_id si dısında kalan kayıtları döndürür !! 
+     * filterRules aktif 
+     * @version v 1.0  28.07.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */                      
+    public function fillNotInRestServicesOfPrivilegesRtc($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+                            
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'restservice_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND restservice_name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'description':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND a.description" . $sorguExpression . ' ';
+
+                                break; 
+                            case 'services_group_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND services_group_name" . $sorguExpression . ' ';
+
+                                break;                            
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+            
+            $sorguStr2 = null;            
+            if (isset($params['id']) && $params['id'] != "") {
+                $sorguStr2 .= " AND a.rrp_id = " . $params['id'] ;
+            } 
+            
+            $sql = " SELECT COUNT(id) AS count FROM (
+                SELECT
+                    id,			    
+                    restservice_name,
+                    services_group_id,
+                    services_group_name,
+                    description,
+                    active,
+                    deleted
+                    FROM (
+                        SELECT 
+                            a.id,			    
+                            a.name AS restservice_name,
+                            ssg.id AS services_group_id,
+                            ssg.name AS services_group_name,
+			    a.description,
+                            a.active,
+                            a.deleted
+                        FROM sys_acl_restservices a
+                        INNER JOIN sys_services_groups ssg ON ssg.id = a.services_group_id AND ssg.deleted = 0 AND ssg.active = 0 
+                        WHERE a.deleted =0 AND a.active =0 AND
+                              a.id not in (
+				SELECT a.restservices_id
+				FROM sys_acl_rrp_restservices a
+				INNER JOIN sys_acl_restservices aclr ON aclr.id = a.restservices_id AND aclr.deleted = 0 AND aclr.active = 0  
+				INNER JOIN sys_acl_rrp rrp ON rrp.id = a.rrp_id AND rrp.deleted =0 AND rrp.active =0
+				INNER JOIN sys_acl_roles rr ON rr.id = rrp.role_id AND rr.deleted = 0 AND rr.active = 0 
+				INNER JOIN sys_acl_resources rs ON rs.id = rrp.resource_id AND rs.deleted = 0 AND rs.active = 0 
+				INNER JOIN sys_acl_privilege rp ON rp.id = rrp.privilege_id AND rp.deleted = 0 AND rp.active = 0
+				WHERE a.deleted =0 AND a.active =0
+				" . $sorguStr2 . "
+				)
+                    ) AS xtable WHERE deleted=0  
+                    " . $sorguStr . "
+                    ) AS xxtable
+                    ";      
+            $statement = $pdo->prepare($sql);
+           //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
+            
+    /** 
+     * @author Okan CIRAN
+     * @version v 1.0  28.07.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillNotInServicesGroupsTree($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            
+            $sorguStr2 = null;
+            if (isset($params['rrp_id']) && $params['rrp_id'] != "") {
+                $sorguStr2 .= " AND a.rrp_id = " . $params['rrp_id'] ;
+            } 
+            
+            $sql = "
+                SELECT
+                    sare.id,
+                    sare.name,
+                    sare.active,
+                    CASE
+                        (CASE 
+                            (SELECT DISTINCT 1 state_type FROM sys_acl_restservices xz WHERE xz.services_group_id = sare.id AND xz.deleted = 0 AND xz.active=0 AND 
+					xz.id not in (
+							SELECT a.restservices_id
+							FROM sys_acl_rrp_restservices a
+							INNER JOIN sys_acl_restservices aclr ON aclr.id = a.restservices_id AND aclr.deleted = 0 AND aclr.active = 0  
+							INNER JOIN sys_acl_rrp rrp ON rrp.id = a.rrp_id AND rrp.deleted =0 AND rrp.active =0
+							WHERE a.deleted =0 AND a.active =0
+							" . $sorguStr2 . "
+							)
+                            )    
+                             WHEN 1 THEN 'closed'
+                             ELSE 'open'   
+                             END ) 
+                         WHEN 'open' THEN COALESCE(NULLIF((SELECT DISTINCT 'closed' FROM sys_acl_restservices mz WHERE mz.services_group_id =sare.id AND mz.deleted = 0 AND mz.active=0
+                                        AND mz.id not in (
+                                                        SELECT a.restservices_id
+                                                        FROM sys_acl_rrp_restservices a
+                                                        INNER JOIN sys_acl_restservices aclr ON aclr.id = a.restservices_id AND aclr.deleted = 0 AND aclr.active = 0  
+                                                        INNER JOIN sys_acl_rrp rrp ON rrp.id = a.rrp_id AND rrp.deleted =0 AND rrp.active =0				
+                                                        WHERE a.deleted =0 AND a.active =0
+                                                        " . $sorguStr2 . "
+                                                        )
+
+                         ), ''), 'open')   
+                    ELSE 'closed'
+                    END AS state_type,
+                    CASE
+                        (SELECT DISTINCT 1 parent_id FROM sys_acl_restservices zz WHERE zz.services_group_id = sare.id AND zz.deleted = 0 AND zz.active =0 
+                                        AND zz.id not in (
+                                                SELECT a.restservices_id
+                                                FROM sys_acl_rrp_restservices a
+                                                INNER JOIN sys_acl_restservices aclr ON aclr.id = a.restservices_id AND aclr.deleted = 0 AND aclr.active = 0  
+                                                INNER JOIN sys_acl_rrp rrp ON rrp.id = a.rrp_id AND rrp.deleted =0 AND rrp.active =0				
+                                                WHERE a.deleted =0 AND a.active =0
+                                                " . $sorguStr2 . "
+                                                )
+                        )    
+                        WHEN 1 THEN 'true'
+                    ELSE 'false'   
+                    END AS root_type,             
+                    CASE 
+                        (SELECT DISTINCT 1 state_type FROM sys_acl_restservices zx WHERE zx.services_group_id = sare.id AND zx.deleted = 0 AND zx.active =0 
+                                        AND zx.id not in (
+                                                SELECT a.restservices_id
+                                                FROM sys_acl_rrp_restservices a
+                                                INNER JOIN sys_acl_restservices aclr ON aclr.id = a.restservices_id AND aclr.deleted = 0 AND aclr.active = 0  
+                                                INNER JOIN sys_acl_rrp rrp ON rrp.id = a.rrp_id AND rrp.deleted =0 AND rrp.active =0				
+                                                WHERE a.deleted =0 AND a.active =0
+                                                " . $sorguStr2 . "
+                                                )
+
+                        )    
+                         WHEN 1 THEN 'false'			 
+                    ELSE 'true'   
+                    END AS last_node,
+                    'false' AS service,
+                    '' AS description,               
+                    id AS services_group_id
+                FROM sys_services_groups sare   
+                WHERE                   
+                    sare.active = 0 AND 
+                    sare.deleted = 0  
+
+                                 ";
+              $statement = $pdo->prepare($sql);
+      // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {      
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
+        /**  
+     * @author Okan CIRAN
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillNotInRestServicesTree($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                            
+           
+            $sorguStr2 = null;            
+            if (isset($params['rrp_id']) && $params['rrp_id'] != "") {
+                $sorguStr2 .= " AND a.rrp_id = " . $params['rrp_id'] ;
+            } 
+            $servicesGroupId = 0 ;
+            if (isset($params['parent_id']) && $params['parent_id'] != "") {
+               $servicesGroupId = $params['parent_id'] ;
+            } 
+           
+            $sql ="  
+                SELECT
+                    id,			    
+                    name,
+                    services_group_id,                    
+                    description,
+                    active,
+                    deleted,
+                    state_type,                                          
+                    root_type,                    
+                    last_node,
+                    service
+                    FROM (
+                        SELECT 
+                            a.id,			    
+                            a.name  ,
+                            ssg.id AS services_group_id,                            
+			    a.description,
+                            a.active,
+                            a.deleted,
+			    'open' AS state_type,                                          
+			    'false' AS root_type,                    
+			    'true' AS last_node,
+			    'true' AS service
+                        FROM sys_acl_restservices a
+                        INNER JOIN sys_services_groups ssg ON ssg.id = a.services_group_id AND ssg.deleted = 0 AND ssg.active = 0 
+                        WHERE a.deleted =0 AND a.active =0 AND
+			      ssg.id = 	".intval($servicesGroupId)." AND
+                              a.id not in (
+				SELECT a.restservices_id
+				FROM sys_acl_rrp_restservices a
+				INNER JOIN sys_acl_restservices aclr ON aclr.id = a.restservices_id AND aclr.deleted = 0 AND aclr.active = 0  
+				INNER JOIN sys_acl_rrp rrp ON rrp.id = a.rrp_id AND rrp.deleted =0 AND rrp.active =0
+				INNER JOIN sys_acl_roles rr ON rr.id = rrp.role_id AND rr.deleted = 0 AND rr.active = 0 
+				INNER JOIN sys_acl_resources rs ON rs.id = rrp.resource_id AND rs.deleted = 0 AND rs.active = 0 
+				INNER JOIN sys_acl_privilege rp ON rp.id = rrp.privilege_id AND rp.deleted = 0 AND rp.active = 0
+				WHERE a.deleted =0 AND a.active =0
+				" . $sorguStr2 . "
+				)
+                    ) AS xtable WHERE deleted=0 
+                                 ";
+             $statement = $pdo->prepare( $sql);
+           // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {      
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
+    
+    
+    
 }
