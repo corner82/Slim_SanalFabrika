@@ -696,17 +696,17 @@ class SysAssignDefinition extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                             
             $sql = " 
             SELECT  
-                a.name AS name ,             
-                a.restservices_id = " . $params['restservices_id'] . " AS control,
-                'Bu Modüle Altında Action Kaydı Bulunmakta. Lütfen Kontrol Ediniz !!!' AS message   
-            FROM sys_assign_definition  a                          
-            WHERE a.restservices_id = ".$params['restservices_id']. "
+                a.assign_definition_id AS name ,             
+                a.assign_definition_id = " . $params['id'] . " AS control,
+                'Bu Tanımlama Role ile İlişkilendirilmiş. Lütfen Kontrol Ediniz !!!' AS message   
+            FROM sys_assign_definition_roles  a                          
+            WHERE a.assign_definition_id = ".$params['id']. "
                 AND a.deleted =0    
             LIMIT 1            
                                ";
             $statement = $pdo->prepare($sql);
            //echo debugPDO($sql, $params);
-          //  $statement->execute();
+            $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)

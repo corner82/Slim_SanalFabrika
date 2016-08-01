@@ -50,6 +50,15 @@ class SysAssignDefinition extends \BLL\BLLSlim{
         $DAL = $this->slimApp->getDALManager()->get('sysAssignDefinitionPDO');
         return $DAL->delete($params);
     }
+    /**
+     * Data delete function
+     * @param array $params
+     * @return array
+     */
+    public function deleteAct( $params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAssignDefinitionPDO');
+        return $DAL->deleteAct($params);
+    }
 
     /**
      * get all data
