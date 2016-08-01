@@ -56,10 +56,10 @@ $app->get("/pkInsert_sysAclRrpRestservices/", function () use ($app ) {
     $pk = $headerParams['X-Public'];
     
     $vRestService = NULL;
-    if (isset($_GET['restservice'])) {
-         $stripper->offsetSet('restservice',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+    if (isset($_GET['restservices_id'])) {
+         $stripper->offsetSet('restservices_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
-                                                $_GET['restservice']));
+                                                $_GET['restservices_id']));
     } 
     $vDescription = '';
     if (isset($_GET['description'])) {
@@ -75,15 +75,15 @@ $app->get("/pkInsert_sysAclRrpRestservices/", function () use ($app ) {
     } 
     
     $stripper->strip();
-    if($stripper->offsetExists('restservice')) $vRestService = $stripper->offsetGet('restservice')->getFilterValue();    
+    if($stripper->offsetExists('restservices_id')) $vRestService = $stripper->offsetGet('restservices_id')->getFilterValue();    
     if($stripper->offsetExists('description')) $vDescription = $stripper->offsetGet('description')->getFilterValue();    
     if($stripper->offsetExists('rrp_id')) $vRrpId = $stripper->offsetGet('rrp_id')->getFilterValue();
           
     $resDataInsert = $BLL->insert(array(
-            'restservice' => $vRestService,  
+            'restservices_id' => $vRestService,  
             'rrp_id' => $vRrpId,           
             'description' => $vDescription,
-            'pk' => $pk));
+            'pk' => $pk)); 
         
     $app->response()->header("Content-Type", "application/json"); 
     $app->response()->body(json_encode($resDataInsert));
@@ -180,7 +180,7 @@ $app->get("/pkDelete_sysAclRrpRestservices/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 27-07-2016
- * rest servislere eklendi
+ * bu servis kullanılmıyor qwerty
  */
 $app->get("/pkFillRrpRestServicesList_sysAclRrpRestservices/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -386,10 +386,11 @@ $app->get("/pkFillRestServicesOfPrivileges_sysAclRrpRestservices/", function () 
             "icon_class"=>"icon_class", 
             "attributes" => array( "active" => $flow["active"],
                 "rrp_id" =>$flow["rrp_id"], 
+                "services_group_id" => $flow["services_group_id"],                
                 "restservices_id" =>$flow["restservices_id"],       
-                "resource_id" => $flow["resource_id"], 
-                "role_id" =>$flow["role_id"], 
-                "privilege_id" => $flow["privilege_id"],
+            //    "resource_id" => $flow["resource_id"], 
+            //    "role_id" =>$flow["role_id"], 
+            //    "privilege_id" => $flow["privilege_id"],                
                 "description" => html_entity_decode($flow["description"]),
                 ),
         );

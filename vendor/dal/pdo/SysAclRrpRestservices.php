@@ -29,13 +29,16 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
     public function delete($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();         
+            $pdo->beginTransaction();      
+             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];   
             $statement = $pdo->prepare(" 
                 UPDATE sys_acl_rrp_restservices
                 SET  deleted= 1 , active = 1,
-                    user_id =  " . intval($params['user_id']) . " 
-                WHERE id = :id");      
-            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);         
+                      op_user_id = " . intval($opUserIdValue) . "     
+                WHERE id = ".  intval($params['id'])  );      
+                            
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();
@@ -43,6 +46,11 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
                 throw new \PDOException($errorInfo[0]);
             $pdo->commit();
             return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+            } else {
+                $errorInfo = '23502';  /// 23502  not_null_violation
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -119,16 +127,16 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
             }
             $sql = "             
             SELECT  
-                restservice AS name, 
-                '" . $params['restservice'] . "' AS value, 
-                restservice ='" . $params['restservice'] . "' AS control,
-                concat(restservice , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
+                restservices_id AS name, 
+                '" . $params['restservices_id'] . "' AS value, 
+                restservices_id ='" . $params['restservices_id'] . "' AS control,
+                concat(restservices_id , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
             FROM sys_acl_rrp_restservices
-            WHERE LOWER(REPLACE(restservice,' ','')) = LOWER(REPLACE('" . $params['restservice'] . "',' ','')) 
+            WHERE restservices_id = " . intval($params['restservices_id']) . " 
                 AND rrp_id = " . intval($params['rrp_id']) . " 
                 ". $addSql . " 
-               AND deleted =0
-                                   ";
+               AND deleted =0 
+               ";
             $statement = $pdo->prepare($sql);        
          //   echo debugPDO($sql, $params);
             $statement->execute();
@@ -162,12 +170,12 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
                 if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
                     $sql = "
                 INSERT INTO sys_acl_rrp_restservices(
-                       rrp_id, restservice, description,op_user_id)
+                       rrp_id, restservices_id, description,op_user_id)
                 VALUES (
                         " . intval($params['rrp_id']) . ",
-                        '" . $params['restservice'] . "',
+                        " . intval($params['restservices_id']) . ",
                         '" . $params['description'] . "',
-                        " . intval($opUserIdValue) . "
+                        " . intval($opUserIdValue) . " 
                                              )   ";
                     $statement = $pdo->prepare($sql);
                     // echo debugPDO($sql, $params);
@@ -180,7 +188,7 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
                     $errorInfo = '23505';
-                    $errorInfoColumn = 'restservice';
+                    $errorInfoColumn = 'restservices_id';
                     $pdo->rollback();
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
@@ -217,9 +225,9 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
                 UPDATE sys_acl_rrp_restservices
                 SET  
                     rrp_id = " . intval($params['rrp_id']) . ",
-                    restservice =  '" . $params['restservice'] . "',                      
+                    restservices_id = " . intval($params['restservices_id']) . ",
                     description = '" . $params['description'] . "',
-                    op_user_id = " . intval($opUserIdValue) . "                      
+                    op_user_id = " . intval($opUserIdValue) . "
                 WHERE id = " . intval($params['id']) ;
                     $statement = $pdo->prepare($sql);
                     //  echo debugPDO($sql, $params);          
@@ -731,7 +739,7 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
         }
     }
 
-      /**
+    /**
      * @author Okan CIRAN
      * @ sys_acl_rrp_restservices tablosundan rrp_id si verilen kayıtları döndürür !! 
      * @version v 1.0  28.07.2016 
@@ -761,7 +769,8 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
                     rrp.privilege_id,
                     a.active,
                     a.description,
-                    'open' AS state_type
+                    'open' AS state_type,
+                    aclr.services_group_id
                 FROM sys_acl_rrp_restservices a
                 INNER JOIN sys_acl_restservices aclr ON aclr.id = a.restservices_id AND aclr.deleted = 0 AND aclr.active = 0  
                 INNER JOIN sys_acl_rrp rrp ON rrp.id = a.rrp_id AND rrp.deleted =0 AND rrp.active =0
@@ -1023,11 +1032,10 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-
-    
-            
+                            
     /** 
      * @author Okan CIRAN
+     * @ tree doldurmak için sys_acl_rrp_restservices tablosundan rrp_id si dısında kalan kayıtları döndürür !! 
      * @version v 1.0  28.07.2016
      * @param array | null $args
      * @return array
@@ -1087,7 +1095,7 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
                                                 )
                         )    
                         WHEN 1 THEN 'true'
-                    ELSE 'false'   
+                    ELSE 'true'   
                     END AS root_type,             
                     CASE 
                         (SELECT DISTINCT 1 state_type FROM sys_acl_restservices zx WHERE zx.services_group_id = sare.id AND zx.deleted = 0 AND zx.active =0 
@@ -1126,8 +1134,10 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
         }
     }
     
-        /**  
+    /**  
      * @author Okan CIRAN
+     * @ tree doldurmak için sys_acl_rrp_restservices tablosundan rrp_id si dısında kalan kayıtların sayısını döndürür !! 
+   * @version v 1.0  28.07.2016 
      * @param array | null $args
      * @return array
      * @throws \PDOException
