@@ -46,6 +46,7 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
 /**
  *  * Okan CIRAN
  * @since 01.08.2016
+ *  rest servislere eklendi
  */
 $app->get("/pkInsert_sysAssignDefinitionRoles/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -98,8 +99,8 @@ $app->get("/pkInsert_sysAssignDefinitionRoles/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 01.08.2016
- */
- 
+ *  rest servislere eklendi 
+ */ 
 $app->get("/pkDelete_sysAssignDefinitionRoles/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
@@ -127,6 +128,7 @@ $app->get("/pkDelete_sysAssignDefinitionRoles/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 01.08.2016
+ *  rest servislere eklendi 
  */
 $app->get("/pkFillAssignDefinitionRolesList_sysAssignDefinitionRoles/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -222,6 +224,7 @@ $app->get("/pkFillAssignDefinitionRolesList_sysAssignDefinitionRoles/", function
 /**
  *  * Okan CIRAN
  * @since 01.08.2016
+ *  rest servislere eklendi 
  */
 $app->get("/pkFillConsultantRolesTree_sysAssignDefinitionRoles/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -261,6 +264,7 @@ $app->get("/pkFillConsultantRolesTree_sysAssignDefinitionRoles/", function () us
 /**
  *  * Okan CIRAN
  * @since 01.08.2016
+ *  rest servislere eklendi 
  */ 
 $app->get("/pkFillAssignDefinitionOfRoles_sysAssignDefinitionRoles/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');

@@ -50,8 +50,9 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
 
 
 /**
- *  * zeynel daÄŸlÄ±
+ *  * zeynel dağlı
  * @since 11-09-2014
+ * rest servislere eklendi
  */
 $app->get("/pkGetLeftMenu_leftnavigation/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -94,10 +95,7 @@ $app->get("/pkGetLeftMenu_leftnavigation/", function () use ($app ) {
                                             'language_code' => $vLanguageCode, 
                                             'menu_types_id' => $vMenuTypesId ,
                                            'pk' => $pk ,
-                                           ) );
-     
-       
- 
+                                           ) ); 
     $menus = array();
     foreach ($resDataMenu as $menu){
         $menus[]  = array(
@@ -123,11 +121,7 @@ $app->get("/pkGetLeftMenu_leftnavigation/", function () use ($app ) {
              "acl_type" => $menu["acl_type"],
              "language_code" => $menu["language_code"],
              "active_control" => $menu["active_control"],
-             "menu_types_id" => $menu["menu_types_id"],
-            
-            
-             
-           
+             "menu_types_id" => $menu["menu_types_id"],             
         );
     }
     
@@ -141,6 +135,7 @@ $app->get("/pkGetLeftMenu_leftnavigation/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 28-03-2016
+ * bu servis  kullanılmıyor qwerty
  */
 $app->get("/pkFillGridForAdmin_leftnavigation/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -273,6 +268,7 @@ $app->get("/pkFillGridForAdmin_leftnavigation/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 17-03-2016 
+ * rest servislere eklendi
  */
 $app->get("/pkFillForAdminTree_leftnavigation/", function () use ($app ) {
 
@@ -384,6 +380,7 @@ $app->get("/pkFillForAdminTree_leftnavigation/", function () use ($app ) {
 /**x
  *  * Okan CIRAN
  * @since 25-02-2016
+ * rest servislere eklendi
  */
 $app->get("/pkDelete_leftnavigation/", function () use ($app ) {
 
@@ -423,6 +420,7 @@ $app->get("/pkDelete_leftnavigation/", function () use ($app ) {
 /**x
  *  * Okan CIRAN
  * @since 29-03-2016
+ * rest servislere eklendi
  */
 $app->get("/pkUpdateMakeActiveOrPassive_leftnavigation/", function () use ($app ) {
 
@@ -462,6 +460,7 @@ $app->get("/pkUpdateMakeActiveOrPassive_leftnavigation/", function () use ($app 
 /**x
  *  * Okan CIRAN
  * @since 29-03-2016
+* rest servislere eklendi
  */
 $app->get("/pkUpdate_leftnavigation/", function () use ($app ) {
     
@@ -575,6 +574,7 @@ $app->get("/pkUpdate_leftnavigation/", function () use ($app ) {
 /**x
  *  * Okan CIRAN
  * @since 29-03-2016
+ * rest servislere eklendi
  */
 $app->get("/pkInsert_leftnavigation/", function () use ($app ) {
     

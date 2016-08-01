@@ -46,6 +46,7 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
 /**
  *  * Okan CIRAN
  * @since 01.08.2016
+ *  rest servislere eklendi
  */
 $app->get("/pkInsert_sysAssignDefinition/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -85,6 +86,7 @@ $app->get("/pkInsert_sysAssignDefinition/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 01.08.2016
+ *  rest servislere eklendi
  */
 $app->get("/pkUpdate_sysAssignDefinition/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -141,6 +143,7 @@ $app->get("/pkUpdate_sysAssignDefinition/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 01.08.2016
+*  rest servislere eklendi
  */
  
 $app->get("/pkDelete_sysAssignDefinition/", function () use ($app ) {
@@ -169,8 +172,8 @@ $app->get("/pkDelete_sysAssignDefinition/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 01.08.2016 
- */
- 
+ *  rest servislere eklendi
+ */ 
 $app->get("/pkDeleteAct_sysAssignDefinition/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
@@ -198,6 +201,7 @@ $app->get("/pkDeleteAct_sysAssignDefinition/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 01.08.2016
+ *  rest servislere eklendi
  */
 $app->get("/pkFillAssignDefinitionList_sysAssignDefinition/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -310,6 +314,7 @@ $app->get("/pkFillAssignDefinitionList_sysAssignDefinition/", function () use ($
  /**x
  *  * Okan CIRAN
  * @since 01.08.2016
+ *  rest servislere eklendi
  */
 $app->get("/pkUpdateMakeActiveOrPassive_sysAssignDefinition/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -337,6 +342,7 @@ $app->get("/pkUpdateMakeActiveOrPassive_sysAssignDefinition/", function () use (
 /**
  *  * Okan CIRAN
  * @since 01.08.2016
+ *  rest servislere eklendi
  */
 $app->get("/pkFillAssignDefinitionDdList_sysAssignDefinition/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');

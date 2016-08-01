@@ -43,6 +43,7 @@ $app->add(new \Slim\Middleware\MiddlewareServiceManager());
 /**
  *  * Okan CIRAN
  * @since 28.06.2016
+ *  rest servislere eklendi
  */
 $app->get("/pkFillMenuTypeList_sysMenuTypes/", function () use ($app ) {   
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -93,6 +94,7 @@ $app->get("/pkFillMenuTypeList_sysMenuTypes/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 28.06.2016
+ *  rest servislere eklendi
  */
 $app->get("/pkInsert_sysMenuTypes/", function () use ($app ) {    
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -163,6 +165,11 @@ $app->get("/pkInsert_sysMenuTypes/", function () use ($app ) {
 }
 ); 
  
+/**
+ *  * Okan CIRAN
+ * @since 28.06.2016
+ *  rest servislere eklendi
+ */
 $app->get("/pkUpdate_sysMenuTypes/", function () use ($app ) {    
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
@@ -246,6 +253,7 @@ $app->get("/pkUpdate_sysMenuTypes/", function () use ($app ) {
  /**x
  *  * Okan CIRAN
  * @since 28.06.2016
+ *  rest servislere eklendi
  */
 $app->get("/pkUpdateMakeActiveOrPassive_sysMenuTypes/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -275,6 +283,7 @@ $app->get("/pkUpdateMakeActiveOrPassive_sysMenuTypes/", function () use ($app ) 
 /**x
  *  * Okan CIRAN
  * @since 28.06.2016
+ * rest servislere eklendi
  */
 $app->get("/pkDelete_sysMenuTypes/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -306,6 +315,7 @@ $app->get("/pkDelete_sysMenuTypes/", function () use ($app ) {
 /**
  *  * Okan CIRAN
 * @since 21.07.2016
+* rest servislere eklendi
  */
 $app->get("/pkFillMenuTypeListGrid_sysMenuTypes/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');

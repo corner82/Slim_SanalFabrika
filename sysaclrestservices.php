@@ -44,9 +44,10 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
  
 
  
-/**
+/** 
  *  * Okan CIRAN
  * @since 27.07.2016
+ * rest servislere eklendi
  */
 $app->get("/pkInsert_sysAclRestservices/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -58,10 +59,10 @@ $app->get("/pkInsert_sysAclRestservices/", function () use ($app ) {
     
     $vName = NULL;
     if (isset($_GET['name'])) {
-         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_DEFAULT,
                                                 $app,
                                                 $_GET['name']));
-    }
+    } 
     $vDescription = NULL;
     if (isset($_GET['description'])) {
          $stripper->offsetSet('description',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
@@ -87,13 +88,14 @@ $app->get("/pkInsert_sysAclRestservices/", function () use ($app ) {
             'pk' => $pk));
         
     $app->response()->header("Content-Type", "application/json"); 
-    $app->response()->body(json_encode($resDataInsert));
+    $app->response()->body(json_encode($resDataInsert)); 
     
 }
 );
 /**
  *  * Okan CIRAN
  * @since 27.07.2016
+ * rest servislere eklendi
  */
 $app->get("/pkUpdate_sysAclRestservices/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -111,7 +113,7 @@ $app->get("/pkUpdate_sysAclRestservices/", function () use ($app ) {
     }
      $vName = NULL;
     if (isset($_GET['name'])) {
-         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_DEFAULT,
                                                 $app,
                                                 $_GET['name']));
     }
@@ -153,6 +155,7 @@ $app->get("/pkUpdate_sysAclRestservices/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 27.07.2016
+ * rest servislere eklendi
  */
  
 $app->get("/pkDelete_sysAclRestservices/", function () use ($app ) {
@@ -181,6 +184,7 @@ $app->get("/pkDelete_sysAclRestservices/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 27.07.2016
+ * rest servislere eklendi
  */
  
 $app->get("/pkDeleteAct_sysAclRestservices/", function () use ($app ) {
@@ -208,7 +212,8 @@ $app->get("/pkDeleteAct_sysAclRestservices/", function () use ($app ) {
  
 /**
  *  * Okan CIRAN
- * @since 12-08-2016
+ * @since 27.07.2016
+* rest servislere eklendi
  */
 $app->get("/pkFillResourcesTree_sysAclRestservices/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -255,7 +260,8 @@ $app->get("/pkFillResourcesTree_sysAclRestservices/", function () use ($app ) {
 
 /**
  *  * Okan CIRAN
- * @since 15-06-2016
+ * @since 27.07.2016
+ * rest servislere eklendi
  */
 $app->get("/pkFillRestServicesList_sysAclRestservices/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -347,7 +353,8 @@ $app->get("/pkFillRestServicesList_sysAclRestservices/", function () use ($app )
 
  /**x
  *  * Okan CIRAN
- * @since 13-06-2016
+ * @since 27.07.2016
+ * rest servislere eklendi
  */
 $app->get("/pkUpdateMakeActiveOrPassive_sysAclRestservices/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -375,7 +382,8 @@ $app->get("/pkUpdateMakeActiveOrPassive_sysAclRestservices/", function () use ($
 
 /**
  *  * Okan CIRAN
- * @since 05.05.2016
+ * @since 27.07.2016
+ * rest servislere eklendi
  */
 $app->get("/pkFillResourcesDdList_sysAclRestservices/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -413,89 +421,7 @@ $app->get("/pkFillResourcesDdList_sysAclRestservices/", function () use ($app ) 
     $app->response()->body(json_encode($flows));
 });
  
-
-
-/**
- *  * Okan CIRAN
- * @since 15-07-2016
- */
-$app->get("/pkFillResourceGroups_sysAclRestservices/", function () use ($app ) {
-    $stripper = $app->getServiceManager()->get('filterChainerCustom');
-    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
-    $BLL = $app->getBLLManager()->get('sysAclRestservicesBLL');    
-    $vParentId = 0;
-    if (isset($_GET['id'])) {
-        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
-                                                $app,
-                                                $_GET['id']));
-    }
-    $vState =NULL;
-    if (isset($_GET['state'])) {
-        $stripper->offsetSet('state', $stripChainerFactory->get(stripChainers::FILTER_ONLY_STATE_ALLOWED,
-                                                $app,
-                                                $_GET['state']));
-    }    
-    $vLastNode =NULL;
-    if (isset($_GET['last_node'])) {
-        $stripper->offsetSet('last_node', 
-                    $stripChainerFactory->get(stripChainers::FILTER_ONLY_BOOLEAN_ALLOWED,
-                                                $app,
-                                                $_GET['last_node']));  
-    }
-    $vRoles= NULL;
-     if (isset($_GET['roles'])) {
-        $stripper->offsetSet('roles', 
-                $stripChainerFactory->get(stripChainers::FILTER_ONLY_BOOLEAN_ALLOWED,
-                        $app,
-                        $_GET['roles']));
-    }
-    
-    $vsearch = null;
-    if(isset($_GET['search'])) {
-        $stripper->offsetSet('search', 
-                $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
-                        $app,
-                        $_GET['search']));
-    }
-     
-    $stripper->strip();
-    if($stripper->offsetExists('roles')) $vRoles = $stripper->offsetGet('roles')->getFilterValue();    
-    if($stripper->offsetExists('id')) $vParentId = $stripper->offsetGet('id')->getFilterValue();
-    if($stripper->offsetExists('state')) $vState = $stripper->offsetGet('state')->getFilterValue();
-    if($stripper->offsetExists('last_node')) $vLastNode = $stripper->offsetGet('last_node')->getFilterValue();
-    if($stripper->offsetExists('search')) $vsearch = $stripper->offsetGet('search')->getFilterValue();
  
-    if (isset($_GET['id'])) {
-        $resCombobox = $BLL->FillResourceGroups(array('parent_id' => $vParentId,
-                                                         'state' => $vState,
-                                                         'last_node' => $vLastNode,
-                                                         'roles' => $vRoles,
-                                                         'search' => $vsearch,
-                                                                ));
-    } else {
-        $resCombobox = $BLL->FillResourceGroups(array('parent_id' => $vParentId,
-                                                                ));
-    }
-
-    $flows = array();
-    foreach ($resCombobox as $flow) {
-        $flows[] = array(
-            "id" => $flow["id"],
-            //"text" => strtolower($flow["name"]),
-            "text" => html_entity_decode($flow["name"]),
-            "state" => $flow["state_type"], //   'closed',
-            "checked" => false,
-           // "icon_class"=>$flow["icon_class"], 
-            "attributes" => array("root" => $flow["root_type"], "active" => $flow["active"]
-                ,"roles" => html_entity_decode($flow["roles"]),"last_node" => $flow["last_node"]),
-        );
-    }
-
-    $app->response()->header("Content-Type", "application/json"); 
-    $app->response()->body(json_encode($flows));
-});
-
-
 
 
 $app->run();

@@ -32,7 +32,7 @@ class SysAssignDefinition extends \DAL\DalSlim {
             $pdo->beginTransaction();
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
-                $ModuleId = $this->haveActionRecords(array('restservices_id' => $params['id']));
+                $ModuleId = $this->haveActionRecords(array('id' => $params['id']));
                 if (!\Utill\Dal\Helper::haveRecord($ModuleId)) {
                     $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                     $statement = $pdo->prepare(" 
@@ -51,7 +51,7 @@ class SysAssignDefinition extends \DAL\DalSlim {
                     return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
                  } else {
                 $errorInfo = '23503';   // 23503  foreign_key_violation
-                $errorInfoColumn = 'restservices_id';
+                $errorInfoColumn = 'assign_definition_id';
                 $pdo->rollback();
                 return array("found" =>false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
