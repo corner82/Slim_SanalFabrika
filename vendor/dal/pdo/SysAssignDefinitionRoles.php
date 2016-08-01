@@ -784,7 +784,7 @@ class SysAssignDefinitionRoles extends \DAL\DalSlim {
     /**
      * @author Okan CIRAN
      * @ sys_acl_privilege tablosundan role_id si dısında kalan property leri 
-     * döndürür !!  role_id boş ise tüm kayıtları döndürür.
+     * döndürür !!  role_id boş ise kayıt dondurmez.
      * @version v 1.0 01.08.2016
      * @param array | null $args
      * @return array
@@ -804,7 +804,7 @@ class SysAssignDefinitionRoles extends \DAL\DalSlim {
 		    sadr.role_id,
                     sar.name AS role_name,
                     sar.name_tr AS role_name_tr,
-                    sadr.assign_definition_id,
+                    a.id as assign_definition_id, 
 		    a.name as assign_definition_name,
                     a.active,
                     'open' AS state_type,
