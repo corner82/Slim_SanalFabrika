@@ -123,6 +123,12 @@ class DalManagerConfig {
                 'logAdminPDO' => 'DAL\Factory\PDO\LogAdminFactory',
                 
                 
+                
+                
+                'pgClassPDO' => 'DAL\Factory\PDO\PgClassFactory',
+                 
+                
+                
             ],
         ),
     );

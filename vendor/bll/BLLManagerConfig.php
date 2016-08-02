@@ -117,7 +117,7 @@ class BLLManagerConfig{
                  'logConsultantBLL' => 'BLL\BLL\LogConsultant',
                  'logAdminBLL' => 'BLL\BLL\LogAdmin',
                  
-               
+                'pgClassBLL' => 'BLL\BLL\PgClass',
                  
                  
                  
