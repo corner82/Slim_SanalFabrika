@@ -1137,7 +1137,7 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
     /**  
      * @author Okan CIRAN
      * @ tree doldurmak için sys_acl_rrp_restservices tablosundan rrp_id si dısında kalan kayıtların sayısını döndürür !! 
-   * @version v 1.0  28.07.2016 
+     * @version v 1.0  28.07.2016 
      * @param array | null $args
      * @return array
      * @throws \PDOException
@@ -1210,6 +1210,180 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
     }
 
     
+    /** 
+     * @author Okan CIRAN
+     * @ tree doldurmak için sys_acl_rrp_restservices tablosundan yetki ile ilişkili olan kayıtların servis gruplarını döndürür !! 
+     * @version v 1.0 02.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */                        
+     public function fillRestServicesGroupsOfPrivilegesTree($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            
+            $sorguStr2 = null;            
+            if (isset($params['role_id']) && $params['role_id'] != "") {
+                $sorguStr2 .= " AND rrpx.role_id = " . $params['role_id'] ;
+            }
+            
+            $sql = " SELECT * FROM (
+               SELECT
+                    sare.id,
+                    sare.name,
+                    sare.active,
+                    CASE
+                        (CASE 
+                            (SELECT DISTINCT 1 state_type FROM sys_acl_restservices xz WHERE xz.services_group_id = sare.id AND xz.deleted = 0 AND xz.active=0 AND 
+					xz.id in (
+							SELECT 
+							    distinct ax.restservices_id
+							FROM sys_acl_rrp_restservices ax
+							INNER JOIN sys_acl_restservices aclrx ON aclrx.id = ax.restservices_id AND aclrx.deleted = 0 AND aclrx.active = 0  
+							INNER JOIN sys_acl_rrp rrpx ON rrpx.id = ax.rrp_id AND rrpx.deleted =0 AND rrpx.active =0 ".$sorguStr2."
+							INNER JOIN sys_acl_roles rrx ON rrx.id = rrpx.role_id AND rrx.deleted = 0 AND rrx.active = 0 
+							INNER JOIN sys_acl_resources rsx ON rsx.id = rrpx.resource_id AND rsx.deleted = 0 AND rsx.active = 0 
+							INNER JOIN sys_acl_privilege rpx ON rpx.id = rrpx.privilege_id AND rpx.deleted = 0 AND rpx.active = 0
+							WHERE ax.deleted =0 AND ax.active =0
+						       
+							)
+                            )    
+                             WHEN 1 THEN 'closed'
+                             ELSE 'open'   
+                             END ) 
+                         WHEN 'open' THEN COALESCE(NULLIF((SELECT DISTINCT 'closed' FROM sys_acl_restservices mz WHERE mz.services_group_id =sare.id AND mz.deleted = 0 AND mz.active=0
+                                        AND mz.id in (
+                                                        SELECT 
+							    distinct ax.restservices_id
+							FROM sys_acl_rrp_restservices ax
+							INNER JOIN sys_acl_restservices aclrx ON aclrx.id = ax.restservices_id AND aclrx.deleted = 0 AND aclrx.active = 0  
+							INNER JOIN sys_acl_rrp rrpx ON rrpx.id = ax.rrp_id AND rrpx.deleted =0 AND rrpx.active =0 ".$sorguStr2."
+							INNER JOIN sys_acl_roles rrx ON rrx.id = rrpx.role_id AND rrx.deleted = 0 AND rrx.active = 0 
+							INNER JOIN sys_acl_resources rsx ON rsx.id = rrpx.resource_id AND rsx.deleted = 0 AND rsx.active = 0 
+							INNER JOIN sys_acl_privilege rpx ON rpx.id = rrpx.privilege_id AND rpx.deleted = 0 AND rpx.active = 0
+							WHERE ax.deleted =0 AND ax.active =0
+                                                        
+                                                        )
+
+                         ), ''), 'open')   
+                    ELSE 'closed'
+                    END AS state_type,
+		   'true' AS root_type,             
+                    CASE 
+                        (SELECT DISTINCT 1 state_type FROM sys_acl_restservices zx WHERE zx.services_group_id = sare.id AND zx.deleted = 0 AND zx.active =0 
+                                        AND zx.id in (SELECT 
+							    distinct ax.restservices_id
+							FROM sys_acl_rrp_restservices ax
+							INNER JOIN sys_acl_restservices aclrx ON aclrx.id = ax.restservices_id AND aclrx.deleted = 0 AND aclrx.active = 0  
+							INNER JOIN sys_acl_rrp rrpx ON rrpx.id = ax.rrp_id AND rrpx.deleted =0 AND rrpx.active =0 ".$sorguStr2."
+							INNER JOIN sys_acl_roles rrx ON rrx.id = rrpx.role_id AND rrx.deleted = 0 AND rrx.active = 0 
+							INNER JOIN sys_acl_resources rsx ON rsx.id = rrpx.resource_id AND rsx.deleted = 0 AND rsx.active = 0 
+							INNER JOIN sys_acl_privilege rpx ON rpx.id = rrpx.privilege_id AND rpx.deleted = 0 AND rpx.active = 0
+							WHERE ax.deleted =0 AND ax.active =0
+                                                
+                                                )
+                        )    
+                         WHEN 1 THEN 'false'			 
+                    ELSE 'true'   
+                    END AS last_node,
+                    'false' AS service,
+                    '' AS description,               
+                    id AS services_group_id
+                FROM sys_services_groups sare   
+                WHERE                   
+                    sare.active = 0 AND 
+                    sare.deleted = 0  ) AS xtable 
+                    WHERE state_type ='closed'
+                                 ";
+              $statement = $pdo->prepare($sql);
+      // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {      
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+                          
+        /**  
+     * @author Okan CIRAN
+     * @ tree doldurmak için sys_acl_rrp_restservices tablosundan rrp_id si dısında kalan kayıtların sayısını döndürür !! 
+     * @version v 1.0  28.07.2016 
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillRestServicesOfPrivilegesTree($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                            
+           
+                            
+            $servicesGroupId = 0 ;
+            if (isset($params['parent_id']) && $params['parent_id'] != "") {
+               $servicesGroupId = $params['parent_id'] ;
+            } 
+            $sorguStr2 = null;            
+            if (isset($params['role_id']) && $params['role_id'] != "") {
+                $sorguStr2 .= " AND rrp.role_id = " . $params['role_id'] ;
+            }
+           
+            $sql ="  
+                SELECT
+                    id,			    
+                    name,
+                    services_group_id,                    
+                    description,
+                    active,
+                    deleted,
+                    state_type,                                          
+                    root_type,                    
+                    last_node,
+                    service
+                    FROM (
+                        SELECT 
+                            a.id,			    
+                            a.name  ,
+                            ssg.id AS services_group_id,                            
+			    a.description,
+                            a.active,
+                            a.deleted,
+			    'open' AS state_type,                                          
+			    'false' AS root_type,                    
+			    'true' AS last_node,
+			    'true' AS service
+                        FROM sys_acl_restservices a
+                        INNER JOIN sys_services_groups ssg ON ssg.id = a.services_group_id AND ssg.deleted = 0 AND ssg.active = 0 
+                        WHERE a.deleted =0 AND a.active =0 AND
+			      ssg.id = 	".intval($servicesGroupId)." AND
+                              a.id in (
+				SELECT a.restservices_id
+				FROM sys_acl_rrp_restservices a
+				INNER JOIN sys_acl_restservices aclr ON aclr.id = a.restservices_id AND aclr.deleted = 0 AND aclr.active = 0  
+				INNER JOIN sys_acl_rrp rrp ON rrp.id = a.rrp_id AND rrp.deleted =0 AND rrp.active =0
+				INNER JOIN sys_acl_roles rr ON rr.id = rrp.role_id AND rr.deleted = 0 AND rr.active = 0 ".$sorguStr2."
+				INNER JOIN sys_acl_resources rs ON rs.id = rrp.resource_id AND rs.deleted = 0 AND rs.active = 0 
+				INNER JOIN sys_acl_privilege rp ON rp.id = rrp.privilege_id AND rp.deleted = 0 AND rp.active = 0
+				WHERE a.deleted =0 AND a.active =0
+				 
+				)
+                    ) AS xtable WHERE deleted=0 
+                                 ";
+             $statement = $pdo->prepare( $sql);
+           // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {      
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
     
     
     

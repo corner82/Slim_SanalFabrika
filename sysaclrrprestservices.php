@@ -574,6 +574,77 @@ $app->get("/pkFillNotInRestServicesOfPrivilegesTree_sysAclRrpRestservices/", fun
     $app->response()->header("Content-Type", "application/json"); 
     $app->response()->body(json_encode($flows));
 });
+ 
+/**
+ *  * Okan CIRAN
+ * @since 28-07-2016
+ * rest servislere eklendi
+ */
+$app->get("/pkFillRestServicesOfPrivilegesTree_sysAclRrpRestservices/", function () use ($app ) { 
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('sysAclRrpRestservicesBLL');  
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkFillRestServicesOfPrivilegesTree_sysAclRrpRestservices" end point, X-Public variable not found');    
+   // $pk = $headerParams['X-Public'];
+    $vParentId = 0;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    } 
+    
+    $vRoleId = 0;
+    if (isset($_GET['role_id'])) {
+        $stripper->offsetSet('role_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['role_id']));
+    } 
+    
+    $vsearch = null;
+    if(isset($_GET['search'])) {
+        $stripper->offsetSet('search', 
+                $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                        $app,
+                        $_GET['search']));
+    }
+     
+    $stripper->strip();        
+    if($stripper->offsetExists('id')) $vParentId = $stripper->offsetGet('id')->getFilterValue();        
+    if($stripper->offsetExists('role_id')) $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();        
+    if($stripper->offsetExists('search')) $vsearch = $stripper->offsetGet('search')->getFilterValue();
+ 
+   
+    $resTree = $BLL->fillRestServicesOfPrivilegesTree(array('parent_id' => $vParentId, 
+                                                'role_id' => $vRoleId,
+                                                'search' => $vsearch,
+                                                                ));
+   
+    $flows = array();
+    foreach ($resTree as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+            //"text" => strtolower($flow["name"]),
+            "text" => html_entity_decode($flow["name"]),
+            "state" => $flow["state_type"], //   'closed',
+            "checked" => false,
+           // "icon_class"=>$flow["icon_class"], 
+            "attributes" =>
+            array(  "root" => $flow["root_type"], 
+                    "active" => $flow["active"],
+                    "services_group_id" => $flow["services_group_id"],
+                    "service" => html_entity_decode($flow["service"]),
+                    "description" => html_entity_decode($flow["description"]),
+                    "last_node" => $flow["last_node"]
+                    ),
+        );
+    }    
+    
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($flows));
+});
+
+
 
 
 

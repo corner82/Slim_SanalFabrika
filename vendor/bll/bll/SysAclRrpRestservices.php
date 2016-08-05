@@ -157,5 +157,21 @@ class SysAclRrpRestservices extends \BLL\BLLSlim {
     }
     
     
+      /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillRestServicesOfPrivilegesTree($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRrpRestservicesPDO');  
+     // print_r($params);
+         if (isset($params['parent_id']) && ($params['parent_id'] == 0))  { 
+            $resultSet = $DAL->fillRestServicesGroupsOfPrivilegesTree($params);
+        } else {     
+            $resultSet = $DAL->fillRestServicesOfPrivilegesTree($params);
+        }        
+        return $resultSet['resultSet'];
+    }
+    
 
 }
