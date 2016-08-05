@@ -44,7 +44,15 @@ class SysAclRoles extends \DAL\DalSlim {
                 $afterRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
+                    throw new \PDOException($errorInfo[0]);                
+                            
+                $xc = $this->deleteResourceRoles(array('role_id' => $params['id'],                     
+                     'op_user_id' => $opUserIdValue,
+                 ));
+
+                if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                    throw new \PDOException($xc['errorInfo']);
+                
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
             } else {
@@ -58,6 +66,38 @@ class SysAclRoles extends \DAL\DalSlim {
         }
     } 
 
+    /**
+     * @author Okan CIRAN
+     * @ sys_acl_resource_roles tablosundan role_id li resource ları siler. !!
+     * @version v 1.0  04.08.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function deleteResourceRoles($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
+                $statement = $pdo->prepare(" 
+                UPDATE sys_acl_resource_roles
+                SET  deleted= 1, active = 1,
+                     op_user_id = " . intval($params['op_user_id']) . "               
+                WHERE 
+                    role_id =  " . intval($params['role_id']). " AND                             
+                    deleted =0                        
+                    ");
+                //Execute our DELETE statement.
+                $update = $statement->execute();
+                $afterRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);                
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);            
+        } catch (\PDOException $e /* Exception $e */) {        
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
+    
     /**
      * @author Okan CIRAN
      * @ sys_acl_roles tablosundaki tüm kayıtları getirir.  !!
@@ -132,11 +172,7 @@ class SysAclRoles extends \DAL\DalSlim {
                     $ParentId = 0;
                     if ((isset($params['parent_id']) && $params['parent_id'] != "")) {
                         $ParentId = $params['parent_id'];
-                    }
-                    $ResourceId = 0;
-                    if ((isset($params['resource_id']) && $params['resource_id'] != "")) {
-                        $ResourceId = $params['resource_id'];
-                    }
+                    }       
                     $Inherited = 0;
                     if ((isset($params['inherited']) && $params['inherited'] != "")) {
                         $ParentId = $params['inherited'];
@@ -147,40 +183,55 @@ class SysAclRoles extends \DAL\DalSlim {
                     }    
                     
                     $sql = "
-                INSERT INTO sys_acl_roles(
-                        name, 
-                        name_tr,
-                        resource_id,
-                        icon_class,  
-                        parent_id, 
-                        op_user_id, 
-                        description, 
-                        inherited)
-                VALUES (
-                        '" . $params['name'] . "', 
-                        '" . $params['name_tr'] . "', 
-                        " . intval($ResourceId) . ",
-                        '" . $IconClass . "', 
-                        " . intval($ParentId) . ",
-                        " . intval($opUserIdValue) . ",
-                        '" . $params['description'] . "',
-                        " . intval($Inherited) . "
-                                             )   ";
+                    INSERT INTO sys_acl_roles(
+                            name, 
+                            name_tr,
+                            icon_class,  
+                            parent_id, 
+                            op_user_id, 
+                            description, 
+                            inherited)
+                    VALUES (
+                            '" . $params['name'] . "', 
+                            '" . $params['name_tr'] . "',                         
+                            '" . $IconClass . "', 
+                            " . intval($ParentId) . ",
+                            " . intval($opUserIdValue) . ",
+                            '" . $params['description'] . "',
+                            " . intval($Inherited) . "
+                            )   ";
                     $statement = $pdo->prepare($sql);                    
-                    // echo debugPDO($sql, $params);
+                  // echo debugPDO($sql, $params);
                     $result = $statement->execute();
                     $insertID = $pdo->lastInsertId('sys_acl_roles_id_seq');
-                    $errorInfo = $statement->errorInfo();
+                    $errorInfo = $statement->errorInfo(); 
+                    
+                    $xc = $this->deleteResourceRoles(array('role_id' => $insertID,                     
+                     'op_user_id' => $opUserIdValue,
+                    ));
+
+                    if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                        throw new \PDOException($xc['errorInfo']);
+                
+                    if ((isset($params['resource_id']) && $params['resource_id'] != "")) {
+                        $xc = $this->insertResourceRoles(array( 'role_id' => $insertID,
+                                                                'resource_id' => $params['resource_id'],
+                                                                'op_user_id' => $opUserIdValue,
+                        ));
+                    }
+                    if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                        throw new \PDOException($xc['errorInfo']);
+                    
+                            
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
                     $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
                     $errorInfo = '23505';
+                    $errorInfoColumn = 'name';
                     $pdo->rollback();
-                    $result = $kontrol;
-                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
-                    //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
@@ -190,6 +241,56 @@ class SysAclRoles extends \DAL\DalSlim {
             }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
+    /**   
+     * @author Okan CIRAN
+     * @ sys_acl_resource_roles tablosuna yeni kayıt oluşturur.  !!
+     * @version v 1.0  03.08.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function insertResourceRoles($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            //$kontrol = $this->haveRecordsResourceRoles($params);
+           // if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                $sql = "
+                INSERT INTO sys_acl_resource_roles(
+                        role_id, 
+                        resource_id,
+                        op_user_id
+                        )          
+                        SELECT    
+                            " . intval( $params['role_id']) . ",
+                            id AS resource_id,                            
+                            " . intval( $params['op_user_id']) . "
+                        FROM sys_acl_resources 
+                        WHERE       
+                            id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each('" . $params['resource_id'] . "')) 
+                    ";
+                $statement = $pdo->prepare($sql);
+               // echo debugPDO($sql, $params);
+                $result = $statement->execute();
+                $insertID = $pdo->lastInsertId('sys_acl_resource_roles_id_seq');
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                //$pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+           /* } else {
+                $errorInfo = '23505';
+                $errorInfoColumn = 'name';
+               // $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+            * 
+            */
+        } catch (\PDOException $e /* Exception $e */) {
+          //  $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
@@ -232,6 +333,47 @@ class SysAclRoles extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+  
+    /**
+     * @author Okan CIRAN
+     * @ sys_acl_resource_roles tablosunda role ile resource daha önce ilişkilendirilmiş mi? 
+     * @version v 1.0 03.08.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function haveRecordsResourceRoles($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $addSql = "";
+            if (isset($params['id'])) {
+                $addSql = " AND a.id != " . intval($params['id']) . " ";
+            }
+            $sql = "
+            SELECT  
+                a.resource_id AS name,
+                resource_id AS value, 
+                resource_id = resource_id AS control,
+                CONCAT(a.resource_id, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
+            FROM sys_acl_resource_roles a
+            WHERE 
+                    role_id = " . intval($params['role_id']) . " AND
+                    resource_id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each('" . $params['resource_id'] . "'))
+                  " . $addSql . "
+                AND a.deleted =0
+                               ";            
+            $statement = $pdo->prepare($sql);
+            // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
 
     /**
      * @author Okan CIRAN
@@ -261,11 +403,7 @@ class SysAclRoles extends \DAL\DalSlim {
                     $IconClass = '';
                     if ((isset($params['icon_class']) && $params['icon_class'] != "")) {
                         $IconClass = $params['icon_class'];
-                    }                    
-                    $ResourceId = '';
-                    if ((isset($params['resource_id']) && $params['resource_id'] != "")) {
-                        $ResourceId = $params['resource_id'];
-                    }
+                    }        
 
                     $sql = "
                 UPDATE sys_acl_roles
@@ -273,8 +411,7 @@ class SysAclRoles extends \DAL\DalSlim {
                     name = '" . $params['name'] . "',
                     name_tr = '" . $params['name_tr'] . "',
                     icon_class =  '" . $IconClass . "',
-                    parent_id = " . intval($ParentId) . ",
-                    resource_id = " . intval($ResourceId) . ",
+                    parent_id = " . intval($ParentId) . ",                  
                     description =  '" . $params['description'] . "',
                     op_user_id = " . intval($opUserIdValue) . ",
                     inherited = " . intval($Inherited) . "
@@ -285,6 +422,25 @@ class SysAclRoles extends \DAL\DalSlim {
                     $errorInfo = $statement->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
+                    
+                    
+                    $xc = $this->deleteResourceRoles(array('role_id' => $params['id'],                     
+                     'op_user_id' => $opUserIdValue,
+                    ));
+
+                    if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                        throw new \PDOException($xc['errorInfo']);
+                    
+                    if ((isset($params['resource_id']) && $params['resource_id'] != "")) {
+                        $xc = $this->insertResourceRoles(array( 'role_id' => $params['id'],
+                                                                'resource_id' => $params['resource_id'],
+                                                                'op_user_id' => $opUserIdValue,
+                        ));
+                    }
+                    if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                        throw new \PDOException($xc['errorInfo']);
+                    
+                            
                     $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
                 } else {
@@ -516,29 +672,18 @@ class SysAclRoles extends \DAL\DalSlim {
      * @return array
      * @throws \PDOException
      */
-    public function fillComboBoxFullRoles($params = array()) {
+    public function fillFullRolesDdList($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $id = 0;
-            if (isset($params['id']) && $params['id'] != "") {
-                $id = $params['id'];
-            }
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
             $statement = $pdo->prepare("
                 SELECT                    
                     a.id, 	
                     a.name AS name,
-                    a.name_tr,
-                    a.parent_id,
-                    a.active ,
-                    CASE 
-                    (SELECT DISTINCT 1 state_type FROM sys_acl_roles WHERE parent = a.id AND deleted = 0)    
-                     WHEN 1 THEN 'closed'
-                     ELSE 'open'   
-                     END AS state_type  
+                    a.name_tr, 
+                    a.active   
                 FROM sys_acl_roles a       
-                WHERE                    
-                    a.parent_id = " . $id . " AND 
-                    a.deleted = 0     
+                WHERE  
+                    a.deleted = 0 AND a.active =0     
                 ORDER BY name                
                                  ");
             $statement->execute();
@@ -600,16 +745,52 @@ class SysAclRoles extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $addSql = "";
+            $addSqlResourceId ="";
             $id = 0;
             if (isset($params['id']) && $params['id'] != "") {
                 $id = $params['id'];
             }
             if (isset($params['resource_id']) && $params['resource_id'] != "") {
                 $ResourceId = $params['resource_id'];
-                $addSql .= " AND a.resource_id = " .  intval($ResourceId);
+                $addSqlResourceId .= " AND sarr.resource_id = " .  intval($ResourceId);
             }
+            
+            $jsonSqlResourceIds = "  
+                (SELECT array_to_json(COALESCE(NULLIF(xx,'{}'),NULL)) FROM (
+                    SELECT  
+                        ARRAY(   
+                            SELECT
+                                axv.resource_id                             
+                            FROM sys_acl_resource_roles axv
+                            LEFT join sys_acl_resources bb ON bb.id = axv.resource_id AND bb.active=0 AND bb.deleted =0
+                            WHERE axv.role_id = a.id AND axv.active =0 AND axv.deleted =0
+                            ORDER BY axv.resource_id) AS xx
+                            ) AS xtable)
+            ";
+            $ResourceNameSql = "  
+                            (SELECT  replace(replace(vv, '{',''), '}','') FROM (
+                            SELECT  COALESCE(NULLIF(yy, '{}'),NULL) AS vv   FROM (  
+                              SELECT ". 
+                               ' replace(cast(yyz as text), \'xxxx\',\'"\') AS yy   FROM (
+                                      SELECT replace(cast(zxx as text), \'"\',\'\') AS yyz FROM (
+                                               SELECT  
+                                              ARRAY(  		 
+                                                      SELECT concat(\'xxxx\',b.name,\'xxxx\') '.  
+                                                       " FROM sys_acl_resource_roles axc
+                                                        INNER join sys_acl_resources b ON b.id = axc.resource_id AND b.active=0 AND b.deleted =0
+                                                        where axc.role_id = 34 AND axc.active =0 AND axc.deleted =0
+                                                        order by axc.resource_id ) AS zxx						      
+                                              ) as zxtable
+                                      ) AS zxtable1
+                              ) AS zxc 
+                              ) AS vvvx)
+
+ 
+                          ";   
+            
+       //LEFT JOIN sys_acl_resource_roles sarr ON sarr.active =0 AND sarr.deleted =0 AND sarr.role_id = a.id ".$addSqlResourceId."     
             $sql = " 
-                SELECT
+                SELECT   
                     a.id,
                     a.name AS name,
                     a.name_tr,
@@ -618,8 +799,10 @@ class SysAclRoles extends \DAL\DalSlim {
                     WHEN 1 THEN 'closed'
                     ELSE 'open' END AS state_type,
                     a.active,
-                    a.resource_id
-                FROM sys_acl_roles a
+                    ".$jsonSqlResourceIds." AS resource_ids,
+                    ".$ResourceNameSql." AS resource_names
+                FROM sys_acl_roles a                
+                
                 WHERE
                     a.parent_id = " . $id . " AND 
                     a.deleted = 0
@@ -746,49 +929,81 @@ class SysAclRoles extends \DAL\DalSlim {
                     $sorguStr .= " AND resource_name Like '%" . $params['resource_name'] . "%'";
                 } 
             }
-            $sorguStr = rtrim($sorguStr, "AND ");
+                            
+            $sorguStr = rtrim($sorguStr, "AND ");            
+                            
+            $jsonSql = "  (SELECT CAST (COALESCE(NULLIF(yy, '{}'),NULL) AS json) FROM (  
+				SELECT  ".   		
+				' replace(cast(yyz as text), \'xxxx\',\'"\') AS yy   FROM (
+					SELECT replace(cast(zxx as text), \'"\',\'\') AS yyz FROM ('.
+						" SELECT  
+						ARRAY(  		 
+							SELECT concat('xxxx',b.name,'xxxx:',axc.resource_id)  
+							  FROM sys_acl_resource_roles axc
+							  INNER join sys_acl_resources b ON b.id = axc.resource_id AND b.active=0 AND b.deleted =0
+							  where axc.role_id = a.id  AND axc.active =0 AND axc.deleted =0
+							  order by axc.resource_id ) As zxx						      
+						) as zxtable
+					) AS zxtable1
+				) AS zxc) 
+		            ";   
+            
+            
+            
+           $jsonSqlResourceIds = "  
+                (SELECT array_to_json(COALESCE(NULLIF(cxx,'{}'),NULL)) FROM (
+                    SELECT  
+                        ARRAY(   
+                            SELECT
+                                axv.resource_id                             
+                            FROM sys_acl_resource_roles axv
+                            LEFT join sys_acl_resources bb ON bb.id = axv.resource_id AND bb.active=0 AND bb.deleted =0
+                            WHERE axv.role_id = a.id AND axv.active =0 AND axv.deleted =0
+                            ORDER BY axv.resource_id) AS cxx
+                            ) AS zxtable)
+            ";
+          
             $sql = "  
-                SELECT   
-                    id, 
+                SELECT
+                    id,
                     name,
-                    name_tr, 
-                    resource_id,
-                    resource_name,
+                    name_tr,  
                     parent_id, 
                     COALESCE(NULLIF(parent_name, ''),'Root') AS parent_name, 
                     deleted, 
-                    state_deleted,                 
+                    state_deleted,
                     active, 
                     state_active,  
                     COALESCE(NULLIF(description, ''),' ') AS description,
                     op_user_id,
                     username,
-                    inherited,                      
-                    COALESCE(NULLIF(inherited_name, ''),'Root') AS inherited_name
+                    inherited,
+                    COALESCE(NULLIF(inherited_name, ''),'Root') AS inherited_name,
+                    resource_json,
+                    resource_ids
                 FROM (
                     SELECT 
                         a.id, 
                         a.name ,
                         a.name_tr,
-                        a.resource_id,
-                        sare.name AS resource_name,
                         a.start_date,
                         a.end_date,
                         a.parent_id, 
                         sar1.name AS parent_name,
                         a.deleted, 
-                        sd15.description AS state_deleted,                 
+                        sd15.description AS state_deleted,
                         a.active, 
                         sd16.description AS state_active,  
-                        a.description,                                     
+                        a.description,
                         a.op_user_id,
                         u.username,
                         a.inherited,
-                        sar.name AS inherited_name                                            
-                    FROM sys_acl_roles a
-                    LEFT JOIN sys_acl_resources sare ON sare.id = a.resource_id 
+                        sar.name AS inherited_name,
+                        ".$jsonSql." AS resource_json,
+                        ".$jsonSqlResourceIds." AS resource_ids                            
+                    FROM sys_acl_roles a 
                     INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted = 0 AND sd15.active = 0
-                    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0                             
+                    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
                     INNER JOIN info_users u ON u.id = a.op_user_id 
                     LEFT JOIN sys_acl_roles sar ON a.inherited > 0 AND sar.id = a.inherited AND sar.active =0 AND sar.deleted =0 
                     LEFT JOIN sys_acl_roles sar1 ON a.parent_id > 0 AND sar1.id = a.parent_id AND sar1.active =0 AND sar1.deleted =0 
@@ -807,7 +1022,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             $statement = $pdo->prepare($sql);
-        // echo debugPDO($sql, $params);
+            //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();

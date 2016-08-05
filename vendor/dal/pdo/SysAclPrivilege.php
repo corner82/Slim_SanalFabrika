@@ -126,8 +126,9 @@ class SysAclPrivilege extends \DAL\DalSlim {
                 name ='" . $params['name'] . "' as control,
                 concat(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) as message                             
             FROM sys_acl_privilege        
-            WHERE LOWER(REPLACE(name,' ','')) = LOWER(REPLACE('" . $params['name'] . "',' ',''))"
-                    . $addSql . " 
+            WHERE LOWER(REPLACE(name,' ','')) = LOWER(REPLACE('" . $params['name'] . "',' ','')) 
+                AND resource_id = ".intval($params['resource_id'])."
+                ". $addSql . " 
                AND deleted =0   
                                ";
             $statement = $pdo->prepare($sql);
@@ -850,13 +851,19 @@ class SysAclPrivilege extends \DAL\DalSlim {
             if (isset($params['role_id']) && $params['role_id'] != "") {
                 $RoleId = $params['role_id'];
             }
-            $whereSql .= " AND saro.id  = " . $RoleId; 
+            $whereSql .= " AND sarr.role_id  = " . intval($RoleId); 
+            
+            $ResourceId = 0;
+            if (isset($params['resource_id']) && $params['resource_id'] != "") {
+                $ResourceId = $params['resource_id'];               
+            }
+            $whereSql .= " AND sarr.resource_id = " . intval($ResourceId); 
                             
             $sql ="             
                 SELECT
                     rrp.id,
                     a.resource_id, 
-		    saro.id AS role_id,
+		    sarr.role_id AS role_id,
                     a.id AS privilege_id,
                     a.name AS privilege_name,
                     a.name_eng AS privilege_name_eng,
@@ -865,13 +872,13 @@ class SysAclPrivilege extends \DAL\DalSlim {
                     false AS root_type
 		FROM sys_acl_privilege a
                 INNER JOIN sys_acl_resources sare ON sare.id = a.resource_id AND sare.active =0 AND sare.deleted =0                 
-                INNER JOIN sys_acl_roles saro ON saro.resource_id = sare.id AND saro.active =0 AND saro.deleted =0
-                INNER JOIN sys_acl_rrp rrp ON rrp.role_id = saro.id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id AND rrp.active =0 AND rrp.deleted =0
+                INNER JOIN sys_acl_resource_roles sarr ON sarr.resource_id = a.resource_id AND sarr.active =0 AND sarr.deleted =0		
+                INNER JOIN sys_acl_rrp rrp ON rrp.role_id = sarr.role_id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id AND rrp.active =0 AND rrp.deleted =0
                 " . $whereSql . "
                 ORDER BY privilege_name
                                  ";
             $statement = $pdo->prepare($sql); 
-         //  echo debugPDO($sql, $params);
+       // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -898,13 +905,18 @@ class SysAclPrivilege extends \DAL\DalSlim {
             $RoleId = 0;    
             if (isset($params['role_id']) && $params['role_id'] != "") {
                 $RoleId = $params['role_id'];
-            }             
+            }    
+            $ResourceId = 0;
+            if (isset($params['resource_id']) && $params['resource_id'] != "") {
+                $ResourceId = $params['resource_id'];               
+            }
+          //  $whereSql .= " AND sarr.resource_id = " . $ResourceId; 
 
             $sql =" 
-                 SELECT DISTINCT 
+                SELECT DISTINCT 
                     rrp.id, 
 		    a.resource_id, 
-		    saro.id AS role_id,
+		    sarr.role_id AS role_id,
                     a.id AS privilege_id,
                     a.name AS privilege_name,
                     a.name_eng AS privilege_name_eng,
@@ -913,16 +925,17 @@ class SysAclPrivilege extends \DAL\DalSlim {
                     false AS root_type
 		FROM sys_acl_privilege a
                 INNER JOIN sys_acl_resources sare ON sare.id = a.resource_id AND sare.active =0 AND sare.deleted =0
-                INNER JOIN sys_acl_roles saro ON saro.resource_id = sare.id AND saro.active =0 AND saro.deleted =0
-                LEFT JOIN sys_acl_rrp rrp ON rrp.role_id = saro.id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id AND rrp.active =0 AND rrp.deleted =0
+                INNER JOIN sys_acl_resource_roles sarr ON sarr.resource_id = a.resource_id AND sarr.active =0 AND sarr.deleted =0		                
+                LEFT JOIN sys_acl_rrp rrp ON rrp.role_id = sarr.role_id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id AND rrp.active =0 AND rrp.deleted =0
                 WHERE 
                     a.deleted =0 AND 
-                    saro.id = ".intval($RoleId)." AND 
+                    sarr.role_id =  ".intval($RoleId)." AND 
+                    sarr.resource_id = " . intval($ResourceId)." AND  
                     rrp.id IS NULL 
                 ORDER BY privilege_name 
                         ";
             $statement = $pdo->prepare($sql); 
-           // echo debugPDO($sql, $params);
+          // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1079,6 +1092,10 @@ class SysAclPrivilege extends \DAL\DalSlim {
             if (isset($params['role_id']) && $params['role_id'] != "") {
                 $sorguStr2 .= " AND role_id = " . $params['role_id'] ;
             }
+                              
+            if (isset($params['resource_id']) && $params['resource_id'] != "") {
+                $sorguStr2 .= " AND resource_id = " . $params['resource_id'] ;
+            }
                             
             
             $sql = " 
@@ -1096,22 +1113,23 @@ class SysAclPrivilege extends \DAL\DalSlim {
                     deleted,
                     rrp_id
                     FROM (
-                         SELECT
+                        SELECT
                             a.id AS privilege_id,
                             a.name AS privilege_name,
                             a.name_eng AS privilege_name_eng,
                             a.resource_id, 
                             sare.name AS resource_name,
-                            saro.id AS role_id,  
+                            sarr.role_id AS role_id,  
                             saro.name AS role_name, 
                             saro.name_tr AS role_name_tr,
                             a.active ,
                             a.deleted,
                             rrp.id AS rrp_id
                         FROM sys_acl_privilege a
-                        INNER JOIN sys_acl_resources sare ON sare.id = a.resource_id AND sare.active =0 AND sare.deleted =0                 
-                        INNER JOIN sys_acl_roles saro ON saro.resource_id = sare.id AND saro.active =0 AND saro.deleted =0
-                        INNER JOIN sys_acl_rrp rrp ON rrp.role_id = saro.id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id AND rrp.active =0 AND rrp.deleted =0
+                        INNER JOIN sys_acl_resources sare ON sare.id = a.resource_id AND sare.active =0 AND sare.deleted =0                                         
+                        INNER JOIN sys_acl_resource_roles sarr ON sarr.resource_id = sare.id AND sarr.active =0 AND sarr.deleted =0
+                        INNER JOIN sys_acl_roles saro ON saro.id = sarr.role_id AND saro.active =0 AND saro.deleted =0
+                        INNER JOIN sys_acl_rrp rrp ON rrp.role_id = sarr.role_id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id AND rrp.active =0 AND rrp.deleted =0
                         WHERE a.deleted =0 AND a.active =0
                     ) AS xtable WHERE deleted=0  
                     " . $sorguStr . "
@@ -1211,7 +1229,11 @@ class SysAclPrivilege extends \DAL\DalSlim {
             $sorguStr2 = null;                            
             if (isset($params['role_id']) && $params['role_id'] != "") {
                 $sorguStr2 .= " AND role_id = " . $params['role_id'] ;
-            }             
+            }     
+            $sorguStr2 = null;                            
+            if (isset($params['resource_id']) && $params['resource_id'] != "") {
+                $sorguStr2 .= " AND resource_id = " . $params['resource_id'] ;
+            }
             
             $sql = " SELECT count(id) FROM (
                 SELECT
@@ -1228,22 +1250,23 @@ class SysAclPrivilege extends \DAL\DalSlim {
                     deleted,
                     rrp_id
                     FROM (
-                         SELECT
+                        SELECT
                             a.id AS privilege_id,
                             a.name AS privilege_name,
                             a.name_eng AS privilege_name_eng,
                             a.resource_id, 
                             sare.name AS resource_name,
-                            saro.id AS role_id,  
+                            sarr.role_id AS role_id,  
                             saro.name AS role_name, 
                             saro.name_tr AS role_name_tr,
                             a.active ,
                             a.deleted,
                             rrp.id AS rrp_id
                         FROM sys_acl_privilege a
-                        INNER JOIN sys_acl_resources sare ON sare.id = a.resource_id AND sare.active =0 AND sare.deleted =0                 
-                        INNER JOIN sys_acl_roles saro ON saro.resource_id = sare.id AND saro.active =0 AND saro.deleted =0
-                        INNER JOIN sys_acl_rrp rrp ON rrp.role_id = saro.id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id AND rrp.active =0 AND rrp.deleted =0
+                        INNER JOIN sys_acl_resources sare ON sare.id = a.resource_id AND sare.active =0 AND sare.deleted =0                                         
+                        INNER JOIN sys_acl_resource_roles sarr ON sarr.resource_id = sare.id AND sarr.active =0 AND sarr.deleted =0
+                        INNER JOIN sys_acl_roles saro ON saro.id = sarr.role_id AND saro.active =0 AND saro.deleted =0
+                        INNER JOIN sys_acl_rrp rrp ON rrp.role_id = sarr.role_id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id AND rrp.active =0 AND rrp.deleted =0
                         WHERE a.deleted =0 AND a.active =0
                     ) AS xtable WHERE deleted=0   
                     " . $sorguStr . "

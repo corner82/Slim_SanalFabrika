@@ -618,6 +618,12 @@ $app->get("/pkFillResourceGroups_sysAclResources/", function () use ($app ) {
                                                 $app,
                                                 $_GET['id']));
     }
+    $vRoleId = 0;
+    if (isset($_GET['role_id'])) {
+        $stripper->offsetSet('role_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['role_id']));
+    }
     $vState =NULL;
     if (isset($_GET['state'])) {
         $stripper->offsetSet('state', $stripChainerFactory->get(stripChainers::FILTER_ONLY_STATE_ALLOWED,
@@ -650,21 +656,19 @@ $app->get("/pkFillResourceGroups_sysAclResources/", function () use ($app ) {
     $stripper->strip();
     if($stripper->offsetExists('roles')) $vRoles = $stripper->offsetGet('roles')->getFilterValue();    
     if($stripper->offsetExists('id')) $vParentId = $stripper->offsetGet('id')->getFilterValue();
+    if($stripper->offsetExists('role_id')) $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
     if($stripper->offsetExists('state')) $vState = $stripper->offsetGet('state')->getFilterValue();
     if($stripper->offsetExists('last_node')) $vLastNode = $stripper->offsetGet('last_node')->getFilterValue();
     if($stripper->offsetExists('search')) $vsearch = $stripper->offsetGet('search')->getFilterValue();
  
-    if (isset($_GET['id'])) {
-        $resCombobox = $BLL->FillResourceGroups(array('parent_id' => $vParentId,
-                                                         'state' => $vState,
-                                                         'last_node' => $vLastNode,
-                                                         'roles' => $vRoles,
-                                                         'search' => $vsearch,
+  
+    $resCombobox = $BLL->FillResourceGroups(array(  'parent_id' => $vParentId,
+                                                        'role_id' => $vRoleId,
+                                                        'state' => $vState,
+                                                        'last_node' => $vLastNode,
+                                                        'roles' => $vRoles,
+                                                        'search' => $vsearch,
                                                                 ));
-    } else {
-        $resCombobox = $BLL->FillResourceGroups(array('parent_id' => $vParentId,
-                                                                ));
-    }
 
     $flows = array();
     foreach ($resCombobox as $flow) {
@@ -674,9 +678,10 @@ $app->get("/pkFillResourceGroups_sysAclResources/", function () use ($app ) {
             "text" => html_entity_decode($flow["name"]),
             "state" => $flow["state_type"], //   'closed',
             "checked" => false,
-           // "icon_class"=>$flow["icon_class"], 
+           // "icon_class"=>$flow["icon_class"],   
             "attributes" => array("root" => $flow["root_type"], "active" => $flow["active"]
                 ,"roles" => html_entity_decode($flow["roles"]),"last_node" => $flow["last_node"]),
+                "resource_id" => $flow["resource_id"],
         );
     }
 

@@ -89,35 +89,33 @@ $app->get("/pkFillComboBoxMainRoles_sysAclRoles/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 07-01-2016
+ * rest servislere eklendi
  */
-$app->get("/pkFillComboBoxFullRoles_sysAclRoles/", function () use ($app ) {
+$app->get("/pkFillFullRolesDdList_sysAclRoles/", function () use ($app ) {
 
     $BLL = $app->getBLLManager()->get('sysAclRolesBLL');
-
-    
-    if (isset($_GET['id']) && $_GET['id'] != "") {
-    $resCombobox = $BLL->fillComboBoxFullRoles(array('id' => $_GET ["id"]));
-    }
-    else  $resCombobox = $BLL->fillComboBoxFullRoles();
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkFillFullRolesDdList_sysAclRoles" end point, X-Public variable not found');    
+  
+    $resCombobox = $BLL->fillFullRolesDdList();
     
     $flows = array();
+    $flows[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",);
     foreach ($resCombobox as $flow) {
         $flows[] = array(
-            "id" => $flow["id"],
-            //"text" => strtolower($flow["name"]),
-            "text" => $flow["name"],
-            "state" => $flow["state_type"], //   'closed',
-            "checked" => false,
-            "attributes" => array("notroot" => true, "active" => $flow["active"]),
+            "text" => html_entity_decode($flow["name"]),
+            "value" => intval($flow["id"]),
+            "selected" => false,
+            "description" => html_entity_decode($flow["name_tr"]),
+            // "imageSrc"=>$flow["logo"],             
+            "attributes" => array(                 
+                    "active" => $flow["active"],
+                   
+            ),
         );
     }
 
-    $app->response()->header("Content-Type", "application/json");
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
+    $app->response()->header("Content-Type", "application/json"); 
     $app->response()->body(json_encode($flows));
 });
 
@@ -583,7 +581,9 @@ $app->get("/pkFillRolesTree_sysAclRoles/", function () use ($app ) {
             "checked" => false,           
            // "icon_class"=>$flow["icon_class"], 
             "attributes" => array("active" => $flow["active"] ,
-                                  "resource_id"=>$flow["resource_id"],
+                                  "resource_ids"=>$flow["resource_ids"],
+                                  "resource_names"=>$flow["resource_names"],
+                                  "name_tr" => html_entity_decode($flow["name_tr"])
                  ),
         );
     }
@@ -729,8 +729,9 @@ $app->get("/pkFillRolesPropertiesList_sysAclRoles/", function () use ($app ) {
             "name_tr" => html_entity_decode($flow["name_tr"]),
             "parent_id" => $flow["parent_id"],
             "parent_name" => html_entity_decode($flow["parent_name"]),
-            "resource_id" => $flow["resource_id"],
-            "resource_name" => html_entity_decode($flow["resource_name"]),
+            "resource_ids" =>  $flow["resource_ids"],
+            //"resource_name" => NULL,
+            "resource_json" => html_entity_decode($flow["resource_json"]),
             "inherited" => $flow["inherited"],
             "inherited_name" => html_entity_decode($flow["inherited_name"]),
             "description" => html_entity_decode($flow["description"]),

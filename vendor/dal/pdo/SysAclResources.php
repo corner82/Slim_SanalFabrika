@@ -823,7 +823,7 @@ class SysAclResources extends \DAL\DalSlim {
                              WHEN 1 THEN 'closed'
                              ELSE 'open'   
                              END ) 
-                         WHEN 'open' THEN COALESCE(NULLIF((SELECT DISTINCT 'closed' FROM sys_acl_roles mz WHERE mz.resource_id =sare.id AND mz.deleted = 0), ''), 'open')   
+                         WHEN 'open' THEN COALESCE(NULLIF((SELECT DISTINCT 'closed' FROM sys_acl_resource_roles mz WHERE mz.resource_id =sare.id AND mz.deleted = 0), ''), 'open')   
                     ELSE 'closed'
                     END AS state_type,
                     CASE
@@ -836,7 +836,8 @@ class SysAclResources extends \DAL\DalSlim {
                          WHEN 1 THEN 'false'			 
                     ELSE 'true'   
                     END AS last_node,
-                    'false' AS roles
+                    'false' AS roles,
+                    sare.id AS resource_id
                 FROM sys_acl_resources sare  
                 WHERE                    
                     sare.parent_id = " .intval($parentId) . " AND                 
@@ -870,22 +871,22 @@ class SysAclResources extends \DAL\DalSlim {
             $parentId = 0;
             if (isset($params['parent_id']) && $params['parent_id'] != "") {
                 $parentId = $params['parent_id'];
-            }
-           
+            } 
             $sql ="                
-                SELECT                    
+                SELECT
                     mt.id, 
-                    COALESCE(NULLIF( (mt.name_tr), ''), mt.name) AS name,            
+                    COALESCE(NULLIF( (mt.name_tr), ''), mt.name) AS name,
                     -1 AS parent_id,
-                    a.active ,
-                    'open' AS state_type,                                          
+                    a.active,
+                    'open' AS state_type,
                     'false' AS root_type,
                     Null AS icon_class,
                     'true' AS last_node,
                     'true' AS roles,
-		    mt.resource_id
+		    sarr.resource_id
                 FROM sys_acl_resources a                 
-		INNER join sys_acl_roles mt ON mt.resource_id = a.id AND mt.active =0 AND mt.deleted =0                 
+		INNER JOIN sys_acl_resource_roles sarr ON sarr.resource_id = a.id AND sarr.active =0 AND sarr.deleted =0
+		INNER JOIN sys_acl_roles mt ON mt.id = sarr.role_id AND mt.active =0 AND mt.deleted =0
                 WHERE                    
                    a.id = " .intval($parentId) . " AND 
                    a.deleted = 0 AND
@@ -893,7 +894,7 @@ class SysAclResources extends \DAL\DalSlim {
                 ORDER BY name 
                                  ";
              $statement = $pdo->prepare( $sql);
-          //  echo debugPDO($sql, $params);
+            // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();

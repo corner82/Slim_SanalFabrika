@@ -101,10 +101,10 @@ class SysAclRoles extends \BLL\BLLSlim {
      * @param array $params
      * @return array
      */
-    public function fillComboBoxFullRoles($params = array()) {
+    public function fillFullRolesDdList($params = array()) {
 
         $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
-        $resultSet = $DAL->fillComboBoxFullRoles($params);
+        $resultSet = $DAL->fillFullRolesDdList($params);
         return $resultSet['resultSet'];
     }
 

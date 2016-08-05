@@ -634,14 +634,22 @@ $app->get("/pkFillPrivilegesOfRoles_sysAclPrivilege/", function () use ($app ) {
                                                 $app,
                                                 $_GET['role_id']));
     }  
+    $vResourceId = NULL;
+    if (isset($_GET['resource_id'])) {
+         $stripper->offsetSet('resource_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['resource_id']));
+    }  
     
     $stripper->strip();
     if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     if($stripper->offsetExists('role_id')) $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
+    if($stripper->offsetExists('resource_id')) $vResourceId = $stripper->offsetGet('resource_id')->getFilterValue();
     
     
     $resCombobox = $BLL->fillPrivilegesOfRoles(array(
                                     'role_id' => $vRoleId,
+                                    'resource_id' => $vResourceId,
                                     'language_code' => $vLanguageCode,
                         ));    
 
@@ -694,14 +702,22 @@ $app->get("/pkFillNotInPrivilegesOfRoles_sysAclPrivilege/", function () use ($ap
                                                 $app,
                                                 $_GET['role_id']));
     }  
+    $vResourceId = NULL;
+    if (isset($_GET['resource_id'])) {
+         $stripper->offsetSet('resource_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['resource_id']));
+    }  
     
     $stripper->strip();
     if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     if($stripper->offsetExists('role_id')) $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
+    if($stripper->offsetExists('resource_id')) $vResourceId = $stripper->offsetGet('resource_id')->getFilterValue();
     
     
     $resCombobox = $BLL->fillNotInPrivilegesOfRoles(array(
                                     'role_id' => $vRoleId,
+                                    'resource_id' => $vResourceId,
                                     'language_code' => $vLanguageCode,
                         ));    
 
@@ -805,7 +821,12 @@ $app->get("/pkFillPrivilegesOfRolesList_sysAclPrivilege/", function () use ($app
         $stripper->offsetSet('role_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
                 $app, $_GET['role_id']));
     }
-    
+    $vResourceId = NULL;
+    if (isset($_GET['resource_id'])) {
+         $stripper->offsetSet('resource_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['resource_id']));
+    }  
     $vPage = NULL;
     if (isset($_GET['page'])) {
         $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
@@ -835,7 +856,10 @@ $app->get("/pkFillPrivilegesOfRolesList_sysAclPrivilege/", function () use ($app
     $stripper->strip();    
     if ($stripper->offsetExists('role_id')) {
         $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
-    }    
+    }   
+    if ($stripper->offsetExists('resource_id')) {
+        $vResourceId = $stripper->offsetGet('resource_id')->getFilterValue();
+    }   
     if ($stripper->offsetExists('page')) {
         $vPage = $stripper->offsetGet('page')->getFilterValue();
     }
@@ -857,11 +881,13 @@ $app->get("/pkFillPrivilegesOfRolesList_sysAclPrivilege/", function () use ($app
         'rows' => $vRows,
         'sort' => $vSort,
         'order' => $vOrder,
-        'role_id' => $vRoleId,       
+        'role_id' => $vRoleId,  
+        'resource_id' => $vResourceId,    
         'filterRules' => $filterRules,
     ));
     $resTotalRowCount = $BLL->fillPrivilegesOfRolesListRtc(array(
-        'role_id' => $vRoleId,  
+        'role_id' => $vRoleId, 
+        'resource_id' => $vResourceId,
         'filterRules' => $filterRules,
     ));
     $counts = 0;
