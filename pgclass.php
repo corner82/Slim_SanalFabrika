@@ -47,9 +47,7 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
  * @since 26-07-2016
  *  rest servislere eklendi
  */
-$app->get("/pkFillInfoTablesDdList_pgClass/", function () use ($app ) {
-    $stripper = $app->getServiceManager()->get('filterChainerCustom');
-    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+$app->get("/pkFillInfoTablesDdList_pgClass/", function () use ($app ) {   
     $BLL = $app->getBLLManager()->get('pgClassBLL');
 
     $componentType = 'ddslick';
