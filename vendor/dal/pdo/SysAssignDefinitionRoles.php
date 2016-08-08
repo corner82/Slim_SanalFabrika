@@ -662,17 +662,17 @@ class SysAssignDefinitionRoles extends \DAL\DalSlim {
     public function fillAssignDefinitionRolesDdList($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $statement = $pdo->prepare("        
-               SELECT                    
-                    a.id, 	
+            $statement = $pdo->prepare("
+                SELECT 
+                    a.id,
                     a.name,  
-                    a.description,                                    
+                    a.description,
                     a.active,
                     'open' AS state_type  
-	         FROM sys_assign_definition_roles a    
-                 WHERE                    
-                    a.deleted = 0                    
-               ORDER BY a.name 
+                FROM sys_assign_definition a
+                WHERE 
+                    a.deleted = 0 AND a.active = 0
+                ORDER BY a.name 
                                  ");
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -697,19 +697,20 @@ class SysAssignDefinitionRoles extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');   
             $sql ="                
-                SELECT                    
+                SELECT
                     mt.id, 
-                    COALESCE(NULLIF( (mt.name_tr), ''), mt.name) AS name,            
+                    COALESCE(NULLIF( (mt.name_tr), ''), mt.name) AS name,
                     -1 AS parent_id,
-                    a.active ,
-                    'open' AS state_type,                                          
+                    a.active,
+                    'open' AS state_type,
                     'false' AS root_type,
                     Null AS icon_class,
                     'true' AS last_node,
                     'true' AS roles,
 		    mt.resource_id
-                FROM sys_acl_resources a                 
-		INNER join sys_acl_roles mt ON mt.resource_id = a.id AND mt.active =0 AND mt.deleted =0                 
+                FROM sys_acl_resources a
+                INNER JOIN sys_acl_resource_roles sarr ON sarr.resource_id = a.id  AND sarr.deleted =0 AND sarr.active =0 
+		INNER join sys_acl_roles mt ON mt.id = sarr.role_id AND mt.active =0 AND mt.deleted =0
                 WHERE                    
                    a.id = 20 AND 
                    a.deleted = 0 AND
@@ -742,7 +743,7 @@ class SysAssignDefinitionRoles extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $RoleId = 0;
-            $whereSql = "  AND a.deleted =0 AND a.active =0 ";
+            $whereSql = "  WHERE  a.deleted =0 AND a.active =0 AND sarr.resource_id= 20  ";
             if (isset($params['role_id']) && $params['role_id'] != "") {
                 $RoleId = $params['role_id'];
             }
@@ -762,10 +763,9 @@ class SysAssignDefinitionRoles extends \DAL\DalSlim {
                     true AS last_node
 		FROM sys_assign_definition_roles a
                 INNER JOIN sys_assign_definition sad ON sad.id = a.assign_definition_id AND sad.active =0 AND sad.deleted =0                 
-                INNER JOIN sys_acl_roles saro ON saro.id = a.role_id AND saro.active =0 AND saro.deleted =0
-                WHERE 
-                    saro.resource_id= 20 
-                    ".$whereSql."
+                INNER JOIN sys_acl_resource_roles sarr ON sarr.active =0 AND sarr.deleted =0 AND sarr.role_id = a.role_id
+                INNER JOIN sys_acl_roles saro ON saro.id = a.role_id AND saro.active =0 AND saro.deleted =0                                 
+                ".$whereSql."
                 ORDER BY saro.name, sad.name
                                  ";
             $statement = $pdo->prepare($sql); 
@@ -812,9 +812,10 @@ class SysAssignDefinitionRoles extends \DAL\DalSlim {
                     true AS last_node
 		FROM sys_assign_definition a
                 LEFT JOIN sys_assign_definition_roles sadr ON sadr.assign_definition_id = a.id AND sadr.active =0 AND sadr.deleted =0 AND sadr.role_id= ".intval($RoleId)."
-                LEFT JOIN sys_acl_roles sar ON sar.id = sadr.role_id AND sar.active =0 AND sar.deleted =0 AND sar.resource_id= 20 
-                WHERE 
-                    a.deleted =0 AND 
+                LEFT JOIN sys_acl_resource_roles sarr ON sarr.active =0 AND sarr.deleted =0 AND sarr.resource_id= 20 AND sarr.role_id = sadr.role_id
+                LEFT JOIN sys_acl_roles sar ON sar.id = sadr.role_id AND sar.active =0 AND sar.deleted =0  
+                WHERE                     
+                    a.deleted =0 AND a.active=0 AND 
                     sadr.id IS NULL
                 ORDER BY sar.name, a.name
                         ";

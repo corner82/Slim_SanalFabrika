@@ -322,6 +322,7 @@ $app->get("/pkFillAssignDefinitionOfRoles_sysAssignDefinitionRoles/", function (
 /**
  *  * Okan CIRAN
  * @since 01.08.2016
+ *  rest servislere eklendi 
  */
 $app->get("/pkFillNotInAssignDefinitionOfRoles_sysAssignDefinitionRoles/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -369,5 +370,56 @@ $app->get("/pkFillNotInAssignDefinitionOfRoles_sysAssignDefinitionRoles/", funct
     $app->response()->body(json_encode($flows));
 });
  
+
+/**
+ *  * Okan CIRAN
+ * @since 15-07-2016
+ */
+$app->get("/pkFillAssignDefinitionRolesDdList_sysAssignDefinitionRoles/", function () use ($app ) {
+    $BLL = $app->getBLLManager()->get('sysAssignDefinitionRolesBLL');
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkFillAssignDefinitionRolesDdList_sysAssignDefinitionRoles" end point, X-Public variable not found');
+    //$pk = $headerParams['X-Public'];
+     
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+
+    $resCombobox = $BLL->fillAssignDefinitionRolesDdList();
+
+        $menus = array();
+        $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
+    if ($componentType == 'bootstrap') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "text" => html_entity_decode($menu["name"]),
+                "state" => $menu["state_type"], //   'closed',
+                "checked" => false,
+                "attributes" => array("notroot" => true, "active" => $menu["active"]),
+            );
+        }
+    } else if ($componentType == 'ddslick') {       
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => html_entity_decode($menu["name"]),
+                "value" =>  intval($menu["id"]),
+                "selected" => false,
+                "description" => html_entity_decode($menu["description"]),
+                "imageSrc" => ""
+            );
+        }
+    }
+
+    $app->response()->header("Content-Type", "application/json");
+
+    $app->response()->body(json_encode($menus));
+});
+
+
+
+
+
 
 $app->run();
