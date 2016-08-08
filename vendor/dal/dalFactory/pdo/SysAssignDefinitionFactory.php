@@ -18,10 +18,10 @@ namespace DAL\Factory\PDO;
 class SysAssignDefinitionFactory  implements \Zend\ServiceManager\FactoryInterface{
     
     public function createService(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator) {
-        $sysAssignDefinitionFactory  = new \DAL\PDO\SysAssignDefinition()   ;         
+        $sysAssignDefinition  = new \DAL\PDO\SysAssignDefinition()   ;         
         $slimapp = $serviceLocator->get('slimapp') ;            
-        $sysAssignDefinitionFactory -> setSlimApp($slimapp); 
-        return $sysAssignDefinitionFactory;
+        $sysAssignDefinition -> setSlimApp($slimapp); 
+        return $sysAssignDefinition;
       
     }
     
