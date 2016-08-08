@@ -366,12 +366,13 @@ class BlActivationReport extends \DAL\DalSlim {
      * @author Okan CIRAN
      * @ Danışmanın onay bekleyen firmalarının bilgilerini döndürür  !!
      * @version v 1.0  05.02.2016
+      * @version 21.07.2016 tarihinde yenisi  yazıldı 
      * @param array | null $args
      * @return array
      * @throws \PDOException
      */
     
-    public function getConsWaitingForConfirm($params = array()) {
+    public function getConsWaitingForConfirm_eskisi($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');             
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));            
@@ -420,5 +421,149 @@ class BlActivationReport extends \DAL\DalSlim {
     }
 
  
-   
+     /**
+     * 
+     * @author Okan CIRAN
+     * @ Danışmanın onay bekleyen firmalarının bilgilerini döndürür  !!
+     * @version v 1.0  05.02.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    
+    public function getConsWaitingForConfirm($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId['resultSet'][0]['user_id'];
+
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+
+                $sql = "                   
+                SELECT 
+                    id,
+                    operation_type_id,
+                    operation_name AS aciklama,
+                    operation_name,
+                    operation_name_eng,	
+                    category_id,
+                    category,
+                    category_eng,	 
+                    table_name, 
+                    table_column_id,   
+                    membership_types_id,
+                    membership_types_name,
+                    membership_types_name_eng,
+                    sys_membership_periods_id,   			
+                    period_name,			
+                    period_name_eng,
+                    preferred_language_id,
+                    preferred_language,
+                    language_id,
+                    language_name,
+                    op_user_id,
+                    op_user_name,
+                    cons_id,
+                    cons_name,						 
+                    op_cons_id,
+                    op_cons_name,
+                    cons_operation_type_id,
+                    cons_operation_name,
+                    cons_operation_name_eng,
+		    CASE
+                        WHEN sure_int > 50000 THEN CAST(SUBSTRING(sure FROM 1 FOR POSITION(' ' IN sure )-1 ) AS integer)
+                    ELSE 0 
+                    END AS sure,
+                    s_date,
+                    c_date,
+                    priority
+                FROM ( 
+                    SELECT 
+                        a.id,
+                        a.operation_type_id,
+                        COALESCE(NULLIF(sotx.operation_name, ''), sot.operation_name_eng) AS operation_name,
+                        sot.operation_name_eng,
+                        sot.category_id,
+                        COALESCE(NULLIF(soccx.category, ''), socc.category_eng) AS category,
+                        socc.category_eng,
+                        sot.table_name,
+                        a.table_column_id,
+                        smt.id AS membership_types_id,
+                        COALESCE(NULLIF(smtx.mem_type, ''), smt.mem_type_eng) AS membership_types_name,
+                        smt.mem_type_eng AS membership_types_name_eng,
+                        a.sys_membership_periods_id,
+                        COALESCE(NULLIF(spx.period_name, ''), sp.period_name_eng) AS period_name,
+                        sp.period_name_eng,
+                        a.preferred_language_id,
+                        COALESCE(NULLIF(lpx.language, ''), lp.language_eng) AS preferred_language,
+                        COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
+                        COALESCE(NULLIF(lx.language, ''), l.language_eng) AS language_name,
+                        a.op_user_id,
+                        opuc.username AS op_user_name,
+                        a.cons_id,
+                        uc.username AS cons_name,
+                        a.op_cons_id,
+                        u.username AS op_cons_name,
+                        a.cons_operation_type_id,
+                        COALESCE(NULLIF(sotconsx.operation_name, ''), sotcons.operation_name_eng) AS cons_operation_name,
+                        sotcons.operation_name_eng AS cons_operation_name_eng,
+                        EXTRACT(EPOCH FROM age(a.s_date)) AS sure_int, 
+                        CAST(CURRENT_TIMESTAMP - a.s_date AS VARCHAR(20)) AS sure,
+                        a.s_date,
+                        a.c_date,
+                        smt.priority
+                    FROM act_process_confirm a
+                    INNER JOIN sys_operation_types sot ON sot.base_id = a.operation_type_id AND sot.active =0 AND sot.deleted = 0 AND sot.language_parent_id =0 
+                    INNER JOIN sys_language l ON l.id = sot.language_id AND l.deleted =0 AND l.active = 0
+                    LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+                    INNER JOIN sys_language lp ON lp.id = a.preferred_language_id AND lp.deleted =0 AND lp.active = 0
+                    LEFT JOIN sys_language lpx ON (lpx.id = lp.id OR lpx.language_parent_id = lp.id) AND lpx.deleted =0 AND lpx.active =0
+                    INNER JOIN sys_osb_consultant_categories socc ON socc.id= sot.category_id AND socc.active =0 AND socc.deleted = 0 AND socc.language_parent_id =0 AND l.id = socc.language_id 
+                    INNER JOIN info_users uc ON uc.id = a.cons_id 
+                    INNER JOIN info_users opuc ON opuc.id = a.op_user_id 
+                    LEFT JOIN info_users u ON u.id = a.op_cons_id 
+                    LEFT JOIN sys_membership_periods smp ON smp.id = a.sys_membership_periods_id
+                    LEFT JOIN sys_membership_types smt ON smt.id = smp.mems_type_id AND smt.language_parent_id =0 AND l.id = smt.language_id
+                    LEFT JOIN sys_membership_types smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id) AND lx.id = smtx.language_id
+                    LEFT JOIN sys_operation_types sotx ON (sotx.id = sot.id OR sotx.language_parent_id = sot.id) AND sotx.deleted =0 AND sotx.active =0 AND lx.id = sotx.language_id
+                    LEFT JOIN sys_osb_consultant_categories soccx ON (soccx.id = socc.id OR soccx.language_parent_id = socc.id) AND soccx.deleted =0 AND soccx.active =0 AND lx.id = soccx.language_id
+                    LEFT JOIN sys_operation_types sotcons ON sotcons.base_id = a.cons_operation_type_id AND sotcons.active =0 AND sotcons.deleted = 0 AND sotcons.language_parent_id =0
+                    LEFT JOIN sys_operation_types sotconsx ON (sotconsx.id = sotcons.id OR sotconsx.language_parent_id = sotcons.id) AND sotconsx.deleted =0 AND sotconsx.active =0 AND lx.id = sotconsx.language_id
+                    LEFT JOIN sys_periods sp ON sp.id = smp.period_id AND sp.language_parent_id =0 AND l.id = sp.language_id
+                    LEFT JOIN sys_periods spx ON (spx.id = sp.id OR spx.language_parent_id = sp.id) AND spx.deleted =0 AND spx.active =0 AND lx.id = spx.language_id
+                    WHERE a.cons_id = " . intval($opUserIdValue) . "
+                        AND  a.c_date IS NULL
+                ) AS xtable
+                ORDER BY priority, s_date, membership_types_name , sure desc 
+                
+                LIMIT 6
+  
+                    ";
+                $statement = $pdo->prepare($sql);
+                // echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_CLASS);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                //return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+                return json_encode($result);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
 }
