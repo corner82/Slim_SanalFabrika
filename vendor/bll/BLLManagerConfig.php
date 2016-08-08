@@ -118,7 +118,7 @@ class BLLManagerConfig{
                  'logAdminBLL' => 'BLL\BLL\LogAdmin',
                  
                 'pgClassBLL' => 'BLL\BLL\PgClass',
-                 
+                'sysOperationTypesRrpBLL' => 'BLL\BLL\SysOperationTypesRrp',
                  
                  
                  

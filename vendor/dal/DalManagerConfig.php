@@ -115,16 +115,15 @@ class DalManagerConfig {
                 'sysAssignDefinitionPDO' => 'DAL\Factory\PDO\SysAssignDefinitionFactory',   
                 'sysAssignDefinitionRolesPDO' => 'DAL\Factory\PDO\SysAssignDefinitionRolesFactory',   
                 
-                 
+                                 
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
                 'logServicesPDO' => 'DAL\Factory\PDO\LogServicesFactory',
                 'logConsultantPDO' => 'DAL\Factory\PDO\LogConsultantFactory',
                 'logConsultantPDO' => 'DAL\Factory\PDO\LogConsultantFactory',
                 'logAdminPDO' => 'DAL\Factory\PDO\LogAdminFactory',
+                 
                 
-                
-                
-                
+                'sysOperationTypesRrpPDO' => 'DAL\Factory\PDO\SysOperationTypesRrpFactory',   
                 'pgClassPDO' => 'DAL\Factory\PDO\PgClassFactory',
                  
                 
