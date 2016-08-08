@@ -1226,6 +1226,10 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
             if (isset($params['role_id']) && $params['role_id'] != "") {
                 $sorguStr2 .= " AND rrpx.role_id = " . $params['role_id'] ;
             }
+            if (isset($params['resource_id']) && $params['resource_id'] != "") {
+                $sorguStr2 .= " AND rrpx.resource_id = " . $params['resource_id'] ;
+            }
+                            
             
             $sql = " SELECT * FROM (
                SELECT
@@ -1237,7 +1241,7 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
                             (SELECT DISTINCT 1 state_type FROM sys_acl_restservices xz WHERE xz.services_group_id = sare.id AND xz.deleted = 0 AND xz.active=0 AND 
 					xz.id in (
 							SELECT 
-							    distinct ax.restservices_id
+							    DISTINCT ax.restservices_id
 							FROM sys_acl_rrp_restservices ax
 							INNER JOIN sys_acl_restservices aclrx ON aclrx.id = ax.restservices_id AND aclrx.deleted = 0 AND aclrx.active = 0  
 							INNER JOIN sys_acl_rrp rrpx ON rrpx.id = ax.rrp_id AND rrpx.deleted =0 AND rrpx.active =0 ".$sorguStr2."
@@ -1254,7 +1258,7 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
                          WHEN 'open' THEN COALESCE(NULLIF((SELECT DISTINCT 'closed' FROM sys_acl_restservices mz WHERE mz.services_group_id =sare.id AND mz.deleted = 0 AND mz.active=0
                                         AND mz.id in (
                                                         SELECT 
-							    distinct ax.restservices_id
+							    DISTINCT ax.restservices_id
 							FROM sys_acl_rrp_restservices ax
 							INNER JOIN sys_acl_restservices aclrx ON aclrx.id = ax.restservices_id AND aclrx.deleted = 0 AND aclrx.active = 0  
 							INNER JOIN sys_acl_rrp rrpx ON rrpx.id = ax.rrp_id AND rrpx.deleted =0 AND rrpx.active =0 ".$sorguStr2."
@@ -1272,7 +1276,7 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
                     CASE 
                         (SELECT DISTINCT 1 state_type FROM sys_acl_restservices zx WHERE zx.services_group_id = sare.id AND zx.deleted = 0 AND zx.active =0 
                                         AND zx.id in (SELECT 
-							    distinct ax.restservices_id
+							    DISTINCT ax.restservices_id
 							FROM sys_acl_rrp_restservices ax
 							INNER JOIN sys_acl_restservices aclrx ON aclrx.id = ax.restservices_id AND aclrx.deleted = 0 AND aclrx.active = 0  
 							INNER JOIN sys_acl_rrp rrpx ON rrpx.id = ax.rrp_id AND rrpx.deleted =0 AND rrpx.active =0 ".$sorguStr2."
@@ -1288,7 +1292,8 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
                     END AS last_node,
                     'false' AS service,
                     '' AS description,               
-                    id AS services_group_id
+                    id AS services_group_id,
+                    null as rrp_restservice_id
                 FROM sys_services_groups sare   
                 WHERE                   
                     sare.active = 0 AND 
@@ -1325,14 +1330,21 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
             if (isset($params['parent_id']) && $params['parent_id'] != "") {
                $servicesGroupId = $params['parent_id'] ;
             } 
-            $sorguStr2 = null;            
+            $sorguStr2 = null;    
+            $sorguStr3 = null;                
             if (isset($params['role_id']) && $params['role_id'] != "") {
                 $sorguStr2 .= " AND rrp.role_id = " . $params['role_id'] ;
+                $sorguStr3 .= " AND rrpq.role_id = " . $params['role_id'] ;
+            }
+            if (isset($params['resource_id']) && $params['resource_id'] != "") {
+                $sorguStr2 .= " AND rrp.resource_id = " . $params['resource_id'] ;
+                $sorguStr3 .= " AND rrpq.resource_id = " . $params['resource_id'] ;
             }
            
             $sql ="  
                 SELECT
-                    id,			    
+                    id,
+                    rrp_restservice_id,                    			    
                     name,
                     services_group_id,                    
                     description,
@@ -1344,7 +1356,16 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
                     service
                     FROM (
                         SELECT 
-                            a.id,			    
+			   (SELECT DISTINCT aq.id
+				FROM sys_acl_rrp_restservices aq
+				INNER JOIN sys_acl_restservices aclrq ON aclrq.id = aq.restservices_id AND aclrq.deleted = 0 AND aclrq.active = 0  
+				INNER JOIN sys_acl_rrp rrpq ON rrpq.id = aq.rrp_id AND rrpq.deleted =0 AND rrpq.active =0  ".$sorguStr3."
+				INNER JOIN sys_acl_roles rrq ON rrq.id = rrpq.role_id AND rrq.deleted = 0 AND rrq.active = 0 
+				INNER JOIN sys_acl_resources rsq ON rsq.id = rrpq.resource_id AND rsq.deleted = 0 AND rsq.active = 0 
+				INNER JOIN sys_acl_privilege rpq ON rpq.id = rrpq.privilege_id AND rpq.deleted = 0 AND rpq.active = 0
+				where aq.deleted =0 and aq.active =0 and aclrq.id = a.id
+			    ) AS rrp_restservice_id,
+                            a.id ,			    
                             a.name  ,
                             ssg.id AS services_group_id,                            
 			    a.description,
@@ -1357,22 +1378,21 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
                         FROM sys_acl_restservices a
                         INNER JOIN sys_services_groups ssg ON ssg.id = a.services_group_id AND ssg.deleted = 0 AND ssg.active = 0 
                         WHERE a.deleted =0 AND a.active =0 AND
-			      ssg.id = 	".intval($servicesGroupId)." AND
+			       ssg.id =  ".intval($servicesGroupId)." AND
                               a.id in (
-				SELECT a.restservices_id
+				SELECT DISTINCT a.restservices_id
 				FROM sys_acl_rrp_restservices a
 				INNER JOIN sys_acl_restservices aclr ON aclr.id = a.restservices_id AND aclr.deleted = 0 AND aclr.active = 0  
-				INNER JOIN sys_acl_rrp rrp ON rrp.id = a.rrp_id AND rrp.deleted =0 AND rrp.active =0
-				INNER JOIN sys_acl_roles rr ON rr.id = rrp.role_id AND rr.deleted = 0 AND rr.active = 0 ".$sorguStr2."
+				INNER JOIN sys_acl_rrp rrp ON rrp.id = a.rrp_id AND rrp.deleted =0 AND rrp.active =0  ".$sorguStr2."
+				INNER JOIN sys_acl_roles rr ON rr.id = rrp.role_id AND rr.deleted = 0 AND rr.active = 0 
 				INNER JOIN sys_acl_resources rs ON rs.id = rrp.resource_id AND rs.deleted = 0 AND rs.active = 0 
 				INNER JOIN sys_acl_privilege rp ON rp.id = rrp.privilege_id AND rp.deleted = 0 AND rp.active = 0
-				WHERE a.deleted =0 AND a.active =0
-				 
-				)
+				WHERE a.deleted =0 AND a.active =0)
+				
                     ) AS xtable WHERE deleted=0 
                                  ";
              $statement = $pdo->prepare( $sql);
-           // echo debugPDO($sql, $params);
+          //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();

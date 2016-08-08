@@ -600,6 +600,12 @@ $app->get("/pkFillRestServicesOfPrivilegesTree_sysAclRrpRestservices/", function
                                                 $app,
                                                 $_GET['role_id']));
     } 
+    $vResourceId = 0;
+    if (isset($_GET['resource_id'])) {
+        $stripper->offsetSet('resource_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['resource_id']));
+    } 
     
     $vsearch = null;
     if(isset($_GET['search'])) {
@@ -612,11 +618,13 @@ $app->get("/pkFillRestServicesOfPrivilegesTree_sysAclRrpRestservices/", function
     $stripper->strip();        
     if($stripper->offsetExists('id')) $vParentId = $stripper->offsetGet('id')->getFilterValue();        
     if($stripper->offsetExists('role_id')) $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();        
+    if($stripper->offsetExists('resource_id')) $vResourceId = $stripper->offsetGet('resource_id')->getFilterValue();        
     if($stripper->offsetExists('search')) $vsearch = $stripper->offsetGet('search')->getFilterValue();
  
    
     $resTree = $BLL->fillRestServicesOfPrivilegesTree(array('parent_id' => $vParentId, 
                                                 'role_id' => $vRoleId,
+                                                'resource_id' => $vResourceId,
                                                 'search' => $vsearch,
                                                                 ));
    
@@ -631,7 +639,8 @@ $app->get("/pkFillRestServicesOfPrivilegesTree_sysAclRrpRestservices/", function
            // "icon_class"=>$flow["icon_class"], 
             "attributes" =>
             array(  "root" => $flow["root_type"], 
-                    "active" => $flow["active"],
+                    "active" => $flow["active"],                
+                    "rrp_restservice_id" => $flow["rrp_restservice_id"],
                     "services_group_id" => $flow["services_group_id"],
                     "service" => html_entity_decode($flow["service"]),
                     "description" => html_entity_decode($flow["description"]),
