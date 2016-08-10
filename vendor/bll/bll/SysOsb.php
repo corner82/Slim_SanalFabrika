@@ -83,7 +83,17 @@ class SysOsb extends \BLL\BLLSlim{
         $resultSet = $DAL->fillGridRowTotalCount($params);  
         return $resultSet['resultSet'];
     }
-  
+     
+    /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+    */
+    public function fillOsbDdlist($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysOsbPDO');
+        $resultSet = $DAL->fillOsbDdlist($params);
+        return $resultSet['resultSet'];
+    }
   
 }
 

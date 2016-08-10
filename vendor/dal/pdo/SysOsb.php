@@ -369,10 +369,13 @@ class SysOsb extends \DAL\DalSlim {
     public function fillComboBox($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                $languageIdValue = $languageId ['resultSet'][0]['id'];
-            } else {
-                $languageIdValue = 647;
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    }
             }
             $countryId = 91;
             if (isset($params['country_id']) && $params['country_id'] != "") {
@@ -458,5 +461,56 @@ class SysOsb extends \DAL\DalSlim {
         }
     }
 
+    
+    /**  
+     * @author Okan CIRAN
+     * @ ddslick doldurmak için sys_osb tablosundan osb kayıtları döndürür !!
+     * @version v 1.0 09.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillOsbDdlist($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');   
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    }
+            }
+            $sql ="                
+                SELECT  
+                    a.id,
+                    COALESCE(NULLIF(sd.name, ''), a.name_eng) AS name,
+                    a.name_eng, 
+                    a.active 
+                FROM sys_osb a 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id =".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0                
+		LEFT JOIN sys_osb sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
+                WHERE 
+                    a.active = 0 AND 
+                    a.deleted = 0 AND 
+                    a.language_parent_id =0 AND
+                    a.country_id = 91          
+                ORDER BY  name  
+                                 ";
+             $statement = $pdo->prepare( $sql);
+          //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {      
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+  
+    
     
 }

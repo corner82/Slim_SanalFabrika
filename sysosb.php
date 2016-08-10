@@ -1,15 +1,10 @@
 <?php
 // test commit for branch slim2
 require 'vendor/autoload.php';
+ 
+use \Services\Filter\Helper\FilterFactoryNames as stripChainers;
 
-// Ğİ
 
-
-/*$app = new \Slim\Slim(array(
-    'mode' => 'development',
-    'debug' => true,
-    'log.enabled' => true,
-    ));*/
 
 $app = new \Slim\SlimExtended(array(
     'mode' => 'development',
@@ -93,6 +88,56 @@ $app->get("/pkGetAll_sysOsb/", function () use ($app ) {
     
   $app->response()->body(json_encode($menus));
   
+});
+
+
+/**
+ *  * Okan CIRAN
+ * @since 09-08-2016
+ 
+ */
+$app->get("/pkFillOsbDdlist_sysOsb/", function () use ($app ) {  
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysOsbBLL');
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkFillOsbDdlist_sysOsb" end point, X-Public variable not found');
+    //$pk = $headerParams['X-Public']; 
+   
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, 
+                                                                $app, 
+                                                                $_GET['language_code']));
+    }
+    $stripper->strip(); 
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    } 
+    $resCombobox = $BLL->fillOsbDdlist(array('language_code' => $vLanguageCode,));
+    
+    $flows = array();
+    $flows[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",);
+    foreach ($resCombobox as $flow) {
+        $flows[] = array(
+            "text" => html_entity_decode($flow["name"]),
+            "value" => intval($flow["id"]),
+            "selected" => false,
+            "description" => html_entity_decode($flow["name_eng"]),
+            // "imageSrc"=>$flow["logo"],             
+            "attributes" => array(                 
+                    "active" => $flow["active"],
+                   
+            ),
+        );
+    }
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($flows));
 });
 
 
