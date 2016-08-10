@@ -84,6 +84,22 @@ abstract class AbstractMailTemplate {
         if(!isset($this->templateContentRetriever ))  throw new Exception('mail template content retriever object not found');
         return $this->templateContentRetriever;
     }
+    
+    /**
+     * abstract method replace template content variables
+     * @param type array || null
+     * @author Mustafa Zeynel Dağlı
+     * @since 10/08/2016
+     */
+    abstract public function replaceTemplatePlaceHolders($variablesToBeReplaced=null);
+    
+    /**
+     * abstract method to replace and ger template content
+     * @param type array || null
+     * @author Mustafa Zeynel Dağlı
+     * @since 10/08/2016
+     */
+    abstract public function replaceAndGetTemplateContent($variablesToBeReplaced=null);
 
     
 
