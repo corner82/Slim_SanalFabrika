@@ -1504,15 +1504,19 @@ class InfoFirmVerbal extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             
             //print_r(dirname(__FILE__));
-            print_r($_SERVER['DOCUMENT_ROOT']);
-           $foil = \Foil\engine(['folders' => [$_SERVER['DOCUMENT_ROOT'].'/vendor/foil']]);
+            //print_r($_SERVER['DOCUMENT_ROOT']);
+            /**
+             * Template engine kullanım örneği
+             */
+           //$foil = \Foil\engine(['folders' => [$_SERVER['DOCUMENT_ROOT'].'/vendor/foil']]);
            //echo $foil->render('test');
             
            $mailTemplate = new \Utill\Mail\Template\MailTemplate();
            $mailTemplate->setContentRetrieverStartegyClass(new \Utill\Mail\Template\ContentRetrieverFromFileStrategy);
-           $mailTemplate->setTemplateContent(array('fileName'=>'test'));
-           $message = $mailTemplate->getTemplateContent();
-          // print_r($message);
+           $mailTemplate->setTemplateContent(array('fileName'=>'danisman_confirm'));
+           //$message = $mailTemplate->getTemplateContent();
+           $message = $mailTemplate->replaceAndGetTemplateContent(array('{[herkimse]}' => 
+                                                                        'Okan Ciran'));
             
            $mail = new \Utill\Mail\PhpMailer\PhpMailWrapper();
            $mail->setCharset('UTF-8');
@@ -1521,50 +1525,11 @@ class InfoFirmVerbal extends \DAL\DalSlim {
            $mail->setSMTPServerUserPassword('1q2w3e4r');
            $mail->setFromUserName('sanalfabrika@ostimteknoloji.com');
            $mail->setMessage($message);
-           $mail->sendInfoMailSMTP();
-            
-            /*$mail = new \PHPMailer();
-                  
-
-           // $headers = "MIME-Version: 1.0\r\n Content-type: text/html; charset=UTF-8\r\n From: sanalfabrika@ostimteknoloji.com \r\n X-Mailer: PHP/"
-            // "Reply-To: 311corner82@gmail.com" . "\r\n" .
-            // . phpversion(); 
-            
-            $body  = ' ıı öö ğğ işş çç  <b>ŞŞŞŞ İİĞ ĞĞ !</b>';
-            $body  = eregi_replace("[\]",'',$body);
-            $mail->CharSet='UTF-8';
-            //$mail->headerLine($headers, $value);
-            $mail->IsSMTP(); // telling the class to use SMTP 
-            $mail->Host       = "mail.ostimteknoloji.com"; // SMTP server 
-            $mail->SMTPDebug  = 1;                      // enables SMTP debug information (for testing) 
-                                                        // 1 = errors and messages
-                                                        // 2 = messages only
-            $mail->SMTPAuth   = true;                  // enable SMTP authentication
-            $mail->Host       = "mail.ostimteknoloji.com"; // sets the SMTP server
-            //$mail->SMTPSecure = 'SSL';   
-            $mail->SMTPSecure = 'TLS';   
-            $mail->Port       = 587;                        // set the SMTP port for the GMAIL server
-            $mail->Username   = "sanalfabrika@ostimteknoloji.com"; // SMTP account username
-            $mail->Password   = "1q2w3e4r";             // SMTP account password
-            $mail->SetFrom('sanalfabrika@ostimteknoloji.com', '11 deneme');
-            //$mail->AddReplyTo("311corner82@gmail.com","8.  deneme");
-            $mail->Subject    = "cc9 bık bık içerik değişti 11 deneme";
-
-            //$mail->AltBody    = " ıı öö ğğ işş çç !"; // optional, comment out and test
-
-            $mail->MsgHTML($body);
-            $address = "311corner82@gmail.com";
-            //$mail->addCC('bahram.metu@gmail.com');
-            //$mail->addBCC('311corner82@gmail.com'); 
-            $mail->AddAddress($address, "z cddccd ");
-            //$mail->AddAttachment("images/phpmailer.gif");      // attachment
-            //$mail->AddAttachment("images/phpmailer_mini.gif"); // attachment
-            if(!$mail->Send()) {
-            echo "Mailer Error: " . $mail->ErrorInfo;
-            } else {
-            echo "Message sent!";
-            }   */    
-
+           $params = ['subject'=>'Sanal Fabrika Danışman Onay İşlemi',
+                      'info' => 'Sanal Fabrika Yöneticileri tarafından '
+               . '              sisteme danışman olarak onaylanmanız amacıyla gönderilmiştir',
+                       'to' => '311corner82@gmail.com'];
+           $mail->sendInfoMailSMTP($params);
             $sql = "";
             $statement = $pdo->prepare($sql);
             //  echo debugPDO($sql, $params);                
@@ -1574,140 +1539,6 @@ class InfoFirmVerbal extends \DAL\DalSlim {
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-           
-        } catch (\PDOException $e /* Exception $e */) {
-            //$debugSQLParams = $statement->debugDumpParams();
-            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
-        }
-    }
-
-    /**
-     * @author Okan CIRAN
-     * @ firmanın sözel verilerinin danısman bilgisini döndürür !!
-     * @version v 1.0  23.05.2016
-     * @param array | null $args
-     * @return array
-     * @throws \PDOException
-     */
-    public function sendMaildeneme($params = array()) {
-        try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-          //  print_r('asdasdasd');
-           $prms =  array(  
-            'params' => array('subject'=>'xcvxcvxcv xcv xvc 1'), 
-            'recipients' => array('ociran@gmail.com'=>'okan1'), 
-            'recipientsBcc' => array('ociran@gmail.com'=>'okan2'), 
-            'recipientCc' => array('ociran@gmail.com'=>'okan3'),             
-            'attachment' => array(''),             
-            
-            );
-            $prms1 =  json_encode(serialize($prms));
-
-
-                  /*
-                $mail = new \PHPMailer();
-                $mail->isSMTP();  
-                // Set mailer to use SMTP
-$mail->Host = 'smtp.gmail.com';  // Specify main and backup SMTP servers
-$mail->SMTPAuth = true;                               // Enable SMTP authentication
-$mail->Username = 'ociran@gmail.com';                 // SMTP username
-$mail->Password = '134sn7d117006';                           // SMTP password
-$mail->SMTPSecure = 'tls';                            // Enable TLS encryption, `ssl` also accepted
-$mail->Port = 587;                                    // TCP port to connect to
-
-$mail->setFrom('ociran@gmail.com', 'Mailer');
-$mail->addAddress('mustafa.zeynel@ostimteknoloji.com', 'Joe User');     // Add a recipient
-$mail->addAddress('ellen@example.com');               // Name is optional
-$mail->addReplyTo('mustafa.zeynel@ostimteknoloji.com', 'Information');
-$mail->addCC('bahram@ostimteknoloji.com');
-$mail->addBCC('okan.ciran.com');
-
-//$mail->addAttachment('/var/tmp/file.tar.gz');         // Add attachments
-//$mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
-$mail->isHTML(true);                                  // Set email format to HTML
-
-$mail->Subject = 'Here is the subject';
-$mail->Body    = 'This is the HTML message body <b>in bold!</b>';
-$mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
-
-if(!$mail->send()) {
-    echo 'Message could not be sent.';
-    echo 'Mailer Error: ' . $mail->ErrorInfo;
-} else {
-    echo 'Message has been sent';
-}
-        */        
-/*
-                    //Create a new PHPMailer instance
-                    //$mail = new PHPMailer;
-                    $mail = new \PHPMailer();
-                    // Set PHPMailer to use the sendmail transport
-                    
-                     $mail->Username = 'sanalfabrika@ostimteknoloji.com';                 // SMTP username
-                    $mail->Password = '1q2w3e4r';  
-                    $mail->From = "sanalfabrika@ostimteknoloji.com";
-                    $mail->FromName = "Full Name";
-
-              
-                    
-                    
-                    $mail->isSendmail();
-                    //Set who the message is to be sent from
-                    $mail->setFrom('sanalfabrika@ostimteknoloji.com', 'First Last');
-                    //Set an alternative reply-to address
-                  //  $mail->addReplyTo('replyto@example.com', 'First Last');
-                    //Set who the message is to be sent to
-                         //To address and name
-                    $mail->addAddress("mustafa.zeynel@ostimteknoloji.com");
-                    //$mail->addAddress("recepient1@example.com"); //Recipient name is optional
-                    //Address to which recipient will reply
-                  //  $mail->addReplyTo("reply@yourdomain.com", "Reply");
-
-                    //CC and BCC
-                    $mail->addCC("bahram@ostimteknoloji.com");
-                    $mail->addBCC("mustafa.zeynel@ostimteknoloji.com");
-                    //Set the subject line
-                    $mail->Subject = 'PHPMailer sendmail test';
-                    //Read an HTML message body from an external file, convert referenced images to embedded,
-                    //convert HTML into a basic plain-text alternative body
-                   
-                    
-                //    $mail->msgHTML(file_get_contents('contents.html'), dirname('/../../phpmailer/phpmailer/examples'));
-                //    
-//Send HTML or Plain Text email
-                    $mail->isHTML(true);
-
-                    $mail->Subject = "Subject Text";
-                    $mail->Body = "<i>Mail body in HTML</i>";
-                //    $mail->AltBody = "This is the plain text version of the email content";
-
-
-                    //Replace the plain text body with one created manually
-                    $mail->AltBody = 'This is a plain-text message body';
-                    //Attach an image file
-                 //   $mail->addAttachment('images/phpmailer_mini.png');
-
-                    //send the message, check for errors
-                    if (!$mail->send()) {
-                        echo "Mailer Error: " . $mail->ErrorInfo;
-                    } else {
-                        echo "Message sent!";
-                    }
-                  //  print_r($mail);
- * 
- * 
- */
-                $sql = "
-                 
-                ";
-                $statement = $pdo->prepare($sql);
-                //  echo debugPDO($sql, $params);                
-               // $statement->execute();
-                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
-                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
            
         } catch (\PDOException $e /* Exception $e */) {
             //$debugSQLParams = $statement->debugDumpParams();

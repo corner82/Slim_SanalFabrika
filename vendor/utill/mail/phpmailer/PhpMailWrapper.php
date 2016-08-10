@@ -106,7 +106,8 @@ class PhpMailWrapper extends \Utill\Mail\AbstractMailWrapper implements \Utill\M
         $this->mailObj->CharSet='UTF-8';
         //$mail->headerLine($headers, $value);
         $this->mailObj->IsSMTP(); // telling the class to use SMTP 
-        $this->mailObj->Host       = "mail.ostimteknoloji.com"; // SMTP server 
+        //$this->mailObj->Host       = "mail.ostimteknoloji.com"; // SMTP server 
+        $this->mailObj->Host       = $this->getSMTPServerHost(); // SMTP server 
         //$this->mailObj->SMTPDebug  = $this->getDebugMode(); // enables SMTP debug information (for testing) 
                                                     // 1 = errors and messages
                                                     // 2 = messages only
@@ -116,18 +117,18 @@ class PhpMailWrapper extends \Utill\Mail\AbstractMailWrapper implements \Utill\M
         $this->mailObj->Port       = $this->getSMTPServerPort();                        // set the SMTP port for the GMAIL server
         $this->mailObj->Username   = $this->getSMTPServerUser(); // SMTP account username
         $this->mailObj->Password   = $this->getSMTPServerUserPassword();             // SMTP account password
-        $this->mailObj->SetFrom($this->getFromUserName(), 'bu mail php mail wrapper içinden sanal fabrika için atılmıştır');
+        $this->mailObj->SetFrom($this->getFromUserName(), $params['info']);
         //$mail->AddReplyTo("311corner82@gmail.com","8.  deneme");
-        $this->mailObj->Subject    = "Sanal Fabrika Mail lib test";
+        $this->mailObj->Subject    = $params['subject'];
 
         //$mail->AltBody    = " ıı öö ğğ işş çç !"; // optional, comment out and test
 
         $this->mailObj->MsgHTML($this->getMessage());
         //$this->mailObj->MsgHTML($body);
-        $address = "311corner82@gmail.com";
+        $address = $params['to'];
         //$mail->addCC('bahram.metu@gmail.com');
         //$mail->addBCC('311corner82@gmail.com'); 
-        $this->mailObj->AddAddress($address, "z cddccd ");
+        $this->mailObj->AddAddress($address, "");
         //$mail->AddAttachment("images/phpmailer.gif");      // attachment
         //$mail->AddAttachment("images/phpmailer_mini.gif"); // attachment
         if(!$this->mailObj->Send()) {
