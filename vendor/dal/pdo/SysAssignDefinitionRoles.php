@@ -666,7 +666,7 @@ class SysAssignDefinitionRoles extends \DAL\DalSlim {
                 SELECT 
                     a.id,
                     a.name,  
-                    a.description,
+                    NULL AS description,
                     a.active,
                     'open' AS state_type  
                 FROM sys_assign_definition a
