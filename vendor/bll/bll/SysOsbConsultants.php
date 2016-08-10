@@ -123,8 +123,37 @@ class SysOsbConsultants extends \BLL\BLLSlim {
     public function getAllFirmCons($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysOsbConsultantsPDO');
         return $DAL->getAllFirmCons($params);
+    } 
+    
+  /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillOsbConsultantListGrid ($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysOsbConsultantsPDO');
+        $resultSet = $DAL->fillOsbConsultantListGrid($params);  
+        return $resultSet['resultSet'];
     }
     
-    
-
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillOsbConsultantListGridRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysOsbConsultantsPDO');
+        $resultSet = $DAL->fillOsbConsultantListGridRtc($params);  
+        return $resultSet['resultSet'];
+    }   
+        /**
+     * public key / private key and value update function
+     * @param array | null $params
+     * @return array
+     */
+    public function makeActiveOrPassive($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysOsbConsultantsPDO');
+        return $DAL->makeActiveOrPassive($params);
+    } 
+     
 }

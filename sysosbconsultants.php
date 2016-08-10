@@ -227,7 +227,240 @@ $app->get("/pkcpkGetAllFirmCons_sysOsbConsultants/", function () use ($app ) {
     $app->response()->header("Content-Type", "application/json");
     $app->response()->body(json_encode($flows));
 });
+ 
+/**
+ *  * Okan CIRAN
+ * @since 09-08-2016
+ */
+$app->get("/pkFillOsbConsultantListGrid_sysOsbConsultants/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysOsbConsultantsBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillOsbConsultantListGrid_sysOsbConsultants" end point, X-Public variable not found');
+    } 
+
+    $vName = NULL;
+    if (isset($_GET['name'])) {
+        $stripper->offsetSet('name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['name']));
+    }     
+    $vSurname = NULL;
+    if (isset($_GET['surname'])) {
+        $stripper->offsetSet('surname', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['surname']));
+    }     
+    $vUsername = NULL;
+    if (isset($_GET['username'])) {
+        $stripper->offsetSet('username', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['username']));
+    }
+    $vPreferredLanguageName = NULL;
+    if (isset($_GET['preferred_language_name'])) {
+        $stripper->offsetSet('preferred_language_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['preferred_language_name']));
+    }
+    $vRoleName = NULL;
+    if (isset($_GET['role_name'])) {
+        $stripper->offsetSet('role_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['role_name']));
+    }
+    $vRoleNameTr = NULL;
+    if (isset($_GET['role_name_tr'])) {
+        $stripper->offsetSet('role_name_tr', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['role_name_tr']));
+    }  
+    $vOsbName = NULL;
+    if (isset($_GET['osb_name'])) {
+        $stripper->offsetSet('osb_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['osb_name']));
+    }
+    $vOpUserName= NULL;
+    if (isset($_GET['op_user_name'])) {
+        $stripper->offsetSet('op_user_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['op_user_name']));
+    }  
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, 
+                $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+                $app, $_GET['filterRules']));
+    }
+
+    $stripper->strip(); 
+    if ($stripper->offsetExists('name')) {
+        $vName = $stripper->offsetGet('name')->getFilterValue();
+    }
+    if ($stripper->offsetExists('surname')) {
+        $vSurname = $stripper->offsetGet('surname')->getFilterValue();
+    }
+    if ($stripper->offsetExists('username')) {
+        $vUsername = $stripper->offsetGet('username')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('preferred_language_name')) {
+        $vPreferredLanguageName = $stripper->offsetGet('preferred_language_name')->getFilterValue();
+    }
+    if ($stripper->offsetExists('role_name')) {
+        $vRoleName = $stripper->offsetGet('role_name')->getFilterValue();
+    }
+    if ($stripper->offsetExists('role_name_tr')) {
+        $vRoleNameTr = $stripper->offsetGet('role_name_tr')->getFilterValue();
+    }     
+    if ($stripper->offsetExists('osb_name')) {
+        $vOsbName = $stripper->offsetGet('osb_name')->getFilterValue();
+    }  
+    if ($stripper->offsetExists('op_user_name')) {
+        $vOpUserName = $stripper->offsetGet('op_user_name')->getFilterValue();
+    }  
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    }
+    
+    $resDataGrid = $BLL->fillOsbConsultantListGrid(array(        
+        'page' => $vPage,
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,
+        'name' => $vName,
+        'surname' => $vSurname,
+        'username' => $vUsername, 
+        'preferred_language_name' => $vPreferredLanguageName,
+        'role_name' => $vRoleName,
+        'role_name_tr' => $vRoleNameTr,
+        'osb_name' => $vOsbName,    
+        'op_user_name' => $vOpUserName,       
+        'filterRules' => $filterRules,
+    ));
+    $resTotalRowCount = $BLL->fillOsbConsultantListGridRtc(array(
+        'name' => $vName,
+        'surname' => $vSurname,
+        'username' => $vUsername, 
+        'preferred_language_name' => $vPreferredLanguageName,
+        'role_name' => $vRoleName,
+        'role_name_tr' => $vRoleNameTr,
+        'osb_name' => $vOsbName,    
+        'op_user_name' => $vOpUserName,  
+        'filterRules' => $filterRules,
+    ));
+    $counts = 0;
+    $flows = array();
+    if (isset($resDataGrid[0]['id'])) {
+        foreach ($resDataGrid as $flow) {
+            $flows[] = array(
+            "id" => $flow["id"],
+            "name" => html_entity_decode($flow["name"]),
+            "surname" => html_entity_decode($flow["surname"]),
+            "username" => html_entity_decode($flow["username"]),
+                
+            "preferred_language" => $flow["preferred_language"],
+            "preferred_language_name" => html_entity_decode($flow["preferred_language_name"]),
+            "preferred_language_json" =>  $flow["preferred_language_json"],
+            "role_id" => $flow["role_id"],
+            "role_name" => html_entity_decode($flow["role_name"]),
+            "role_name_tr" => html_entity_decode($flow["role_name_tr"]),
+            "osb_id" => $flow["osb_id"],
+            "osb_name" => html_entity_decode($flow["osb_name"]),            
+            "op_user_id" => $flow["op_user_id"],
+            "op_user_name" => html_entity_decode($flow["op_user_name"]),
+   
+                "attributes" => array(              
+                "active" => $flow["active"], ) );
+        };
+        $counts = $resTotalRowCount[0]['count'];
+    }   
+    
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['total'] = $counts;
+    $resultArray['rows'] = $flows;
+    $app->response()->body(json_encode($resultArray));
+});
+
+/**x
+ *  * Okan CIRAN
+ * @since 09-08-2016
+ */
+$app->get("/pkUpdateMakeActiveOrPassive_sysOsbConsultants/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('sysOsbConsultantsBLL');
+    $headerParams = $app->request()->headers();
+    $Pk = $headerParams['X-Public'];      
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    } 
+    $stripper->strip(); 
+    if ($stripper->offsetExists('id')) {$vId = $stripper->offsetGet('id')->getFilterValue(); }
+    $resData = $BLL->makeActiveOrPassive(array(                  
+            'id' => $vId ,    
+            'pk' => $Pk,        
+            ));
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($resData));
+}
+); 
 
 
+/**
+ *  * Okan CIRAN
+ * @since 09-08-2016
+ */
+$app->get("/pkDelete_sysOsbConsultants/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('sysOsbConsultantsBLL');   
+    $headerParams = $app->request()->headers();
+    $Pk = $headerParams['X-Public'];  
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    } 
+    $stripper->strip(); 
+    if ($stripper->offsetExists('id')) {$vId = $stripper->offsetGet('id')->getFilterValue(); }  
+    $resDataDeleted = $BLL->Delete(array(                  
+            'id' => $vId ,    
+            'pk' => $Pk,        
+            ));
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($resDataDeleted));
+}
+);  
 
 $app->run();

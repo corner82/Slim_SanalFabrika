@@ -27,23 +27,39 @@ class SysOsbConsultants extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function delete($params = array()) {
-         try {
+       try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $userId = $this->getUserId(array('pk' => $params['pk']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $userIdValue = $userId ['resultSet'][0]['user_id'];
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $statement = $pdo->prepare(" 
                 UPDATE sys_osb_consultants
                 SET  deleted= 1 , active = 1 ,
-                     op_user_id = " . $userIdValue . "     
-                WHERE id = :id");
+                     op_user_id = " . $opUserIdValue . "     
+                WHERE id = ".intval($params['id']) 
+                        );
                 //Execute our DELETE statement.
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
+                    throw new \PDOException($errorInfo[0]);                
+                            
+                $xc = $this->deleteConsultantUser(array('id' => $params['id'],                     
+                     'op_user_id' => $opUserIdValue,
+                 ));
+
+                if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                    throw new \PDOException($xc['errorInfo']);
+                
+                $xc = $this->deleteConsultantUserDetail(array('id' => $params['id'],                     
+                     'op_user_id' => $opUserIdValue,
+                 ));
+
+                if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                    throw new \PDOException($xc['errorInfo']);
+                
                 $pdo->commit();
                 return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
             } else {
@@ -56,6 +72,71 @@ class SysOsbConsultants extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     } 
+    
+    /**
+     * @author Okan CIRAN
+     * @ info_users tablosundan danısman olarak  atanmış user ı siler. !!
+     * @version v 1.0  09.08.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function deleteConsultantUser($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
+                $statement = $pdo->prepare(" 
+                UPDATE info_users
+                SET deleted= 1, active = 1,
+                     op_user_id = " . intval($params['op_user_id']) . "
+                WHERE 
+                    id = (
+                    SELECT a.user_id FROM sys_osb_consultants a
+                    WHERE a.id = ".intval($params['id'])." )"
+                    );
+                //Execute our DELETE statement.
+                $update = $statement->execute();
+                $afterRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);                
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);            
+        } catch (\PDOException $e /* Exception $e */) {        
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    /**
+     * @author Okan CIRAN
+     * @ info_users_detail tablosundan danısman olarak  atanmış user ın detay bilgilerini siler. !!
+     * @version v 1.0  09.08.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function deleteConsultantUserDetail($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
+                $statement = $pdo->prepare(" 
+                UPDATE info_users_detail
+                SET deleted= 1, active = 1,
+                     op_user_id = " . intval($params['op_user_id']) . "
+                WHERE active=0 AND deleted =0 AND 
+                    root_id = (
+                    SELECT a.user_id FROM sys_osb_consultants a
+                    WHERE a.id = ".intval($params['id'])." )"
+                    );
+                //Execute our DELETE statement.
+                $update = $statement->execute();
+                $afterRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);                
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);            
+        } catch (\PDOException $e /* Exception $e */) {        
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+     
+
     /**
      * @author Okan CIRAN
      * @ sys_osb_consultants tablosundaki tüm kayıtları getirir.  !!
@@ -121,11 +202,13 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 $opUserIdValue = $userId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
                 if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                        $languageIdValue = $languageId ['resultSet'][0]['id'];
-                    } else {
-                        $languageIdValue = 647;
+                    $languageId = NULL;
+                    $languageIdValue = 647;
+                    if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                            $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                            }
                     }
 
                     $sql = "
@@ -134,16 +217,14 @@ class SysOsbConsultants extends \DAL\DalSlim {
                         country_id, 
                         active, 
                         op_user_id, 
-                        language_id,
-                        language_code, 
+                        language_id,                        
                         op_user_id )
                 VALUES (
                         :osb_id, 
                         :country_id, 
                         :active, 
                         :user_id, 
-                        :language_id, 
-                        :language_code, 
+                        :language_id,                         
                         :op_user_id 
                                              )   ";
                     $statement = $pdo->prepare($sql);
@@ -151,8 +232,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                     $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
                     $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
                     $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-                    $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
-                    $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+                    $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);                    
                     $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);
                     // echo debugPDO($sql, $params);
                     $result = $statement->execute();
@@ -386,8 +466,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * user interface datagrid fill operation get row count for widget
+    /**   
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_osb_consultants tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
      * @version v 1.0  08.02.2016
@@ -753,8 +832,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * user interface datagrid fill operation get row count for widget
+    /**  
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_osb_consultants tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
      * @version v 1.0  08.02.2016
@@ -1474,6 +1552,428 @@ class SysOsbConsultants extends \DAL\DalSlim {
         } catch (\PDOException $e /* Exception $e */) {
             //$debugSQLParams = $statement->debugDumpParams();
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ consultant bilgilerini grid formatında döndürür !!
+     * filterRules aktif 
+     * @version v 1.0  09.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillOsbConsultantListGrid($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+                $limit = intval($params['rows']);
+            } else {
+                $limit = 10;
+                $offset = 0;
+            }
+
+            $sortArr = array();
+            $orderArr = array();
+            if (isset($params['sort']) && $params['sort'] != "") {
+                $sort = trim($params['sort']);
+                $sortArr = explode(",", $sort);
+                if (count($sortArr) === 1)
+                    $sort = trim($params['sort']);
+            } else {
+                $sort = " name,surname,username";
+            }
+
+            if (isset($params['order']) && $params['order'] != "") {
+                $order = trim($params['order']);
+                $orderArr = explode(",", $order);
+                //print_r($orderArr);
+                if (count($orderArr) === 1)
+                    $order = trim($params['order']);
+            } else {
+                $order = "ASC";
+            }
+
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'surname':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND surname" . $sorguExpression . ' ';
+
+                                break;
+                            case 'username':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND username" . $sorguExpression . ' ';
+
+                                break;     
+                            case 'preferred_language_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND preferred_language_name" . $sorguExpression . ' ';
+                            
+                                break;  
+                            case 'role_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND role_name" . $sorguExpression . ' ';
+                            
+                                break;  
+                            case 'role_name_tr':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND role_name_tr" . $sorguExpression . ' ';
+                            
+                                break;  
+                            case 'osb_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND osb_name" . $sorguExpression . ' ';
+                            
+                                break; 
+                            case 'op_user_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND op_user_name" . $sorguExpression . ' ';
+                            
+                                break; 
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";                            
+            }
+                            
+            $sorguStr = rtrim($sorguStr, "AND ");            
+                            
+                            
+            $sql = "  
+                SELECT
+                    id, 
+                    username ,
+                    name ,
+                    surname,
+                    preferred_language,
+                    preferred_language_name,
+                    preferred_language_json,
+                    role_id,
+                    role_name,
+                    role_name_tr,
+                    osb_id,
+                    osb_name,
+                    active, 
+                    state_active,
+                    op_user_id,
+                    op_user_name,
+                    deleted
+                FROM (
+                   SELECT 
+                        a.id, 
+			ucons.username ,
+                        iud.name ,
+                        iud.surname,
+                        a.language_id AS preferred_language,
+                        l.language_local AS preferred_language_name,
+                        a.preferred_language_json,
+                        ucons.role_id as role_id,
+                        sar.name AS role_name,
+                        sar.name_tr AS role_name_tr,
+			a.osb_id,
+			COALESCE(NULLIF(osb.name, ''), osb.name_eng) AS osb_name,
+                        a.active, 
+                        sd16.description AS state_active,
+                        a.op_user_id,
+                        u.username AS op_user_name,
+                        a.deleted
+                    FROM sys_osb_consultants a 
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                                         
+                    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted = 0 AND sd15.active = 0
+                    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
+                    INNER JOIN info_users u ON u.id = a.op_user_id 
+		    INNER JOIN info_users ucons ON ucons.id = a.user_id 
+		    INNER JOIN info_users_detail iud ON iud.root_id = a.user_id  AND iud.active=0 AND iud.deleted=0 
+		    INNER JOIN sys_acl_roles sar ON sar.id = ucons.role_id AND sar.active=0 AND sar.deleted=0
+		    LEFT JOIN sys_osb osb ON osb.id = a.osb_id AND osb.active=0 AND osb.deleted =0 
+                    WHERE a.deleted =0 
+                    ) AS xtable WHERE deleted =0 
+                ".$sorguStr."
+            ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            );
+            $statement = $pdo->prepare($sql);
+            //   echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+        
+    /**
+     * @author Okan CIRAN
+     * @ grid için consultant bilgilerinin sayısını döndürür !!
+     * filterRules aktif 
+     * @version v 1.0  09.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillOsbConsultantListGridRtc($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'surname':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND surname" . $sorguExpression . ' ';
+
+                                break;
+                            case 'username':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND username" . $sorguExpression . ' ';
+
+                                break;     
+                            case 'preferred_language_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND preferred_language_name" . $sorguExpression . ' ';
+                            
+                                break;  
+                            case 'role_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND role_name" . $sorguExpression . ' ';
+                            
+                                break;  
+                            case 'role_name_tr':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND role_name_tr" . $sorguExpression . ' ';
+                            
+                                break;  
+                            case 'osb_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND osb_name" . $sorguExpression . ' ';
+                            
+                                break; 
+                            case 'op_user_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND op_user_name" . $sorguExpression . ' ';
+                            
+                                break; 
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+                            
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+            $sql = " 
+                SELECT COUNT(id) AS count 
+                FROM (
+                    SELECT
+                    id, 
+                    username ,
+                    name ,
+                    surname,
+                    preferred_language,
+                    preferred_language_name,
+                    preferred_language_json,
+                    role_id,
+                    role_name,
+                    role_name_tr,
+                    osb_id,
+                    osb_name,
+                    active, 
+                    state_active,
+                    op_user_id,
+                    op_user_name,
+                    deleted
+                FROM (
+                   SELECT 
+                        a.id, 
+			ucons.username ,
+                        iud.name ,
+                        iud.surname,
+                        a.language_id AS preferred_language,
+                        l.language_local AS preferred_language_name,
+                        a.preferred_language_json,
+                        ucons.role_id as role_id,
+                        sar.name AS role_name,
+                        sar.name_tr AS role_name_tr,
+			a.osb_id,
+			COALESCE(NULLIF(osb.name, ''), osb.name_eng) AS osb_name,
+                        a.active, 
+                        sd16.description AS state_active,
+                        a.op_user_id,
+                        u.username AS op_user_name,
+                        a.deleted
+                    FROM sys_osb_consultants a 
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                                         
+                    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted = 0 AND sd15.active = 0
+                    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
+                    INNER JOIN info_users u ON u.id = a.op_user_id 
+		    INNER JOIN info_users ucons ON ucons.id = a.user_id 
+		    INNER JOIN info_users_detail iud ON iud.root_id = a.user_id  AND iud.active=0 AND iud.deleted=0 
+		    INNER JOIN sys_acl_roles sar ON sar.id = ucons.role_id AND sar.active=0 AND sar.deleted=0
+		    LEFT JOIN sys_osb osb ON osb.id = a.osb_id AND osb.active=0 AND osb.deleted =0 
+                    WHERE a.deleted =0 
+                    ) AS xtable WHERE deleted =0 
+                        ".$sorguStr." 
+                    ) AS xxtable 
+              
+                ";           
+            $statement = $pdo->prepare($sql);
+        // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ sys_osb_consultants tablosundan parametre olarak  gelen id kaydın aktifliğini
+     *  0(aktif) ise 1 , 1 (pasif) ise 0  yapar. !!
+     * @version v 1.0  13.06.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function makeActiveOrPassive($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                if (isset($params['id']) && $params['id'] != "") {
+
+                    $sql = "                 
+                UPDATE sys_osb_consultants
+                SET active = (  SELECT   
+                                CASE active
+                                    WHEN 0 THEN 1
+                                    ELSE 0
+                                END activex
+                                FROM sys_osb_consultants
+                                WHERE id = " . intval($params['id']) . "
+                ),
+                op_user_id = " . intval($opUserIdValue) . "
+                WHERE id = " . intval($params['id']);
+                    $statement = $pdo->prepare($sql);
+                    //  echo debugPDO($sql, $params);
+                    $update = $statement->execute();
+                    $afterRows = $statement->rowCount();
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                }
+                
+                
+                 $xc = $this->makeActiveOrPassiveInfoUsers(array('id' => $params['id'],                     
+                     'op_user_id' => $opUserIdValue,
+                 ));
+
+                if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                    throw new \PDOException($xc['errorInfo']);
+                
+                
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ sys_osb_consultants tablosundan parametre olarak  gelen id kaydın aktifliğini
+     *  0(aktif) ise 1 , 1 (pasif) ise 0  yapar. !!
+     * @version v 1.0  13.06.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function makeActiveOrPassiveInfoUsers($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                            
+            if (isset($params['id']) && $params['id'] != "") {
+                $sql = "                 
+                UPDATE info_users
+                SET active = (  SELECT   
+                                CASE xx.active
+                                    WHEN 0 THEN 1
+                                    ELSE 0
+                                END activex
+                                FROM info_users xx
+                                WHERE xx.id = info_users.id
+                ),
+                op_user_id = " . intval($params['op_user_id']) . " 
+                WHERE 
+                    id = (
+                    SELECT a.user_id FROM sys_osb_consultants a
+                    WHERE a.id = " . intval($params['id']) . " )"
+                ;
+                $statement = $pdo->prepare($sql);
+              //   echo debugPDO($sql, $params);
+                $update = $statement->execute();
+                $afterRows = $statement->rowCount();
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+            }                            
+            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+        } catch (\PDOException $e /* Exception $e */) {                            
+            return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 
