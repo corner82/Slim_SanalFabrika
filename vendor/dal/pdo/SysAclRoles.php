@@ -1232,6 +1232,45 @@ class SysAclRoles extends \DAL\DalSlim {
         }
     }
 
+    /**  
+     * @author Okan CIRAN
+     * @ ddslick doldurmak için sys_acl_roles tablosundan danısman kayıtları döndürür !!
+     * @version v 1.0 09.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillConsultantRolesDdlist($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');   
+            $sql ="                
+                SELECT
+                    mt.id, 	
+                    mt.name,
+                    mt.name_tr, 
+                    mt.active   
+                FROM sys_acl_resources a
+                INNER JOIN sys_acl_resource_roles sarr ON sarr.resource_id = a.id  AND sarr.deleted =0 AND sarr.active =0 
+		INNER join sys_acl_roles mt ON mt.id = sarr.role_id AND mt.active =0 AND mt.deleted =0
+                WHERE                    
+                   a.id = 20 AND 
+                   mt.deleted = 0 AND
+                   mt.active =0 
+                ORDER BY name 
+                                 ";
+             $statement = $pdo->prepare( $sql);
+          //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {      
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+  
     
     
 }
