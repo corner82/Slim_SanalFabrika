@@ -170,7 +170,16 @@ class SysAclRoles extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
         return $DAL->makeActiveOrPassive($params);
     } 
-    
-    
-
+     
+   /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillConsultantRolesDdlist($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclRolesPDO');
+        $resultSet = $DAL->FillConsultantRolesDdlist($params);
+        return $resultSet['resultSet'];
+    }
+  
 }
