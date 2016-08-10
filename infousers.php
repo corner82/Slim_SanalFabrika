@@ -705,5 +705,125 @@ $app->get("/pkFillUsersInformationNpk_infoUsers/", function () use ($app ) {
     $app->response()->body(json_encode($resultArray));
 });
 
+
+
+/**
+ *  * Okan CIRAN
+ * @since 09-09-2016
+ */
+$app->get("/pkInsertConsultant_infoUsers/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('infoUsersBLL');
+    $headerParams = $app->request()->headers(); 
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkInsertConsultant_infoUsers" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];   
+ 
+    $vPreferredLanguage = 647;
+    if (isset($_GET['preferred_language'])) {
+        $stripper->offsetSet('preferred_language', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['preferred_language']));
+    }
+    $vRoleId = 0;
+    if (isset($_GET['role_id'])) {
+        $stripper->offsetSet('role_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['role_id']));
+    }
+    $vOsbId = 0;
+    if (isset($_GET['osb_id'])) {
+        $stripper->offsetSet('osb_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['osb_id']));
+    }
+    $vName = NULL;
+    if (isset($_GET['name'])) {
+        $stripper->offsetSet('name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['name']));
+    }
+    $vSurname = NULL;
+    if (isset($_GET['surname'])) {
+        $stripper->offsetSet('surname', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                $app, $_GET['surname']));
+    }
+    $vUsername = NULL;
+    if (isset($_GET['username'])) {
+        $stripper->offsetSet('username', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['username']));
+    }     
+    $vAuthEmail = NULL;
+    if (isset($_GET['auth_email'])) {
+        $stripper->offsetSet('auth_email', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, 
+                $app, $_GET['auth_email']));
+    }
+    $vPreferredLanguageJson = NULL;
+    if (isset($_GET['preferred_language_json'])) {
+        $stripper->offsetSet('preferred_language_json', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+                $app, $_GET['preferred_language_json']));
+    }
+    $vTitle = NULL;
+    if (isset($_GET['title'])) {
+        $stripper->offsetSet('title', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['title']));
+    }
+    $vTitleEng = NULL;
+    if (isset($_GET['title_eng'])) {
+        $stripper->offsetSet('title_eng', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['title_eng']));
+    }
+
+    $stripper->strip();
+    
+    if ($stripper->offsetExists('role_id')) {
+        $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('osb_id')) {
+        $vOsbId = $stripper->offsetGet('osb_id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('preferred_language')) {
+        $vPreferredLanguage = $stripper->offsetGet('preferred_language')->getFilterValue();
+    }
+    if ($stripper->offsetExists('name')) {
+        $vName = $stripper->offsetGet('name')->getFilterValue();
+    }
+    if ($stripper->offsetExists('surname')) {
+        $vSurname = $stripper->offsetGet('surname')->getFilterValue();
+    }
+    if ($stripper->offsetExists('username')) {
+        $vUsername = $stripper->offsetGet('username')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('auth_email')) {
+        $vAuthEmail = $stripper->offsetGet('auth_email')->getFilterValue();
+    }
+    if ($stripper->offsetExists('title')) {
+        $vTitle = $stripper->offsetGet('title')->getFilterValue();
+    }
+    if ($stripper->offsetExists('title_eng')) {
+        $vTitleEng = $stripper->offsetGet('title_eng')->getFilterValue();
+    }
+    if ($stripper->offsetExists('preferred_language_json')) {
+        $vPreferredLanguageJson = $stripper->offsetGet('preferred_language_json')->getFilterValue();
+    }
+    
+    $resDataInsert = $BLL->insertConsultant(array(
+        'pk' => $pk,
+        'role_id' => $vRoleId,
+        'osb_id' => $vOsbId,
+        'name' => $vName,
+        'surname' => $vSurname,
+        'username' => $vUsername,      
+        'auth_email' => $vAuthEmail,
+        'title' => $vTitle,
+        'title_eng' => $vTitleEng,
+        'preferred_language' => $vPreferredLanguage,
+        'preferred_language_json' => $vPreferredLanguageJson,
+        
+    ));
+
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($resDataInsert));
+}
+);
+
  
 $app->run();

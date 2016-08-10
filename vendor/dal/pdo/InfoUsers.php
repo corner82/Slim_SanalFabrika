@@ -231,7 +231,7 @@ class InfoUsers extends \DAL\DalSlim {
                AND deleted =0   
                                ";
             $statement = $pdo->prepare($sql);
-            //echo debugPDO($sql, $params);
+          //echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -496,7 +496,19 @@ class InfoUsers extends \DAL\DalSlim {
                 $insertID = $pdo->lastInsertId('info_users_detail_id_seq');
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);              
+                    throw new \PDOException($errorInfo[0]); 
+                
+                $xjobs = ActProcessConfirm::insert(array(
+                             'op_user_id' => intval( $params['op_user_id']),
+                             'operation_type_id' => intval($operationIdValue),
+                             'table_column_id' => intval($insertID),
+                             'cons_id' => intval($params['consultant_id']),
+                             'preferred_language_id' => intval($params['language_id']),
+                                 )
+                     );
+                      if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                     throw new \PDOException($xjobs['errorInfo']);
+
                 return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
             } else {
                 $errorInfo = '23502';   // 23502 info_users tablosunda bulunamadı. not_null_violation   
@@ -522,6 +534,14 @@ class InfoUsers extends \DAL\DalSlim {
             $pdo->beginTransaction(); 
                 $kontrol = $this->haveRecords($params);
                 if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                    
+                    $operationIdValue = -1;
+                    $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 45, 'type_id' => 1,));
+                    if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                    $operationIdValue = $operationId ['resultSet'][0]['id'];
+                    }
+                    
                     $ConsultantId = 1001;
                     $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users' , 'operation_type_id' => $operationIdValue));
                     if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
@@ -534,12 +554,7 @@ class InfoUsers extends \DAL\DalSlim {
                         $languageIdValue = $params['preferred_language'];
                     }                   
                     
-                    $operationIdValue = -1;
-                    $operationId = SysOperationTypes::getTypeIdToGoOperationId(
-                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 45, 'type_id' => 1,));
-                    if (\Utill\Dal\Helper::haveRecord($operationId)) {
-                    $operationIdValue = $operationId ['resultSet'][0]['id'];
-                    }
+                   
                     
                     $CountryCode = NULL;
                     $CountryCodeValue = 'TR';
@@ -613,6 +628,17 @@ class InfoUsers extends \DAL\DalSlim {
                                 'password' => $params['password'],
                                 'consultant_id'=> $ConsultantId
                     ));
+                    
+                    $xjobs = ActProcessConfirm::insert(array(
+                              'op_user_id' => intval($insertID),
+                              'operation_type_id' => intval($operationIdValue),
+                              'table_column_id' => intval($insertID),
+                              'cons_id' => intval($ConsultantId),
+                              'preferred_language_id' => intval($languageIdValue),
+                                  )
+                      );
+                       if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                      throw new \PDOException($xjobs['errorInfo']);
 
                     $pdo->commit();
                     $logDbData = $this->getUsernamePrivateKey(array('id' => $insertID));                    
@@ -652,7 +678,7 @@ class InfoUsers extends \DAL\DalSlim {
             $pdo->beginTransaction();
             $userId = $this->getUserId(array('pk' => $params['pk'],));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $userIdValue = $userId ['resultSet'][0]['user_id'];
+                $opUserIdValue = $userId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
                 if ( \Utill\Dal\Helper::haveRecord($kontrol)) {                    
                     $languageIdValue = 647;                    
@@ -669,8 +695,8 @@ class InfoUsers extends \DAL\DalSlim {
                      * parametre olarak gelen array deki 'id' li kaydın, info_users tablosundaki 
                      * alanlarını update eder !! username update edilmez.  
                      */
-                    $this->updateInfoUsers(array('id' => $userIdValue,
-                        'op_user_id' => $userIdValue,
+                    $this->updateInfoUsers(array('id' => $opUserIdValue,
+                        'op_user_id' => $opUserIdValue,
                         'active' => $params['active'],
                         'language_id' => $languageIdValue,
                         'password' => $params['password'],
@@ -680,7 +706,7 @@ class InfoUsers extends \DAL\DalSlim {
                      *  parametre olarak gelen array deki 'id' li kaydın, info_users_details tablosundaki 
                      * active = 0 ve deleted = 0 olan kaydın active alanını 1 yapar  !!
                      */
-                    $this->setUserDetailsDisables(array('id' => $userIdValue));
+                    $this->setUserDetailsDisables(array('id' => $opUserIdValue));
                     $sql = " 
                     INSERT INTO info_users_detail(
                            profile_public,
@@ -702,7 +728,7 @@ class InfoUsers extends \DAL\DalSlim {
                                 '" . $params['surname'] . "' AS surname,
                                 '" . $params['auth_email'] . "' AS auth_email,   
                                 " . intval($languageIdValue). " AS language_id,   
-                                " . intval($userIdValue) . " AS user_id,
+                                " . intval($opUserIdValue) . " AS user_id,
                                 a.root_id AS root_id,
                                 a.act_parent_id,
                                 '" . $params['password'] . "' AS password ,
@@ -741,7 +767,7 @@ class InfoUsers extends \DAL\DalSlim {
                     if (\Utill\Dal\Helper::haveRecord($consIdAndLanguageId)) {
                         $ConsultantId = $consIdAndLanguageId ['resultSet'][0]['consultant_id'];
                         // $languageIdValue = $consIdAndLanguageId ['resultSet'][0]['language_id'];                       
-                    }
+                    } 
 
                     $xjobs = ActProcessConfirm::insert(array(
                                 'op_user_id' => intval($opUserIdValue), // işlemi yapan user
@@ -789,7 +815,7 @@ class InfoUsers extends \DAL\DalSlim {
             $pdo->beginTransaction();
             $userId = $this->getUserIdTemp(array('pktemp' => $params['pktemp']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $userIdValue = $userId ['resultSet'][0]['user_id'];
+                $opUserIdValue = $userId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
                 if (\Utill\Dal\Helper::haveRecord($kontrol)) {
                     $active = 0;                 
@@ -813,8 +839,8 @@ class InfoUsers extends \DAL\DalSlim {
                      * parametre olarak gelen array deki 'id' li kaydın, info_users tablosundaki 
                      * alanlarını update eder !! username update edilmez.  
                      */
-                    $this->updateInfoUsers(array('id' => $userIdValue,
-                        'op_user_id' => $userIdValue,                        
+                    $this->updateInfoUsers(array('id' => $opUserIdValue,
+                        'op_user_id' => $opUserIdValue,                        
                         'active' => $active,
                         'operation_type_id' => $operationIdValue,
                         'language_id' => $languageIdValue,
@@ -825,7 +851,7 @@ class InfoUsers extends \DAL\DalSlim {
                      *  parametre olarak gelen array deki 'id' li kaydın, info_users_details tablosundaki 
                      * active = 0 ve deleted = 0 olan kaydın active alanını 1 yapar  !!
                      */
-                    $this->setUserDetailsDisables(array('id' =>$userIdValue));
+                    $this->setUserDetailsDisables(array('id' =>$opUserIdValue));
 
                     $sql = " 
                     INSERT INTO info_users_detail(
@@ -849,12 +875,12 @@ class InfoUsers extends \DAL\DalSlim {
                                 '" . $params['surname'] . "' AS surname,
                                 '" . $params['auth_email'] . "' AS auth_email,   
                                 '" . $params['preferred_language'] . "' AS language_id,   
-                                " . intval($userIdValue) . " AS user_id,
+                                " . intval($opUserIdValue) . " AS user_id,
                                 a.root_id,
                                 a.act_parent_id,
                                 '" . $params['password'] . "' AS password
                             FROM info_users_detail a
-                            WHERE root_id  =" . intval($userIdValue) . "                               
+                            WHERE root_id  =" . intval($opUserIdValue) . "                               
                                 AND active =1 AND deleted =0 and 
                                 c_date = (SELECT MAX(c_date)  
 						FROM info_users_detail WHERE root_id =a.root_id
@@ -991,8 +1017,6 @@ class InfoUsers extends \DAL\DalSlim {
     }
 
     /**
-     * Datagrid fill function used for testing
-     * user interface datagrid fill operation
      * @param array | null $args
      * @return Array
      * @throws \PDOException
@@ -1115,8 +1139,7 @@ class InfoUsers extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * user interface datagrid fill operation get row count for widget
+    /** 
      * @param array | null $params
      * @return array
      * @throws \PDOException
@@ -1164,9 +1187,15 @@ class InfoUsers extends \DAL\DalSlim {
             $pdo->beginTransaction();
             $userId = $this->getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $userIdValue = $userId ['resultSet'][0]['user_id']; 
-                $this->setUserDetailsDisables(array('id' => $userIdValue));
-                $this->makeUserDeleted(array('id' => $userIdValue));
+                $opUserIdValue = $userId ['resultSet'][0]['user_id'];                 
+                $operationIdValue = -3;
+                $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                            array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 43, 'type_id' => 3,));
+                if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                $operationIdValue = $operationId ['resultSet'][0]['id'];
+                }                
+                $this->setUserDetailsDisables(array('id' => $opUserIdValue));
+                $this->makeUserDeleted(array('id' => $opUserIdValue));
                 $sql = " 
                     INSERT INTO info_users_detail(
                            profile_public,   
@@ -1194,7 +1223,7 @@ class InfoUsers extends \DAL\DalSlim {
                                 f_check,   
                                 s_date,                              
                                 timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) , 
-                                3,
+                                " . intval($operationIdValue) . " AS operation_type_id,
                                 name,
                                 surname,                                                                        
                                 auth_email,  
@@ -1204,15 +1233,14 @@ class InfoUsers extends \DAL\DalSlim {
                                 language_code,
                                 language_id,
                                 root_id,                               
-                                " . intval($userIdValue) . " AS op_user_id,
+                                " . intval($opUserIdValue) . " AS op_user_id,
                                 language_id,
                                 password,   
                                1,
                                1
                             FROM info_users_detail 
-                            WHERE root_id  =" . intval($userIdValue) . " 
-                                AND active =0 AND deleted =0 
- 
+                            WHERE root_id  =" . intval($opUserIdValue) . " 
+                                AND active =0 AND deleted =0  
                     "; 
                 $statement_act_insert = $pdo->prepare($sql);   
                 $insert_act_insert = $statement_act_insert->execute();
@@ -1230,7 +1258,6 @@ class InfoUsers extends \DAL\DalSlim {
                     $ConsultantId = $consIdAndLanguageId ['resultSet'][0]['consultant_id'];
                     $languageIdValue = $consIdAndLanguageId ['resultSet'][0]['language_id'];                       
                 }
-
                 $xjobs = ActProcessConfirm::insert(array(
                             'op_user_id' => intval($opUserIdValue), // işlemi yapan user
                             'operation_type_id' => intval($operationIdValue), // operasyon 
@@ -1239,7 +1266,6 @@ class InfoUsers extends \DAL\DalSlim {
                             'preferred_language_id' => intval($languageIdValue), // dil bilgisi
                                 )
                 );
-
                 if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
                     throw new \PDOException($xjobs['errorInfo']);
                 $pdo->commit();
@@ -2007,7 +2033,7 @@ class InfoUsers extends \DAL\DalSlim {
         }
     }
 
-         /**  
+    /**  
      * @author Okan CIRAN
      * @ network key den firm id sini döndürür  !!     
      * @version v 1.0  09.05.2016
@@ -2045,6 +2071,318 @@ class InfoUsers extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-  
     
+    /**
+     * info_users tablosundaki danışman kaydı oluşturur  !!
+     * @author Okan CIRAN
+     * @version v 1.0  09.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws PDOException
+     */
+    public function insertConsultant($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $kontrol = $this->haveRecords($params); // username kontrolu
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                $userId = $this->getUserId(array('pk' => $params['pk'])); // bı pk var mı  
+                if (\Utill\Dal\Helper::haveRecord($userId)) {
+                    $opUserIdValue = $userId ['resultSet'][0]['user_id'];
+
+                    $roleId = 2;
+                    if ((isset($params['role_id']) && $params['role_id'] != "")) {
+                        $roleId = $params['role_id'];
+                    }
+
+                    $languageIdValue = 647;
+                    if ((isset($params['preferred_language']) && $params['preferred_language'] != "")) {
+                        $languageIdValue = $params['preferred_language'];
+                    }
+
+                    $operationIdValue = -1;
+                    $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                                    array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 43, 'type_id' => 1,));
+                    if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                        $operationIdValue = $operationId ['resultSet'][0]['id'];
+                    }
+                    //uzerinde az iş olan consultantı alalım. 
+                    $ConsultantId = 1001;
+                    $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users',
+                                'operation_type_id' => $operationIdValue,
+                                'language_id' => $languageIdValue,
+                    ));
+                    if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
+                        $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
+                    }
+
+                    $CountryCode = NULL;
+                    $CountryCodeValue = 'TR';
+                    if ((isset($params['country_id']) && $params['country_id'] != "")) {
+                        $CountryCode = SysCountrys::getCountryCode(array('country_id' => $params['country_id']));
+                        if (\Utill\Dal\Helper::haveRecord($CountryCode)) {
+                            $CountryCodeValue = $CountryCode ['resultSet'][0]['country_code'];
+                        }
+                    }
+
+                    $password = 'qwerty';
+
+                    $sql = " 
+                    INSERT INTO info_users(
+                               operation_type_id, 
+                               username,
+                               language_id,
+                               op_user_id,
+                               role_id,
+                               password,
+                               consultant_id,
+                               network_key
+                                )
+                    VALUES (    " . intval($operationIdValue) . ", 
+                                '" . $params['username'] . "',                               
+                                " . intval($languageIdValue) . ",
+                                " . intval($opUserIdValue) . ",
+                                " . intval($roleId) . ",
+                                '" . $password . "',       
+                                " . intval($ConsultantId) . ",
+                                CONCAT('U','" . $CountryCodeValue . "',ostim_userid_generator())
+                        )";
+                                
+
+                    $statement = $pdo->prepare($sql);
+                    // echo debugPDO($sql, $params);
+                    $result = $statement->execute();
+                    $insertID = $pdo->lastInsertId('info_users_id_seq');
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+
+
+                    /*
+                     * kullanıcı için gerekli olan private key ve value değerleri yaratılılacak.                       
+                     */
+                    $xc = $this->setPrivateKey(array('id' => $insertID));
+
+                    if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                        throw new \PDOException($xc['errorInfo']);
+                                
+                    /*
+                     * kullanıcı bilgileri info_users_detail tablosuna kayıt edilecek.   
+                     */
+                    $xc = $this->insertConsultantDetail(
+                            array(
+                                'id' => $insertID,
+                                'op_user_id' => $opUserIdValue,
+                                'role_id' => $roleId,
+                                'language_id' => $params['preferred_language'],
+                                'name' => $params['name'],
+                                'surname' => $params['surname'],
+                                'auth_email' => $params['username'],
+                                'root_id' => $insertID,
+                                'consultant_id' => $ConsultantId,
+                                'password' => $password,
+                    ));
+                    if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                        throw new \PDOException($xc['errorInfo']);
+                                
+                    $xjobs = ActProcessConfirm::insert(array(
+                                'op_user_id' => intval($opUserIdValue),
+                                'operation_type_id' => intval($operationIdValue),
+                                'table_column_id' => intval($insertID),
+                                'cons_id' => intval($ConsultantId),
+                                'preferred_language_id' => intval($languageIdValue),
+                                    )
+                    );
+                    if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                        throw new \PDOException($xjobs['errorInfo']);
+                                
+                    $logDbData = $this->getUsernamePrivateKey(array('id' => $insertID));
+
+                    if ($logDbData['errorInfo'][0] != "00000" && $logDbData['errorInfo'][1] != NULL && $logDbData['errorInfo'][2] != NULL)
+                        throw new \PDOException($logDbData['errorInfo']);
+
+                    $this->insertLogUser(array('oid' => $insertID,
+                        'username' => $logDbData['resultSet'][0]['username'],
+                        'sf_private_key_value' => $logDbData['resultSet'][0]['sf_private_key_value'],
+                        'sf_private_key_value_temp' => $logDbData['resultSet'][0]['sf_private_key_value_temp']
+                    ));
+                                
+                    /*
+                     * danısman tablosuna kaydedelim.
+                     */
+                    $xc = $this->insertConsultantSysOsbConsultants(array(
+                        'op_user_id' => intval($opUserIdValue),
+                        'user_id' => intval($insertID),
+                        'osb_id' => intval($params['osb_id']),
+                        'language_id' => intval($languageIdValue),
+                        'preferred_language_json' => $params['preferred_language_json'],
+                        'title' => $params['title'],
+                        'title_eng' => $params['title_eng'],
+                    ));
+
+                    if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                        throw new \PDOException($xc['errorInfo']);
+
+                    $insertID = $xc['lastInsertId'] ;
+                                
+                    $pdo->commit();
+
+                    return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                } else {
+                    $errorInfo = '23502';   // 23502  not_null_violation
+                    $errorInfoColumn = 'pk';
+                    $pdo->rollback();
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
+            } else {
+                $errorInfo = '23505';   // 23505  unique_violation
+                $errorInfoColumn = 'username';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * info_users_detail tablosunda danısman kaydı oluşturur  !!
+     * @author Okan CIRAN
+     * @version v 1.0  09.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws PDOException
+     */
+    public function insertConsultantDetail($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
+                $operationIdValue = -1;
+                $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                            array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 40, 'type_id' => 1,));
+                if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                $operationIdValue = $operationId ['resultSet'][0]['id'];
+                }
+                $sql = " 
+                INSERT INTO info_users_detail(
+                            operation_type_id, 
+                            name, 
+                            surname, 
+                            auth_email,
+                            act_parent_id,
+                            language_id,
+                            root_id,
+                            op_user_id,
+                            password,
+                            consultant_id)
+                VALUES (    
+                            ". intval($operationIdValue).", 
+                            :name, 
+                            :surname, 
+                            :auth_email,
+                            (SELECT last_value FROM info_users_detail_id_seq),
+                            :language_id,
+                            :root_id,
+                            :op_user_id,
+                            :password,
+                            ". intval($params['consultant_id'])."
+                    )";
+                $statement = $pdo->prepare($sql);               
+                $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
+                $statement->bindValue(':surname', $params['surname'], \PDO::PARAM_STR);
+                $statement->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);                
+                $statement->bindValue(':password', $params['password'], \PDO::PARAM_STR);
+                $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
+                $statement->bindValue(':root_id', $params['root_id'], \PDO::PARAM_INT);
+                $statement->bindValue(':op_user_id', $params['op_user_id'], \PDO::PARAM_INT);
+           //   echo debugPDO($sql, $params);
+                $result = $statement->execute();
+                $insertID = $pdo->lastInsertId('info_users_detail_id_seq');
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]); 
+                
+                $xjobs = ActProcessConfirm::insert(array(
+                             'op_user_id' => intval( $params['op_user_id']),
+                             'operation_type_id' => intval($operationIdValue),
+                             'table_column_id' => intval($insertID),
+                             'cons_id' => intval($params['consultant_id']),
+                             'preferred_language_id' => intval($params['language_id']),
+                                 )
+                     );
+                      if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                     throw new \PDOException($xjobs['errorInfo']);
+
+                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);                                
+        } catch (\PDOException $e /* Exception $e */) {         
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * sys_osb_consultants tablosundaki danısman kaydı oluşturur  !!
+     * @author Okan CIRAN
+     * @version v 1.0  09.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws PDOException
+     */
+    public function insertConsultantSysOsbConsultants($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+               /* $operationIdValue = -1;
+                $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                            array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 40, 'type_id' => 1,));
+                if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                $operationIdValue = $operationId ['resultSet'][0]['id'];
+                }
+                * {"0":20,"1":23}
+                */
+                $sql = " 
+                INSERT INTO sys_osb_consultants(
+                            osb_id, 
+                            country_id,                        
+                            op_user_id, 
+                            language_id,                        
+                            user_id,
+                            title,
+                            title_eng,
+                            preferred_language_json
+                            )
+                VALUES (    
+                            ". intval($params['osb_id']).", 
+                            91,                              
+                            ". intval($params['op_user_id']).", 
+                            ". intval($params['language_id']).", 
+                            ". intval($params['user_id']).",
+                            '". $params['title']."',
+                            '". $params['title_eng']."',
+                            (SELECT array_to_json(COALESCE(NULLIF(cxx,'{}'),NULL)) FROM (
+                                    SELECT  
+                                        ARRAY(   
+                                             SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each('". $params['preferred_language_json']."')) AS cxx
+                                            ) AS zxtable )
+                    )";
+                
+                /*
+                 SELECT array_to_json(COALESCE(NULLIF(cxx,'{}'),NULL)) FROM (
+                    SELECT  
+                        ARRAY(   
+                             SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each('{"0":20,"1":23}')) AS cxx
+                            ) AS zxtable
+                 */
+                $statement = $pdo->prepare($sql);                               
+                // echo debugPDO($sql, $params);
+                $result = $statement->execute();
+                $insertID = $pdo->lastInsertId('sys_osb_consultants_id_seq');                                
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);  
+
+                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+        } catch (\PDOException $e /* Exception $e */) {         
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
 }

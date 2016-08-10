@@ -205,6 +205,19 @@ class InfoUsers extends \BLL\BLLSlim{
         $resultSet = $DAL->fillUsersInformationNpk($params);  
         return $resultSet['resultSet'];
     } 
+
+      
+    /**
+     * DAta insert function
+     * @param array | null $params
+     * @return array
+     */
+    public function insertConsultant($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
+        return $DAL->insertConsultant($params);
+    }
+    
+    
     
     
 }
