@@ -29,23 +29,30 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
     public function delete($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();      
-             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
-                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];   
-            $statement = $pdo->prepare(" 
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $opId = $this->haveActionRecords(array('id' => $params['id']));
+                if (!\Utill\Dal\Helper::haveRecord($opId)) {
+                    $statement = $pdo->prepare(" 
                 UPDATE sys_acl_rrp_restservices
-                SET  deleted= 1 , active = 1,
-                      op_user_id = " . intval($opUserIdValue) . "     
-                WHERE id = ".  intval($params['id'])  );      
-                            
-            $update = $statement->execute();
-            $afterRows = $statement->rowCount();
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+                SET deleted= 1, active = 1,
+                    op_user_id = " . intval($opUserIdValue) . "
+                WHERE id = " . intval($params['id']));
+                    $update = $statement->execute();
+                    $afterRows = $statement->rowCount();
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+                } else {
+                    $errorInfo = '23503';   // 23503  foreign_key_violation
+                    $errorInfoColumn = 'restservices_id';
+                    $pdo->rollback();
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
             } else {
                 $errorInfo = '23502';  /// 23502  not_null_violation
                 $pdo->rollback();
@@ -1313,7 +1320,7 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
         }
     }
                           
-        /**  
+    /**  
      * @author Okan CIRAN
      * @ tree doldurmak için sys_acl_rrp_restservices tablosundan rrp_id si dısında kalan kayıtların sayısını döndürür !! 
      * @version v 1.0  28.07.2016 
@@ -1404,7 +1411,41 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
         }
     }
 
-    
+       /**
+     * @author Okan CIRAN
+     * @ sys_assign_definition tablosunda restservices_id  daha önce kaydedilmiş mi ?  
+     * @version v 1.0  08.08.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function haveActionRecords($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                             
+            $sql = "             
+            SELECT
+                sarrr.restservices_id AS name,
+                a.assign_definition_id = " . $params['id'] . " AS control,
+                'Bu RestServis Yetki ile İlişkilendirilmiş. Lütfen Kontrol Ediniz !!!' AS message   
+            FROM sys_operation_types_rrp  a 
+            INNER JOIN sys_acl_rrp_restservices sarrr ON sarrr.id= a.rrp_restservice_id 
+            WHERE sarrr.id = ".intval($params['id']). "	
+                AND a.deleted =0    
+            LIMIT 1
+                               ";
+            $statement = $pdo->prepare($sql);
+          // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+ 
     
     
 }
