@@ -95,6 +95,10 @@ $app->get("/pkInsert_sysAclActions/", function () use ($app ) {
     if (isset($_GET['description'])) {
         $stripper->offsetSet('description', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['description']));
     }
+    $vRoleIds = NULL;
+    if (isset($_GET['role_ids'])) {
+        $stripper->offsetSet('role_ids', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, $app, $_GET['role_ids']));
+    }
 
     $stripper->strip();
     if ($stripper->offsetExists('name'))
@@ -103,12 +107,15 @@ $app->get("/pkInsert_sysAclActions/", function () use ($app ) {
         $vDescription = $stripper->offsetGet('description')->getFilterValue();
     if ($stripper->offsetExists('module_id'))
         $vModuleId = $stripper->offsetGet('module_id')->getFilterValue();
+    if ($stripper->offsetExists('role_ids'))
+        $vRoleIds = $stripper->offsetGet('role_ids')->getFilterValue();
 
 
     $resDataInsert = $BLL->insert(array(
         'name' => $vName,
         'module_id' => $vModuleId,
         'description' => $vDescription,
+        'role_ids' => $vRoleIds,
         'pk' => $pk));
 
     $app->response()->header("Content-Type", "application/json");
@@ -144,6 +151,12 @@ $app->get("/pkUpdate_sysAclActions/", function () use ($app ) {
     if (isset($_GET['description'])) {
         $stripper->offsetSet('description', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['description']));
     }
+    $vRoleIds = NULL;
+    if (isset($_GET['role_ids'])) {
+        $stripper->offsetSet('role_ids', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, $app, $_GET['role_ids']));
+    }
+    
+    
 
     $stripper->strip();
     if ($stripper->offsetExists('id'))
@@ -154,11 +167,14 @@ $app->get("/pkUpdate_sysAclActions/", function () use ($app ) {
         $vDescription = $stripper->offsetGet('description')->getFilterValue();
     if ($stripper->offsetExists('module_id'))
         $vModuleId = $stripper->offsetGet('module_id')->getFilterValue();
+    if ($stripper->offsetExists('role_ids'))
+        $vRoleIds = $stripper->offsetGet('role_ids')->getFilterValue();
 
     $resDataInsert = $BLL->update(array(
         'id' => $vId,
         'name' => $vName,
         'module_id' => $vModuleId,
+        'role_ids' => $vRoleIds,
         'description' => $vDescription,
         'pk' => $pk));
 
@@ -379,6 +395,7 @@ $app->get("/pkFillActionList_sysAclActions/", function () use ($app ) {
                 "module_id" => $flow["module_id"] ,
                 "module_name" => html_entity_decode($flow["module_name"]),
                 "description" => html_entity_decode($flow["description"]),
+                "role_ids" => $flow["role_ids"] ,                
                 "attributes" => array(                    
                     "active" => $flow["active"], 
                 ));
