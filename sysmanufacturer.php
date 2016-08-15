@@ -75,7 +75,7 @@ $app->get("/pkFillManufacturerList_sysManufacturer/", function () use ($app ) {
     $flows[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Please Choose",); 
     foreach ($resCombobox as $flow) {
         $flows[] = array(            
-            "text" => $flow["manufacturer_name"],
+            "text" => $flow["name"],
             "value" =>  intval($flow["id"]),
             "selected" => false,
             "description" => $flow["abbreviation_eng"],
@@ -107,11 +107,17 @@ $app->get("/pkInsert_sysManufacturer/", function () use ($app ) {
                                                 $app,
                                                 $_GET['language_code']));
     }           
-    $vManufacturerName = NULL;
-    if (isset($_GET['manufacturer_name'])) {
-         $stripper->offsetSet('manufacturer_name',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+    $vName = NULL;
+    if (isset($_GET['name'])) {
+         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
-                                                $_GET['manufacturer_name']));
+                                                $_GET['name']));
+    } 
+     $vNameEng = NULL;
+    if (isset($_GET['name_eng'])) {
+         $stripper->offsetSet('name_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['name_eng']));
     } 
     $vDescription = NULL;
     if (isset($_GET['description'])) {
@@ -154,8 +160,11 @@ $app->get("/pkInsert_sysManufacturer/", function () use ($app ) {
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     }  
-    if ($stripper->offsetExists('manufacturer_name')) {
-        $vManufacturerName = $stripper->offsetGet('manufacturer_name')->getFilterValue();
+    if ($stripper->offsetExists('name')) {
+        $vName = $stripper->offsetGet('name')->getFilterValue();
+    }
+    if ($stripper->offsetExists('name_eng')) {
+        $vNameEng = $stripper->offsetGet('name_eng')->getFilterValue();
     }
     if ($stripper->offsetExists('description')) {
         $vDescription = $stripper->offsetGet('description')->getFilterValue();
@@ -178,7 +187,8 @@ $app->get("/pkInsert_sysManufacturer/", function () use ($app ) {
     
     $resData = $BLL->insert(array(  
             'language_code' => $vLanguageCode, 
-            'manufacturer_name' => $vManufacturerName,
+            'name' => $vName,
+            'name_eng' => $vNameEng,
             'description'=> $vDescription, 
             'description_eng'=> $vDescriptionEng, 
             'about' => $vAbout,
@@ -199,7 +209,7 @@ $app->get("/pkInsert_sysManufacturer/", function () use ($app ) {
  * @since 17.05.2016
  */
 $app->get("/pkUpdate_sysManufacturer/", function () use ($app ) {    
-     $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
     $BLL = $app->getBLLManager()->get('sysManufacturerBLL');   
     $headerParams = $app->request()->headers();
@@ -217,11 +227,17 @@ $app->get("/pkUpdate_sysManufacturer/", function () use ($app ) {
                                                 $app,
                                                 $_GET['id']));
     }  
-    $vManufacturerName = NULL;
-    if (isset($_GET['manufacturer_name'])) {
-         $stripper->offsetSet('manufacturer_name',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+     $vName = NULL;
+    if (isset($_GET['name'])) {
+         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
                                                 $app,
-                                                $_GET['manufacturer_name']));
+                                                $_GET['name']));
+    } 
+     $vNameEng = NULL;
+    if (isset($_GET['name_eng'])) {
+         $stripper->offsetSet('name_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['name_eng']));
     } 
     $vDescription = NULL;
     if (isset($_GET['description'])) {
@@ -267,8 +283,11 @@ $app->get("/pkUpdate_sysManufacturer/", function () use ($app ) {
     if ($stripper->offsetExists('id')) {
         $vId = $stripper->offsetGet('id')->getFilterValue();
     } 
-    if ($stripper->offsetExists('manufacturer_name')) {
-        $vManufacturerName = $stripper->offsetGet('manufacturer_name')->getFilterValue();
+    if ($stripper->offsetExists('name')) {
+        $vName = $stripper->offsetGet('name')->getFilterValue();
+    }
+    if ($stripper->offsetExists('name_eng')) {
+        $vNameEng = $stripper->offsetGet('name_eng')->getFilterValue();
     }
     if ($stripper->offsetExists('description')) {
         $vDescription = $stripper->offsetGet('description')->getFilterValue();
@@ -292,7 +311,8 @@ $app->get("/pkUpdate_sysManufacturer/", function () use ($app ) {
     $resData = $BLL->update(array(  
             'id' => $vId, 
             'language_code' => $vLanguageCode, 
-            'manufacturer_name' => $vManufacturerName,
+            'name' => $vName,
+            'name_eng' => $vNameEng,
             'description'=> $vDescription, 
             'description_eng'=> $vDescriptionEng, 
             'about' => $vAbout,
@@ -373,12 +393,12 @@ $app->get("/pkFillGrid_sysManufacturer/", function () use ($app ) {
  * @since 17.05.2016
  */
 $app->get("/pkUpdateMakeActiveOrPassive_sysManufacturer/", function () use ($app ) {
-    $stripper = $app->getServiceManager()->get('filterChainerCustom');
-    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
-    $BLL = $app->getBLLManager()->get('sysManufacturerBLL');
-    if(!isset($headerParams['X-Public'])) 
-       throw new Exception ('rest api "pkUpdateMakeActiveOrPassive_sysManufacturer" end point, X-Public variable not found');
-    $pk = $headerParams['X-Public'];          
+      $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('sysManufacturerBLL');   
+    $headerParams = $app->request()->headers();
+    if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkUpdateMakeActiveOrPassive_sysManufacturer" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];      
     $vId = NULL;
     if (isset($_GET['id'])) {
         $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
@@ -395,6 +415,100 @@ $app->get("/pkUpdateMakeActiveOrPassive_sysManufacturer/", function () use ($app
     $app->response()->body(json_encode($resData));
 }
 ); 
+
+/**
+ *  * Okan CIRAN
+ * @since 15-08-2016
+ */
+$app->get("/pkFillManufacturerListGrid_sysManufacturer/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysManufacturerBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillManufacturerListGrid_sysManufacturer" end point, X-Public variable not found');
+    }
+  //  $pk = $headerParams['X-Public'];
+ 
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, 
+                $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+                $app, $_GET['filterRules']));
+    }
+
+    $stripper->strip();     
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    }
+    
+    $resDataGrid = $BLL->fillManufacturerListGrid(array(        
+        'page' => $vPage,
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,       
+        'filterRules' => $filterRules,
+    ));
+    $resTotalRowCount = $BLL->fillManufacturerListGridRtc(array(    
+        'filterRules' => $filterRules,
+    ));
+    $counts = 0;
+    $flows = array();
+    if (isset($resDataGrid[0]['id'])) {
+        foreach ($resDataGrid as $flow) {
+            $flows[] = array(
+            "id" => $flow["id"],
+            "name" => html_entity_decode($flow["name"]),
+            "name_eng" => html_entity_decode($flow["name_eng"]),
+            "description" => html_entity_decode($flow["description"]),      
+            "description_eng" => html_entity_decode($flow["description_eng"]),        
+            "about" => html_entity_decode($flow["about"]),
+            "about_eng" => html_entity_decode($flow["about_eng"]),                
+            "abbreviation" => html_entity_decode($flow["abbreviation"]),
+            "abbreviation_eng" => html_entity_decode($flow["abbreviation_eng"]),           
+            "attributes" => array(              
+                "active" => $flow["active"], ) );
+        };
+        $counts = $resTotalRowCount[0]['count'];
+    }   
+    
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['total'] = $counts;
+    $resultArray['rows'] = $flows;
+    $app->response()->body(json_encode($resultArray));
+});
 
 /**x
  *  * Okan CIRAN
