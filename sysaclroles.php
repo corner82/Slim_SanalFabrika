@@ -812,6 +812,43 @@ $app->get("/pkFillConsultantRolesDdlist_sysAclRoles/", function () use ($app ) {
     $app->response()->body(json_encode($flows));
 });
 
+/**
+ *  * Okan CIRAN
+ * @since 09-08-2016
+ 
+ */
+$app->get("/pkFillRolesDdlist_sysAclRoles/", function () use ($app ) {   
+    $BLL = $app->getBLLManager()->get('sysAclRolesBLL');
+
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkFillRolesDdlist_sysAclRoles" end point, X-Public variable not found');
+    //$pk = $headerParams['X-Public']; 
+    $resCombobox = $BLL->fillRolesDdlist();
+ 
+    $flows = array();
+    $flows[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",);
+    foreach ($resCombobox as $flow) {
+        $flows[] = array(
+            "text" => html_entity_decode($flow["name"]),
+            "value" => intval($flow["id"]),
+            "selected" => false,
+            "description" => html_entity_decode($flow["name_tr"]),
+            // "imageSrc"=>$flow["logo"],             
+            "attributes" => array(                 
+                    "active" => $flow["active"],
+                   
+            ),
+        );
+    }
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($flows));
+});
+
 
 
 

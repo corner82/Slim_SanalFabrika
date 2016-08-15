@@ -1022,7 +1022,7 @@ class SysAclRoles extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             $statement = $pdo->prepare($sql);
-            //  echo debugPDO($sql, $params);
+            // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1257,6 +1257,42 @@ class SysAclRoles extends \DAL\DalSlim {
                    mt.deleted = 0 AND
                    mt.active =0 
                 ORDER BY name 
+                                 ";
+             $statement = $pdo->prepare( $sql);
+          //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {      
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+  
+       /**  
+     * @author Okan CIRAN
+     * @ ddslick doldurmak için sys_acl_roles tablosundan danısman kayıtları döndürür !!
+     * @version v 1.0 09.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillRolesDdlist($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');   
+            $sql ="
+                SELECT
+                    a.id,
+                    a.name,
+                    a.name_tr, 
+                    a.active   
+                FROM sys_acl_roles a  
+                WHERE    
+                    a.deleted = 0 AND
+                    a.active =0 
+                ORDER BY name    
                                  ";
              $statement = $pdo->prepare( $sql);
           //  echo debugPDO($sql, $params);
