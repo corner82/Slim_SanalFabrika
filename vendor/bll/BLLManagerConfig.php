@@ -109,6 +109,7 @@ class BLLManagerConfig{
                  'sysAclRestservicesBLL' => 'BLL\BLL\SysAclRestservices',
                  'sysAssignDefinitionBLL' => 'BLL\BLL\SysAssignDefinition',
                  'sysAssignDefinitionRolesBLL' => 'BLL\BLL\SysAssignDefinitionRoles',
+                 'sysAclActionRrpBLL' => 'BLL\BLL\SysAclActionRrp',
                
                  
                  

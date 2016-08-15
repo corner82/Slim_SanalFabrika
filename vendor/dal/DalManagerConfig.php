@@ -114,6 +114,8 @@ class DalManagerConfig {
                 'sysAclRestservicesPDO' => 'DAL\Factory\PDO\SysAclRestservicesFactory',
                 'sysAssignDefinitionPDO' => 'DAL\Factory\PDO\SysAssignDefinitionFactory',   
                 'sysAssignDefinitionRolesPDO' => 'DAL\Factory\PDO\SysAssignDefinitionRolesFactory',   
+                'sysAclActionRrpPDO' => 'DAL\Factory\PDO\SysAclActionRrpFactory',   
+                
                 
                                  
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
