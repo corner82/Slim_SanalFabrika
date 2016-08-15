@@ -106,5 +106,29 @@ class SysManufacturer extends \BLL\BLLSlim {
         return $DAL->makeActiveOrPassive($params);
     }
     
+       
+    /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+    */
+    public function fillManufacturerListGrid($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('sysManufacturerPDO');
+        $resultSet = $DAL->fillManufacturerListGrid($params);  
+        return $resultSet['resultSet'];
+    }
+    
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillManufacturerListGridRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysManufacturerPDO');
+        $resultSet = $DAL->fillManufacturerListGridRtc($params);  
+        return $resultSet['resultSet'];
+    }    
+    
+    
     
 }
