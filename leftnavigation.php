@@ -63,12 +63,7 @@ $app->get("/pkGetLeftMenu_leftnavigation/", function () use ($app ) {
         throw new Exception('rest api "pkGetLeftMenu_leftnavigation" end point, X-Public variable not found');
     $pk = $headerParams['X-Public'];    
     
-    $vMenuTypesId= NULL;
-    if (isset($_GET['menu_types_id'])) {
-        $stripper->offsetSet('menu_types_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
-                                                        $app, 
-                                                        $_GET['menu_types_id']));
-    }
+    
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
         $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, 
@@ -81,20 +76,33 @@ $app->get("/pkGetLeftMenu_leftnavigation/", function () use ($app ) {
                                                                 $app, 
                                                                 $_GET['parent']));
     }
-    
+    $vM = NULL;
+    if (isset($_GET['m'])) {
+        $stripper->offsetSet('m', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ALPHABETIC_ALLOWED, 
+                                                                $app, 
+                                                                $_GET['m']));
+    }
+    $vA = NULL;
+    if (isset($_GET['a'])) {
+        $stripper->offsetSet('a', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ALPHABETIC_ALLOWED, 
+                                                                $app, 
+                                                                $_GET['a']));
+    }
     $stripper->strip(); 
     if ($stripper->offsetExists('parent')) 
-        {$vParent = $stripper->offsetGet('parent')->getFilterValue(); }     
-    if ($stripper->offsetExists('menu_types_id')) 
-        {$vMenuTypesId = $stripper->offsetGet('menu_types_id')->getFilterValue(); }     
+        {$vParent = $stripper->offsetGet('parent')->getFilterValue(); }         
     if ($stripper->offsetExists('language_code')) {
-        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    }  
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue(); }  
+    if ($stripper->offsetExists('m')) 
+        {$vM = $stripper->offsetGet('m')->getFilterValue(); }     
+    if ($stripper->offsetExists('a')) 
+        {$vA = $stripper->offsetGet('a')->getFilterValue(); }     
     
     $resDataMenu = $BLL->pkGetLeftMenu(array('parent' => $vParent,
-                                            'language_code' => $vLanguageCode, 
-                                            'menu_types_id' => $vMenuTypesId ,
-                                           'pk' => $pk ,
+                                            'language_code' => $vLanguageCode,                                             
+                                            'm' => $vM,
+                                            'a' => $vA,
+                                            'pk' => $pk ,
                                            ) ); 
     $menus = array();
     foreach ($resDataMenu as $menu){

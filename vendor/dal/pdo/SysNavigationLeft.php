@@ -526,17 +526,19 @@ class SysNavigationLeft extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $languageId = NULL;
+             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+            }
+            
             $languageIdValue = 647;
             if ((isset($params['language_code']) && $params['language_code'] != "")) {                
                 $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (\Utill\Dal\Helper::haveRecord($languageId)) {
                     $languageIdValue = $languageId ['resultSet'][0]['id'];                    
                 }
-            }   
-            $MenuTypesId = 1;
-            if ((isset($params['menu_types_id']) && $params['menu_types_id'] != "")) {
-                $MenuTypesId = $params['menu_types_id'];
-            }
+            }    
+            
             $sql = "
                 SELECT 
                     id, menu_name, language_id, menu_name_eng, url, parent, icon_class, page_state, 
@@ -580,8 +582,24 @@ class SysNavigationLeft extends \DAL\DalSlim {
                             a.acl_type = 0 AND 
                             a.active = 0 AND 
                             a.deleted = 0 AND 
-                            a.menu_types_id = ".intval($MenuTypesId)." AND   
-                            a.parent = ".intval($params['parent'])." AND                    
+                            a.menu_types_id = 
+                                            (SELECT DISTINCT menu_types_id
+                                              FROM sys_acl_menu_types_actions mt 
+                                              where mt.active=0 AND mt.deleted =0 AND 
+                                                    mt.action_id IN (
+                                                    SELECT DISTINCT c.id 
+                                                    FROM sys_acl_actions c
+                                                    WHERE   c.active =0 AND c.deleted =0 AND 
+                                                            LOWER(c.name) = LOWER('".$params['a']."') AND 
+                                                            c.module_id = (
+                                                                    SELECT DISTINCT m.id
+                                                                    FROM sys_acl_modules m
+                                                                    WHERE m.active= 0 AND m.deleted =0 AND
+                                                                    LOWER(m.name) = LOWER('".$params['m']."')
+                                                              )
+                                                            )
+                                                           LIMIT 1 ) AND 
+                            a.parent = ".intval($params['parent'])." AND
                             a.menu_type = CAST(
                               (SELECT 
                                   COALESCE(NULLIF( 
@@ -612,7 +630,6 @@ class SysNavigationLeft extends \DAL\DalSlim {
                 ) AS xtable 
                 WHERE 
                 active =0 
-
                                  ";           
             $statement = $pdo->prepare($sql);
    
