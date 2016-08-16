@@ -40,14 +40,7 @@ $app->add(new \Slim\Middleware\MiddlewareDalManager());
 $app->add(new \Slim\Middleware\MiddlewareServiceManager());
 $app->add(new \Slim\Middleware\MiddlewareMQManager());
 
-
-$pdo = new PDO('pgsql:dbname=ecoman_01_10;host=88.249.18.205;user=postgres;password=1q2w3e4r');
-
-\Slim\Route::setDefaultConditions(array(
-    'firstName' => '[a-zA-Z]{3,}',
-    'page' => '[0-9]{1,}'
-));
-
+ 
 
 
 /**
@@ -81,77 +74,7 @@ $app->get("/pkFillComboBoxFullPrivilege_sysAclPrivilege/", function () use ($app
 
     $app->response()->body(json_encode($flows));
 });
-/**
- *  * Okan CIRAN
- * @since 13-01-2016
- */
-$app->get("/pkFillGrid_sysAclPrivilege/", function () use ($app ) {
-
-
-    $BLL = $app->getBLLManager()->get('sysAclPrivilegeBLL');
-
-    // Filters are called from service manager
-    //$filterHtmlAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HTML_TAGS_ADVANCED);
-    //  $filterHexadecimalBase = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED );
-    //$filterHexadecimalAdvanced = $app->getServiceManager()->get(\Services\Filter\FilterServiceNames::FILTER_HEXADECIMAL_ADVANCED);
-
-    $headerParams = $app->request()->headers();
-    $pk = $headerParams['X-Public'];
-    //print_r($resDataMenu);
-
-
-    $resDataGrid = $BLL->fillGrid(array('page' => $_GET['page'],
-        'rows' => $_GET['rows'],
-        'sort' => $_GET['sort'],
-        'order' => $_GET['order'],
-        'pk' => $pk));
-    //print_r($resDataGrid);
-
-    /**
-     * BLL fillGridRowTotalCount örneği test edildi
-     * datagrid için total row count döndürüyor
-     * Okan CIRAN
-     */
-    $resTotalRowCount = $BLL->fillGridRowTotalCount();
-
-    $flows = array();
-    foreach ($resDataGrid as $flow) {
-        $flows[] = array(
-            "id" => $flow["id"],
-            "name" => $flow["name"],
-            "icon_class" => $flow["icon_class"],
-            "create_date" => $flow["create_date"],
-            "icon_class" => $flow["icon_class"],
-            "create_date" => $flow["create_date"],
-            "start_date" => $flow["start_date"],
-            "end_date" => $flow["end_date"],
-            "parent" => $flow["parent"],
-            "deleted" => $flow["deleted"],
-            "state_deleted" => $flow["state_deleted"],
-            "active" => $flow["active"],
-            "state_active" => $flow["state_active"],
-            "description" => $flow["description"],
-            "user_id" => $flow["user_id"],
-            "username" => $flow["username"],
-            "root_parent" => $flow["root_parent"],
-            "root" => $flow["root"],            
-            "attributes" => array("notroot" => true, "active" => $flow["active"] ),
-        );
-    }
-
-    $app->response()->header("Content-Type", "application/json");
-
-    $resultArray = array();
-    $resultArray['total'] = $resTotalRowCount[0]['count'];
-    $resultArray['rows'] = $flows;
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
-    $app->response()->body(json_encode($resultArray));
-});
-
+ 
 /**
  *  * Okan CIRAN
  * @since 13-01-2016
@@ -271,69 +194,7 @@ $app->get("/pkUpdate_sysAclPrivilege/", function () use ($app ) {
     
 }
 );
-/**
- *  * Okan CIRAN
- * @since 11-01-2016
- */
-$app->get("/pkGetAll_sysAclPrivilege/", function () use ($app ) {
-
-
-    $BLL = $app->getBLLManager()->get('sysAclPrivilegeBLL');
-
-
-    $headerParams = $app->request()->headers();
-    $pk = $headerParams['X-Public'];
-    //print_r($resDataMenu);
-
-
-    $resDataGrid = $BLL->getAll();
-    //print_r($resDataGrid);
-
-    /**
-     * BLL fillGridRowTotalCount örneği test edildi
-     * datagrid için total row count döndürüyor
-     * Okan CIRAN
-     */
-    $resTotalRowCount = $BLL->fillGridRowTotalCount();
-
-    $flows = array();
-    foreach ($resDataGrid as $flow) {
-        $flows[] = array(
-            "id" => $flow["id"],
-            "name" => $flow["name"],
-            "icon_class" => $flow["icon_class"],
-            "create_date" => $flow["create_date"],
-            "icon_class" => $flow["icon_class"],
-            "create_date" => $flow["create_date"],
-            "start_date" => $flow["start_date"],
-            "end_date" => $flow["end_date"],
-            "parent" => $flow["parent"],
-            "deleted" => $flow["deleted"],
-            "state_deleted" => $flow["state_deleted"],
-            "active" => $flow["active"],
-            "state_active" => $flow["state_active"],
-            "description" => $flow["description"],
-            "user_id" => $flow["user_id"],
-            "username" => $flow["username"],
-            "root_parent" => $flow["root_parent"],
-            "root" => $flow["root"],
-            "attributes" => array("notroot" => true, "active" => $flow["active"] ),
-        );
-    }
-
-    $app->response()->header("Content-Type", "application/json");
-
-    $resultArray = array();
-    $resultArray['total'] = $resTotalRowCount[0]['count'];
-    $resultArray['rows'] = $flows;
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
-    $app->response()->body(json_encode($resultArray));
-});
-
+ 
 /**
  *  * Okan CIRAN
  * @since 13-01-2016
@@ -548,7 +409,7 @@ $app->get("/pkFillResourceGroups_sysAclPrivilege/", function () use ($app ) {
                                                 $app,
                                                 $_GET['last_node']));  
     }
-    $vMachine= NULL;
+    $vRoles= NULL;
      if (isset($_GET['roles'])) {
         $stripper->offsetSet('roles', 
                 $stripChainerFactory->get(stripChainers::FILTER_ONLY_BOOLEAN_ALLOWED,
@@ -566,7 +427,7 @@ $app->get("/pkFillResourceGroups_sysAclPrivilege/", function () use ($app ) {
     
     
     $stripper->strip();
-    if($stripper->offsetExists('machine')) $vMachine = $stripper->offsetGet('machine')->getFilterValue();    
+    if($stripper->offsetExists('roles')) $vRoles = $stripper->offsetGet('roles')->getFilterValue();    
     if($stripper->offsetExists('id')) $vParentId = $stripper->offsetGet('id')->getFilterValue();
     if($stripper->offsetExists('state')) $vState = $stripper->offsetGet('state')->getFilterValue();
     if($stripper->offsetExists('last_node')) $vLastNode = $stripper->offsetGet('last_node')->getFilterValue();
@@ -576,7 +437,7 @@ $app->get("/pkFillResourceGroups_sysAclPrivilege/", function () use ($app ) {
         $resCombobox = $BLL->FillResourceGroups(array('parent_id' => $vParentId,
                                                          'state' => $vState,
                                                          'last_node' => $vLastNode,
-                                                         'machine' => $vMachine,
+                                                         'roles' => $vRoles,
                                                          'search' => $vsearch,
                                                                 ));
     } else {

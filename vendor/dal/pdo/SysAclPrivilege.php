@@ -1146,7 +1146,7 @@ class SysAclPrivilege extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             $statement = $pdo->prepare($sql);
-            //echo debugPDO($sql, $params);
+           // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1229,8 +1229,7 @@ class SysAclPrivilege extends \DAL\DalSlim {
             $sorguStr2 = null;                            
             if (isset($params['role_id']) && $params['role_id'] != "") {
                 $sorguStr2 .= " AND role_id = " . $params['role_id'] ;
-            }     
-            $sorguStr2 = null;                            
+            }                                   
             if (isset($params['resource_id']) && $params['resource_id'] != "") {
                 $sorguStr2 .= " AND resource_id = " . $params['resource_id'] ;
             }
@@ -1250,7 +1249,7 @@ class SysAclPrivilege extends \DAL\DalSlim {
                     deleted,
                     rrp_id
                     FROM (
-                        SELECT
+                         SELECT
                             a.id AS privilege_id,
                             a.name AS privilege_name,
                             a.name_eng AS privilege_name_eng,
@@ -1274,7 +1273,7 @@ class SysAclPrivilege extends \DAL\DalSlim {
                         ) AS xtable
                  ";           
             $statement = $pdo->prepare($sql);
-           //echo debugPDO($sql, $params);
+           // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
