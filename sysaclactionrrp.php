@@ -362,6 +362,12 @@ $app->get("/pkFillActionResourceGroups_sysAclActionRrp/", function () use ($app 
                                                 $app,
                                                 $_GET['id']));
     }
+    $vRoleId = NULL;
+    if (isset($_GET['role_id'])) {
+        $stripper->offsetSet('role_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['role_id']));
+    }
     $vState =NULL;
     if (isset($_GET['state'])) {
         $stripper->offsetSet('state', $stripChainerFactory->get(stripChainers::FILTER_ONLY_STATE_ALLOWED,
@@ -395,12 +401,14 @@ $app->get("/pkFillActionResourceGroups_sysAclActionRrp/", function () use ($app 
     $stripper->strip();
     if($stripper->offsetExists('roles')) $vRoles = $stripper->offsetGet('roles')->getFilterValue();    
     if($stripper->offsetExists('id')) $vParentId = $stripper->offsetGet('id')->getFilterValue();
+    if($stripper->offsetExists('role_id')) $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
     if($stripper->offsetExists('state')) $vState = $stripper->offsetGet('state')->getFilterValue();
     if($stripper->offsetExists('last_node')) $vLastNode = $stripper->offsetGet('last_node')->getFilterValue();
     if($stripper->offsetExists('search')) $vsearch = $stripper->offsetGet('search')->getFilterValue();
  
     $resCombobox = $BLL->fillActionResourceGroups(array('parent_id' => $vParentId,
                                                          'state' => $vState,
+                                                         'role_id' => $vRoleId,
                                                          'last_node' => $vLastNode,
                                                          'roles' => $vRoles,
                                                          'search' => $vsearch,
@@ -413,6 +421,7 @@ $app->get("/pkFillActionResourceGroups_sysAclActionRrp/", function () use ($app 
             "text" => html_entity_decode($flow["name"]),
             "state" => $flow["state_type"], //   'closed',
             "checked" => false,
+            "resource_id" =>$flow["resource_id"], //   'closed',
            // "icon_class"=>$flow["icon_class"], 
             "attributes" => array("root" => $flow["root_type"], "active" => $flow["active"]
                 ,"roles" => $flow["roles"],"last_node" => $flow["last_node"]),

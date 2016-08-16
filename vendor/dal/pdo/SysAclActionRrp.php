@@ -684,7 +684,8 @@ class SysAclActionRrp extends \DAL\DalSlim {
                          WHEN 1 THEN 'false'			 
                     ELSE 'true'   
                     END AS last_node,
-                    'false' AS roles
+                    'false' AS roles,
+                    sare.id AS resource_id
                 FROM sys_acl_action_resources sare  
                 WHERE                    
                     sare.parent_id = " .intval($parentId) . " AND                 
@@ -715,9 +716,15 @@ class SysAclActionRrp extends \DAL\DalSlim {
     public function fillActionResourceGroupsPrivileges($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                            
+            $addSql = null;
             $parentId = 0;
             if (isset($params['parent_id']) && $params['parent_id'] != "") {
                 $parentId = $params['parent_id'];
+            }
+            $roleId = 0;
+            if (isset($params['role_id']) && $params['role_id'] != "") {
+                $roleId = $params['role_id'];
+                $addSql = "  AND a.role_id = " .intval($roleId);
             }
             $sql =" 
                  SELECT                    
@@ -730,18 +737,20 @@ class SysAclActionRrp extends \DAL\DalSlim {
                     Null AS icon_class,
                     'true' AS last_node,
                     'true' AS privilege  ,
-                    true AS roles
+                    true AS roles,
+                    a.id AS resource_id
                 FROM sys_acl_action_resources a                 
 		INNER join sys_acl_actions_roles mt ON mt.action_id = a.action_id AND mt.active =0 AND mt.deleted =0                 
 		INNER join sys_acl_roles rol ON rol.id = mt.role_id AND rol.active =0 AND rol.deleted =0                 
                 WHERE                    
                    a.id = " .intval($parentId) . " AND 
+                   ".$addSql."
                    a.deleted = 0 AND
                    a.active =0 
                 ORDER BY name    
                                  ";
              $statement = $pdo->prepare( $sql);
-          //  echo debugPDO($sql, $params);
+       // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1069,7 +1078,7 @@ class SysAclActionRrp extends \DAL\DalSlim {
             
             $sql = " 
                 SELECT
-                    rrp_id AS id, 
+                    id, 
                     privilege_id,
                     privilege_name,                    
                     resource_id, 
@@ -1079,25 +1088,25 @@ class SysAclActionRrp extends \DAL\DalSlim {
                     role_name_tr,
                     active ,
                     deleted,
-                    rrp_id
-                    FROM (
-                        SELECT
-			    a.id AS rrp_id,
-                            sap.id AS privilege_id,
-                            sap.name AS privilege_name,                            
-                            a.resource_id, 
-                            sare.name AS resource_name,
-                            sarr.role_id AS role_id,  
-                            saro.name AS role_name, 
-                            saro.name_tr AS role_name_tr,
-                            sap.active ,
-                            sap.deleted                            
-                        FROM sys_acl_action_rrp a
-                        INNER JOIN sys_acl_action_resources sare ON sare.id = a.resource_id AND sare.active =0 AND sare.deleted =0                                         
-                        INNER JOIN sys_acl_resource_roles sarr ON sarr.resource_id = a.resource_id AND sarr.active =0 AND sarr.deleted =0
-                        INNER JOIN sys_acl_roles saro ON saro.id = sarr.role_id AND saro.active =0 AND saro.deleted =0
-                        INNER JOIN sys_action_privileges sap ON a.privilege_id = sap.id AND sap.active =0 AND sap.deleted =0
-                        WHERE a.deleted =0 AND a.active =0
+                    id AS rrp_id
+                    FROM (                        
+                    SELECT
+                           rrp.id,
+                           rrp.resource_id,                            
+                           a.id AS privilege_id,
+                           a.name AS privilege_name, 
+                           sare.name AS resource_name,
+                           sarr.role_id AS role_id,  
+                           saro.name AS role_name, 
+                           saro.name_tr AS role_name_tr,
+                           a.active,
+                           a.deleted 
+                       FROM sys_action_privileges a		
+                       INNER JOIN sys_acl_action_resources sare ON sare.active =0 AND sare.deleted =0
+                       INNER JOIN sys_acl_actions_roles sarr ON sarr.active =0 AND sarr.deleted =0 AND sare.action_id = sarr.action_id
+                       INNER JOIN sys_acl_roles saro ON saro.id = sarr.role_id AND saro.active =0 AND saro.deleted =0
+                       INNER JOIN sys_acl_action_rrp rrp ON rrp.role_id = sarr.role_id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id AND rrp.active =0 AND rrp.deleted =0 
+                       WHERE a.deleted =0 AND a.active =0
                     ) AS xtable WHERE deleted=0  
                     " . $sorguStr . "
                     " . $sorguStr2 . "                        
@@ -1113,7 +1122,7 @@ class SysAclActionRrp extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             $statement = $pdo->prepare($sql);
-           // echo debugPDO($sql, $params);
+         // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1203,7 +1212,7 @@ class SysAclActionRrp extends \DAL\DalSlim {
             
             $sql = " SELECT count(id) FROM (
                 SELECT
-                    rrp_id AS id, 
+                    id, 
                     privilege_id,
                     privilege_name,                    
                     resource_id, 
@@ -1213,25 +1222,25 @@ class SysAclActionRrp extends \DAL\DalSlim {
                     role_name_tr,
                     active ,
                     deleted,
-                    rrp_id
+                    id AS rrp_id
                     FROM (
-                        SELECT
-			    a.id AS rrp_id,
-                            sap.id AS privilege_id,
-                            sap.name AS privilege_name,                            
-                            a.resource_id, 
-                            sare.name AS resource_name,
-                            sarr.role_id AS role_id,  
-                            saro.name AS role_name, 
-                            saro.name_tr AS role_name_tr,
-                            sap.active ,
-                            sap.deleted                            
-                        FROM sys_acl_action_rrp a
-                        INNER JOIN sys_acl_action_resources sare ON sare.id = a.resource_id AND sare.active =0 AND sare.deleted =0                                         
-                        INNER JOIN sys_acl_resource_roles sarr ON sarr.resource_id = a.resource_id AND sarr.active =0 AND sarr.deleted =0
-                        INNER JOIN sys_acl_roles saro ON saro.id = sarr.role_id AND saro.active =0 AND saro.deleted =0
-                        INNER JOIN sys_action_privileges sap ON a.privilege_id = sap.id AND sap.active =0 AND sap.deleted =0
-                        WHERE a.deleted =0 AND a.active =0
+                         SELECT
+                           rrp.id,
+                           rrp.resource_id,                            
+                           a.id AS privilege_id,
+                           a.name AS privilege_name, 
+                           sare.name AS resource_name,
+                           sarr.role_id AS role_id,  
+                           saro.name AS role_name, 
+                           saro.name_tr AS role_name_tr,
+                           a.active,
+                           a.deleted 
+                       FROM sys_action_privileges a		
+                       INNER JOIN sys_acl_action_resources sare ON sare.active =0 AND sare.deleted =0
+                       INNER JOIN sys_acl_actions_roles sarr ON sarr.active =0 AND sarr.deleted =0 AND sare.action_id = sarr.action_id
+                       INNER JOIN sys_acl_roles saro ON saro.id = sarr.role_id AND saro.active =0 AND saro.deleted =0
+                       INNER JOIN sys_acl_action_rrp rrp ON rrp.role_id = sarr.role_id AND rrp.resource_id= sare.id AND rrp.privilege_id = a.id AND rrp.active =0 AND rrp.deleted =0 
+                       WHERE a.deleted =0 AND a.active =0
                     ) AS xtable WHERE deleted=0   
                     " . $sorguStr . "
                     " . $sorguStr2 . " 

@@ -172,7 +172,7 @@ class SysAclRrp extends \DAL\DalSlim {
                 INSERT INTO sys_acl_rrp(
                         role_id, 
                         resource_id, 
-                        privilege_id
+                        privilege_id,
                         op_user_id
                         )
                 VALUES (
