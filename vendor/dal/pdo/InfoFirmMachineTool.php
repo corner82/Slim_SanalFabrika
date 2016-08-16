@@ -1277,7 +1277,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     SELECT 
                         a.id,
                         cast(a.sys_machine_tool_id as text) AS machine_id,
-                        m.manufacturer_name,
+                        m.name as manufacturer_name,
                         COALESCE(NULLIF(smtgx.group_name, ''), smtg.group_name_eng) AS machine_tool_grup_names,
                         COALESCE(NULLIF(smtx.machine_tool_name, ''), smt.machine_tool_name_eng) AS machine_tool_names,
                         smt.model,
@@ -1619,7 +1619,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     SELECT 
                         a.id,
                         cast(a.sys_machine_tool_id AS text) AS machine_id,
-                        m.manufacturer_name,
+                        m.name AS manufacturer_name,
                         COALESCE(NULLIF(smtgx.group_name, ''), smtg.group_name_eng) AS machine_tool_grup_names,
                         COALESCE(NULLIF(smtx.machine_tool_name, ''), smt.machine_tool_name_eng) AS machine_tool_names,
                         smt.model,
@@ -1855,7 +1855,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
 			COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng) AS firm_name,
 			fp.firm_name_eng,
                         CAST(a.sys_machine_tool_id AS text) AS machine_id,
-                        m.manufacturer_name,
+                        m.name AS manufacturer_name,
                         COALESCE(NULLIF(smtgx.group_name, ''), smtg.group_name_eng) AS machine_tool_grup_name,
                         COALESCE(NULLIF(smtx.machine_tool_name, ''), smt.machine_tool_name_eng) AS machine_tool_name,
                         smt.model,

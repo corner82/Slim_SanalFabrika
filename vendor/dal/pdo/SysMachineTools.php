@@ -493,7 +493,7 @@ class SysMachineTools extends \DAL\DalSlim {
             if (count($sortArr) === 1)
                 $sort = trim($args['sort']);
         } else {
-            $sort = " machine_tool_name, group_name, m.manufacturer_name";
+            $sort = " machine_tool_name, group_name, m.name";
         }
 
         if (isset($args['order']) && $args['order'] != "") {
@@ -551,7 +551,7 @@ class SysMachineTools extends \DAL\DalSlim {
                             break;
                          case 'manufacturer_name':
                             $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                            $sorguStr.=" AND m.manufacturer_name" . $sorguExpression . ' ';
+                            $sorguStr.=" AND m.name" . $sorguExpression . ' ';
 
                             break;
                         default:
@@ -573,13 +573,13 @@ class SysMachineTools extends \DAL\DalSlim {
                     COALESCE(NULLIF( (mtx.machine_tool_name), ''), mt.machine_tool_name_eng) AS machine_tool_name,   
                     mt.machine_tool_name_eng,
                     COALESCE(NULLIF((ax.group_name), ''), a.group_name_eng) AS group_name,   
-                    a.group_name_eng,                 
-                    COALESCE(NULLIF((m.manufacturer_name), ''), ' ') AS manufacturer_name,
+                    a.group_name_eng,
+                    COALESCE(NULLIF((m.name), ''), ' ') AS manufacturer_name,
                     mt.active,
                     mt.machine_tool_grup_id, 
-                    mt.manufactuer_id,                     
+                    mt.manufactuer_id,
                     COALESCE(NULLIF((mt.model), ''), ' ') AS model,
-                    mt.model_year,                    
+                    mt.model_year,
                     COALESCE(NULLIF((mt.machine_code), ''), ' ') AS machine_code,
                     mt.language_id,
                     CASE COALESCE(NULLIF(mt.picture, ''),'-')
@@ -676,7 +676,7 @@ class SysMachineTools extends \DAL\DalSlim {
                             break;
                          case 'manufacturer_name':
                             $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                            $sorguStr.=" AND m.manufacturer_name" . $sorguExpression . ' ';
+                            $sorguStr.=" AND m.name" . $sorguExpression . ' ';
 
                             break;
                         default:
