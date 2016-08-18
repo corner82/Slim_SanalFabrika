@@ -40,6 +40,15 @@ class SysAclActions extends \BLL\BLLSlim{
         $DAL = $this->slimApp->getDALManager()->get('sysAclActionsPDO');
         return $DAL->update($params);
     }
+    /**
+     * Data update function
+     * @param array $params
+     * @return array
+     */
+    public function updateAct($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysAclActionsPDO');
+        return $DAL->updateAct($params);
+    }
     
     /**
      * Data delete function
@@ -50,17 +59,7 @@ class SysAclActions extends \BLL\BLLSlim{
         $DAL = $this->slimApp->getDALManager()->get('sysAclActionsPDO');
         return $DAL->delete($params);
     }
-    
-    /**
-     * Data delete function
-     * @param array $params
-     * @return array
-     */
-    public function deleteAct( $params = array()) {
-        $DAL = $this->slimApp->getDALManager()->get('sysAclActionsPDO');
-        return $DAL->deleteAct($params);
-    }
-
+     
     /**
      * get all data
      * @param array $params

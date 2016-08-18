@@ -85,7 +85,7 @@ $app->get("/pkInsert_sysAclActions/", function () use ($app ) {
 
     $vName = NULL;
     if (isset($_GET['name'])) {
-        $stripper->offsetSet('name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['name']));
+        $stripper->offsetSet('name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, $app, $_GET['name']));
     }
     $vModuleId = NULL;
     if (isset($_GET['module_id'])) {
@@ -93,7 +93,7 @@ $app->get("/pkInsert_sysAclActions/", function () use ($app ) {
     }
     $vDescription = NULL;
     if (isset($_GET['description'])) {
-        $stripper->offsetSet('description', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['description']));
+        $stripper->offsetSet('description', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, $app, $_GET['description']));
     }
     $vRoleIds = NULL;
     if (isset($_GET['role_ids'])) {
@@ -141,7 +141,7 @@ $app->get("/pkUpdate_sysAclActions/", function () use ($app ) {
     }
     $vName = NULL;
     if (isset($_GET['name'])) {
-        $stripper->offsetSet('name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['name']));
+        $stripper->offsetSet('name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, $app, $_GET['name']));
     }
     $vModuleId = NULL;
     if (isset($_GET['module_id'])) {
@@ -149,7 +149,7 @@ $app->get("/pkUpdate_sysAclActions/", function () use ($app ) {
     }
     $vDescription = NULL;
     if (isset($_GET['description'])) {
-        $stripper->offsetSet('description', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['description']));
+        $stripper->offsetSet('description', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, $app, $_GET['description']));
     }
     $vRoleIds = NULL;
     if (isset($_GET['role_ids'])) {
@@ -187,6 +187,67 @@ $app->get("/pkUpdate_sysAclActions/", function () use ($app ) {
  *  * Okan CIRAN
  * @since 26.07.2016
  */
+$app->get("/pkUpdateAct_sysAclActions/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysAclActionsBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkUpdateAct_sysAclActions" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['id']));
+    }
+    $vName = NULL;
+    if (isset($_GET['name'])) {
+        $stripper->offsetSet('name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, $app, $_GET['name']));
+    }
+    $vModuleId = NULL;
+    if (isset($_GET['module_id'])) {
+        $stripper->offsetSet('module_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['module_id']));
+    }
+    $vDescription = NULL;
+    if (isset($_GET['description'])) {
+        $stripper->offsetSet('description', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, $app, $_GET['description']));
+    }
+    $vRoleIds = NULL;
+    if (isset($_GET['role_ids'])) {
+        $stripper->offsetSet('role_ids', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, $app, $_GET['role_ids']));
+    }
+    
+    
+
+    $stripper->strip();
+    if ($stripper->offsetExists('id'))
+        $vId = $stripper->offsetGet('id')->getFilterValue();
+    if ($stripper->offsetExists('name'))
+        $vName = $stripper->offsetGet('name')->getFilterValue();
+    if ($stripper->offsetExists('description'))
+        $vDescription = $stripper->offsetGet('description')->getFilterValue();
+    if ($stripper->offsetExists('module_id'))
+        $vModuleId = $stripper->offsetGet('module_id')->getFilterValue();
+    if ($stripper->offsetExists('role_ids'))
+        $vRoleIds = $stripper->offsetGet('role_ids')->getFilterValue();
+
+    $resDataInsert = $BLL->updateAct(array(
+        'id' => $vId,
+        'name' => $vName,
+        'module_id' => $vModuleId,
+        'role_ids' => $vRoleIds,
+        'description' => $vDescription,
+        'pk' => $pk));
+
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($resDataInsert));
+}
+);
+   
+/**
+ *  * Okan CIRAN
+ * @since 26.07.2016
+ */
 $app->get("/pkDelete_sysAclActions/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
@@ -211,38 +272,7 @@ $app->get("/pkDelete_sysAclActions/", function () use ($app ) {
     $app->response()->body(json_encode($resDataDeleted));
 }
 );
-
-/**
- *  * Okan CIRAN
- * @since 26.07.2016
- */
-$app->get("/pkDeleteAct_sysAclActions/", function () use ($app ) {
-    $stripper = $app->getServiceManager()->get('filterChainerCustom');
-    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
-    $BLL = $app->getBLLManager()->get('sysAclActionsBLL');
-    $headerParams = $app->request()->headers();
-    if (!isset($headerParams['X-Public']))
-        throw new Exception('rest api "pkDeleteAct_sysAclActions" end point, X-Public variable not found');
-    $Pk = $headerParams['X-Public'];
-    $vId = NULL;
-    if (isset($_GET['id'])) {
-        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['id']));
-    }
-    $stripper->strip();
-    if ($stripper->offsetExists('id')) {
-        $vId = $stripper->offsetGet('id')->getFilterValue();
-    }
-    $resDataDeleted = $BLL->deleteAct(array(
-        'id' => $vId,
-        'pk' => $Pk,
-    ));
-    $app->response()->header("Content-Type", "application/json");
-    $app->response()->body(json_encode($resDataDeleted));
-}
-);
-
-
-
+ 
 /**
  *  * Okan CIRAN
  * @since 26.07.2016
@@ -302,11 +332,11 @@ $app->get("/pkFillActionList_sysAclActions/", function () use ($app ) {
 
     $vName = NULL;
     if (isset($_GET['name'])) {
-        $stripper->offsetSet('name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['name']));
+        $stripper->offsetSet('name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, $app, $_GET['name']));
     }
     $vDescription = NULL;
     if (isset($_GET['description'])) {
-        $stripper->offsetSet('description', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['description']));
+        $stripper->offsetSet('description', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, $app, $_GET['description']));
     }
     $vModuleId = NULL;
     if (isset($_GET['module_id'])) {
@@ -335,7 +365,7 @@ $app->get("/pkFillActionList_sysAclActions/", function () use ($app ) {
     }
     $filterRules = null;
     if (isset($_GET['filterRules'])) {
-        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, $app, $_GET['filterRules']));
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, $app, $_GET['filterRules']));
     }
 
     $stripper->strip();
