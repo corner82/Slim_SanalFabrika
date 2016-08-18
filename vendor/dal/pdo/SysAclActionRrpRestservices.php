@@ -1197,7 +1197,7 @@ class SysAclActionRrpRestservices extends \DAL\DalSlim {
                         FROM sys_acl_restservices a
                         INNER JOIN sys_services_groups ssg ON ssg.id = a.services_group_id AND ssg.deleted = 0 AND ssg.active = 0 
                         WHERE a.deleted =0 AND a.active =0 AND
-			      ssg.id = 1 AND ".intval($servicesGroupId)." AND
+			      ssg.id = ".intval($servicesGroupId)." AND
                               a.id NOT IN (
 				SELECT a.restservices_id
 				FROM sys_acl_action_rrp_restservices a
