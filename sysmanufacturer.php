@@ -109,13 +109,13 @@ $app->get("/pkInsert_sysManufacturer/", function () use ($app ) {
     }           
     $vName = NULL;
     if (isset($_GET['name'])) {
-         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
                                                 $app,
                                                 $_GET['name']));
     } 
      $vNameEng = NULL;
     if (isset($_GET['name_eng'])) {
-         $stripper->offsetSet('name_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+         $stripper->offsetSet('name_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
                                                 $app,
                                                 $_GET['name_eng']));
     } 
@@ -145,13 +145,13 @@ $app->get("/pkInsert_sysManufacturer/", function () use ($app ) {
     } 
     $vAbbreviation = NULL;
     if (isset($_GET['abbreviation'])) {
-         $stripper->offsetSet('abbreviation',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+         $stripper->offsetSet('abbreviation',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
                                                 $app,
                                                 $_GET['abbreviation']));
     }  
     $vAbbreviationEng = NULL;
     if (isset($_GET['abbreviation_eng'])) {
-         $stripper->offsetSet('abbreviation_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+         $stripper->offsetSet('abbreviation_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
                                                 $app,
                                                 $_GET['abbreviation_eng']));
     }  
@@ -229,13 +229,13 @@ $app->get("/pkUpdate_sysManufacturer/", function () use ($app ) {
     }  
      $vName = NULL;
     if (isset($_GET['name'])) {
-         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+         $stripper->offsetSet('name',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
                                                 $app,
                                                 $_GET['name']));
     } 
      $vNameEng = NULL;
     if (isset($_GET['name_eng'])) {
-         $stripper->offsetSet('name_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+         $stripper->offsetSet('name_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
                                                 $app,
                                                 $_GET['name_eng']));
     } 
@@ -265,13 +265,13 @@ $app->get("/pkUpdate_sysManufacturer/", function () use ($app ) {
     } 
     $vAbbreviation = NULL;
     if (isset($_GET['abbreviation'])) {
-         $stripper->offsetSet('abbreviation',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+         $stripper->offsetSet('abbreviation',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
                                                 $app,
                                                 $_GET['abbreviation']));
     }  
     $vAbbreviationEng = NULL;
     if (isset($_GET['abbreviation_eng'])) {
-         $stripper->offsetSet('abbreviation_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+         $stripper->offsetSet('abbreviation_eng',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
                                                 $app,
                                                 $_GET['abbreviation_eng']));
     }  
@@ -452,7 +452,7 @@ $app->get("/pkFillManufacturerListGrid_sysManufacturer/", function () use ($app 
     }
     $filterRules = null;
     if (isset($_GET['filterRules'])) {
-        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, 
                 $app, $_GET['filterRules']));
     }
 
