@@ -107,7 +107,7 @@ class PgClass extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');       
             $statement = $pdo->prepare("   
-             SELECT 
+            SELECT 
                 c.oid AS id,
                 c.relname AS name,
                 pgd.description,
@@ -119,7 +119,9 @@ class PgClass extends \DAL\DalSlim {
             WHERE pg_catalog.pg_table_is_visible(c.oid)
                     AND c.relkind = 'r'
                     AND (c.relname like 'info_%'
-                    OR c.relname like 'sys_%')
+                    OR c.relname like 'sys_%' 
+                  )
+                AND c.relname != 'info_firm_keys' 
             ORDER BY c.relname
                                  ");
             $statement->execute();
