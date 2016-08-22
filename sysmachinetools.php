@@ -161,6 +161,7 @@ $app->get("/pkFillGrid_sysMachineTools/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 15-06-2016
+ *  rest servislere eklendi
  */
 $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -295,7 +296,126 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
 
 /**
  *  * Okan CIRAN
+ * @since 18-08-2016
+ *  rest servislere eklendi
+ */
+$app->get("/pkGetMachineToolsGrid_sysMachineTools/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysMachineToolsBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkGetMachineToolsGrid_sysMachineTools" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+
+
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
+    }
+    $vMachineGroupsId = NULL;
+    if (isset($_GET['machine_groups_id'])) {
+        $stripper->offsetSet('machine_groups_id', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, $app, $_GET['machine_groups_id']));
+    }
+    
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, $app, $_GET['filterRules']));
+    }
+
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('machine_groups_id')) {
+        $vMachineGroupsId = $stripper->offsetGet('machine_groups_id')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    }
+
+    //  if(isset($_GET['filterRules'])) $filterRules = $_GET['filterRules'];
+
+    $resDataGrid = $BLL->getMachineToolsGrid(array(
+        'url' => $_GET['url'],
+        'language_code' => $vLanguageCode,
+        'page' => $vPage,
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,
+        'machine_groups_id' => $vMachineGroupsId,
+        'filterRules' => $filterRules,
+    ));
+    $resTotalRowCount = $BLL->getMachineToolsGridRtc(array(
+        'language_code' => $vLanguageCode,
+        'machine_groups_id' => $vMachineGroupsId,        
+        'filterRules' => $filterRules,
+    ));
+
+    $flows = array();
+    foreach ($resDataGrid as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+            "machine_tool_name" => $flow["machine_tool_name"],
+            "machine_tool_name_eng" => $flow["machine_tool_name_eng"],
+            "group_name" => $flow["group_name"],
+            "group_name_eng" => $flow["group_name_eng"],
+            "manufacturer_name" => $flow["manufacturer_name"],
+            "machine_tool_grup_id" => $flow["machine_tool_grup_id"],
+            "manufactuer_id" => $flow["manufactuer_id"],
+            "model" => $flow["model"],
+            "model_year" => $flow["model_year"],
+            "machine_tool_grup_id" => $flow["machine_tool_grup_id"],
+            "machine_code" => $flow["machine_code"],            
+            "attributes" => array(            
+                        "active" => $flow["active"],
+                        "language_id" => $flow["language_id"],
+                ),
+        );
+    }                      
+                
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['total'] = $resTotalRowCount[0]['count'];
+    $resultArray['rows'] = $flows;
+    $app->response()->body(json_encode($resultArray));
+});
+
+
+
+/**
+ *  * Okan CIRAN
  * @since 08-06-2016
+*  rest servislere eklendi
  */
 $app->get("/pkGetMachineProperities_sysMachineTools/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
@@ -353,6 +473,7 @@ $app->get("/pkGetMachineProperities_sysMachineTools/", function () use ($app ) {
 /**
  *  * Okan CIRAN
  * @since 18-05-2016
+ *  rest servislere eklendi
  */
 $app->get("/pkUpdateMakeActiveOrPassive_sysMachineTools/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');

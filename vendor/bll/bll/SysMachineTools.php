@@ -94,8 +94,7 @@ class SysMachineTools extends \BLL\BLLSlim {
         $resultSet = $DAL->getMachineTools($params);
         return $resultSet['resultSet'];
     }
-
-      /**
+     /**
      * Function to get datagrid row count on user interface layer
      * @param array $params
      * @return array
@@ -103,6 +102,27 @@ class SysMachineTools extends \BLL\BLLSlim {
     public function getMachineToolsRtc($params = array()) {      
         $DAL = $this->slimApp->getDALManager()->get('sysMachineToolsPDO');
         $resultSet = $DAL->getMachineToolsRtc($params);
+        return $resultSet['resultSet'];
+    } 
+
+    /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function getMachineToolsGrid($params = array()) {      
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolsPDO');     
+        $resultSet = $DAL->getMachineToolsGrid($params);
+        return $resultSet['resultSet'];
+    }
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function getMachineToolsGridRtc($params = array()) {      
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolsPDO');
+        $resultSet = $DAL->getMachineToolsGridRtc($params);
         return $resultSet['resultSet'];
     } 
     /**
