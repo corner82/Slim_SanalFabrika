@@ -458,5 +458,71 @@ $app->get("/pkDeletePropertyMachine_sysMachineToolProperties/", function () use 
     $app->response()->body(json_encode($resData));
 }
 ); 
+ 
+/**
+ *  * Okan CIRAN
+ * @since 19-08-2016
+ 
+ */
+$app->get("/pkFillMachinePropertiesSubGridList_sysMachineToolProperties/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysMachineToolPropertiesBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillMachinePropertiesSubGridList_sysMachineToolProperties" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+
+
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, 
+                $app, $_GET['language_code']));
+    }
+    $vMachineToolId = NULL;
+    if (isset($_GET['machine_tool_id'])) {
+        $stripper->offsetSet('machine_tool_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['machine_tool_id']));
+    } 
+
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('machine_tool_id')) {
+        $vMachineToolId = $stripper->offsetGet('machine_tool_id')->getFilterValue();
+    }    
+    $resDataGrid = $BLL->fillMachinePropertiesSubGridList(array(
+        'url' => $_GET['url'],
+        'language_code' => $vLanguageCode,
+        'machine_tool_id' => $vMachineToolId,        
+    ));
+
+    $flows = array();
+    foreach ($resDataGrid as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+         //   "machine_tool_id" => $flow["machine_tool_id"],
+        //    "machine_tool_name" => $flow["machine_tool_name"],
+        //    "machine_tool_name_eng" => $flow["machine_tool_name_eng"],
+        //    "machine_tool_property_definition_id" => $flow["machine_tool_property_definition_id"],
+            "property_name" => html_entity_decode($flow["property_name"]),
+            "property_name_eng" => html_entity_decode($flow["property_name_eng"]),
+            "property_value" => $flow["property_value"],
+       //     "unit_id" => $flow["unit_id"],
+            "unitcode" => html_entity_decode($flow["unitcode"]),
+            "unitcode_eng" => html_entity_decode($flow["unitcode_eng"]), 
+            "attributes" => array(            
+                     //   "active" => $flow["active"],                     
+                ),
+        );
+    }                      
+                
+    $app->response()->header("Content-Type", "application/json");   
+    $app->response()->body(json_encode($flows));
+ 
+});
+
 
 $app->run();

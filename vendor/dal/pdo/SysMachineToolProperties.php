@@ -665,6 +665,70 @@ class SysMachineToolProperties extends \DAL\DalSlim {
         }
     }
     
-    
+       /**
+     * @author Okan CIRAN
+     * @ sys_osb bilgilerini döndürür !!
+     * filterRules aktif 
+     * @version v 1.0  19.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillMachinePropertiesSubGridList($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
+            $sort = " machine_tool_name, property_name,unitcode ";             
+            $sorguStr2 = " AND 1 = 2 ";
+            if (isset($params['machine_tool_id']) && $params['machine_tool_id'] != "") {
+                $sorguStr2 = " AND a.machine_tool_id = " . $params['machine_tool_id'] ;
+            }
+                            
+            $sql = " 
+		 SELECT 
+                    a.id, 
+                    a.machine_tool_id, 
+                    COALESCE(NULLIF(mt.machine_tool_name, ''), mt.machine_tool_name_eng) AS machine_tool_name,
+                    mt.machine_tool_name_eng,
+                    a.machine_tool_property_definition_id, 
+                    COALESCE(NULLIF(mtpd.property_name, ''), mtpd.property_name_eng) AS property_name,
+                    mtpd.property_name_eng,
+                    a.property_value, 
+                    a.unit_id,
+                    COALESCE(NULLIF(su.unitcode, ''), su.unitcode_eng) AS unitcode,
+                    su.unitcode_eng
+                FROM sys_machine_tool_properties a
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = ".intval($languageIdValue)." AND sd16.deleted = 0 AND sd16.active = 0
+                INNER JOIN info_users u ON u.id = a.op_user_id
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0  
+                INNER JOIN sys_machine_tools mt ON mt.id = a.machine_tool_id and mt.active =0 and mt.deleted =0 AND mt.language_parent_id =0
+                INNER JOIN sys_units su ON su.id = a.unit_id AND su.active = 0 AND su.deleted =0 AND su.language_id = l.id 
+                INNER JOIN sys_machine_tool_property_definition mtpd ON mtpd.id = a.machine_tool_property_definition_id AND mtpd.active =0 AND mtpd.deleted =0 AND mtpd.language_id = l.id 
+                WHERE 
+                    a.active =0 AND a.deleted =0 AND a.language_parent_id =0
+                " . $sorguStr2 . "
+                ORDER BY    " . $sort . " 
+                  " ;
+            $statement = $pdo->prepare($sql);
+          // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+     
     
 }

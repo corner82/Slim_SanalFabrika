@@ -73,7 +73,7 @@ class SysMachineToolProperties extends \BLL\BLLSlim {
         $resultSet = $DAL->fillGrid($params);
         return $resultSet['resultSet'];
     }
-
+     
     /**
      * Function to get datagrid row count on user interface layer
      * @param array $params
@@ -119,7 +119,7 @@ class SysMachineToolProperties extends \BLL\BLLSlim {
         return $resultSet['resultSet'];
     }
  
-      /**
+    /**
      * Data delete function
      * @param array $params
      * @return array
@@ -127,6 +127,17 @@ class SysMachineToolProperties extends \BLL\BLLSlim {
     public function deletePropertyMachine($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertiesPDO');
         return $DAL->deletePropertyMachine($params);
+    }
+    
+    /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillMachinePropertiesSubGridList($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertiesPDO');
+        $resultSet = $DAL->fillMachinePropertiesSubGridList($params);
+        return $resultSet['resultSet'];
     }
     
 }
