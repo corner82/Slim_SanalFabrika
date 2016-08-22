@@ -31,7 +31,15 @@ class InfoFirmMachineTool extends \BLL\BLLSlim{
         return $DAL->insert($params);
     }
     
-     
+    /**
+     * DAta insert function
+     * @param array | null $params
+     * @return array
+     */
+    public function insertCons($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        return $DAL->insertCons($params);
+    } 
     
     /**
      * Check Data function
@@ -55,6 +63,16 @@ class InfoFirmMachineTool extends \BLL\BLLSlim{
     }
     
     /**
+     * Data update function
+     * @param array | null $params
+     * @return array
+     */
+    public function updateCons($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        return $DAL->updateCons($params);
+    }
+    
+    /**
      * Data delete function
      * @param array | null $params
      * @return array
@@ -63,6 +81,17 @@ class InfoFirmMachineTool extends \BLL\BLLSlim{
         $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
         return $DAL->delete($params);
     }
+    
+    /**
+     * Data delete function
+     * @param array | null $params
+     * @return array
+     */
+    public function deleteConsAct( $params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        return $DAL->deleteConsAct($params);
+    }
+    
 
     /**
      * get all data
@@ -211,8 +240,37 @@ class InfoFirmMachineTool extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
     
+    /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */ 
+    public function fillConsCompanyMachineLists($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        $resultSet = $DAL->fillConsCompanyMachineLists($params);  
+        return $resultSet['resultSet'];
+    }
     
-    
+    /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */ 
+    public function fillConsCompanyMachineListsRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        $resultSet = $DAL->fillConsCompanyMachineListsRtc($params);  
+        return $resultSet['resultSet'];
+    }
+     
+    /**
+     * public key / private key and value update function
+     * @param array | null $params
+     * @return array
+     */
+    public function makeActiveOrPassive($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        return $DAL->makeActiveOrPassive($params);
+    }
     
 }
 
