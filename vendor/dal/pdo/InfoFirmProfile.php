@@ -882,7 +882,6 @@ class InfoFirmProfile extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-
    
     /**
      * info_firm_users tablosunda firma elemanı kaydı olusturur.  !!
@@ -1662,9 +1661,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-  
-    
-     /**  
+      
+    /**  
      * @author Okan CIRAN
      * @ user bu firmaya(cpk sı verilen) kayıtlı mı?   !! 
      * cpk ve user id parametre olarak  girilir.
@@ -1706,7 +1704,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
         }
     }
   
-     /**  
+    /**  
      * @author Okan CIRAN
      * @ network key den firm id sini döndürür  !!     
      * @version v 1.0  09.05.2016
@@ -2346,7 +2344,6 @@ class InfoFirmProfile extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-
     
     /** 
      * @author Okan CIRAN
@@ -2554,6 +2551,64 @@ class InfoFirmProfile extends \DAL\DalSlim {
         } catch (\PDOException $e /* Exception $e */) {
             //$debugSQLParams = $statement->debugDumpParams();
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ danısman a atanmış firma isimleri ddslick için info_firm_profile tablosundan kayıtları döndürür !!
+     * @version v 1.0  19.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException 
+     */
+    public function fillConsultantAllowFirmListDds($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+                $statement = $pdo->prepare("             
+               SELECT
+                    a.id,
+		    cast( COALESCE(NULLIF( COALESCE(NULLIF(ax.firm_name_short	, ''), a.firm_name_short_eng) , '' ), ax.firm_name) as character varying(30)) AS name,  
+                    cast( a.firm_name_short_eng as character varying(30)) AS name_eng,
+                    a.active,
+                    'closed' AS state_type  
+                FROM info_firm_profile a
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+                LEFT JOIN info_firm_profile ax ON (ax.id =a.id OR ax.language_parent_id = a.id) AND ax.deleted =0 AND ax.active =0 AND lx.id = ax.language_id
+                WHERE 
+                    a.alliance_type_id >-1 and 
+                    a.deleted = 0 AND
+                    a.language_parent_id =0 and
+                    a.active =0 and 
+                    a.consultant_id = ".intval($opUserIdValue)." AND 
+                    a.cons_allow_id =2
+                                 ");
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
 

@@ -1713,8 +1713,67 @@ $app->get("/pkGetFirmProfileConsultant_infoFirmProfile/", function () use ($app 
     $app->response()->header("Content-Type", "application/json");    
     $app->response()->body(json_encode($flows));
 });
+  
+/**
+ *  * Okan CIRAN
+ * @since 15-07-2016
+ */
+$app->get("/pkFillConsultantAllowFirmListDds_infoFirmProfile/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+    $headerParams = $app->request()->headers();     
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillConsultantAllowFirmListDds_infoFirmProfile" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
 
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')){
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+        }
+    
+ 
+    $resCombobox = $BLL->fillConsultantAllowFirmListDds(array(
+                                'language_code' => $vLanguageCode,
+                                'pk' => $pk,
+    ));
 
+        $menus = array();
+        $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
+    if ($componentType == 'bootstrap') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "text" => html_entity_decode($menu["name"]),
+                "state" => $menu["state_type"], //   'closed',
+                "checked" => false,
+                "attributes" => array("notroot" => true, "active" => $menu["active"]),
+            );
+        }
+    } else if ($componentType == 'ddslick') {       
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => html_entity_decode($menu["name"]),
+                "value" =>  intval($menu["id"]),
+                "selected" => false,
+                "description" => html_entity_decode($menu["name_eng"]),
+                "imageSrc" => ""
+            );
+        }
+    }
+
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($menus));
+});
 
 
 $app->run();

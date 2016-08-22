@@ -336,7 +336,17 @@ class InfoFirmProfile extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
         return $DAL->getFirmProfileConsultant($params);
     }
-      
+    
+    /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillConsultantAllowFirmListDds($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        $resultSet = $DAL->fillConsultantAllowFirmListDds($params);
+        return $resultSet['resultSet'];
+    }
     
     
     
