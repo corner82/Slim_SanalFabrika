@@ -661,8 +661,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
-                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                    $this->makePassive(array('id' => $params['id']));
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {                    
                     $operationIdValue = -2;
                     $operationId = SysOperationTypes::getTypeIdToGoOperationId(
                                     array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 23, 'type_id' => 2,));
@@ -729,6 +728,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     $errorInfo = $statement_act_insert->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
+                    $this->makePassive(array('id' => $params['id']));
                     $this->makeConsAllowZero(array('id' => $params['id']));
                     $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
