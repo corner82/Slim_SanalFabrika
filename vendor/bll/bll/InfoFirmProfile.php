@@ -31,6 +31,15 @@ class InfoFirmProfile extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
         return $DAL->insert($params);
     }
+      /**
+     * Data insert function
+     * @param array | null $params
+     * @return array
+     */
+    public function insertConsAct($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        return $DAL->insertConsAct($params);
+    }
 
     /**
      * Data update function
@@ -41,7 +50,18 @@ class InfoFirmProfile extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
         return $DAL->update($params);
     }
-       /**
+    
+    /**
+     * Data update function
+     * @param array | null $params
+     * @return array
+     */
+    public function updateConsAct($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        return $DAL->updateConsAct($params);
+    }
+    
+    /**
      * Data update function
      * @param array | null $params
      * @return array
@@ -349,6 +369,38 @@ class InfoFirmProfile extends \BLL\BLLSlim {
     }
     
     
+    
+      /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */ 
+    public function fillConsCompanyLists($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        $resultSet = $DAL->fillConsCompanyLists($params);  
+        return $resultSet['resultSet'];
+    }
+    
+    /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */ 
+    public function fillConsCompanyListsRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        $resultSet = $DAL->fillConsCompanyListsRtc($params);  
+        return $resultSet['resultSet'];
+    }
+     
+    /**
+     * public key / private key and value update function
+     * @param array | null $params
+     * @return array
+     */
+    public function makeActiveOrPassive($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmProfilePDO');
+        return $DAL->makeActiveOrPassive($params);
+    }
     
     
 }

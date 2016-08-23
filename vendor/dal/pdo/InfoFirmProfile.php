@@ -189,7 +189,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                AND deleted =0   
                                ";
             $statement = $pdo->prepare($sql);
-           // echo debugPDO($sql, $params);
+          // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -395,6 +395,99 @@ class InfoFirmProfile extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
+     * @ danışman tarafından - info_firm_profile tablosuna yeni bir kayıt oluşturur.  !!
+     * @version v 1.0  22.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function insertConsAct($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $kontrol = $this->haveRecords($params);
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                 
+                    $operationIdValue = -1;
+                    $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 23, 'type_id' => 1,));
+                    if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                    $operationIdValue = $operationId ['resultSet'][0]['id'];
+                    }
+                    
+                    $countryId = 91; 
+                    $languageIdValue = 647;       
+                    $ConsultantId = $opUserIdValue;  
+                    $profilePublic = 0;
+       
+                    $sql =  "
+                   INSERT INTO info_firm_profile(
+                        profile_public,                         
+                        firm_name, 
+                        firm_name_eng, 
+                        firm_name_short,
+                        firm_name_short_eng,
+                        country_id,
+                        
+                        language_id,
+                        consultant_id, 
+                        operation_type_id,
+                        op_user_id,
+                        act_parent_id,
+                        cons_allow_id
+                        )
+                VALUES (
+                        ". intval($profilePublic).",
+                        '". $params['firm_name']."' ,
+                        '". $params['firm_name_eng']."' ,
+                        '". $params['firm_name_short']."' ,
+                        '". $params['firm_name_short_eng']."' ,
+                        ". intval($countryId).",
+                            
+                        ". intval($languageIdValue).",
+                        ". intval($ConsultantId).",
+                        ". intval($operationIdValue).",    
+                        ". intval($opUserIdValue).",
+                        (SELECT last_value FROM info_firm_profile_id_seq),
+                        2
+                        )";
+                      $statement = $pdo->prepare($sql); 
+                  // echo debugPDO($sql, $params);
+                    $result = $statement->execute();
+                    $insertID = $pdo->lastInsertId('info_firm_profile_id_seq');
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                                
+                    InfoFirmKeys::insert(array('firm_id' => $insertID, 
+                                              'country_id' =>$countryId));
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                } else {
+                    // 23505  unique_violation
+                    $errorInfo = '23505';
+                    $errorInfoColumn = 'firm_name';
+                    $pdo->rollback();
+                    // $result = $kontrol;
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
      * info_firm_profile tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
      * @version v 1.0  06.01.2016
      * @param array | null $args
@@ -551,6 +644,143 @@ class InfoFirmProfile extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+
+    /**
+     * @author Okan CIRAN
+     * danısman tarafından - info_firm_profile tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
+     * @version v 1.0  22.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function updateConsAct($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $kontrol = $this->haveRecords($params);
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                    $this->makePassive(array('id' => $params['id']));
+                    $operationIdValue = -2;
+                    $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                                    array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 23, 'type_id' => 2,));
+                    if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                        $operationIdValue = $operationId ['resultSet'][0]['id'];
+                    }
+                    $languageIdValue = 647;
+                    $statement_act_insert = $pdo->prepare(" 
+                 INSERT INTO info_firm_profile(
+                        profile_public, 
+                        operation_type_id, 
+                        active,
+                        consultant_id,
+                        op_user_id,                     
+                        country_id,                        
+                        firm_name, 
+                        web_address, 
+                        tax_office, 
+                        tax_no, 
+                        sgk_sicil_no,                             
+                        foundation_yearx,     
+                        firm_name_eng, 
+                        firm_name_short,
+                        firm_name_short_eng,
+                        act_parent_id, 
+                        auth_allow_id,
+                        language_id,
+                        description,
+                        description_eng,
+                        duns_number,
+                        logo,
+                        cons_allow_id
+                        )
+                        SELECT  
+                            profile_public, 
+                            " . intval($operationIdValue) . " AS operation_type_id,
+                            active,
+                            consultant_id,
+                            " . intval($opUserIdValue) . " AS op_user_id,                            
+                            country_id,                             
+                            '" . $params['firm_name'] . "' AS firm_name, 
+                            web_address, 
+                            tax_office, 
+                            tax_no, 
+                            sgk_sicil_no,                                                         
+                            foundation_yearx,
+                            '" . $params['firm_name_eng'] . "' AS firm_name_eng, 
+                            '" . $params['firm_name_short'] . "' AS firm_name_short,
+                            '" . $params['firm_name_short_eng'] . "' AS firm_name_short_eng,
+                            act_parent_id,  
+                            auth_allow_id,
+                            " . intval($languageIdValue) . " AS language_id,
+                            description, 
+                            description_eng, 
+                            duns_number,
+                            logo,
+                            2
+                        FROM info_firm_profile 
+                        WHERE id =  " . intval($params['id']) . " 
+                        ");
+                    $insert_act_insert = $statement_act_insert->execute();
+                    $affectedRows = $statement_act_insert->rowCount();
+                    $insertID = $pdo->lastInsertId('info_firm_profile_id_seq');
+                    $errorInfo = $statement_act_insert->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $this->makeConsAllowZero(array('id' => $params['id']));
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                } else {
+                    // 23505  unique_violation
+                    $errorInfo = '23505';
+                    $errorInfoColumn = 'id';
+                    $pdo->rollback();
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
+            } else {
+                $errorInfo = '23502';   // 23502 not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
+      
+    /**
+     * @author Okan CIRAN
+     * @ info_firm_machine_tool tablosundan parametre olarak  gelen id kaydını danısman onayını kaldırır. !!
+     * @version v 1.0  19.08.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function makeConsAllowZero($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
+            $statement = $pdo->prepare(" 
+                UPDATE info_firm_profile
+                SET                         
+                    c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                     
+                    cons_allow_id = 1                    
+                WHERE id = :id");
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
+            $update = $statement->execute();
+            $afterRows = $statement->rowCount();
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);            
+            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+        } catch (\PDOException $e /* Exception $e */) {            
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
 
     /**
      * @author Okan CIRAN
@@ -953,8 +1183,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
         }
     }
   
-    /**
-     *  
+    /** 
      * @author Okan CIRAN
      * @ seçilmiş olan user_id nin sahip oldugu firmaları combobox a doldurmak için kayıtları döndürür   !!
      * @version v 1.0  06.01.2016
@@ -1007,8 +1236,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * usage     
+    /**  
      * @author Okan CIRAN
      * @ info_firm_profile tablosuna aktif olan diller için ,tek bir kaydın tabloda olmayan diğer dillerdeki kayıtlarını oluşturur   !!
      * @version v 1.0  06.01.2016
@@ -1107,8 +1335,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * 
+    /** 
      * @author Okan CIRAN
      * @ text alanları doldurmak için info_firm_profile tablosundan tek kayıt döndürür !! 
      * insertLanguageTemplate fonksiyonu ile oluşturulmuş kayıtları 
@@ -2612,4 +2839,316 @@ class InfoFirmProfile extends \DAL\DalSlim {
         }
     }
 
+    
+    /**
+     * @author Okan CIRAN
+     * @ danısmanın yaptığı firma kayıtlarını döndürür !!
+     * @version v 1.0  22.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillConsCompanyLists($params = array()) {
+        try {             
+            if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+                $limit = intval($params['rows']);
+            } else {
+                $limit = 10;
+                $offset = 0;
+            }           
+
+            $sortArr = array();
+            $orderArr = array();
+                            
+            if (isset($params['sort']) && $params['sort'] != "") {
+                $sort = trim($params['sort']);
+                $sortArr = explode(",", $sort);
+                if (count($sortArr) === 1)
+                    $sort = trim($params['sort']);
+            } else {
+                $sort = " fp.firm_name ";
+            }
+
+            if (isset($params['order']) && $params['order'] != "") {
+                $order = trim($params['order']);
+                $orderArr = explode(",", $order);
+                if (count($orderArr) === 1)
+                    $order = trim($params['order']);
+            } else {
+                $order = "ASC";
+            }
+            $sorguStr = null; 
+                            
+                            
+            if (isset($params['filterRules']) && $params['filterRules'] != "") {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+              
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'firm_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND fp.firm_name)" . $sorguExpression . ' ';
+                              
+                                break;                            
+                            
+                            case 'firm_name_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND fp.firm_name_eng" . $sorguExpression . ' ';
+
+                                break;
+                            case 'firm_name_short':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND fp.firm_name_short" . $sorguExpression . ' ';
+
+                                break;
+                            case 'firm_name_short_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND fp.firm_name_short_eng" . $sorguExpression . ' ';
+
+                                break; 
+                            
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+
+
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                            
+                $sql = "
+                    SELECT 
+                        fp.id,
+                        fp.act_parent_id AS firm_id ,
+                        fp.firm_name,
+			fp.firm_name_eng,
+                        fp.firm_name_short,
+                        fp.firm_name_short_eng,
+                        fp.profile_public,
+                        sd19.description AS state_profile_public,                        
+                        fp.active,
+                        sd16.description AS state_active,
+                        fp.op_user_id,
+                        u.username AS op_user_name,
+                        fp.s_date,
+                        fp.c_date
+                    FROM info_firm_profile fp
+                    INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0                    
+                    INNER JOIN info_users u ON u.id = fp.op_user_id
+                    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.first_group = fp.cons_allow_id AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0		    
+		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= fp.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= fp.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
+		    
+		    WHERE fp.language_parent_id = 0 AND
+			  fp.cons_allow_id = 2 AND
+			  fp.consultant_id = " . intval($opUserIdValue). "
+                " . $sorguStr . " 
+                ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            ); 
+                $statement = $pdo->prepare($sql);
+            //    echo debugPDO($sql, $parameters);                
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                $affectedRows = $statement->rowCount();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+            
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ danısmanın yaptığı firma kayıtların sayısını döndürür !!
+     * @version v 1.0  22.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillConsCompanyListsRtc($params = array()) {
+        try {                                         
+            $sorguStr = null;                              
+            if (isset($params['filterRules']) && $params['filterRules'] != "") {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+              
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'firm_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND fp.firm_name)" . $sorguExpression . ' ';
+                              
+                                break;                            
+                            
+                            case 'firm_name_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND fp.firm_name_eng" . $sorguExpression . ' ';
+
+                                break;
+                            case 'firm_name_short':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND fp.firm_name_short" . $sorguExpression . ' ';
+
+                                break;
+                            case 'firm_name_short_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND fp.firm_name_short_eng" . $sorguExpression . ' ';
+
+                                break; 
+                            
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+
+
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                            
+                $sql = "
+                    SELECT COUNT(id) AS count FROM (                      
+                        SELECT 
+                        fp.id,
+                        fp.act_parent_id AS firm_id ,
+                        fp.firm_name,
+			fp.firm_name_eng,
+                        fp.firm_name_short,
+                        fp.firm_name_short_eng,
+                        fp.profile_public,
+                        sd19.description AS state_profile_public,                        
+                        fp.active,
+                        sd16.description AS state_active,
+                        fp.op_user_id,
+                        u.username AS op_user_name,
+                        fp.s_date,
+                        fp.c_date
+                    FROM info_firm_profile fp
+                    INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0                    
+                    INNER JOIN info_users u ON u.id = fp.op_user_id
+                    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.first_group = fp.cons_allow_id AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0		    
+		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= fp.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= fp.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
+		    
+		    WHERE fp.language_parent_id = 0 AND
+			  fp.cons_allow_id = 2 AND
+			  fp.consultant_id = " . intval($opUserIdValue). "		
+                " . $sorguStr . " 
+                    ) AS xtable 
+                ";     
+                $statement = $pdo->prepare($sql);
+               // echo debugPDO($sql, $params);                
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                $affectedRows = $statement->rowCount();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+            
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ info_firm_profile tablosundan parametre olarak  gelen id kaydın aktifliğini
+     *  0(aktif) ise 1 , 1 (pasif) ise 0  yapar. !!
+     * @version v 1.0  22.08.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function makeActiveOrPassive($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                if (isset($params['id']) && $params['id'] != "") {
+                $sql = "                 
+                UPDATE info_firm_profile
+                SET active = (  SELECT   
+                                CASE active
+                                    WHEN 0 THEN 1
+                                    ELSE 0
+                                END activex
+                                FROM info_firm_profile
+                                WHERE id = " . intval($params['id']) . "
+                ),
+                op_user_id = " . intval($opUserIdValue) . "
+                WHERE id = " . intval($params['id']);
+                    $statement = $pdo->prepare($sql);
+                    //  echo debugPDO($sql, $params);
+                    $update = $statement->execute();
+                    $afterRows = $statement->rowCount();
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                }
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
+    
+    
+    
+    
 }

@@ -170,6 +170,78 @@ $app->get("/pkInsert_infoFirmProfile/", function () use ($app ) {
 }
 ); 
 
+/* * x
+ *  * Okan CIRAN
+ * @since 18-05-2016
+ */
+$app->get("/pkInsertConsAct_infoFirmProfile/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkInsertConsAct_infoFirmProfile" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, 
+                    $app, $_GET['language_code']));
+    }
+    $vFirmName = NULL;
+    if (isset($_GET['firm_name'])) {
+        $stripper->offsetSet('firm_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
+                                                $app,
+                                                $_GET['firm_name']));
+    }
+    $vFirmNameEng = NULL;
+    if (isset($_GET['firm_name_eng'])) {
+        $stripper->offsetSet('firm_name_eng', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, 
+                    $app, $_GET['firm_name_eng']));
+    }
+    $vFirmNameShort = NULL;
+    if (isset($_GET['firm_name_short'])) {
+        $stripper->offsetSet('firm_name_short', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, 
+                    $app, $_GET['firm_name_short']));
+    }
+    
+    $vFirmNameShortEng = NULL;
+    if (isset($_GET['firm_name_short_eng'])) {
+        $stripper->offsetSet('firm_name_short_eng', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, 
+                    $app, $_GET['firm_name_short_eng']));
+    }
+    
+
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('firm_name')) {
+        $vFirmName = $stripper->offsetGet('firm_name')->getFilterValue();
+    }
+    if ($stripper->offsetExists('firm_name_eng')) {
+        $vFirmNameEng = $stripper->offsetGet('firm_name_eng')->getFilterValue();
+    }
+    if ($stripper->offsetExists('firm_name_short')) {
+        $vFirmNameShort = $stripper->offsetGet('firm_name_short')->getFilterValue();
+    }
+    if ($stripper->offsetExists('firm_name_short_eng')) {
+        $vFirmNameShortEng = $stripper->offsetGet('firm_name_short_eng')->getFilterValue();
+    } 
+    $resData = $BLL->insertConsAct(array(
+        'language_code' => $vLanguageCode,
+        'firm_name' => $vFirmName,
+        'firm_name_eng' => $vFirmNameEng,
+        'firm_name_short' => $vFirmNameShort,
+        'firm_name_short_eng' => $vFirmNameShortEng,
+        'pk' => $pk,
+    ));
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($resData));
+}
+);
+
+
 /**
  *  * Okan CIRAN
  * @since 09.02.2016
@@ -303,6 +375,89 @@ $app->get("/pkUpdate_infoFirmProfile/", function () use ($app ) {
 
     $app->response()->body(json_encode($resDataUpdate));
 });
+
+/* * x
+ *  * Okan CIRAN
+ * @since 18-05-2016
+ */
+$app->get("/pkUpdateConsAct_infoFirmProfile/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkUpdateConsAct_infoFirmProfile" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, 
+                    $app, $_GET['language_code']));
+    }
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    }
+    $vFirmName = NULL;
+    if (isset($_GET['firm_name'])) {
+        $stripper->offsetSet('firm_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
+                                                $app,
+                                                $_GET['firm_name']));
+    }
+    $vFirmNameEng = NULL;
+    if (isset($_GET['firm_name_eng'])) {
+        $stripper->offsetSet('firm_name_eng', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, 
+                    $app, $_GET['firm_name_eng']));
+    }
+    $vFirmNameShort = NULL;
+    if (isset($_GET['firm_name_short'])) {
+        $stripper->offsetSet('firm_name_short', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, 
+                    $app, $_GET['firm_name_short']));
+    }
+    
+    $vFirmNameShortEng = NULL;
+    if (isset($_GET['firm_name_short_eng'])) {
+        $stripper->offsetSet('firm_name_short_eng', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, 
+                    $app, $_GET['firm_name_short_eng']));
+    }
+    
+
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('id')) {
+        $vId = $stripper->offsetGet('id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('firm_name')) {
+        $vFirmName = $stripper->offsetGet('firm_name')->getFilterValue();
+    }
+    if ($stripper->offsetExists('firm_name_eng')) {
+        $vFirmNameEng = $stripper->offsetGet('firm_name_eng')->getFilterValue();
+    }
+    if ($stripper->offsetExists('firm_name_short')) {
+        $vFirmNameShort = $stripper->offsetGet('firm_name_short')->getFilterValue();
+    }
+    if ($stripper->offsetExists('firm_name_short_eng')) {
+        $vFirmNameShortEng = $stripper->offsetGet('firm_name_short_eng')->getFilterValue();
+    } 
+    $resData = $BLL->updateConsAct(array(
+        'id' => $vId,
+        'language_code' => $vLanguageCode,
+        'firm_name' => $vFirmName,
+        'firm_name_eng' => $vFirmNameEng,
+        'firm_name_short' => $vFirmNameShort,
+        'firm_name_short_eng' => $vFirmNameShortEng,
+        'pk' => $pk,
+    ));
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($resData));
+}
+);
+
+
 
 /**
  *  * Okan CIRAN
@@ -1774,6 +1929,136 @@ $app->get("/pkFillConsultantAllowFirmListDds_infoFirmProfile/", function () use 
     $app->response()->header("Content-Type", "application/json");
     $app->response()->body(json_encode($menus));
 });
+
+
+/**
+ *  * Okan CIRAN
+ * @since 22-08-2016
+ */
+$app->get("/pkFillConsCompanyLists_infoFirmProfile/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+   $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkFillConsCompanyLists_infoFirmProfile" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+          
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, 
+                $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+                $app, $_GET['filterRules']));
+    }
+    
+    $stripper->strip();    
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    } 
+
+    $resDataGrid = $BLL->fillConsCompanyLists(array(        
+        'page' => $vPage,
+        'url' => $_GET['url'],
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,        
+        'filterRules' => $filterRules,
+        'pk' => $pk,
+    ));
+  
+    $resTotalRowCount = $BLL->fillConsCompanyListsRtc(array(        
+        'filterRules' => $filterRules,
+        'pk' => $pk,
+    ));
+    $counts=0;
+  
+    $menu = array();            
+    if (isset($resDataGrid[0]['id'])) {      
+        foreach ($resDataGrid as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "firm_id" => $menu["firm_id"], 
+                "firm_name" => html_entity_decode($menu["firm_name"]),
+                "firm_name_eng" => html_entity_decode($menu["firm_name_eng"]),
+                "firm_name_short" => html_entity_decode($menu["firm_name_short"]),
+                "firm_name_short_eng" => html_entity_decode($menu["firm_name_short_eng"]),               
+                "state_active" => html_entity_decode($menu["state_active"]),
+                "attributes" => array("active" => $menu["active"],   ),                   
+            );
+        }
+       $counts = $resTotalRowCount[0]['count'];
+      } ELSE { $menus = array(); }   
+
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['total'] = $counts;
+    $resultArray['rows'] = $menus;
+    $app->response()->body(json_encode($resultArray));
+});
+
+
+ /**x
+ *  * Okan CIRAN
+ * @since 22-08-2016
+ */
+$app->get("/pkUpdateMakeActiveOrPassive_infoFirmProfile/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('infoFirmProfileBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkUpdateMakeActiveOrPassive_infoFirmProfile" end point, X-Public variable not found');
+    }
+    $Pk = $headerParams['X-Public'];      
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    } 
+    $stripper->strip(); 
+    if ($stripper->offsetExists('id')) {$vId = $stripper->offsetGet('id')->getFilterValue(); }
+    $resData = $BLL->makeActiveOrPassive(array(                  
+            'id' => $vId ,    
+            'pk' => $Pk,        
+            ));
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($resData));
+}
+); 
+
 
 
 $app->run();
