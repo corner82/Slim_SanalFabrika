@@ -111,6 +111,7 @@ class BLLManagerConfig{
                  'sysAssignDefinitionRolesBLL' => 'BLL\BLL\SysAssignDefinitionRoles',
                  'sysAclActionRrpBLL' => 'BLL\BLL\SysAclActionRrp',
                  'sysAclActionRrpRestservicesBLL' => 'BLL\BLL\SysAclActionRrpRestservices',
+                 'infoFirmConsultantsBLL' => 'BLL\BLL\InfoFirmConsultants',
                
                  
                  

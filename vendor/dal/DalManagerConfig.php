@@ -116,6 +116,7 @@ class DalManagerConfig {
                 'sysAssignDefinitionRolesPDO' => 'DAL\Factory\PDO\SysAssignDefinitionRolesFactory',   
                 'sysAclActionRrpPDO' => 'DAL\Factory\PDO\SysAclActionRrpFactory',   
                 'sysAclActionRrpRestservicesPDO' => 'DAL\Factory\PDO\SysAclActionRrpRestservicesFactory',   
+                'infoFirmConsultantsPDO' => 'DAL\Factory\PDO\InfoFirmConsultantsFactory',   
                 
                 
                                  
