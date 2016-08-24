@@ -30,14 +30,16 @@ class SysOsb extends \DAL\DalSlim {
          try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $pdo->beginTransaction();
-            $userId = $this->getUserId(array('pk' => $params['pk']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $userIdValue = $userId ['resultSet'][0]['user_id'];
+           
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $statement = $pdo->prepare(" 
                 UPDATE sys_osb
                 SET  deleted= 1 , active = 1 ,
-                     op_user_id = " . $userIdValue . "     
-                WHERE id = :id");
+                      op_user_id = " . $opUserIdValue . "     
+                WHERE id = ".intval($params['id']) 
+                        );
                 //Execute our DELETE statement.
                 $update = $statement->execute();
                 $afterRows = $statement->rowCount();
@@ -69,7 +71,7 @@ class SysOsb extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $statement = $pdo->prepare("
-             SELECT 
+                SELECT 
                     a.id, 
                     a.country_id, 
 		    COALESCE(NULLIF(c.name, ''), c.name_eng) AS country_name,  
@@ -113,47 +115,79 @@ class SysOsb extends \DAL\DalSlim {
     public function insert($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction(); 
-            $statement = $pdo->prepare("
-                INSERT INTO sys_osb(
-                        country_id, 
+            $pdo->beginTransaction();                         
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));        
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $kontrol = $this->haveRecords($params);
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                        }
+                }    
+                
+                print_r($params);
+                    $sql = "
+                INSERT INTO sys_osb(                        
                         name, 
                         name_eng, 
-                        deleted, 
-                        active, 
-                        language_parent_id, 
-                        language_code, 
-                        user_id, 
-                        priority, 
-                        city_id  )
+                        language_id,
+                        country_id, 
+                        city,                         
+                        city_id, 
+                        borough_id, 
+                        address, 
+                        postal_code,
+                        op_user_id
+                        )
                 VALUES (
-                        :country_id, 
                         :name, 
                         :name_eng, 
-                        :deleted, 
-                        :active, 
-                        :language_parent_id, 
-                        :language_code, 
-                        :user_id, 
-                        :priority, 
-                        :city_id
-                                                ");
-            $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-            $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
-            $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);
-            $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':city_id', $params['city_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
-            $result = $statement->execute();
-            $insertID = $pdo->lastInsertId('sys_osb_id_seq');
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                        ".intval($languageIdValue).",
+                        :country_id, 
+                        :city,                         
+                        :city_id, 
+                        :borough_id, 
+                        :address, 
+                        :postal_code,
+                         ".intval($opUserIdValue)."
+                                              )  ";
+                            
+                    $statement = $pdo->prepare($sql);
+                    $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
+                    $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
+                    $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
+                    $statement->bindValue(':city', $params['city'], \PDO::PARAM_STR);
+                    $statement->bindValue(':city_id', $params['city_id'], \PDO::PARAM_INT);
+                    $statement->bindValue(':borough_id', $params['borough_id'], \PDO::PARAM_INT);
+                    $statement->bindValue(':address', $params['address'], \PDO::PARAM_STR);
+                    $statement->bindValue(':postal_code', $params['postal_code'], \PDO::PARAM_STR);
+                   echo debugPDO($sql, $params);
+                    $result = $statement->execute();
+                    $insertID = $pdo->lastInsertId('sys_osb_id_seq');
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                } else {
+                    // 23505  unique_violation
+                    $errorInfo = '23505';
+                    $errorInfoColumn = 'name';
+                    $pdo->rollback();
+                    // $result = $kontrol;
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -171,37 +205,62 @@ class SysOsb extends \DAL\DalSlim {
     public function update($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $pdo->beginTransaction();          
-            $statement = $pdo->prepare("
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+
+                $kontrol = $this->haveRecords($params);
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                        }
+                }    
+                    
+                    $sql = "
                 UPDATE sys_osb
                 SET    
-                    country_id= :country_id, 
-                    name=:name,  
-                    name_eng=:name_eng,  
-                    active= :active,                 
-                    language_parent_id = :language_parent_id,
-                    language_code=:language_code,  
-                    user_id = :user_id,
-                    priority= :priority, 
-                    city_id= :city_id                    
-                WHERE id = :id");
-            $statement->bindValue(':id',  $params['id'], \PDO::PARAM_INT);
-            $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
-            $statement->bindValue(':name_eng', $params['name_eng'], \PDO::PARAM_STR);
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
-            $statement->bindValue(':language_parent_id', $params['language_parent_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':user_id', $params['user_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':priority', $params['priority'], \PDO::PARAM_INT);
-            $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':city_id', $params['city_id'], \PDO::PARAM_INT);
-            $statement->bindValue(':active', $params['active'], \PDO::PARAM_INT);
-            $update = $statement->execute();
-            $affectedRows = $statement->rowCount();
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            $pdo->commit();
-            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                    name= '".$params['name']."',  
+                    name_eng= '".$params['name_eng']."', 
+                    language_id= ".intval($languageIdValue).",
+                    country_id=  ".intval($params['country_id']).", 
+                    city= '".$params['city']."', 
+                    city_id= ".intval($params['city_id']).", 
+                    borough_id= ".intval($params['borough_id']).", 
+                    address= '".$params['address']."', 
+                    postal_code= '".$params['postal_code']."', 
+                    op_user_id= ".intval($opUserIdValue)."
+                WHERE id =  ".intval($params['id'])
+                            ;
+                            
+                    $statement = $pdo->prepare($sql);
+                   // echo debugPDO($sql, $params);
+                    $update = $statement->execute();
+                    $affectedRows = $statement->rowCount();
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                } else {
+                    // 23505  unique_violation
+                    $errorInfo = '23505';
+                    $errorInfoColumn = 'name';
+                    $pdo->rollback();
+                    // $result = $kontrol;
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
         } catch (\PDOException $e /* Exception $e */) {
             $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -209,8 +268,47 @@ class SysOsb extends \DAL\DalSlim {
     }
 
     /**
-     * Datagrid fill function used for testing
-     * user interface datagrid fill operation   
+     * @author Okan CIRAN
+     * @ sys_osb tablosunda name sutununda daha önce oluşturulmuş mu? 
+     * @version v 1.0 23.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function haveRecords($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $addSql = "";
+            if (isset($params['id'])) {
+                $addSql = " AND id != " . intval($params['id']) . " ";
+            } 
+                            
+            $sql = " 
+            SELECT  
+                name AS name , 
+                '" . $params['name'] . "' AS value , 
+                name ='" . $params['name'] . "' AS control,
+                CONCAT(name , ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message                             
+            FROM sys_osb                
+            WHERE 
+                LOWER(REPLACE(name,' ','')) = LOWER(REPLACE('" . $params['name'] . "',' ',''))
+                ". $addSql . " 
+               AND deleted =0   
+                               ";
+            $statement = $pdo->prepare($sql);
+        //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
+    /**  
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_osb tablosundan kayıtları döndürür !!
      * @version v 1.0  09.02.2016
@@ -303,8 +401,7 @@ class SysOsb extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * user interface datagrid fill operation get row count for widget
+    /**     
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_osb tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
      * @version v 1.0  09.02.2016
@@ -316,26 +413,10 @@ class SysOsb extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $whereSQL = " WHERE a.language_code = '".$params['language_code']."' AND a.country_id =  ".intval($params['country_id']);
-            $whereSQL1 = " WHERE a1.language_code = '".$params['language_code']."' AND a1.country_id = ".intval($params['country_id'])." AND a1.deleted = 0 ";
-            $whereSQL2 = " WHERE a2.language_code = '".$params['language_code']."' AND a2.country_id = ".intval($params['country_id'])." AND a2.deleted = 1 ";
-            
+                            
             $sql = "
-                        SELECT 
-                        count(a.id) AS count ,
-                            (SELECT count(a1.id) AS toplam FROM sys_osb a1
-                            INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 15 AND sd1.first_group= a1.deleted AND sd1.language_code = a1.language_code AND sd1.deleted = 0 AND sd1.active = 0
-                            INNER JOIN sys_specific_definitions sd11 ON sd11.main_group = 16 AND sd11.first_group= a1.active AND sd11.language_code = a1.language_code AND sd11.deleted = 0 AND sd11.active = 0
-                            INNER JOIN sys_countrys c1 ON c1.id = a1.country_id AND c1.language_code = a1.language_code AND c1.deleted = 0 AND c1.active = 0 
-                            INNER JOIN sys_language l1 ON l1.language_main_code = a1.language_code AND l1.deleted = 0 AND l1.active = 0 
-                            INNER JOIN info_users u1 ON u1.id   = a1.user_id  
-                             " . $whereSQL1 . ") AS undeleted_count, 
-                            (SELECT count(a2.id) as toplam FROM sys_osb a2
-                            INNER JOIN sys_specific_definitions sd2 ON sd2.main_group = 15 AND sd2.first_group= a2.deleted AND sd2.language_code = a2.language_code AND sd2.deleted = 0 AND sd2.active = 0
-                            INNER JOIN sys_specific_definitions sd12 ON sd12.main_group = 16 AND sd12.first_group= a2.active AND sd12.language_code = a2.language_code AND sd12.deleted = 0 AND sd12.active = 0
-                            INNER JOIN sys_countrys c2 ON c2.id = a2.country_id AND c2.language_code = a2.language_code AND c2.deleted = 0 AND c2.active = 0 
-                            INNER JOIN sys_language l2 ON l2.language_main_code = a2.language_code AND l2.deleted =0 AND l2.active = 0 
-                            INNER JOIN info_users u2 ON u2.id   = a2.user_id  
-                             " . $whereSQL2 . ") AS deleted_count 
+                    SELECT 
+                        count(a.id) AS count  
                     FROM sys_osb a
                     INNER JOIN sys_specific_definitions sd ON sd.main_group = 15 AND sd.first_group= a.deleted AND sd.language_code = a.language_code AND sd.deleted = 0 AND sd.active = 0
                     INNER JOIN sys_specific_definitions sd1 ON sd1.main_group = 16 AND sd1.first_group= a.active AND sd1.language_code = a.language_code AND sd1.deleted = 0 AND sd1.active = 0
@@ -356,62 +437,8 @@ class SysOsb extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
-
-    /**
-     * user interface datagrid fill operation get row count for widget
-     * @author Okan CIRAN
-     * @ combobox ı doldurmak için sys_osb tablosundan çekilen kayıtları döndürür   !!
-     * @version v 1.0  09.02.2016
-     * @param array | null $args
-     * @return array
-     * @throws \PDOException
-     */
-    public function fillComboBox($params = array()) {
-        try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-            $languageId = NULL;
-            $languageIdValue = 647;
-            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
-                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
-                    }
-            }
-            $countryId = 91;
-            if (isset($params['country_id']) && $params['country_id'] != "") {
-                $countryId = $params['country_id'];
-            }
-            $addSql ="" ;
-            if (isset($params['city_id']) && $params['city_id'] != "") {
-                $addSql .= " AND a.city_id = ".$params['city_id'];
-            }
-            $sql = "               
-                SELECT  
-                    a.city_id AS id,
-                    COALESCE(NULLIF(sd.name, ''), a.name_eng) AS name 
-                FROM sys_osb a 
-                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
-		LEFT JOIN sys_language lx ON lx.id =".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0                
-		LEFT JOIN sys_osb sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
-                WHERE a.active = 0 AND a.deleted = 0 AND a.language_parent_id =0 
-                AND a.country_id = ".intval($countryId)."     
-                ".$addSql."    
-                ORDER BY  name                
-                                 ";
-            $statement = $pdo->prepare($sql);
-          // echo debugPDO($sql, $params);  
-            $statement->execute();
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC); 
-            $errorInfo = $statement->errorInfo();
-            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                throw new \PDOException($errorInfo[0]);
-            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-        } catch (\PDOException $e /* Exception $e */) {       
-            return array("found" => false, "errorInfo" => $e->getMessage());
-        }
-    }
-
-     /**     
+ 
+    /**     
      * @author Okan CIRAN
      * @ sys_osb tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  29.12.2015
@@ -460,7 +487,6 @@ class SysOsb extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-
     
     /**  
      * @author Okan CIRAN
@@ -481,21 +507,32 @@ class SysOsb extends \DAL\DalSlim {
                     $languageIdValue = $languageId ['resultSet'][0]['id'];                    
                     }
             }
+            $addSql ="" ;
+            $countryId = 91;
+            if (isset($params['country_id']) && $params['country_id'] != "") {
+                $countryId = $params['country_id'];               
+            }           
+            $addSql .= " AND a.country_id = ".intval($countryId);
+            
+            if (isset($params['city_id']) && $params['city_id'] != "") {
+                $cityId = $params['city_id'];
+                $addSql .= " AND a.city_id = ".intval($cityId);
+            }
             $sql ="                
                 SELECT  
                     a.id,
-                    COALESCE(NULLIF(sd.name, ''), a.name_eng) AS name,
+                    COALESCE(NULLIF(ax.name, ''), a.name_eng) AS name,
                     a.name_eng, 
                     a.active 
                 FROM sys_osb a 
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
-		LEFT JOIN sys_language lx ON lx.id =".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0                
-		LEFT JOIN sys_osb sd ON (sd.id =a.id OR sd.language_parent_id = a.id) AND sd.deleted =0 AND sd.active =0 AND lx.id = sd.language_id   
+		LEFT JOIN sys_language lx ON lx.id =".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0
+		LEFT JOIN sys_osb ax ON (ax.id =a.id OR ax.language_parent_id = a.id) AND ax.deleted =0 AND ax.active =0 AND lx.id = ax.language_id   
                 WHERE 
                     a.active = 0 AND 
                     a.deleted = 0 AND 
-                    a.language_parent_id =0 AND
-                    a.country_id = 91          
+                    a.language_parent_id =0 
+                    ".$addSql."
                 ORDER BY  name  
                                  ";
              $statement = $pdo->prepare( $sql);
@@ -511,6 +548,370 @@ class SysOsb extends \DAL\DalSlim {
         }
     }
   
-    
-    
+    /**
+     * @author Okan CIRAN
+     * @ sys_osb tablosundan parametre olarak  gelen id kaydın aktifliğini
+     *  0(aktif) ise 1 , 1 (pasif) ise 0  yapar. !!
+     * @version v 1.0  23.08.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function makeActiveOrPassive($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                if (isset($params['id']) && $params['id'] != "") {
+
+                    $sql = "                 
+                UPDATE sys_osb
+                SET active = (  SELECT   
+                                CASE active
+                                    WHEN 0 THEN 1
+                                    ELSE 0
+                                END activex
+                                FROM sys_osb
+                                WHERE id = " . intval($params['id']) . "
+                ),
+                op_user_id = " . intval($opUserIdValue) . "
+                WHERE id = " . intval($params['id']);
+                    $statement = $pdo->prepare($sql);
+                    //  echo debugPDO($sql, $params);
+                    $update = $statement->execute();
+                    $afterRows = $statement->rowCount();
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                }
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ sys_osb bilgilerini döndürür !!
+     * filterRules aktif 
+     * @version v 1.0  23.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillOsbList($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+                $limit = intval($params['rows']);
+            } else {
+                $limit = 10;
+                $offset = 0;
+            }
+
+            $sortArr = array();
+            $orderArr = array();
+            if (isset($params['sort']) && $params['sort'] != "") {
+                $sort = trim($params['sort']);
+                $sortArr = explode(",", $sort);
+                if (count($sortArr) === 1)
+                    $sort = trim($params['sort']);
+            } else {
+                $sort = " name";
+            }
+
+            if (isset($params['order']) && $params['order'] != "") {
+                $order = trim($params['order']);
+                $orderArr = explode(",", $order);
+                //print_r($orderArr);
+                if (count($orderArr) === 1)
+                    $order = trim($params['order']);
+            } else {
+                $order = "ASC";
+            }
+
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'name_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND name_eng" . $sorguExpression . ' ';
+
+                                break;
+                            case 'country_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND country_name" . $sorguExpression . ' ';
+
+                                break;    
+                             case 'city_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND city_name" . $sorguExpression . ' ';
+
+                                break;   
+                            
+                            case 'city':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND city" . $sorguExpression . ' ';
+                            
+                                break;  
+                            case 'address':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND address" . $sorguExpression . ' ';
+                            
+                                break;  
+                             case 'postal_code':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND postal_code" . $sorguExpression . ' ';
+                            
+                                break;  
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = ""; 
+            }
+                            
+            $sorguStr = rtrim($sorguStr, "AND ");            
+                            
+            $sql = "  
+                SELECT
+                    id, 
+                    country_id, 
+                    country_name,  
+                    name,  
+                    name_eng,
+                    active, 
+                    state_active,
+                    op_user_id, 
+                    op_user_name,
+                    city_id,
+                    city_name,
+                    city,
+                    borough_id,
+                    borough_name,
+                    deleted,
+                    address,
+                    postal_code
+                FROM (
+                    SELECT 
+                        a.id, 
+                        a.country_id, 
+                        COALESCE(NULLIF(c.name, ''), c.name_eng) AS country_name,  
+                        COALESCE(NULLIF(a.name, ''), a.name_eng) AS name,  
+                        a.name_eng,
+                        a.active, 
+                        sd16.description as state_active,
+                        a.op_user_id, 
+                        u.username AS op_user_name,
+                        a.city_id,
+                        sc.name AS city_name,
+                        a.city,
+                        a.borough_id,
+                        sb.name AS borough_name,
+                        a.deleted,
+                        a.address,
+                        a.postal_code
+                    FROM sys_osb  a
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+                    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = l.id  AND sd16.deleted = 0 AND sd16.active = 0
+                    INNER JOIN sys_countrys c ON c.id = a.country_id AND c.language_id = l.id AND c.deleted = 0 AND c.active = 0                 
+                    LEFT JOIN sys_city sc ON sc.city_id = a.city_id AND sc.active=0 AND sc.deleted =0 AND sc.language_id = l.id 
+                    LEFT JOIN sys_borough sb ON sb.boroughs_id = a.borough_id AND sb.city_id = a.city_id AND sb.active=0 AND sb.deleted =0 AND sb.language_id = l.id 
+                    INNER JOIN info_users u ON u.id = a.op_user_id 
+                    WHERE 
+                        a.deleted = 0 AND 
+                        a.language_parent_id =0 
+                    ) AS xtable WHERE deleted =0 
+                ".$sorguStr."
+            ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            );
+            $statement = $pdo->prepare($sql);
+            // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+        
+    /**
+     * @author Okan CIRAN
+     * @ sys_osb bilgilerinin sayısını döndürür !!
+     * filterRules aktif 
+     * @version v 1.0  23.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillOsbListRtc($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
+            $sorguStr = null;
+            if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                             case 'name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'name_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND name_eng" . $sorguExpression . ' ';
+
+                                break;
+                            case 'country_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND country_name" . $sorguExpression . ' ';
+
+                                break;    
+                             case 'city_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND city_name" . $sorguExpression . ' ';
+
+                                break;   
+                            
+                            case 'city':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND city" . $sorguExpression . ' ';
+                            
+                                break;  
+                            case 'borough_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND borough_name" . $sorguExpression . ' ';
+                            
+                                break;  
+                              case 'address':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND address" . $sorguExpression . ' ';
+                            
+                                break;  
+                             case 'postal_code':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND postal_code" . $sorguExpression . ' ';
+                            
+                                break;  
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+                             
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+            $sql = " 
+                SELECT COUNT(id) AS count 
+                FROM (
+                    SELECT   
+                        id, 
+                        country_id, 
+                        country_name,  
+                        name,  
+                        name_eng,
+                        active, 
+                        state_active,
+                        op_user_id, 
+                        op_user_name,
+                        city_id,
+                        city_name,
+                        city,
+                        borough_id,
+                        borough_name,
+                        deleted,
+                        address,
+                        postal_code
+                    FROM (
+                        SELECT 
+                            a.id, 
+                            a.country_id, 
+                            COALESCE(NULLIF(c.name, ''), c.name_eng) AS country_name,  
+                            COALESCE(NULLIF(a.name, ''), a.name_eng) AS name,  
+                            a.name_eng,
+                            a.active, 
+                            sd16.description as state_active,
+                            a.op_user_id, 
+                            u.username AS op_user_name,
+                            a.city_id,
+                            sc.name AS city_name,
+                            a.city,
+                            a.borough_id,
+                            sb.name AS borough_name,
+                            a.deleted,
+                            a.address,
+                            a.postal_code
+                        FROM sys_osb  a
+                        INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+                        INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = l.id  AND sd16.deleted = 0 AND sd16.active = 0
+                        INNER JOIN sys_countrys c ON c.id = a.country_id AND c.language_id = l.id AND c.deleted = 0 AND c.active = 0                 
+                        INNER JOIN sys_city sc ON sc.city_id = a.city_id AND sc.active=0 AND sc.deleted =0 AND sc.language_id = l.id 
+                        INNER JOIN sys_borough sb ON sb.boroughs_id = a.borough_id AND sb.city_id = a.city_id AND sb.active=0 AND sb.deleted =0 AND sb.language_id = l.id 
+                        INNER JOIN info_users u ON u.id = a.op_user_id 
+                        WHERE 
+                            a.deleted = 0 AND 
+                            a.language_parent_id =0 
+                        ) AS xtable   
+                        WHERE deleted =0  
+                        ".$sorguStr." 
+                    ) AS xxtable 
+              
+                ";           
+            $statement = $pdo->prepare($sql);
+         // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
 }
