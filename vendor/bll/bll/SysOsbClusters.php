@@ -84,8 +84,7 @@ class SysOsbClusters extends \BLL\BLLSlim {
         return $resultSet['resultSet'];
     }
   
- 
-    
+  
     /**
      * public key / private key and value update function
      * @param array | null $params
@@ -95,16 +94,39 @@ class SysOsbClusters extends \BLL\BLLSlim {
         $DAL = $this->slimApp->getDALManager()->get('sysOsbClustersPDO');
         return $DAL->makeActiveOrPassive($params);
     }
-    
-        /**
-     * Function to fill User Communications Types on user interface layer
+      
+    /**
+     * Function to fill datagrid on user interface layer
      * @param array | null $params
      * @return array
      */
-    public function fillOsbClusterLists ($params = array()) {
+    public function fillOsbClusterLists ($params = array()) {        
         $DAL = $this->slimApp->getDALManager()->get('sysOsbClustersPDO');
         $resultSet = $DAL->fillOsbClusterLists($params);  
         return $resultSet['resultSet'];
     }
+    
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillOsbClusterListsRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysOsbClustersPDO');
+        $resultSet = $DAL->fillOsbClusterListsRtc($params);  
+        return $resultSet['resultSet'];
+    }  
+    
+    /**
+     * Function to fill text on user interface layer
+     * @param array $params
+     * @return array
+    */
+    public function fillOsbClustersDdlist($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysOsbClustersPDO');
+        $resultSet = $DAL->fillOsbClustersDdlist($params);
+        return $resultSet['resultSet'];
+    }
+    
 
 }
