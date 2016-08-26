@@ -2015,6 +2015,8 @@ $app->get("/pkFillConsCompanyLists_infoFirmProfile/", function () use ($app ) {
                 "firm_name_short" => html_entity_decode($menu["firm_name_short"]),
                 "firm_name_short_eng" => html_entity_decode($menu["firm_name_short_eng"]),               
                 "state_active" => html_entity_decode($menu["state_active"]),
+                "osb_id" => $menu["osb_id"], 
+                "cluster_ids" => $menu["cluster_ids"], 
                 "attributes" => array("active" => $menu["active"],   ),                   
             );
         }
