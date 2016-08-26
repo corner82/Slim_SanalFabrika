@@ -49,10 +49,17 @@ $app->add(new \Slim\Middleware\MiddlewareMQManager());
 $app->get("/fillComboBox_syscountrys/", function () use ($app ) {
     
     $BLL = $app->getBLLManager()->get('sysCountrysBLL'); 
-  
-    $componentType =$_GET['component_type'] ;
-    $resCombobox = $BLL->fillComboBox(array('language_code' => $_GET['language_code']));
-
+   
+    $componentType = 'ddslick';
+     if (isset($_GET['component_type'])) {
+      $componentType =$_GET['component_type'] ;
+    }
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = $_GET['language_code'];
+    }
+ 
+    $resCombobox = $BLL->fillComboBox(array('language_code' =>$vLanguageCode));
     
     if ($componentType == 'bootstrap') {
         $menus = array();
