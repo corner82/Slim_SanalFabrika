@@ -221,7 +221,7 @@ $app->get("/pkUpdate_sysOsb/", function () use ($app ) {
     }  
     $vCity = '';
     if (isset($_GET['city'])) {
-         $stripper->offsetSet('city',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+         $stripper->offsetSet('city',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
                                                 $app,
                                                 $_GET['city']));
     }   
@@ -239,7 +239,7 @@ $app->get("/pkUpdate_sysOsb/", function () use ($app ) {
     } 
     $vAddress = '';
     if (isset($_GET['address'])) {
-         $stripper->offsetSet('address',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+         $stripper->offsetSet('address',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
                                                 $app,
                                                 $_GET['address']));
     }   

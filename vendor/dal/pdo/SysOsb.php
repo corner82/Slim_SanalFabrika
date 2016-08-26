@@ -130,7 +130,7 @@ class SysOsb extends \DAL\DalSlim {
                         }
                 }    
                 
-                print_r($params);
+               // print_r($params);
                     $sql = "
                 INSERT INTO sys_osb(                        
                         name, 
@@ -166,7 +166,7 @@ class SysOsb extends \DAL\DalSlim {
                     $statement->bindValue(':borough_id', $params['borough_id'], \PDO::PARAM_INT);
                     $statement->bindValue(':address', $params['address'], \PDO::PARAM_STR);
                     $statement->bindValue(':postal_code', $params['postal_code'], \PDO::PARAM_STR);
-                   echo debugPDO($sql, $params);
+                  // echo debugPDO($sql, $params);
                     $result = $statement->execute();
                     $insertID = $pdo->lastInsertId('sys_osb_id_seq');
                     $errorInfo = $statement->errorInfo();
@@ -510,9 +510,10 @@ class SysOsb extends \DAL\DalSlim {
             $addSql ="" ;
             $countryId = 91;
             if (isset($params['country_id']) && $params['country_id'] != "") {
-                $countryId = $params['country_id'];               
+                $countryId = $params['country_id'];    
+                $addSql .= " AND a.country_id = ".intval($countryId);
             }           
-            $addSql .= " AND a.country_id = ".intval($countryId);
+           
             
             if (isset($params['city_id']) && $params['city_id'] != "") {
                 $cityId = $params['city_id'];
@@ -533,7 +534,7 @@ class SysOsb extends \DAL\DalSlim {
                     a.deleted = 0 AND 
                     a.language_parent_id =0 
                     ".$addSql."
-                ORDER BY  name  
+                ORDER BY name  
                                  ";
              $statement = $pdo->prepare( $sql);
           //  echo debugPDO($sql, $params);
@@ -889,8 +890,8 @@ class SysOsb extends \DAL\DalSlim {
                         INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
                         INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = l.id  AND sd16.deleted = 0 AND sd16.active = 0
                         INNER JOIN sys_countrys c ON c.id = a.country_id AND c.language_id = l.id AND c.deleted = 0 AND c.active = 0                 
-                        INNER JOIN sys_city sc ON sc.city_id = a.city_id AND sc.active=0 AND sc.deleted =0 AND sc.language_id = l.id 
-                        INNER JOIN sys_borough sb ON sb.boroughs_id = a.borough_id AND sb.city_id = a.city_id AND sb.active=0 AND sb.deleted =0 AND sb.language_id = l.id 
+                        LEFT JOIN sys_city sc ON sc.city_id = a.city_id AND sc.active=0 AND sc.deleted =0 AND sc.language_id = l.id 
+                        LEFT JOIN sys_borough sb ON sb.boroughs_id = a.borough_id AND sb.city_id = a.city_id AND sb.active=0 AND sb.deleted =0 AND sb.language_id = l.id 
                         INNER JOIN info_users u ON u.id = a.op_user_id 
                         WHERE 
                             a.deleted = 0 AND 
