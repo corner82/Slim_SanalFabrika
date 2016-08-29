@@ -410,20 +410,20 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
                 if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                 
+
                     $operationIdValue = 1;
                     $operationId = SysOperationTypes::getTypeIdToGoOperationId(
-                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 23, 'type_id' => 1,));
+                                    array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 23, 'type_id' => 1,));
                     if (\Utill\Dal\Helper::haveRecord($operationId)) {
-                    $operationIdValue = $operationId ['resultSet'][0]['id'];
+                        $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
-                    
-                    $countryId = 91; 
-                    $languageIdValue = 647;       
-                    $ConsultantId = $opUserIdValue;  
+
+                    $countryId = 91;
+                    $languageIdValue = 647;
+                    $ConsultantId = $opUserIdValue;
                     $profilePublic = 0;
-       
-                    $sql =  "
+
+                    $sql = "
                    INSERT INTO info_firm_profile(
                         profile_public,                         
                         firm_name, 
@@ -440,39 +440,39 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         cons_allow_id
                         )
                 VALUES (
-                        ". intval($profilePublic).",
-                        '". $params['firm_name']."' ,
-                        '". $params['firm_name_eng']."' ,
-                        '". $params['firm_name_short']."' ,
-                        '". $params['firm_name_short_eng']."' ,
-                        ". intval($countryId).",
+                        " . intval($profilePublic) . ",
+                        '" . $params['firm_name'] . "' ,
+                        '" . $params['firm_name_eng'] . "' ,
+                        '" . $params['firm_name_short'] . "' ,
+                        '" . $params['firm_name_short_eng'] . "' ,
+                        " . intval($countryId) . ",
                             
-                        ". intval($languageIdValue).",
-                        ". intval($ConsultantId).",
-                        ". intval($operationIdValue).",    
-                        ". intval($opUserIdValue).",
+                        " . intval($languageIdValue) . ",
+                        " . intval($ConsultantId) . ",
+                        " . intval($operationIdValue) . ",    
+                        " . intval($opUserIdValue) . ",
                         (SELECT last_value FROM info_firm_profile_id_seq),
                         2
                         )";
-                      $statement = $pdo->prepare($sql); 
-                  // echo debugPDO($sql, $params);
+                    $statement = $pdo->prepare($sql);
+                    // echo debugPDO($sql, $params);
                     $result = $statement->execute();
                     $insertID = $pdo->lastInsertId('info_firm_profile_id_seq');
                     $errorInfo = $statement->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
-                                
-                    InfoFirmKeys::insert(array('firm_id' => $insertID, 
-                                              'country_id' =>$countryId));     
-                            
-                    $xc = $this->insertCompanyClusters(array('firm_id' => $insertID,                     
-                                                'op_user_id' => $opUserIdValue,
-                                                'cluster_id' => $params['cluster_id'],
+
+                    InfoFirmKeys::insert(array('firm_id' => $insertID,
+                        'country_id' => $countryId));
+
+                    $xc = $this->insertCompanyClusters(array('firm_id' => $insertID,
+                        'op_user_id' => $opUserIdValue,
+                        'clusters_id' => $params['clusters_id'],
                     ));
 
                     if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
-                        throw new \PDOException($xc['errorInfo']);                            
-                    
+                        throw new \PDOException($xc['errorInfo']);
+
                     $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
@@ -505,50 +505,52 @@ class InfoFirmProfile extends \DAL\DalSlim {
     */
     public function insertCompanyClusters($params = array()) {
         try {
-            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');  
-            $addSql ="0"; 
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $addSql = "0";
             $firmId = 0;
             if ((isset($params['firm_id']) && $params['firm_id'] != "")) {
                 $firmId = $params['firm_id'];
-                $addSql =" ".intval($firmId)." " ; 
+                $addSql = " " . $firmId . " ";
             }
             $Id = 0;
             if ((isset($params['id']) && $params['id'] != "")) {
                 $Id = $params['id'];
-                $addSql ="(SELECT act_parent_id FROM info_firm_profile WHERE id = ".intval($firmId).") " ; 
+                $addSql = " (SELECT act_parent_id FROM info_firm_profile WHERE id = " . intval($Id) . ") ";
             }
-            
-                $sql = "
-                INSERT INTO info_firm_clusters(
+
+            $sql = "              
+                    INSERT INTO info_firm_clusters (
                         firm_id, 
                         osb_cluster_id,
                         op_user_id,
-                        cons_allow_id
+                        cons_allow_id,
+                        act_parent_id
                         )
                         SELECT 
                             " . $addSql . ",
-                            id AS cluster_id,
-                            " . intval( $params['op_user_id']) . ",
-                            2
+                            cast(id AS integer) AS cluster_id,
+                            " . intval($params['op_user_id']) . ",
+                            2,
+                            (SELECT last_value FROM info_firm_clusters_id_seq) +  (row_number() over())
                         FROM sys_osb_clusters 
                         WHERE 
-                            id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each('" . $params['cluster_id'] . "'))
-                    ";
-                $statement = $pdo->prepare($sql);
-               // echo debugPDO($sql, $params);
-                $result = $statement->execute();
-                $insertID = $pdo->lastInsertId('sys_acl_resource_roles_id_seq');
-                $errorInfo = $statement->errorInfo();
-                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
-                    throw new \PDOException($errorInfo[0]);
-                //$pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);           
+                            id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each('" . $params['clusters_id'] . "'))                  
+                        ";
+            $statement = $pdo->prepare($sql);          
+          // echo debugPDO($sql, $params);
+            $result = $statement->execute();          
+            //$insertID = $pdo->lastInsertId('info_firm_clusters_id_seq');
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            //$pdo->commit();
+            return array("found" => true, "errorInfo" => $errorInfo,); // "lastInsertId" => $insertID);
         } catch (\PDOException $e /* Exception $e */) {
-          //  $pdo->rollback();
+            //  $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-    
+
     /**   
      * @author Okan CIRAN
      * @ danısşman tarafından info_firm_clusters tablosundan kayıtları siler.  !!
@@ -569,7 +571,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
             $Id = 0;
             if ((isset($params['id']) && $params['id'] != "")) {
                 $Id = $params['id'];
-                $addSql ="(SELECT act_parent_id FROM info_firm_profile WHERE id = ".intval($firmId).") " ; 
+                $addSql ="(SELECT act_parent_id FROM info_firm_profile WHERE id = ".intval($Id).") " ; 
             }
             
             
@@ -587,18 +589,18 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         FROM sys_osb_clusters 
                         WHERE 
                             cons_allow_id = 2 AND 
-                            id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each('" . $params['cluster_id'] . "'))
+                            id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each('" . $params['clusters_id'] . "'))
                                 ) 
                     ";
                 $statement = $pdo->prepare($sql);
-               // echo debugPDO($sql, $params);
+              //echo debugPDO($sql, $params);
                 $result = $statement->execute();
-                $insertID = $pdo->lastInsertId('sys_acl_resource_roles_id_seq');
+             //   $insertID = $pdo->lastInsertId('info_firm_clusters_id_seq');
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
                 //$pdo->commit();
-                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);           
+                return array("found" => true, "errorInfo" => $errorInfo,);// "lastInsertId" => $insertID);           
         } catch (\PDOException $e /* Exception $e */) {
           //  $pdo->rollback();
             return array("found" => false, "errorInfo" => $e->getMessage());
@@ -848,25 +850,24 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
                     $this->makePassive(array('id' => $params['id']));
-                    $this->makeConsAllowZero(array('id' => $params['id']));
-                    
+                    $this->makeConsAllowZero(array('id' => $params['id']));                          
                             
                     $xc = $this->deleteCompanyClusters(array('id' => $params['id'],                     
                                                 'op_user_id' => $opUserIdValue,
-                                                'cluster_id' => $params['cluster_id'],
+                                                'clusters_id' => $params['clusters_id'],
                     ));
 
                     if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
-                        throw new \PDOException($xc['errorInfo']);          
-                    
+                        throw new \PDOException($xc['errorInfo']);       
+                            
                     $xc = $this->insertCompanyClusters(array('id' => $params['id'],                  
                                                 'op_user_id' => $opUserIdValue,
-                                                'cluster_id' => $params['cluster_id'],
-                    ));
+                                                'clusters_id' => $params['clusters_id'],
+                    ));                            
 
                     if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
                         throw new \PDOException($xc['errorInfo']);  
-                    
+                            
                     $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
                 } else {
@@ -887,8 +888,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-    
-      
+          
     /**
      * @author Okan CIRAN
      * @ info_firm_machine_tool tablosundan parametre olarak  gelen id kaydını danısman onayını kaldırır. !!
@@ -3058,16 +3058,14 @@ class InfoFirmProfile extends \DAL\DalSlim {
             $sorguStr = rtrim($sorguStr, "AND ");
 
             $jsonSqlOsbIds = "  
-                 (SELECT array_to_json(COALESCE(NULLIF(cxx,'{}'),NULL)) FROM (
-                    SELECT  
-                        ARRAY(   
-                            SELECT DISTINCT 
-                                axv.osb_id                             
-                            FROM sys_osb_clusters axv
-                            LEFT join info_firm_clusters bb ON bb.osb_cluster_id = axv.id AND bb.active=0 AND bb.deleted =0
-                            WHERE bb.firm_id = 94 AND axv.active =0 AND axv.deleted =0
-                            ORDER BY axv.osb_id) AS cxx
-                            ) AS zxtable)
+                 (  
+                    SELECT DISTINCT 
+                        axv.osb_id                             
+                    FROM sys_osb_clusters axv
+                    LEFT join info_firm_clusters bb ON bb.osb_cluster_id = axv.id AND bb.active=0 AND bb.deleted =0
+                    WHERE bb.firm_id = 94 AND axv.active =0 AND axv.deleted =0
+                    LIMIT 1
+                     )
             ";
             $jsonSqlClustersIds = "  
                 (SELECT array_to_json(COALESCE(NULLIF(cxx,'{}'),NULL)) FROM (

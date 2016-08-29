@@ -188,6 +188,16 @@ $app->get("/pkInsertConsAct_infoFirmProfile/", function () use ($app ) {
         $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, 
                     $app, $_GET['language_code']));
     }
+    $vOsbId = '';
+    if (isset($_GET['osb_id'])) {
+        $stripper->offsetSet('osb_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                    $app, $_GET['osb_id']));
+    }
+    $vClustersId = '';
+    if (isset($_GET['clusters_id'])) {
+        $stripper->offsetSet('clusters_id', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+                    $app, $_GET['clusters_id']));
+    }
     $vFirmName = NULL;
     if (isset($_GET['firm_name'])) {
         $stripper->offsetSet('firm_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
@@ -216,6 +226,12 @@ $app->get("/pkInsertConsAct_infoFirmProfile/", function () use ($app ) {
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     }
+    if ($stripper->offsetExists('clusters_id')) {
+        $vClustersId = $stripper->offsetGet('clusters_id')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('osb_id')) {
+        $vOsbId= $stripper->offsetGet('osb_id')->getFilterValue();
+    }
     if ($stripper->offsetExists('firm_name')) {
         $vFirmName = $stripper->offsetGet('firm_name')->getFilterValue();
     }
@@ -234,6 +250,8 @@ $app->get("/pkInsertConsAct_infoFirmProfile/", function () use ($app ) {
         'firm_name_eng' => $vFirmNameEng,
         'firm_name_short' => $vFirmNameShort,
         'firm_name_short_eng' => $vFirmNameShortEng,
+        'osb_id' => $vOsbId,
+        'clusters_id' => $vClustersId,
         'pk' => $pk,
     ));
     $app->response()->header("Content-Type", "application/json");
@@ -400,6 +418,16 @@ $app->get("/pkUpdateConsAct_infoFirmProfile/", function () use ($app ) {
                                                 $app,
                                                 $_GET['id']));
     }
+    $vOsbId = '';
+    if (isset($_GET['osb_id'])) {
+        $stripper->offsetSet('osb_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                    $app, $_GET['osb_id']));
+    }
+    $vClustersId = '';
+    if (isset($_GET['clusters_id'])) {
+        $stripper->offsetSet('clusters_id', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+                    $app, $_GET['clusters_id']));
+    }
     $vFirmName = NULL;
     if (isset($_GET['firm_name'])) {
         $stripper->offsetSet('firm_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1,
@@ -428,6 +456,12 @@ $app->get("/pkUpdateConsAct_infoFirmProfile/", function () use ($app ) {
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     }
+    if ($stripper->offsetExists('clusters_id')) {
+        $vClustersId = $stripper->offsetGet('clusters_id')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('osb_id')) {
+        $vOsbId= $stripper->offsetGet('osb_id')->getFilterValue();
+    }
     if ($stripper->offsetExists('id')) {
         $vId = $stripper->offsetGet('id')->getFilterValue();
     }
@@ -450,6 +484,8 @@ $app->get("/pkUpdateConsAct_infoFirmProfile/", function () use ($app ) {
         'firm_name_eng' => $vFirmNameEng,
         'firm_name_short' => $vFirmNameShort,
         'firm_name_short_eng' => $vFirmNameShortEng,
+        'osb_id' => $vOsbId,
+        'clusters_id' => $vClustersId,
         'pk' => $pk,
     ));
     $app->response()->header("Content-Type", "application/json");
