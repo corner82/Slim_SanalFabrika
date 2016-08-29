@@ -1033,7 +1033,13 @@ class SysAclActions extends \DAL\DalSlim {
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn, "errorInfoColumnCount" => $count);
                 }
             } else {
-                $xActionPrivilegesServicesValue = $xActionPrivilegesServices['resultSet'][0]['adet'];
+                            
+            $xActionPrivilegesServicesValue = 0;
+            if ((isset($xActionPrivilegesServices['resultSet'][0]['adet']) && $xActionPrivilegesServices['resultSet'][0]['adet'] != "")) {
+                $xActionPrivilegesServicesValue = intval($xActionPrivilegesServices['resultSet'][0]['adet']);
+            }
+                
+              //  $xActionPrivilegesServicesValue = $xActionPrivilegesServices['resultSet'][0]['adet'];
 
                 $errorInfo = '23503';   // 23503  foreign_key_violation
                 $errorInfoColumn = 'haveRecordsActionPrivilegRestServices';
@@ -1200,10 +1206,15 @@ class SysAclActions extends \DAL\DalSlim {
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
             } else {
-                $xAclPrivilegesCountValue = $xAclPrivileges['resultSet'][0]['adet'];                
+                $xActionPrivilegesServicesValue = 0;
+                if ((isset($xAclPrivileges['resultSet'][0]['adet']) && $xAclPrivileges['resultSet'][0]['adet'] != "")) {
+                    $xActionPrivilegesServicesValue = intval($xAclPrivileges['resultSet'][0]['adet']);
+                }
+                
+               // $xAclPrivilegesCountValue = $xAclPrivileges['resultSet'][0]['adet'];                
                 $errorInfo = '23503';   // 23503  foreign_key_violation
                 $errorInfoColumn = 'haveRecordsActionPrivilegRestServices';
-                $count = $xAclPrivilegesCountValue;
+                $count = $xActionPrivilegesServicesValue;
                 $pdo->rollback();
                 return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn, "errorInfoColumnCount" => $count);
             }
@@ -1407,7 +1418,7 @@ class SysAclActions extends \DAL\DalSlim {
                 LIMIT 1 
                                ";
             $statement = $pdo->prepare($sql);
-          //echo debugPDO($sql, $params);
+         //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
