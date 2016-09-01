@@ -10,10 +10,9 @@
 namespace Utill\Mail;
 
 
-interface InfoMailInterface  {
+interface DebugMailInterface  {
 
-    public function sendInfoMail(array $params = null);
-    public function sendInfoMailSMTP(array $params = null);
-    public function sendInfoMailSMTPDebug(array $params = null);
+    public function setDebugMode($debugMode = null);
+    public function getDebugMode();
 
 }

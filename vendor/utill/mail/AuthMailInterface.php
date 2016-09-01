@@ -13,5 +13,6 @@ namespace Utill\Mail;
 interface AuthMailInterface  {
 
     public function sendAuthMail(array $params = null);
+    public function sendAuthMailDebug(array $params = null);
 
 }

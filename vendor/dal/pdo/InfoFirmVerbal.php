@@ -1513,12 +1513,14 @@ class InfoFirmVerbal extends \DAL\DalSlim {
             
            $mailTemplate = new \Utill\Mail\Template\MailTemplate();
            $mailTemplate->setContentRetrieverStartegyClass(new \Utill\Mail\Template\ContentRetrieverFromFileStrategy);
-           $mailTemplate->setTemplateContent(array('fileName'=>'danisman_confirm'));
+           $mailTemplate->setTemplateContent(array('fileName'=>'kume_confirm'));
            //$message = $mailTemplate->getTemplateContent();
-           $message = $mailTemplate->replaceAndGetTemplateContent(array('{[herkimse]}' => 
-                                                                        'Okan Ciran'));
+           $message = $mailTemplate->replaceAndGetTemplateContent(array('{[herkimse]}' => 'Okan Ciran',
+                                                                        '{[kume]}' => 'OSSA',
+                                                                        '{[rol]}' => 'URGE',
+                                                                        '{[link]}' => 'www.google.com'));
             
-           $mail = new \Utill\Mail\PhpMailer\PhpMailWrapper();
+           $mail = new \Utill\Mail\PhpMailer\PhpMailInfoWrapper();
            $mail->setCharset('UTF-8');
            $mail->setSMTPServerHost('mail.ostimteknoloji.com');
            $mail->setSMTPServerUser('sanalfabrika@ostimteknoloji.com');
