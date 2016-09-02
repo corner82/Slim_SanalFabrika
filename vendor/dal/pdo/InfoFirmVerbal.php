@@ -1493,7 +1493,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
-     * @ firmanın sözel verilerinin danısman bilgisini döndürür !!
+     * @ parametre olarak verilen user a onay emaili gönderir. !!
      * @version v 1.0  23.05.2016
      * @param array | null $args
      * @return array
@@ -1515,10 +1515,10 @@ class InfoFirmVerbal extends \DAL\DalSlim {
            $mailTemplate->setContentRetrieverStartegyClass(new \Utill\Mail\Template\ContentRetrieverFromFileStrategy);
            $mailTemplate->setTemplateContent(array('fileName'=>'kume_confirm'));
            //$message = $mailTemplate->getTemplateContent();
-           $message = $mailTemplate->replaceAndGetTemplateContent(array('{[herkimse]}' => 'Okan Ciran',
+           $message = $mailTemplate->replaceAndGetTemplateContent(array('{[herkimse]}' => 'asd sdsdf',
                                                                         '{[kume]}' => 'OSSA',
                                                                         '{[rol]}' => 'URGE',
-                                                                        '{[link]}' => 'www.google.com'));
+                                                                        '{[link]}' => 'https://zeynel.sanalfabrika.com/ostim/sanalfabrika/signupconfirmation?key=zfdkxoyyyzdMphRk1a'));
             
            $mail = new \Utill\Mail\PhpMailer\PhpMailInfoWrapper();
            $mail->setCharset('UTF-8');
@@ -1530,7 +1530,7 @@ class InfoFirmVerbal extends \DAL\DalSlim {
            $params = ['subject'=>'Sanal Fabrika Danışman Onay İşlemi',
                       'info' => 'Sanal Fabrika Yöneticileri tarafından '
                . '              sisteme danışman olarak onaylanmanız amacıyla gönderilmiştir',
-                       'to' => '311corner82@gmail.com'];
+                       'to' => '311corner82@gmail.com'];  // 311corner82@gmail.com
            $mail->sendInfoMailSMTP($params);
             $sql = "";
             $statement = $pdo->prepare($sql);
