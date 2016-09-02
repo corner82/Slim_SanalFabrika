@@ -117,6 +117,7 @@ class DalManagerConfig {
                 'sysAclActionRrpPDO' => 'DAL\Factory\PDO\SysAclActionRrpFactory',   
                 'sysAclActionRrpRestservicesPDO' => 'DAL\Factory\PDO\SysAclActionRrpRestservicesFactory',   
                 'infoFirmConsultantsPDO' => 'DAL\Factory\PDO\InfoFirmConsultantsFactory',   
+                'sysOsbPersonPDO' => 'DAL\Factory\PDO\SysOsbPersonFactory',   
                 
                 
                                  

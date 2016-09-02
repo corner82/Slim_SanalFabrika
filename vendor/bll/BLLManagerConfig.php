@@ -112,6 +112,7 @@ class BLLManagerConfig{
                  'sysAclActionRrpBLL' => 'BLL\BLL\SysAclActionRrp',
                  'sysAclActionRrpRestservicesBLL' => 'BLL\BLL\SysAclActionRrpRestservices',
                  'infoFirmConsultantsBLL' => 'BLL\BLL\InfoFirmConsultants',
+                 'sysOsbPersonBLL' => 'BLL\BLL\SysOsbPerson',
                
                  
                  
