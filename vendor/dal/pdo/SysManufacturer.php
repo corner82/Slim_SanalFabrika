@@ -662,9 +662,9 @@ class SysManufacturer extends \DAL\DalSlim {
             $sorguStr = null;
             if ((isset($params['filterRules']) && $params['filterRules'] != "")) {
                 $filterRules = trim($params['filterRules']);
-                $jsonFilter = json_decode($filterRules, true);
-
+                $jsonFilter = json_decode($filterRules, true);                            
                 $sorguExpression = null;
+        
                 foreach ($jsonFilter as $std) {
                     if ($std['value'] != null) {
                         switch (trim($std['field'])) {
