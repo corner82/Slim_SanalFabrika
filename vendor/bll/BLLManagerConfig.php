@@ -113,9 +113,9 @@ class BLLManagerConfig{
                  'sysAclActionRrpRestservicesBLL' => 'BLL\BLL\SysAclActionRrpRestservices',
                  'infoFirmConsultantsBLL' => 'BLL\BLL\InfoFirmConsultants',
                  'sysOsbPersonBLL' => 'BLL\BLL\SysOsbPerson',
+                 'infoUsersSendingMailBLL' => 'BLL\BLL\InfoUsersSendingMail',
                
-                 
-                 
+                                  
                  'logConnectionBLL' => 'BLL\BLL\LogConnection',  
                  'logServicesBLL' => 'BLL\BLL\LogServices',
                  'logConsultantBLL' => 'BLL\BLL\LogConsultant',
