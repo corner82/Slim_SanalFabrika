@@ -2385,4 +2385,518 @@ class InfoUsers extends \DAL\DalSlim {
         }
     }
 
+       /**
+     * info_users tablosundaki urge ci personel kaydı oluşturur  !!
+     * @author Okan CIRAN
+     * @version v 1.0  31.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws PDOException
+     */
+    public function insertUrgePerson($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $kontrol = $this->haveRecords($params); // username kontrolu
+            if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                $userId = $this->getUserId(array('pk' => $params['pk'])); // bı pk var mı  
+                if (\Utill\Dal\Helper::haveRecord($userId)) {
+                    $opUserIdValue = $userId ['resultSet'][0]['user_id'];
+
+                    $roleId = 64;
+                    if ((isset($params['role_id']) && $params['role_id'] != "")) {
+                        $roleId = $params['role_id'];
+                    }
+
+                    $languageIdValue = 647;
+                    if ((isset($params['preferred_language']) && $params['preferred_language'] != "")) {
+                        $languageIdValue = $params['preferred_language'];
+                    }
+
+                    $operationIdValue = -1;
+                    $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                                    array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 43, 'type_id' => 1,));
+                    if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                        $operationIdValue = $operationId ['resultSet'][0]['id'];
+                    }
+                                
+                    $ConsultantId = 1001;
+                    $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users',
+                                'operation_type_id' => $operationIdValue,
+                                'language_id' => $languageIdValue,
+                    ));
+                    if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
+                        $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
+                    }
+
+                    $CountryCode = NULL;
+                    $CountryCodeValue = 'TR';
+                    if ((isset($params['country_id']) && $params['country_id'] != "")) {
+                        $CountryCode = SysCountrys::getCountryCode(array('country_id' => $params['country_id']));
+                        if (\Utill\Dal\Helper::haveRecord($CountryCode)) {
+                            $CountryCodeValue = $CountryCode ['resultSet'][0]['country_code'];
+                        }
+                    }
+
+                    $password = 'qwerty';
+
+                    $sql = " 
+                    INSERT INTO info_users(
+                               operation_type_id, 
+                               username,
+                               language_id,
+                               op_user_id,
+                               role_id,
+                               password,
+                               consultant_id,
+                               network_key
+                                )
+                    VALUES (    " . intval($operationIdValue) . ", 
+                                '" . $params['username'] . "',                               
+                                " . intval($languageIdValue) . ",
+                                " . intval($opUserIdValue) . ",
+                                " . intval($roleId) . ",
+                                '" . $password . "',       
+                                " . intval($ConsultantId) . ",
+                                CONCAT('U','" . $CountryCodeValue . "',ostim_userid_generator())
+                        )";
+                                
+
+                    $statement = $pdo->prepare($sql);
+                    // echo debugPDO($sql, $params);
+                    $result = $statement->execute();
+                    $insertID = $pdo->lastInsertId('info_users_id_seq');
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+
+
+                    /*
+                     * kullanıcı için gerekli olan private key ve value değerleri yaratılılacak.                       
+                     */
+                    $xc = $this->setPrivateKey(array('id' => $insertID));
+
+                    if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                        throw new \PDOException($xc['errorInfo']);
+                                
+                    /*
+                     * kullanıcı bilgileri info_users_detail tablosuna kayıt edilecek.   
+                     */
+                    $xc = $this->insertUrgePersonDetail(
+                            array(
+                                'id' => $insertID,
+                                'op_user_id' => $opUserIdValue,
+                                'role_id' => $roleId,
+                                'language_id' => $languageIdValue,
+                                'name' => $params['name'],
+                                'surname' => $params['surname'],
+                                'auth_email' => $params['auth_email'],
+                                'root_id' => $insertID,
+                                'consultant_id' => $ConsultantId,
+                                'password' => $password,
+                    ));
+                    if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                        throw new \PDOException($xc['errorInfo']);
+                                
+                    $xjobs = ActProcessConfirm::insert(array(
+                                'op_user_id' => intval($opUserIdValue),
+                                'operation_type_id' => intval($operationIdValue),
+                                'table_column_id' => intval($insertID),
+                                'cons_id' => intval($ConsultantId),
+                                'preferred_language_id' => intval($languageIdValue),
+                                    )
+                    );
+                    if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                        throw new \PDOException($xjobs['errorInfo']);
+                                
+                    $logDbData = $this->getUsernamePrivateKey(array('id' => $insertID));
+                    if ($logDbData['errorInfo'][0] != "00000" && $logDbData['errorInfo'][1] != NULL && $logDbData['errorInfo'][2] != NULL)
+                        throw new \PDOException($logDbData['errorInfo']);
+
+                    $this->insertLogUser(array('oid' => $insertID,
+                        'username' => $logDbData['resultSet'][0]['username'],
+                        'sf_private_key_value' => $logDbData['resultSet'][0]['sf_private_key_value'],
+                        'sf_private_key_value_temp' => $logDbData['resultSet'][0]['sf_private_key_value_temp']
+                    ));
+
+                    /*
+                     * danısman tablosuna kaydedelim.
+                     */
+                    $xc = $this->insertUrgePersonSysOsbPerson(array(
+                        'op_user_id' => intval($opUserIdValue),
+                        'user_id' => intval($insertID),
+                        'osb_cluster_id' => intval($params['cluster_id']),
+                    ));
+
+                    if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                        throw new \PDOException($xc['errorInfo']);
+
+                 
+                    
+                 
+                    
+                    
+                    
+                    $userInfo = $this->getUrgePersonRoleAndClusterInformation(array('id' => $insertID));                                 
+                    if (\Utill\Dal\Helper::haveRecord($userInfo)) {
+                        $kumeValue = $userInfo ['resultSet'][0]['clusters'];
+                        $roleValue = $userInfo ['resultSet'][0]['role'];
+                        $keyValue = $userInfo ['resultSet'][0]['key'];
+    
+                    
+                    $xcSendingMail = InfoUsersSendingMail:: insertSendingMail(array(
+                        'user_id' => intval($insertID),
+                        'auth_email' =>   $params['auth_email'], 
+                        'act_email_template_id' => 1,
+                        'op_user_id' => intval($opUserIdValue),
+                        'key' => $keyValue, 
+                        ));
+                    
+                    if ($xcSendingMail['errorInfo'][0] != "00000" && $xcSendingMail['errorInfo'][1] != NULL && $xcSendingMail['errorInfo'][2] != NULL)
+                        throw new \PDOException($xcSendingMail['errorInfo']);
+                        
+                    /*
+                     * email gönderelim
+                     */
+                    $xcUserInfo = InfoUsersSendingMail:: sendMailUrgeNewPerson(array(
+                        'auth_email' =>  $params['auth_email'], 
+                        'herkimse' => $params['name'].' '. $params['surname'],
+                        'kume' => $kumeValue,
+                        'rol' => $roleValue,
+                        'key' => $keyValue,
+                    ));
+
+                    if ($xcUserInfo['errorInfo'][0] != "00000" && $xcUserInfo['errorInfo'][1] != NULL && $xcUserInfo['errorInfo'][2] != NULL)
+                        throw new \PDOException($xcUserInfo['errorInfo']);
+                    
+            }
+                    $insertID = $xc['lastInsertId'];
+                                
+                    $pdo->commit();
+
+                    return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                } else {
+                    $errorInfo = '23502';   // 23502  not_null_violation
+                    $errorInfoColumn = 'pk';
+                    $pdo->rollback();
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
+            } else {
+                $errorInfo = '23505';   // 23505  unique_violation
+                $errorInfoColumn = 'username';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * info_users_detail tablosunda urgeci kaydı oluşturur  !!
+     * @author Okan CIRAN
+     * @version v 1.0  31.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws PDOException
+     */
+    public function insertUrgePersonDetail($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $operationIdValue = -1;
+            $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                            array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 40, 'type_id' => 1,));
+            if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                $operationIdValue = $operationId ['resultSet'][0]['id'];
+            }
+            $sql = " 
+                INSERT INTO info_users_detail(
+                            operation_type_id, 
+                            name, 
+                            surname, 
+                            auth_email,
+                            act_parent_id,
+                            language_id,
+                            root_id,
+                            op_user_id,
+                            password,
+                            consultant_id)
+                VALUES (    
+                            " . intval($operationIdValue) . ", 
+                            :name, 
+                            :surname, 
+                            :auth_email,
+                            (SELECT last_value FROM info_users_detail_id_seq),
+                            :language_id,
+                            :root_id,
+                            :op_user_id,
+                            :password,
+                            " . intval($params['consultant_id']) . "
+                    )";
+            $statement = $pdo->prepare($sql);
+            $statement->bindValue(':name', $params['name'], \PDO::PARAM_STR);
+            $statement->bindValue(':surname', $params['surname'], \PDO::PARAM_STR);
+            $statement->bindValue(':auth_email', $params['auth_email'], \PDO::PARAM_STR);
+            $statement->bindValue(':password', $params['password'], \PDO::PARAM_STR);
+            $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':root_id', $params['root_id'], \PDO::PARAM_INT);
+            $statement->bindValue(':op_user_id', $params['op_user_id'], \PDO::PARAM_INT);
+            //   echo debugPDO($sql, $params);
+            $result = $statement->execute();
+            $insertID = $pdo->lastInsertId('info_users_detail_id_seq');
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+
+            $xjobs = ActProcessConfirm::insert(array(
+                        'op_user_id' => intval($params['op_user_id']),
+                        'operation_type_id' => intval($operationIdValue),
+                        'table_column_id' => intval($insertID),
+                        'cons_id' => intval($params['consultant_id']),
+                        'preferred_language_id' => intval($params['language_id']),
+                            )
+            );
+            if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                throw new \PDOException($xjobs['errorInfo']);
+            return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * sys_osb_person tablosundaki urgeci kaydı oluşturur  !!
+     * @author Okan CIRAN
+     * @version v 1.0  31.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws PDOException
+     */
+    public function insertUrgePersonSysOsbPerson($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+                $sql = " 
+                INSERT INTO sys_osb_person(
+                            osb_cluster_id, 
+                            user_id, 
+                            op_user_id
+                            )
+                VALUES (    
+                            ". intval($params['osb_cluster_id']).",
+                            ". intval($params['user_id']).",                             
+                            ". intval($params['op_user_id'])." 
+                    )";                                
+                $statement = $pdo->prepare($sql);                               
+                // echo debugPDO($sql, $params);
+                $result = $statement->execute();
+                $insertID = $pdo->lastInsertId('sys_osb_person_id_seq');                                
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);  
+                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+        } catch (\PDOException $e /* Exception $e */) {         
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    
+    /**  
+     * @author Okan CIRAN
+     * @ network key den firm id sini döndürür  !!     
+     * @version v 1.0  09.05.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getUrgePersonRoleAndClusterInformation($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                                
+            if (isset($params['id'])) {                                
+                $userId = $params['id'];  
+                $sql = " 
+                    SELECT user_id, 1=1 AS control, role, clusters, key FROM (
+                        SELECT 
+                            a.user_id, 
+                            sar.name AS role, 
+                            soc.name AS clusters,
+                            REPLACE(TRIM(SUBSTRING(crypt(iu.sf_private_key_value,gen_salt('xdes')),6,20)),'/','*') AS key
+                        FROM sys_osb_person a
+                        INNER JOIN info_users iu ON iu.id = a.user_id
+                        INNER JOIN sys_acl_roles sar ON sar.id = iu.role_id
+                        INNER JOIN sys_osb_clusters soc ON soc.id = osb_cluster_id 
+                        WHERE
+                         a.user_id = ".intval($userId)."
+                         LIMIT 1                             
+                    ) AS xtable                              
+                                 ";
+                $statement = $pdo->prepare($sql);
+              // echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  network_key not_null_violation
+                $errorInfoColumn = 'network_key';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
+                                
+    /**
+     * parametre olarak gelen 'id' li kaydın password unu update yapar  !!
+     * @author Okan CIRAN
+     * @version v 1.0  02.09.2016     
+     * @param array | null $args
+     * @param type $params
+     * @return array
+     * @throws PDOException
+     */
+    public function setPersonPassword($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $userId = $this->getUserId(array('pk' => $params['key']));
+            if (\Utill\Dal\Helper::haveRecord($userId)) {
+                $opUserIdValue = $userId ['resultSet'][0]['user_id'];
+
+
+                /*
+                 * kullanıcı için gerekli olan private key ve value değerleri yaratılılacak.                       
+                 */
+                $xcDeletedOnTheLink = InfoUsersSendingMail::setDeletedOnTheLinks(array('key' => $params['key']));
+                if ($xcDeletedOnTheLink['errorInfo'][0] != "00000" && $xcDeletedOnTheLink['errorInfo'][1] != NULL && $xcDeletedOnTheLink['errorInfo'][2] != NULL)
+                    throw new \PDOException($xcDeletedOnTheLink['errorInfo']);
+
+                $affectedRows = $xcDeletedOnTheLink ['affectedRowsCount'];
+                                
+                if ($affectedRows == 1) {
+                    $active = 0;
+                    $operationIdValue = -2;
+                    $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                                    array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 43, 'type_id' => 2,));
+                    if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                        $operationIdValue = $operationId ['resultSet'][0]['id'];
+                    }
+
+                    /*
+                     * parametre olarak gelen array deki 'id' li kaydın, info_users tablosundaki 
+                     * alanlarını update eder !! username update edilmez.  
+                     */
+                    $this->updateInfoUsers(array('id' => $opUserIdValue,
+                        'op_user_id' => $opUserIdValue,
+                        'active' => $active,
+                        'operation_type_id' => $operationIdValue,
+                        'language_id' => 647,
+                        'password' => $params['password'],
+                    ));
+
+                    /*
+                     *  parametre olarak gelen array deki 'id' li kaydın, info_users_details tablosundaki 
+                     * active = 0 ve deleted = 0 olan kaydın active alanını 1 yapar  !!
+                     */
+                    $this->setUserDetailsDisables(array('id' => $opUserIdValue));
+
+                    $operationIdValueDetail = -2;
+                    $operationIdDetail = SysOperationTypes::getTypeIdToGoOperationId(
+                                    array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 40, 'type_id' => 2,));
+                    if (\Utill\Dal\Helper::haveRecord($operationIdDetail)) {
+                        $operationIdValueDetail = $operationIdDetail ['resultSet'][0]['id'];
+                    }
+
+
+                    $sql = " 
+                    INSERT INTO info_users_detail(
+                           profile_public,  
+                           operation_type_id,
+                           active,
+                           name,
+                           surname,
+                           auth_email,
+                           language_id,
+                           op_user_id,
+                           root_id,
+                           act_parent_id,
+                           auth_allow_id,
+                           password 
+                            ) 
+                           SELECT 
+                                0 AS profile_public, 
+                                " . intval($operationIdValueDetail) . " AS operation_type_id,
+                                " . intval($active) . " AS active, 
+                                name, 
+                                surname,
+                                auth_email,   
+                                language_id,   
+                                " . intval($opUserIdValue) . " AS op_user_id,
+                                a.root_id,
+                                a.act_parent_id,
+                                1,
+                                '" . $params['password'] . "' AS password
+                            FROM info_users_detail a
+                            WHERE root_id  =" . intval($opUserIdValue) . "                               
+                                AND active =1 AND deleted =0 and 
+                                c_date = (SELECT MAX(c_date)  
+						FROM info_users_detail WHERE root_id =a.root_id
+						AND active =1 AND deleted =0)  
+                    ";
+                    $statementActInsert = $pdo->prepare($sql);
+                    //  echo debugPDO($sql, $params);                                
+                    $insertAct = $statementActInsert->execute();
+                    $affectedRows = $statementActInsert->rowCount();
+                    $insertID = $pdo->lastInsertId('info_users_detail_id_seq');
+                    $errorInfo = $statementActInsert->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+
+                    /*
+                     * ufak bir trik var. 
+                     * işlem update oldugunda update işlemini yapan kişinin dil bilgisini kullanıcaz. 
+                     * ancak delete işlemi oldugunda delete işlemini yapan user in dil bilgisini değil 
+                     * silinen kaydı yapan kişinin dil bilgisini alıcaz.
+                     */
+                    $consIdAndLanguageId = SysOperationTypes::getConsIdAndLanguageId(
+                                    array('table_name' => 'info_users_detail', 'id' => $insertID,));
+                    if (\Utill\Dal\Helper::haveRecord($consIdAndLanguageId)) {
+                        $ConsultantId = $consIdAndLanguageId ['resultSet'][0]['consultant_id'];
+                        // $languageIdValue = $consIdAndLanguageId ['resultSet'][0]['language_id'];                       
+                    }
+
+                    $xjobs = ActProcessConfirm::insert(array(
+                                'op_user_id' => intval($opUserIdValue), // işlemi yapan user
+                                'operation_type_id' => intval($operationIdValue), // operasyon 
+                                'table_column_id' => intval($insertID), // işlem yapılan tablo id si
+                                'cons_id' => intval($ConsultantId), // atanmış olan danısman 
+                                'preferred_language_id' => 647, // dil bilgisi
+                                    )
+                    );
+
+                    if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                        throw new \PDOException($xjobs['errorInfo']);
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                } else {
+                    $errorInfo = '23502';  /// 23502 user_id not_null_violation
+                    $errorInfoColumn = 'key';
+                    $pdo->rollback();
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
+            } else {
+                $errorInfo = '23502';  /// 23502 user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
 }

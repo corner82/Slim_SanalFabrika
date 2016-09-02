@@ -163,7 +163,7 @@ class InfoUsers extends \BLL\BLLSlim{
         return $DAL->getUserIdTemp($params);
     }
     
-        /**
+    /**
      * New user RrpMap insert function 
      * @param array | null $params
      * @return array
@@ -204,8 +204,7 @@ class InfoUsers extends \BLL\BLLSlim{
         $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
         $resultSet = $DAL->fillUsersInformationNpk($params);  
         return $resultSet['resultSet'];
-    } 
-
+    }  
       
     /**
      * DAta insert function
@@ -216,7 +215,25 @@ class InfoUsers extends \BLL\BLLSlim{
         $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
         return $DAL->insertConsultant($params);
     }
+     /**
+     * DAta insert function
+     * @param array | null $params
+     * @return array
+     */
+    public function insertUrgePerson($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
+        return $DAL->insertUrgePerson($params);
+    }
     
+    /**
+     * New user RrpMap insert function 
+     * @param array | null $params
+     * @return array
+     */
+    public function setPersonPassword($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
+        return $DAL->setPersonPassword($params);
+    }
     
     
     

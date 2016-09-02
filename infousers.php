@@ -704,9 +704,7 @@ $app->get("/pkFillUsersInformationNpk_infoUsers/", function () use ($app ) {
     $resultArray['rows'] = $flows;
     $app->response()->body(json_encode($resultArray));
 });
-
-
-
+ 
 /**
  *  * Okan CIRAN
  * @since 09-09-2016
@@ -825,5 +823,119 @@ $app->get("/pkInsertConsultant_infoUsers/", function () use ($app ) {
 }
 );
 
+/**
+ * Okan CIRAN
+ * @since 31-09-2016
+ */
+$app->get("/pkInsertUrgePerson_infoUsers/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('infoUsersBLL');
+    $headerParams = $app->request()->headers(); 
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkInsertConsultant_infoUsers" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];   
+  
+    $vRoleId = 0;
+    if (isset($_GET['role_id'])) {
+        $stripper->offsetSet('role_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['role_id']));
+    }
+    $vClusterId = 0;
+    if (isset($_GET['cluster_id'])) {
+        $stripper->offsetSet('cluster_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['cluster_id']));
+    }
+    $vName = NULL;
+    if (isset($_GET['name'])) {
+        $stripper->offsetSet('name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['name']));
+    }
+    $vSurname = NULL;
+    if (isset($_GET['surname'])) {
+        $stripper->offsetSet('surname', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                $app, $_GET['surname']));
+    } 
+    $vAuthEmail = NULL;
+    if (isset($_GET['auth_email'])) {
+        $stripper->offsetSet('auth_email', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, 
+                $app, $_GET['auth_email']));
+    } 
+
+    $stripper->strip();
+    
+    if ($stripper->offsetExists('role_id')) {
+        $vRoleId = $stripper->offsetGet('role_id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('cluster_id')) {
+        $vClusterId = $stripper->offsetGet('cluster_id')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('name')) {
+        $vName = $stripper->offsetGet('name')->getFilterValue();
+    }
+    if ($stripper->offsetExists('surname')) {
+        $vSurname = $stripper->offsetGet('surname')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('auth_email')) {
+        $vAuthEmail = $stripper->offsetGet('auth_email')->getFilterValue();
+    } 
+     
+    
+    $resDataInsert = $BLL->InsertUrgePerson(array(
+        'pk' => $pk,
+        'role_id' => $vRoleId,
+        'cluster_id' => $vClusterId,
+        'name' => $vName,
+        'surname' => $vSurname,            
+        'auth_email' => $vAuthEmail,
+        'username' => $vAuthEmail,
+        
+        
+    ));
+
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($resDataInsert));
+}
+);
+
  
+/**
+ *  * Okan CIRAN
+ * @since 02-09-2016
+ */
+$app->get("/setPersonPassword_infoUsers/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('infoUsersBLL');
+   
+    $vKey = NULL;
+    if (isset($_GET['key'])) {
+        $stripper->offsetSet('key', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['key']));
+    }    
+    $vPassword = NULL;
+    if (isset($_GET['password'])) {
+        $stripper->offsetSet('password', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, $app, $_GET['password']));
+    }
+
+    $stripper->strip();
+    if ($stripper->offsetExists('key')) {
+        $vKey = $stripper->offsetGet('key')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('password')) {
+        $vPassword = $stripper->offsetGet('password')->getFilterValue();
+    }
+   
+    $resDataInsert = $BLL->setPersonPassword(array( 
+        'url' => $_GET['key'],  
+        'key' => $vKey,        
+        'password' => $vPassword,        
+        ));
+
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($resDataInsert));
+}
+);
+
 $app->run();
