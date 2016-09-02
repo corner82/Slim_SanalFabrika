@@ -252,7 +252,7 @@ $app->get("/pkInsert_sysAclRoles/", function () use ($app ) {
     }
     $vResourceId = NULL;
     if (isset($_GET['resource_id'])) {
-         $stripper->offsetSet('resource_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+         $stripper->offsetSet('resource_id',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1,
                                                 $app,
                                                 $_GET['resource_id']));
     }
@@ -330,7 +330,7 @@ $app->get("/pkUpdate_sysAclRoles/", function () use ($app ) {
     }
     $vResourceId = NULL;
     if (isset($_GET['resource_id'])) {
-         $stripper->offsetSet('resource_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+         $stripper->offsetSet('resource_id',$stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1,
                                                 $app,
                                                 $_GET['resource_id']));
     }
@@ -849,9 +849,43 @@ $app->get("/pkFillRolesDdlist_sysAclRoles/", function () use ($app ) {
     $app->response()->body(json_encode($flows));
 });
 
+ 
+/**
+ *  * Okan CIRAN
+ * @since 31-08-2016
+ 
+ */
+$app->get("/pkFillClusterRolesDdlist_sysAclRoles/", function () use ($app ) {   
+    $BLL = $app->getBLLManager()->get('sysAclRolesBLL');
 
-
-
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkFillClusterRolesDdlist_sysAclRoles" end point, X-Public variable not found');
+    //$pk = $headerParams['X-Public']; 
+    $resCombobox = $BLL->fillClusterRolesDdlist();
+ 
+    $flows = array();
+    $flows[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",);
+    foreach ($resCombobox as $flow) {
+        $flows[] = array(
+            "text" => html_entity_decode($flow["name"]),
+            "value" => intval($flow["id"]),
+            "selected" => false,
+            "description" => html_entity_decode($flow["name_tr"]),
+            // "imageSrc"=>$flow["logo"],             
+            "attributes" => array(                 
+                    "active" => $flow["active"],
+                   
+            ),
+        );
+    }
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($flows));
+});
 
 
 $app->run();
