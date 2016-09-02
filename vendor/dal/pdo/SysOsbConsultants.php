@@ -285,8 +285,8 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 a.op_user_id =" . intval($params['user_id']) . " AS control,
                 CONCAT(u.name,' ',u.surname, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message
             FROM sys_osb_consultants  a              
-            INNER JOIN info_users_detail u ON u.root_id = a.op_user_id AND u.active = 0 AND u.deleted = 0                 
-            WHERE a.op_user_id = " . intval($params['user_id']) . "
+            INNER JOIN info_users_detail u ON u.root_id = a.user_id AND u.active = 0 AND u.deleted = 0                 
+            WHERE a.user_id = " . intval($params['user_id']) . "
                    " . $addSql . " 
                AND a.deleted =0    
                                ";
