@@ -98,7 +98,7 @@ class PhpMailInfoWrapper extends \Utill\Mail\PhpMailer\PhpMailWrapper implements
         if(!$this->mailObj->Send()) {
         echo "Mailer Error: " . $this->mailObj->ErrorInfo;
         } else {
-        echo "Message sent!";
+        //echo "Message sent!";
         }       
     }
     
