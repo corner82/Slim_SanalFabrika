@@ -783,7 +783,7 @@ class InfoUsersSendingMail extends \DAL\DalSlim {
             $params = ['subject' => 'Sanal Fabrika Küme Çalışanı Onay İşlemi',
                 'info' => 'Sanal Fabrika Yöneticileri tarafından '
                 . '              sisteme Küme Çalışanı olarak onaylanmanız amacıyla gönderilmiştir',
-                'to' => $params['auth_email'] ];  // 311corner82@gmail.com
+                'to' =>  '311corner82@gmail.com']; //$params['auth_email'] ];  // 311corner82@gmail.com
             $mail->sendInfoMailSMTP($params);
             $sql = "";
             $statement = $pdo->prepare($sql);
