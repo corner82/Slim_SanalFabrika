@@ -156,23 +156,9 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
         throw new Exception('rest api "pkGetMachineTools_sysMachineTools" end point, X-Public variable not found');
     }
     $pk = $headerParams['X-Public'];
-
-
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
         $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
-    }
-    $vMachineGroupsId = NULL;
-    if (isset($_GET['machine_groups_id'])) {
-        $stripper->offsetSet('machine_groups_id', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, $app, $_GET['machine_groups_id']));
-    }
-    $vManufacturerId = NULL;
-    if (isset($_GET['manufacturer_id'])) {
-        $stripper->offsetSet('manufacturer_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['manufacturer_id']));
-    }
-    $vMachineId = NULL;
-    if (isset($_GET['machine_id'])) {
-        $stripper->offsetSet('machine_id', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, $app, $_GET['machine_id']));
     }
     $vPage = NULL;
     if (isset($_GET['page'])) {
@@ -198,16 +184,7 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
     $stripper->strip();
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    }
-    if ($stripper->offsetExists('machine_groups_id')) {
-        $vMachineGroupsId = $stripper->offsetGet('machine_groups_id')->getFilterValue();
-    }
-    if ($stripper->offsetExists('manufacturer_id')) {
-        $vManufacturerId = $stripper->offsetGet('manufacturer_id')->getFilterValue();
-    }
-    if ($stripper->offsetExists('machine_id')) {
-        $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
-    }
+    }    
     if ($stripper->offsetExists('page')) {
         $vPage = $stripper->offsetGet('page')->getFilterValue();
     }
@@ -231,17 +208,11 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
         'page' => $vPage,
         'rows' => $vRows,
         'sort' => $vSort,
-        'order' => $vOrder,
-        'machine_groups_id' => $vMachineGroupsId,
-        'manufacturer_id' => $vManufacturerId,
-        'machine_id' => $vMachineId,
+        'order' => $vOrder,        
         'filterRules' => $filterRules,
     ));
     $resTotalRowCount = $BLL->getMachineToolsRtc(array(
-        'language_code' => $vLanguageCode,
-        'machine_groups_id' => $vMachineGroupsId,
-        'manufacturer_id' => $vManufacturerId,
-        'machine_id' => $vMachineId,
+        'language_code' => $vLanguageCode,        
         'filterRules' => $filterRules,
     ));
 
