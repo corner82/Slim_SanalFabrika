@@ -483,6 +483,7 @@ class SysMachineTools extends \DAL\DalSlim {
 
         $sortArr = array();
         $orderArr = array();
+        $addSql = NULL;
                         
         if (isset($args['sort']) && $args['sort'] != "") {
             $sort = trim($args['sort']);
@@ -549,7 +550,13 @@ class SysMachineTools extends \DAL\DalSlim {
             $sorguStr = null;
             $filterRules = "";
         }
-        $sorguStr = rtrim($sorguStr, "AND ");                       
+        $sorguStr = rtrim($sorguStr, "AND ");    
+        
+                        
+        if (isset($args['machine_tool_grup_id']) && $args['machine_tool_grup_id'] != "") {
+            $addSql = " AND mt.machine_tool_grup_id = " . intval($args['machine_tool_grup_id']) ;
+        }
+                        
                         
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
@@ -600,6 +607,7 @@ class SysMachineTools extends \DAL\DalSlim {
                 WHERE 
                     a.deleted = 0 AND 
                     mt.language_parent_id =0 
+                    ". $addSql ."
                     " . $sorguStr . ""
                     . "LIMIT " . $pdo->quote($limit) . " "
                     . "OFFSET " . $pdo->quote($offset) . " 
@@ -684,7 +692,10 @@ class SysMachineTools extends \DAL\DalSlim {
             $filterRules = "";
         }
         $sorguStr = rtrim($sorguStr, "AND ");                       
-                        
+          
+        if (isset($params['machine_tool_grup_id']) && $params['machine_tool_grup_id'] != "") {
+            $addSql = " AND mt.machine_tool_grup_id = " . intval($params['machine_tool_grup_id']) ;
+        }
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $sql = "
@@ -723,7 +734,8 @@ class SysMachineTools extends \DAL\DalSlim {
                         WHERE 
                             a.deleted = 0 AND 
                             mt.language_parent_id =0  
-                            " . $sorguStr . "                        
+                            ". $addSql ."
+                            ". $sorguStr ."                        
                 ) AS xtablee WHERE deleted =0
                 ) AS xxtablee
             ";
