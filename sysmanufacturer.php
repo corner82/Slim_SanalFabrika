@@ -75,12 +75,12 @@ $app->get("/pkFillManufacturerList_sysManufacturer/", function () use ($app ) {
     $flows[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Please Choose",); 
     foreach ($resCombobox as $flow) {
         $flows[] = array(            
-            "text" => $flow["name"],
+            "text" => html_entity_decode($flow["name"]),
             "value" =>  intval($flow["id"]),
             "selected" => false,
-            "description" => $flow["abbreviation_eng"],
+            "description" => html_entity_decode($flow["abbreviation_eng"]),
            // "imageSrc"=>$flow["logo"],             
-            "attributes" => array(  "abbreviation" => $flow["abbreviation"], 
+            "attributes" => array(  "abbreviation" => html_entity_decode($flow["abbreviation"]), 
                                     "active" => $flow["active"],                                                    
                                     
                 ),

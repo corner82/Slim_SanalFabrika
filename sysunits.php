@@ -197,19 +197,19 @@ $app->get("/pkFillUnitsTree_sysUnits/", function () use ($app ) {
         foreach ($resDataGrid['resultSet']  as $flow) {    
             $flows[] = array(
                 "id" => intval( $flow["id"]) ,
-                "text" =>  $flow["unitcode"],
+                "text" =>  html_entity_decode($flow["unitcode"]),
                 "state" => $flow["state_type"],
                 "checked" => false,
                 "attributes" => array ("notroot"=>$flow["notroot"],
-                                        "unitcode_eng"=>$flow["unitcode_eng"],
+                                        "unitcode_eng"=>html_entity_decode($flow["unitcode_eng"]),
                                         "active" => intval($flow["active"]),
                                         "system_id" => intval($flow["system_id"]),
-                                        "system" => $flow["system"],
-                                        "system_eng" => $flow["system_eng"],
-                                        "unit" => $flow["unit"],
-                                        "unit_eng" => $flow["unit_eng"],                                        
-                                        "abbreviation" => $flow["abbreviation"],
-                                        "abbreviation_eng" => $flow["abbreviation_eng"],
+                                        "system" => html_entity_decode($flow["system"]),
+                                        "system_eng" => html_entity_decode($flow["system_eng"]),
+                                        "unit" => html_entity_decode($flow["unit"]),
+                                        "unit_eng" => html_entity_decode($flow["unit_eng"]),
+                                        "abbreviation" => html_entity_decode($flow["abbreviation"]),
+                                        "abbreviation_eng" => html_entity_decode($flow["abbreviation_eng"]),
                     ),                 
                 
             );
