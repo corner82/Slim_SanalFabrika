@@ -44,7 +44,7 @@ class DalManagerConfig {
                 'infoUsersPDO' => 'DAL\Factory\PDO\InfoUsersFactory',
                 'sysCountrysPDO' => 'DAL\Factory\PDO\SysCountrysFactory',
                 'sysCityPDO' => 'DAL\Factory\PDO\SysCityFactory',
-                'sysLanguagePDO' => 'DAL\Factory\PDO\SysLanguageFactory',
+                'sysLanguagePDO' => 'DAL\Factory\PDO\SysLanguageFactory',               
                 'sysBoroughPDO' => 'DAL\Factory\PDO\SysBoroughFactory',
                 'sysVillagePDO' => 'DAL\Factory\PDO\SysVillageFactory',      
                 'blLoginLogoutPDO' => 'DAL\Factory\PDO\BlLoginLogoutFactory',   
@@ -119,8 +119,7 @@ class DalManagerConfig {
                 'infoFirmConsultantsPDO' => 'DAL\Factory\PDO\InfoFirmConsultantsFactory',   
                 'sysOsbPersonPDO' => 'DAL\Factory\PDO\SysOsbPersonFactory',   
                 'infoUsersSendingMailPDO' => 'DAL\Factory\PDO\InfoUsersSendingMailFactory',                   
-                
-                
+                'sysMachineToolModelMaterialsPDO' => 'DAL\Factory\PDO\SysMachineToolModelMaterialsFactory',                
                                  
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
                 'logServicesPDO' => 'DAL\Factory\PDO\LogServicesFactory',
