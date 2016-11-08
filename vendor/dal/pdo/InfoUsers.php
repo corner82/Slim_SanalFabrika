@@ -554,7 +554,7 @@ class InfoUsers extends \DAL\DalSlim {
                         $languageIdValue = $params['preferred_language'];
                     }                   
                     
-                   
+                    $password = 'qwertysx1Q.@' ;
                     
                     $CountryCode = NULL;
                     $CountryCodeValue = 'TR';
@@ -563,7 +563,7 @@ class InfoUsers extends \DAL\DalSlim {
                         if (\Utill\Dal\Helper::haveRecord($CountryCode)) {
                             $CountryCodeValue = $CountryCode ['resultSet'][0]['country_code'];                    
                         }
-                    } 
+                    }  
                     
                     $sql = " 
                 INSERT INTO info_users(                           
@@ -578,7 +578,7 @@ class InfoUsers extends \DAL\DalSlim {
                             )      
                 VALUES (".intval($operationIdValue).",
                         :username,
-                        :password,
+                        '".$password."',
                         (SELECT last_value FROM info_users_id_seq),
                         ".intval($languageIdValue).", 
                         ".intval($roleId).",
@@ -588,7 +588,7 @@ class InfoUsers extends \DAL\DalSlim {
                     
                     $statement = $pdo->prepare($sql);
                     $statement->bindValue(':username', $params['username'], \PDO::PARAM_STR);
-                    $statement->bindValue(':password', $params['password'], \PDO::PARAM_STR);                    
+                                
                   //echo debugPDO($sql, $params);
                     $result = $statement->execute();
                     $insertID = $pdo->lastInsertId('info_users_id_seq');
@@ -625,10 +625,46 @@ class InfoUsers extends \DAL\DalSlim {
                                 'username' => $params['username'],
                                 'auth_email' => $params['auth_email'],                                                                 
                                 'root_id' => $insertID,
-                                'password' => $params['password'],
+                                'password' => $password,
                                 'consultant_id'=> $ConsultantId
                     ));
                     
+                                
+                    /////////////////////////////////////////////////////////////////////////////
+                    
+                    $userInfo = $this->getTempUserInformation(array('id' => $insertID));
+                    if (\Utill\Dal\Helper::haveRecord($userInfo)) {                        
+                        $roleValue = $userInfo ['resultSet'][0]['role'];
+                        $keyValue = $userInfo ['resultSet'][0]['key']; 
+
+                        $xcSendingMail = InfoUsersSendingMail:: insertSendingMail(array(
+                                    'user_id' => intval($insertID),
+                                    'auth_email' => $params['auth_email'],
+                                    'act_email_template_id' => 1,
+                                    'op_user_id' => intval($insertID),
+                                    'key' => $keyValue,
+                        ));
+
+                        if ($xcSendingMail['errorInfo'][0] != "00000" && $xcSendingMail['errorInfo'][1] != NULL && $xcSendingMail['errorInfo'][2] != NULL)
+                            throw new \PDOException($xcSendingMail['errorInfo']);
+
+                        /*
+                         * email gönderelim
+                         */
+                        $xcUserInfo = InfoUsersSendingMail:: sendMailTempUserRegistration(array(
+                                    'auth_email' => $params['auth_email'],
+                                    'herkimse' => $params['name'] . ' ' . $params['surname'],
+                                    'kume' => 'Sanal Fabrika',
+                                    'rol' => $roleValue,
+                                    'key' => $keyValue,
+                        ));
+
+                        if ($xcUserInfo['errorInfo'][0] != "00000" && $xcUserInfo['errorInfo'][1] != NULL && $xcUserInfo['errorInfo'][2] != NULL)
+                            throw new \PDOException($xcUserInfo['errorInfo']);
+                    }
+                                
+                    //////////////////////////////////////////////////////////////////////////////
+                                
                     $xjobs = ActProcessConfirm::insert(array(
                               'op_user_id' => intval($insertID),
                               'operation_type_id' => intval($operationIdValue),
@@ -640,7 +676,7 @@ class InfoUsers extends \DAL\DalSlim {
                        if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
                       throw new \PDOException($xjobs['errorInfo']);
 
-                    $pdo->commit();
+                       
                     $logDbData = $this->getUsernamePrivateKey(array('id' => $insertID));                    
                     $this->insertLogUser(array('oid' => $insertID ,
                                                'username'=> $logDbData['resultSet'][0]['username'],  
@@ -648,7 +684,7 @@ class InfoUsers extends \DAL\DalSlim {
                                                'sf_private_key_value_temp'=> $logDbData['resultSet'][0]['sf_private_key_value_temp']  
                             
                                                 ));
-                    
+                    $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID, "pktemp" => $publicKeyTempValue);
                 } else {
                     $errorInfo = '23505';   // 23505  unique_violation
@@ -993,7 +1029,7 @@ class InfoUsers extends \DAL\DalSlim {
                     SET
                         c_date = timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                         
                         operation_type_id = :operation_type_id,
-                        password = :password, 
+                        password = md5(:password), 
                         language_id = :language_id,                        
                         op_user_id = :op_user_id ,
                         active = :active
@@ -2419,7 +2455,7 @@ class InfoUsers extends \DAL\DalSlim {
                     if (\Utill\Dal\Helper::haveRecord($operationId)) {
                         $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
-                                
+
                     $ConsultantId = 1001;
                     $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users',
                                 'operation_type_id' => $operationIdValue,
@@ -2460,7 +2496,7 @@ class InfoUsers extends \DAL\DalSlim {
                                 " . intval($ConsultantId) . ",
                                 CONCAT('U','" . $CountryCodeValue . "',ostim_userid_generator())
                         )";
-                                
+
 
                     $statement = $pdo->prepare($sql);
                     // echo debugPDO($sql, $params);
@@ -2478,7 +2514,7 @@ class InfoUsers extends \DAL\DalSlim {
 
                     if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
                         throw new \PDOException($xc['errorInfo']);
-                                
+
                     /*
                      * kullanıcı bilgileri info_users_detail tablosuna kayıt edilecek.   
                      */
@@ -2497,7 +2533,7 @@ class InfoUsers extends \DAL\DalSlim {
                     ));
                     if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
                         throw new \PDOException($xc['errorInfo']);
-                                
+
                     $xjobs = ActProcessConfirm::insert(array(
                                 'op_user_id' => intval($opUserIdValue),
                                 'operation_type_id' => intval($operationIdValue),
@@ -2508,7 +2544,7 @@ class InfoUsers extends \DAL\DalSlim {
                     );
                     if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
                         throw new \PDOException($xjobs['errorInfo']);
-                                
+
                     $logDbData = $this->getUsernamePrivateKey(array('id' => $insertID));
                     if ($logDbData['errorInfo'][0] != "00000" && $logDbData['errorInfo'][1] != NULL && $logDbData['errorInfo'][2] != NULL)
                         throw new \PDOException($logDbData['errorInfo']);
@@ -2531,47 +2567,42 @@ class InfoUsers extends \DAL\DalSlim {
                     if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
                         throw new \PDOException($xc['errorInfo']);
 
-                 
-                    
-                 
-                    
-                    
-                    
-                    $userInfo = $this->getUrgePersonRoleAndClusterInformation(array('id' => $insertID));                                 
+                                
+
+                    $userInfo = $this->getUrgePersonRoleAndClusterInformation(array('id' => $insertID));
                     if (\Utill\Dal\Helper::haveRecord($userInfo)) {
                         $kumeValue = $userInfo ['resultSet'][0]['clusters'];
                         $roleValue = $userInfo ['resultSet'][0]['role'];
                         $keyValue = $userInfo ['resultSet'][0]['key'];
-    
-                    
-                    $xcSendingMail = InfoUsersSendingMail:: insertSendingMail(array(
-                        'user_id' => intval($insertID),
-                        'auth_email' =>   $params['auth_email'], 
-                        'act_email_template_id' => 1,
-                        'op_user_id' => intval($opUserIdValue),
-                        'key' => $keyValue, 
-                        ));
-                    
-                    if ($xcSendingMail['errorInfo'][0] != "00000" && $xcSendingMail['errorInfo'][1] != NULL && $xcSendingMail['errorInfo'][2] != NULL)
-                        throw new \PDOException($xcSendingMail['errorInfo']);
-                        
-                    /*
-                     * email gönderelim
-                     */
-                    $xcUserInfo = InfoUsersSendingMail:: sendMailUrgeNewPerson(array(
-                        'auth_email' =>  $params['auth_email'], 
-                        'herkimse' => $params['name'].' '. $params['surname'],
-                        'kume' => $kumeValue,
-                        'rol' => $roleValue,
-                        'key' => $keyValue,
-                    ));
 
-                    if ($xcUserInfo['errorInfo'][0] != "00000" && $xcUserInfo['errorInfo'][1] != NULL && $xcUserInfo['errorInfo'][2] != NULL)
-                        throw new \PDOException($xcUserInfo['errorInfo']);
-                    
-            }
+
+                        $xcSendingMail = InfoUsersSendingMail:: insertSendingMail(array(
+                                    'user_id' => intval($insertID),
+                                    'auth_email' => $params['auth_email'],
+                                    'act_email_template_id' => 1,
+                                    'op_user_id' => intval($opUserIdValue),
+                                    'key' => $keyValue,
+                        ));
+
+                        if ($xcSendingMail['errorInfo'][0] != "00000" && $xcSendingMail['errorInfo'][1] != NULL && $xcSendingMail['errorInfo'][2] != NULL)
+                            throw new \PDOException($xcSendingMail['errorInfo']);
+
+                        /*
+                         * email gönderelim
+                         */
+                        $xcUserInfo = InfoUsersSendingMail:: sendMailUrgeNewPerson(array(
+                                    'auth_email' => $params['auth_email'],
+                                    'herkimse' => $params['name'] . ' ' . $params['surname'],
+                                    'kume' => $kumeValue,
+                                    'rol' => $roleValue,
+                                    'key' => $keyValue,
+                        ));
+
+                        if ($xcUserInfo['errorInfo'][0] != "00000" && $xcUserInfo['errorInfo'][1] != NULL && $xcUserInfo['errorInfo'][2] != NULL)
+                            throw new \PDOException($xcUserInfo['errorInfo']);
+                    }
                     $insertID = $xc['lastInsertId'];
-                                
+
                     $pdo->commit();
 
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
@@ -2748,6 +2779,50 @@ class InfoUsers extends \DAL\DalSlim {
         }
     }
     
+    /**  
+     * @author Okan CIRAN
+     * @ network key den firm id sini döndürür  !!     
+     * @version v 1.0  09.05.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getTempUserInformation($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                                
+            if (isset($params['id'])) {                                
+                $userId = $params['id'];  
+                $sql = " 
+                    SELECT user_id, 1=1 AS control, role,  key FROM (
+                        SELECT 
+                            a.id as user_id,
+                            concat(sar.name , ' (' ,sar.name_tr ,')' )  AS role,
+                            REPLACE(TRIM(SUBSTRING(crypt(a.sf_private_key_value,gen_salt('xdes')),6,20)),'/','*') AS key
+                        FROM info_users a
+                        INNER JOIN sys_acl_roles sar ON sar.id = a.role_id 
+                        WHERE
+                         a.id = ".intval($userId)."
+                         LIMIT 1
+                    ) AS xtable
+                                 ";
+                $statement = $pdo->prepare($sql);
+              // echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  network_key not_null_violation
+                $errorInfoColumn = 'network_key';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    
                                 
     /**
      * parametre olarak gelen 'id' li kaydın password unu update yapar  !!
@@ -2838,16 +2913,16 @@ class InfoUsers extends \DAL\DalSlim {
                                 a.root_id,
                                 a.act_parent_id,
                                 1,
-                                '" . $params['password'] . "' AS password
+                                md5('" . $params['password'] . "') AS password
                             FROM info_users_detail a
                             WHERE root_id  =" . intval($opUserIdValue) . "                               
-                                AND active =1 AND deleted =0 and 
+                                AND active =1 AND deleted =0 AND 
                                 c_date = (SELECT MAX(c_date)  
 						FROM info_users_detail WHERE root_id =a.root_id
 						AND active =1 AND deleted =0)  
                     ";
                     $statementActInsert = $pdo->prepare($sql);
-                    //  echo debugPDO($sql, $params);                                
+                   //  echo debugPDO($sql, $params);                                
                     $insertAct = $statementActInsert->execute();
                     $affectedRows = $statementActInsert->rowCount();
                     $insertID = $pdo->lastInsertId('info_users_detail_id_seq');

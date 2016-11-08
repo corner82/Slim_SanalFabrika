@@ -237,10 +237,10 @@ $app->get("/tempInsert_infoUsers/", function () use ($app ) {
     if (isset($_GET['username'])) {
         $stripper->offsetSet('username', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['username']));
     }
-    $vPassword = NULL;
-    if (isset($_GET['password'])) {
-        $stripper->offsetSet('password', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, $app, $_GET['password']));
-    }
+  //  $vPassword = NULL;
+  //  if (isset($_GET['password'])) {
+  //      $stripper->offsetSet('password', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, $app, $_GET['password']));
+  //  }
     $vAuthEmail = NULL;
     if (isset($_GET['auth_email'])) {
         $stripper->offsetSet('auth_email', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, $app, $_GET['auth_email']));
@@ -265,9 +265,9 @@ $app->get("/tempInsert_infoUsers/", function () use ($app ) {
     if ($stripper->offsetExists('username')) {
         $vUsername = $stripper->offsetGet('username')->getFilterValue();
     }
-    if ($stripper->offsetExists('password')) {
-        $vPassword = $stripper->offsetGet('password')->getFilterValue();
-    }
+   // if ($stripper->offsetExists('password')) {
+    //    $vPassword = $stripper->offsetGet('password')->getFilterValue();
+   // }
     if ($stripper->offsetExists('auth_email')) {
         $vAuthEmail = $stripper->offsetGet('auth_email')->getFilterValue();
     }
@@ -278,7 +278,7 @@ $app->get("/tempInsert_infoUsers/", function () use ($app ) {
         'name' => $vName,
         'surname' => $vSurname,
         'username' => $vUsername,
-        'password' => $vPassword,
+       // 'password' => $vPassword,
         'auth_email' => $vAuthEmail,
         'language_code' => $vLanguageCode,
         'preferred_language' => $vPreferredLanguage,

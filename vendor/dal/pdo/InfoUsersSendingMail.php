@@ -801,6 +801,54 @@ class InfoUsersSendingMail extends \DAL\DalSlim {
     }
 
     /**
+     * @author Okan CIRAN
+     * @ parametre olarak verilen user a onay emaili gönderir. !!
+     * @version v 1.0  08.11.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function sendMailTempUserRegistration($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+
+            $mailTemplate = new \Utill\Mail\Template\MailTemplate();
+            $mailTemplate->setContentRetrieverStartegyClass(new \Utill\Mail\Template\ContentRetrieverFromFileStrategy);
+            $mailTemplate->setTemplateContent(array('fileName' => 'kume_confirm'));            
+            $message = $mailTemplate->replaceAndGetTemplateContent(array(
+                        '{[herkimse]}' => $params['herkimse'],
+                        '{[kume]}' =>  $params['kume'],
+                        '{[rol]}' => $params['rol'],
+                        '{[link]}' => 'https://zeynel.sanalfabrika.com/ostim/sanalfabrika/signupconfirmation?key='. $params['key']));
+
+            $mail = new \Utill\Mail\PhpMailer\PhpMailInfoWrapper();
+            $mail->setCharset('UTF-8');
+            $mail->setSMTPServerHost('mail.ostimteknoloji.com');
+            $mail->setSMTPServerUser('sanalfabrika@ostimteknoloji.com');
+            $mail->setSMTPServerUserPassword('1q2w3e4r');
+            $mail->setFromUserName('sanalfabrika@ostimteknoloji.com');
+            $mail->setMessage($message);
+            $params = ['subject' => 'Sanal Fabrika Kullanıcı Şifre Onay İşlemi',
+                'info' => 'Sanal Fabrika Yöneticileri tarafından '
+                . '              şifrenizi belirlemeniz amacıyla gönderilmiştir',
+                'to' => $params['auth_email'] ];  // 311corner82@gmail.com
+            $mail->sendInfoMailSMTP($params);
+            $sql = "";
+            $statement = $pdo->prepare($sql);
+            //  echo debugPDO($sql, $params);                
+            // $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    /**
      * sys_osb_person tablosundaki urgeci kaydı oluşturur  !!
      * @author Okan CIRAN
      * @version v 1.0  31.08.2016
