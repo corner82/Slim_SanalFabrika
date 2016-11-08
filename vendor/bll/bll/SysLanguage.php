@@ -18,7 +18,7 @@ class SysLanguage extends \BLL\BLLSlim{
      * constructor
      */
     public function __construct() {
-        //parent::__construct();
+        parent::__construct();
     }
     
     /**
@@ -84,15 +84,15 @@ class SysLanguage extends \BLL\BLLSlim{
         return $resultSet['resultSet'];
     }
 
-     public function fillComboBox() {
+     public function fillComboBox($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysLanguagePDO');
-        $resultSet = $DAL->fillComboBox();  
+        $resultSet = $DAL->fillComboBox($params);  
         return $resultSet['resultSet'];
     }
     
-    public function getLanguageId() {
+    public function getLanguageId($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('sysLanguagePDO');
-        $resultSet = $DAL->getLanguageId();  
+        $resultSet = $DAL->getLanguageId($params);  
         return $resultSet['resultSet'];
     }
      
