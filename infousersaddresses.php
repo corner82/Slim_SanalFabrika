@@ -3,7 +3,7 @@
 // test commit for branch slim2
 require 'vendor/autoload.php';
 
-
+use \Services\Filter\Helper\FilterFactoryNames as stripChainers;
 
 
 /* $app = new \Slim\Slim(array(
@@ -747,81 +747,73 @@ $app->get("/pkFillUserAddressesTypes_infoUsersAddresses/", function () use ($app
  * @since 02-02-2016
  */
 $app->get("/pktempFillGridSingular_infoUsersAddresses/", function () use ($app ) {
-
-
-    $BLL = $app->getBLLManager()->get('infoUsersAddressesBLL');
-
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('infoUsersAddressesBLL');    
     $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public-Temp'])) {
+        throw new Exception('rest api "pktempFillGridSingular_infoUsersAddresses" end point, X-Public variable not found');
+    }
     $vPkTemp = $headerParams['X-Public-Temp'];
-    $vLanguageCode =$_GET['language_code'] ;
     $componentType = 'bootstrap';
     if (isset($_GET['component_type'])) {
         $componentType = strtolower(trim($_GET['component_type']));
     }
-
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
+    }
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+   
     
-    $fPkTemp = $vPkTemp ;  
-    
-    $resDataGrid = $BLL->fillGridSingularTemp(array('pktemp' => $fPkTemp,
+    $resDataGrid = $BLL->fillGridSingularTemp(array('pktemp' => $vPkTemp,
                                                     'language_code' => $vLanguageCode,
                                                     
                                                     ));
 
-    $resTotalRowCount = $BLL->fillGridSingularRowTotalCountTemp(array('pktemp' => $fPkTemp,
+    $resTotalRowCount = $BLL->fillGridSingularRowTotalCountTemp(array('pktemp' => $vPkTemp,
                                                                     'language_code' => $vLanguageCode,
                                                                      ));
-
+    $counts = 0;
     $flows = array();
-    foreach ($resDataGrid as $flow) {
-        $flows[] = array(
-            "id" => $flow["id"],
-            "user_id" => $flow["user_id"],
-            "name" => $flow["name"],
-            "surname" => $flow["surname"],
-            "deleted" => $flow["deleted"],
-            "state_deleted" => $flow["state_deleted"],
-            "active" => $flow["active"],
-            "state_active" => $flow["state_active"],          
-            "language_code" => $flow["language_code"],
-            "language_name" => $flow["language_name"],
-            "language_parent_id" => $flow["language_parent_id"],      
-            "op_user_id" => $flow["op_user_id"],
-            "op_username" => $flow["op_username"],       
-            "operation_type_id" => $flow["operation_type_id"],              
-            "operation_name" => $flow["operation_name"],                             
-            "profile_public" => $flow["profile_public"],      
-	    "s_date" => $flow["s_date"],
-            "c_date" => $flow["c_date"],                
-            "consultant_id" => $flow["consultant_id"],  
-            "consultant_confirm_type_id" => $flow["consultant_confirm_type_id"],  
-            "consultant_confirm_type" => $flow["consultant_confirm_type"],              
-            "confirm_id" => $flow["confirm_id"],                                      
-              
-            "address_type_id" => $flow["address_type_id"],
-            "address_type" => $flow["address_type"],
-            "address1" => $flow["address1"],     
-            "address2" => $flow["address2"],  
-            "postal_code" => $flow["postal_code"],  
-            "country_id" => $flow["country_id"],  
-            "city_id" => $flow["city_id"],  
-            "borough_id" => $flow["borough_id"],  
-            "city_name" => $flow["city_name"],     
-             
-            "tr_country_name" => $flow["tr_country_name"],  
-            "tr_city_name" => $flow["tr_city_name"],  
-            "tr_borough_name" => $flow["tr_borough_name"],  
-            
-            "description" => $flow["description"],
-            "description_eng" => $flow["description_eng"],
-            
-            "attributes" => array("notroot" => true, "active" => $flow["active"]),
-        );
+    if (isset($resDataGrid[0]['id'])) {
+        foreach ($resDataGrid as $flow) {
+            $flows[] = array(
+                "id" => $flow["id"],
+                "user_id" => $flow["user_id"],
+                "name" => html_entity_decode($flow["name"]),
+                "surname" => html_entity_decode($flow["surname"]),
+                "language_name" => html_entity_decode($flow["language_name"]),
+                "s_date" => $flow["s_date"],
+                "c_date" => $flow["c_date"],
+                "address_type_id" => $flow["address_type_id"],
+                "address_type" => html_entity_decode($flow["address_type"]),
+                "address1" => html_entity_decode($flow["address1"]),
+                "address2" => html_entity_decode($flow["address2"]),
+                "postal_code" => html_entity_decode($flow["postal_code"]),
+                "country_id" => $flow["country_id"],
+                "country_name" => html_entity_decode($flow["country_name"]),
+                "city_id" => $flow["city_id"],
+                "city_names" => html_entity_decode($flow["city_names"]),
+                "borough_id" => $flow["borough_id"],
+                "borough_name" => html_entity_decode($flow["borough_name"]),
+                "city_name" => html_entity_decode($flow["city_name"]),
+                "description" => html_entity_decode($flow["description"]),
+                "attributes" => array("notroot" => true,
+                    "active" => $flow["active"],
+                    "profile_public" => $flow["profile_public"],),
+            );
+        }
+        $counts = $resTotalRowCount[0]['count'];
     }
 
     $app->response()->header("Content-Type", "application/json");
   
     $resultArray = array();
-    $resultArray['total'] = $resTotalRowCount[0]['count'];
+    $resultArray['total'] = $counts;
     $resultArray['rows'] = $flows;
  
     if($componentType == 'bootstrap'){
