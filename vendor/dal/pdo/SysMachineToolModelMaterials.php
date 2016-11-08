@@ -74,8 +74,8 @@ class SysMachineToolModelMaterials extends \DAL\DalSlim {
             if (isset($params['language_code']) && $params['language_code'] != "") {
                 $languageCode = $params['language_code'];
             }       
-            $languageCodeParams = array('language_code' => $languageCode,);
-            $languageId = $this->slimApp->getServiceManager()->get('languageIdBLL');
+            $languageCodeParams = array('language_code' => $languageCode,);            
+            $languageId = $this->slimApp-> getBLLManager()->get('languageIdBLL');  
             $languageIdsArray= $languageId->getLanguageId($languageCodeParams);
             if (\Utill\Dal\Helper::haveRecord($languageIdsArray)) { 
                  $languageIdValue = $languageIdsArray ['resultSet'][0]['id']; 
@@ -145,7 +145,7 @@ class SysMachineToolModelMaterials extends \DAL\DalSlim {
                         $languageCode = $params['language_code'];
                     }
                     $languageCodeParams = array('language_code' => $languageCode,);
-                    $languageId = $this->slimApp->getServiceManager()->get('languageIdBLL');
+                    $languageId = $this->slimApp-> getBLLManager()->get('languageIdBLL');  
                     $languageIdsArray = $languageId->getLanguageId($languageCodeParams);
                     if (\Utill\Dal\Helper::haveRecord($languageIdsArray)) {
                         $languageIdValue = $languageIdsArray ['resultSet'][0]['id'];
@@ -263,7 +263,7 @@ class SysMachineToolModelMaterials extends \DAL\DalSlim {
                     $languageCode = $params['language_code'];
                 }
                 $languageCodeParams = array('language_code' => $languageCode,);
-                $languageId = $this->slimApp->getServiceManager()->get('languageIdBLL');
+                $languageId = $this->slimApp-> getBLLManager()->get('languageIdBLL');  
                 $languageIdsArray = $languageId->getLanguageId($languageCodeParams);
                 if (\Utill\Dal\Helper::haveRecord($languageIdsArray)) {
                     $languageIdValue = $languageIdsArray ['resultSet'][0]['id'];
@@ -356,7 +356,7 @@ class SysMachineToolModelMaterials extends \DAL\DalSlim {
             $languageCode = $args['language_code'];
         }
         $languageCodeParams = array('language_code' => $languageCode,);
-        $languageId = $this->slimApp->getServiceManager()->get('languageIdBLL');
+        $languageId = $this->slimApp-> getBLLManager()->get('languageIdBLL');  
         $languageIdsArray = $languageId->getLanguageId($languageCodeParams);
         if (\Utill\Dal\Helper::haveRecord($languageIdsArray)) {
             $languageIdValue = $languageIdsArray ['resultSet'][0]['id'];
@@ -436,7 +436,7 @@ class SysMachineToolModelMaterials extends \DAL\DalSlim {
                 $languageCode = $params['language_code'];
             }
             $languageCodeParams = array('language_code' => $languageCode,);
-            $languageId = $this->slimApp->getServiceManager()->get('languageIdBLL');
+            $languageId = $this->slimApp-> getBLLManager()->get('languageIdBLL');  
             $languageIdsArray = $languageId->getLanguageId($languageCodeParams);
             if (\Utill\Dal\Helper::haveRecord($languageIdsArray)) {
                 $languageIdValue = $languageIdsArray ['resultSet'][0]['id'];
@@ -560,9 +560,8 @@ class SysMachineToolModelMaterials extends \DAL\DalSlim {
             if (isset($params['language_code']) && $params['language_code'] != "") {
                 $languageCode = $params['language_code'];
             }
-            $languageCodeParams = array('language_code' => $languageCode,);
-              print_r( $this->slimApp);
-            $languageId = $this->slimApp->getServiceManager()->get('languageIdBLL');          
+            $languageCodeParams = array('language_code' => $languageCode,);            
+            $languageId = $this->slimApp-> getBLLManager()->get('languageIdBLL');  
             $languageIdsArray = $languageId->getLanguageId($languageCodeParams);
             if (\Utill\Dal\Helper::haveRecord($languageIdsArray)) {
                 $languageIdValue = $languageIdsArray ['resultSet'][0]['id'];
@@ -616,7 +615,7 @@ class SysMachineToolModelMaterials extends \DAL\DalSlim {
                 'offset' => $pdo->quote($offset),
             );
             $statement = $pdo->prepare($sql);
-           // echo debugPDO($sql, $params);
+        //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -685,8 +684,8 @@ class SysMachineToolModelMaterials extends \DAL\DalSlim {
             if (isset($params['language_code']) && $params['language_code'] != "") {
                 $languageCode = $params['language_code'];
             }
-            $languageCodeParams = array('language_code' => $languageCode,);
-            $languageId = $this->slimApp->getServiceManager()->get('languageIdBLL');
+            $languageCodeParams = array('language_code' => $languageCode,);            
+            $languageId = $this->slimApp-> getBLLManager()->get('languageIdBLL');  
             $languageIdsArray = $languageId->getLanguageId($languageCodeParams);
             if (\Utill\Dal\Helper::haveRecord($languageIdsArray)) {
                 $languageIdValue = $languageIdsArray ['resultSet'][0]['id'];

@@ -124,7 +124,7 @@ class BLLManagerConfig{
                 'pgClassBLL' => 'BLL\BLL\PgClass',
                 'sysOperationTypesRrpBLL' => 'BLL\BLL\SysOperationTypesRrp',
                  
-                'languageIdBLL' => 'BLL\BLL\SysLanguage',  
+                'languageidBLL' => 'BLL\BLL\SysLanguage',  
                
                  
              ),
