@@ -3,7 +3,7 @@
 // test commit for branch slim2
 require 'vendor/autoload.php';
 
-
+use \Services\Filter\Helper\FilterFactoryNames as stripChainers;
 
 
 /* $app = new \Slim\Slim(array(
@@ -658,52 +658,57 @@ $app->get("/fillUserCommunicationsTypes_infoUsersCommunications/", function () u
  * @since 02-02-2016
  */
 $app->get("/pktempFillGridSingular_infoUsersCommunications/", function () use ($app ) {
-
-
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
     $BLL = $app->getBLLManager()->get('infoUsersCommunicationsBLL');
-
     $headerParams = $app->request()->headers();
-    $vPkTemp = $headerParams['X-Public-Temp'];
-    
-    $fPkTemp = $vPkTemp ; 
-    
-    $languageCode = 'tr';
-    if (isset($_GET['language_code'])) {
-        $languageCode = strtolower(trim($_GET['language_code']));
+    if (!isset($headerParams['X-Public-Temp'])) {
+        throw new Exception('rest api "pktempFillGridSingular_infoUsersAddresses" end point, X-Public variable not found');
     }
-     $componentType = 'bootstrap';
+    $PkTemp = $headerParams['X-Public-Temp'];
+    $componentType = 'bootstrap';
     if (isset($_GET['component_type'])) {
         $componentType = strtolower(trim($_GET['component_type']));
     }
-
-    
-    $resDataGrid = $BLL->fillGridSingularTemp(array('pktemp' => $fPkTemp ,'language_code' => $languageCode ));
-
-    $resTotalRowCount = $BLL->fillGridSingularRowTotalCountTemp(array('pktemp' => $fPkTemp,'language_code' => $languageCode ));
-
-    $flows = array();
-    foreach ($resDataGrid as $flow) {
-        $flows[] = array(
-            "id" => $flow["id"],
-            "communications_type_id" => $flow["communications_type_id"],
-            "comminication_type" => $flow["comminication_type"],
-            "communications_no" => $flow["communications_no"],              
-            "default_communication_id" => $flow["default_communication_id"],
-            "default_communication" => $flow["default_communication"],
-
-            
-            "attributes" => array("notroot" => true, ),
-        );
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
     }
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    } 
+    
+    $resDataGrid = $BLL->fillGridSingularTemp(array(
+                'pktemp' => $PkTemp ,
+                'language_code' => $vLanguageCode ));
 
+    $resTotalRowCount = $BLL->fillGridSingularRowTotalCountTemp(array(
+                'pktemp' => $PkTemp ,
+                'language_code' => $vLanguageCode ));
+    $counts = 0;
+    $flows = array();
+    if (isset($resDataGrid[0]['id'])) {
+        foreach ($resDataGrid as $flow) {
+            $flows[] = array(
+                "id" => $flow["id"],
+                "communications_type_id" => $flow["communications_type_id"],
+                "comminication_type" => html_entity_decode($flow["comminication_type"]),
+                "communications_no" => $flow["communications_no"],
+                "default_communication_id" => $flow["default_communication_id"],
+                "default_communication" => html_entity_decode($flow["default_communication"]),
+                "attributes" => array("notroot" => true,
+                    "active" => $flow["active"],
+                    "profile_public" => $flow["profile_public"],
+                    ),
+            );
+        }
+        $counts = $resTotalRowCount[0]['count'];
+    }
     $app->response()->header("Content-Type", "application/json");
-
     $resultArray = array();
-    $resultArray['total'] = $resTotalRowCount[0]['count'];
-    $resultArray['rows'] = $flows;
- 
-
-   // $app->response()->body(json_encode($flows));
+    $resultArray['total'] = $counts;
+    $resultArray['rows'] = $flows;  
     if($componentType == 'bootstrap'){
         $app->response()->body(json_encode($flows));
     }else if($componentType == 'easyui'){
