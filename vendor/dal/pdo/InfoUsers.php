@@ -639,7 +639,7 @@ class InfoUsers extends \DAL\DalSlim {
 
                         $xcSendingMail = InfoUsersSendingMail:: insertSendingMail(array(
                                     'user_id' => intval($insertID),
-                                    'auth_email' => $params['auth_email'],
+                                    'auth_email' => $params['username'],
                                     'act_email_template_id' => 1,
                                     'op_user_id' => intval($insertID),
                                     'key' => $keyValue,
@@ -652,15 +652,12 @@ class InfoUsers extends \DAL\DalSlim {
                          * email gönderelim
                          */
                         $xcUserInfo = InfoUsersSendingMail:: sendMailTempUserRegistration(array(
-                                    'auth_email' => $params['auth_email'],
+                                    'auth_email' => $params['username'],
                                     'herkimse' => $params['name'] . ' ' . $params['surname'],
-                                    'kume' => 'Sanal Fabrika',
+                                    'kume' => '',
                                     'rol' => $roleValue,
                                     'key' => $keyValue,
-                        ));
-
-                        if ($xcUserInfo['errorInfo'][0] != "00000" && $xcUserInfo['errorInfo'][1] != NULL && $xcUserInfo['errorInfo'][2] != NULL)
-                            throw new \PDOException($xcUserInfo['errorInfo']);
+                        ));                       
                     }
                                 
                     //////////////////////////////////////////////////////////////////////////////
@@ -1024,6 +1021,11 @@ class InfoUsers extends \DAL\DalSlim {
     public function updateInfoUsers($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
+            $addsql =NULL;
+            if ((isset($params['auth_allow_id']) && $params['auth_allow_id'] != "")) {
+                $authAllowId = $params['auth_allow_id'];
+                $addsql = " auth_allow_id =". intval($authAllowId).","; 
+            } 
             $statement = $pdo->prepare("
                 UPDATE info_users
                     SET
@@ -1032,6 +1034,7 @@ class InfoUsers extends \DAL\DalSlim {
                         password = md5(:password), 
                         language_id = :language_id,                        
                         op_user_id = :op_user_id ,
+                        ".$addsql." 
                         active = :active
                     WHERE id = :id  
                     ");
@@ -2220,6 +2223,41 @@ class InfoUsers extends \DAL\DalSlim {
                     ));
                     if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
                         throw new \PDOException($xc['errorInfo']);
+                          
+                     /////////////////////////////////////////////////////////////////////////////
+                    
+                    $userInfo = $this->getTempUserInformation(array('id' => $insertID));
+                    if (\Utill\Dal\Helper::haveRecord($userInfo)) {                        
+                        $roleValue = $userInfo ['resultSet'][0]['role'];
+                        $keyValue = $userInfo ['resultSet'][0]['key']; 
+
+                        $xcSendingMail = InfoUsersSendingMail:: insertSendingMail(array(
+                                    'user_id' => intval($insertID),
+                                    'auth_email' => $params['auth_email'],
+                                    'act_email_template_id' => 1,
+                                    'op_user_id' => intval($insertID),
+                                    'key' => $keyValue,
+                        ));
+
+                        if ($xcSendingMail['errorInfo'][0] != "00000" && $xcSendingMail['errorInfo'][1] != NULL && $xcSendingMail['errorInfo'][2] != NULL)
+                            throw new \PDOException($xcSendingMail['errorInfo']);
+
+                        /*
+                         * email gönderelim
+                         */
+                        $xcUserInfo = InfoUsersSendingMail:: sendMailTempUserRegistration(array(
+                                    'auth_email' => $params['auth_email'],
+                                    'herkimse' => $params['name'] . ' ' . $params['surname'],
+                                    'kume' => 'Sanal Fabrika',
+                                    'rol' => $roleValue,
+                                    'key' => $keyValue,
+                        ));
+
+                        if ($xcUserInfo['errorInfo'][0] != "00000" && $xcUserInfo['errorInfo'][1] != NULL && $xcUserInfo['errorInfo'][2] != NULL)
+                            throw new \PDOException($xcUserInfo['errorInfo']);
+                    }
+                    
+                    /////////////////////////////////////////////////////////////////////////////
                                 
                     $xjobs = ActProcessConfirm::insert(array(
                                 'op_user_id' => intval($opUserIdValue),
@@ -2797,7 +2835,7 @@ class InfoUsers extends \DAL\DalSlim {
                         SELECT 
                             a.id as user_id,
                             concat(sar.name , ' (' ,sar.name_tr ,')' )  AS role,
-                            REPLACE(TRIM(SUBSTRING(crypt(a.sf_private_key_value,gen_salt('xdes')),6,20)),'/','*') AS key
+                            REPLACE(TRIM(SUBSTRING(crypt(a.sf_private_key_value_temp,gen_salt('xdes')),6,20)),'/','*') AS key
                         FROM info_users a
                         INNER JOIN sys_acl_roles sar ON sar.id = a.role_id 
                         WHERE
