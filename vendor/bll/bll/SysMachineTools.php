@@ -144,6 +144,26 @@ class SysMachineTools extends \BLL\BLLSlim {
         $resultSet = $DAL->getMachineProperities($params);
         return $resultSet['resultSet'];
     }
-    
+        
+    /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillMachineAdvSearchSsm($params = array()) {      
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolsPDO');     
+        $resultSet = $DAL->fillMachineAdvSearchSsm($params);
+        return $resultSet['resultSet'];
+    }
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function fillMachineAdvSearchSsmRtc($params = array()) {      
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolsPDO');
+        $resultSet = $DAL->fillMachineAdvSearchSsmRtc($params);
+        return $resultSet['resultSet'];
+    } 
     
 }

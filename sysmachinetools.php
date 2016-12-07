@@ -424,6 +424,9 @@ $app->get("/pkGetMachineProperities_sysMachineTools/", function () use ($app ) {
             "unit_id" => $flow["unit_id"],
             "unitcode_eng" =>  html_entity_decode($flow["unitcode_eng"]),
             "unitcode" =>  html_entity_decode($flow["unitcode"]),
+            "model_materials_id" => $flow["model_materials_id"],
+            "material_name" =>  html_entity_decode($flow["material_name"]),
+            "material_name_eng" =>  html_entity_decode($flow["material_name_eng"]),
             "attributes" => array(
                         "notroot" => true, 
                         "active" => $flow["active"],
@@ -744,6 +747,199 @@ $app->get("/pkDelete_sysMachineTools/", function () use ($app ) {
 }
 ); 
 
+
+/**
+ *  * Okan CIRAN
+ * @since 08-06-2016
+*  rest servislere eklendi
+ */
+$app->get("/pkFillMachineAdvSearchSsm_sysMachineTools/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysMachineToolsBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillMachineAdvSearchSsm_sysMachineTools" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+ 
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, 
+                $app, $_GET['language_code']));
+    }
+    $vMachineGroupId = NULL;
+    if (isset($_GET['machine_group_id'])) {
+        $stripper->offsetSet('machine_group_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['machine_group_id']));
+    }
+    $vMachineId = NULL;
+    if (isset($_GET['machine_tool_id'])) {
+        $stripper->offsetSet('machine_tool_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['machine_tool_id']));
+    }
+    $vCertificateId = NULL;
+    if (isset($_GET['certificate_id'])) {
+        $stripper->offsetSet('certificate_id', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+                $app, $_GET['certificate_id']));
+    }
+    $vMachineToolName = NULL;
+    if (isset($_GET['machine_tool_name'])) {
+        $stripper->offsetSet('machine_tool_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['machine_tool_name']));
+    }    
+    $vMachineToolNameEng = NULL;
+    if (isset($_GET['machine_tool_name_eng'])) {
+        $stripper->offsetSet('machine_tool_name_eng', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['machine_tool_name_eng']));
+    }
+    $vTotalPersons = 0;
+    if (isset($_GET['totalPersons'])) {
+        $stripper->offsetSet('totalPersons', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['totalPersons']));
+    } 
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, 
+                $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+                $app, $_GET['filterRules']));
+    }
+
+    
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('machine_group_id')) {
+        $vMachineGroupId = $stripper->offsetGet('machine_group_id')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('machine_tool_id')) {
+        $vMachineId = $stripper->offsetGet('machine_tool_id')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('certificate_id')) {
+        $vCertificateId= $stripper->offsetGet('certificate_id')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('machine_tool_name')) {
+        $vMachineToolName= $stripper->offsetGet('machine_tool_name')->getFilterValue();
+    }
+    if ($stripper->offsetExists('machine_tool_name_eng')) {
+        $vMachineToolNameEng= $stripper->offsetGet('machine_tool_name_eng')->getFilterValue();
+    }
+    if ($stripper->offsetExists('totalPersons')) {
+        $vTotalPersons= $stripper->offsetGet('totalPerson')->getFilterValue();
+    } 
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    }
+
+    
+    $resDataGrid = $BLL->fillMachineAdvSearchSsm(array(
+        'pk' => $pk,
+        'language_code' => $vLanguageCode,  
+        'machine_group_id' => $vMachineGroupId,
+        'machine_tool_id' => $vMachineId,
+        'certificate_id' => $vCertificateId,
+        'machine_tool_name' => $vMachineToolName,
+        'machine_tool_name_eng' => $vMachineToolNameEng,    
+        'totalPersons' => $vTotalPersons, 
+        'page' => $vPage,
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,        
+        'filterRules' => $filterRules,
+    )); 
+    
+    $resTotalRowCount = $BLL->fillMachineAdvSearchSsmRtc(array(
+        'pk' => $pk,
+        'language_code' => $vLanguageCode,  
+        'machine_group_id' => $vMachineGroupId,
+        'machine_tool_id' => $vMachineId,
+        'certificate_id' => $vCertificateId,
+        'machine_tool_name' => $vMachineToolName,
+        'machine_tool_name_eng' => $vMachineToolNameEng,  
+        'totalPersons' => $vTotalPersons, 
+        'page' => $vPage,
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,        
+        'filterRules' => $filterRules,
+    ));
+    $counts=0;
+
+    $flows = array();
+      if (isset($resDataGrid[0]['id'])) {  
+    foreach ($resDataGrid as $flow) {
+        $flows[] = array(
+            "id" => $flow["id"],
+            "firm_id" => $flow["firm_id"],
+            "firm_name" =>  html_entity_decode($flow["firm_name"]),
+            "firm_name_eng" =>  html_entity_decode($flow["firm_name_eng"]),
+            "firm_name_short" =>  html_entity_decode($flow["firm_name_short"]),       
+            "firm_name_short_eng" =>  html_entity_decode($flow["firm_name_short_eng"]),
+            "machine_tool_id" => $flow["sys_machine_tool_id"],
+            
+            "machine_tool_name" =>  html_entity_decode($flow["machine_tool_name"]),
+            "machine_tool_name_eng" =>  html_entity_decode($flow["machine_tool_name_eng"]),
+            "total" => $flow["total"],
+            "machine_tool_grup_id" => $flow["machine_tool_grup_id"],
+            "machine_tool_grup_name" =>  html_entity_decode($flow["machine_tool_grup_name"]),
+            "machine_tool_grup_name_eng" =>  html_entity_decode($flow["machine_tool_grup_name_eng"]),
+            
+            "availability_id" => $flow["availability_id"],            
+            "state_availability" =>  html_entity_decode($flow["state_availability"]),
+            "ownership_id" => $flow["ownership_id"],
+            "state_ownership" =>  html_entity_decode($flow["state_ownership"]), 
+            "picture" =>  html_entity_decode($flow["picture"]),  
+            "attributes" => array(
+                       
+                ),
+        );
+    }  
+    $counts = $resTotalRowCount[0]['count'];
+      } ELSE  $flows = array();  
+    
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($flows));
+    
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['total'] = $counts;
+    $resultArray['rows'] = $flows;
+    $app->response()->body(json_encode($resultArray));
+    
+    
+});
 
 
 $app->run();
