@@ -419,8 +419,7 @@ class SysMachineTools extends \DAL\DalSlim {
         }
     }
 
-    /**
-     * user interface datagrid fill operation get row count for widget
+    /**     
      * @author Okan CIRAN
      * @ Gridi doldurmak için sys_machine_tools tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
      * @version v 1.0  15.02.2016
@@ -1269,9 +1268,9 @@ class SysMachineTools extends \DAL\DalSlim {
                         COALESCE(NULLIF(sd21x.description, ''), sd21.description_eng) AS state_availability,                        
                         a.ownership_id,
                         COALESCE(NULLIF(sd22x.description, ''), sd22.description_eng) AS state_ownership,                        
-                        CASE COALESCE(NULLIF(a.picture, ''),'-') 
-                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
-                        ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png')) END AS picture                        
+                        CASE smt.picture_upload 
+                        WHEN false  THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(sm.machine_not_found_picture, ''),'image_not_found.png'))
+                        ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png')) END AS picture 
                     FROM info_firm_profile fp
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
                     INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
@@ -1283,6 +1282,8 @@ class SysMachineTools extends \DAL\DalSlim {
                     INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_parent_id=0
                     LEFT JOIN sys_machine_tools smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
 
+                    INNER JOIN sys_manufacturer sm ON sm.id = smt.manufactuer_id AND sm.active =0 and sm.deleted =0 
+                    
                     INNER JOIN sys_machine_tool_groups smtg ON smtg.id = smt.machine_tool_grup_id AND smtg.language_parent_id=0 AND smtg.active =0 AND smtg.deleted =0 
                     LEFT JOIN sys_machine_tool_groups smtgx ON smtgx.active =0 AND smtgx.deleted = 0 AND (smtgx.id = smtg.id OR smtgx.language_parent_id = smtg.id )AND smtgx.language_id = lx.id
 
@@ -1458,9 +1459,9 @@ class SysMachineTools extends \DAL\DalSlim {
                     COALESCE(NULLIF(sd21x.description, ''), sd21.description_eng) AS state_availability,                        
                     a.ownership_id,
                     COALESCE(NULLIF(sd22x.description, ''), sd22.description_eng) AS state_ownership,                        
-                    CASE COALESCE(NULLIF(a.picture, ''),'-') 
-                    WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
-                    ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png')) END AS picture                        
+                    CASE smt.picture_upload 
+                    WHEN false  THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(sm.machine_not_found_picture, ''),'image_not_found.png'))
+                    ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png')) END AS picture 
                 FROM info_firm_profile fp
                 INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
                 INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
@@ -1471,7 +1472,7 @@ class SysMachineTools extends \DAL\DalSlim {
 
                 INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
                 LEFT JOIN sys_machine_tools smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
-
+                INNER JOIN sys_manufacturer sm ON sm.id = smt.manufactuer_id AND sm.active =0 and sm.deleted =0 
                 INNER JOIN sys_machine_tool_groups smtg ON smtg.id = smt.machine_tool_grup_id AND smtg.language_id = l.id AND smtg.active =0 AND smtg.deleted =0 
                 LEFT JOIN sys_machine_tool_groups smtgx ON smtgx.active =0 AND smtgx.deleted = 0 AND (smtgx.id = smtg.id OR smtgx.language_parent_id = smtg.id )AND smtgx.language_id = lx.id
                 

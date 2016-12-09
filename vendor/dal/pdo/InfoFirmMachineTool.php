@@ -220,9 +220,9 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         COALESCE(NULLIF(sd119x.description, ''), sd119.description_eng) AS state_availability,
                         a.language_parent_id ,  
                         a.total,
-                        CASE COALESCE(NULLIF(a.picture, ''),'-') 
-                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
-                        ELSE CONCAT(ifk.folder_name ,'/',ifk.machines_folder,'/' ,COALESCE(NULLIF(a.picture, ''),'image_not_found.png')) END AS picture                      
+                        CASE smt.picture_upload 
+                            WHEN false  THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(sm.machine_not_found_picture, ''),'image_not_found.png'))
+                            ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png')) END AS picture
                     FROM info_firm_machine_tool a 
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
@@ -236,6 +236,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     LEFT JOIN sys_operation_types opx ON (opx.id = a.operation_type_id OR opx.language_parent_id = a.operation_type_id) and opx.language_id =lx.id  AND opx.deleted =0 AND opx.active =0 		                        
                     INNER JOIN sys_machine_tools smt ON smt.id = sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
                     LEFT JOIN sys_machine_tools smtx ON (smtx.id = sys_machine_tool_id OR smtx.language_parent_id = a.sys_machine_tool_id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id		    
+                    INNER JOIN sys_manufacturer sm ON sm.id = smt.manufactuer_id AND sm.active =0 and sm.deleted =0 
 		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
 		    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.deleted =0 AND sd15.active =0 AND sd15.language_parent_id =0
 		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
@@ -949,9 +950,9 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         COALESCE(NULLIF(sd119x.description, ''), sd119.description_eng) AS state_availability,
                         a.language_parent_id ,  
                         a.total,
-                        CASE COALESCE(NULLIF(a.picture, ''),'-') 
-                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
-                        ELSE CONCAT(ifk.folder_name ,'/',ifk.machines_folder,'/' ,COALESCE(NULLIF(a.picture, ''),'image_not_found.png')) END AS picture                      
+                        CASE smt.picture_upload 
+                            WHEN false  THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(sm.machine_not_found_picture, ''),'image_not_found.png'))
+                            ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png')) END AS picture
                     FROM info_firm_machine_tool a 
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
@@ -965,7 +966,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     LEFT JOIN sys_operation_types opx ON (opx.id = a.operation_type_id OR opx.language_parent_id = a.operation_type_id) and opx.language_id =lx.id  AND opx.deleted =0 AND opx.active =0 		                        
                     INNER JOIN sys_machine_tools smt ON smt.id = sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
                     LEFT JOIN sys_machine_tools smtx ON (smtx.id = sys_machine_tool_id OR smtx.language_parent_id = a.sys_machine_tool_id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
-		    
+		    INNER JOIN sys_manufacturer sm ON sm.id = smt.manufactuer_id AND sm.active =0 and sm.deleted =0 
 		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
 		    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.deleted =0 AND sd15.active =0 AND sd15.language_parent_id =0
 		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
@@ -1035,7 +1036,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
                     INNER JOIN info_users own ON own.id = fp.owner_user_id                     		                        
                     INNER JOIN sys_machine_tools smt ON smt.id = sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id                   
-		    
+		    INNER JOIN sys_manufacturer sm ON sm.id = smt.manufactuer_id AND sm.active =0 and sm.deleted =0 
 		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
 		    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.deleted =0 AND sd15.active =0 AND sd15.language_parent_id =0
 		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
@@ -1419,9 +1420,9 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         COALESCE(NULLIF(sd119x.description, ''), sd119.description_eng) AS state_availability,
                         a.language_parent_id ,  
                         a.total,
-                        CASE COALESCE(NULLIF(a.picture, ''),'-') 
-                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
-                        ELSE CONCAT(ifk.folder_name ,'/',ifk.machines_folder,'/' ,COALESCE(NULLIF(a.picture, ''),'image_not_found.png')) END AS picture                      
+                        CASE smt.picture_upload 
+                            WHEN false  THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(sm.machine_not_found_picture, ''),'image_not_found.png'))
+                            ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png')) END AS picture 
                     FROM info_firm_machine_tool a 
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
@@ -1435,7 +1436,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     LEFT JOIN sys_operation_types opx ON (opx.id = a.operation_type_id OR opx.language_parent_id = a.operation_type_id) and opx.language_id =lx.id  AND opx.deleted =0 AND opx.active =0 		                        
                     INNER JOIN sys_machine_tools smt ON smt.id = sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
                     LEFT JOIN sys_machine_tools smtx ON (smtx.id = sys_machine_tool_id OR smtx.language_parent_id = a.sys_machine_tool_id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
-		    
+		    INNER JOIN sys_manufacturer sm ON sm.id = smt.manufactuer_id AND sm.active =0 and sm.deleted =0 
 		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
 		    INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.deleted =0 AND sd15.active =0 AND sd15.language_parent_id =0
 		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
@@ -1650,9 +1651,9 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         cast(smt.model_year AS text) AS model_year,
                         fp.act_parent_id,
                         a.total,
-                        CASE COALESCE(NULLIF(a.picture, ''),'-')
-                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
-                        ELSE CONCAT(ifk.folder_name ,'/',ifk.machines_folder,'/' ,COALESCE(NULLIF(a.picture, ''),'image_not_found.png')) END AS picture
+                        CASE smt.picture_upload 
+                            WHEN false  THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(m.machine_not_found_picture, ''),'image_not_found.png'))
+                            ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png')) END AS picture 
                     FROM info_firm_machine_tool a 
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
@@ -1661,6 +1662,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id                      
                     INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_parent_id =0
                     LEFT JOIN sys_machine_tools smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
+                    
 		    INNER JOIN sys_machine_tool_groups smtg ON smtg.active =0 AND smtg.deleted = 0 AND smtg.id = smt.machine_tool_grup_id AND smtg.language_parent_id =0
 		    LEFT JOIN sys_machine_tool_groups smtgx ON smtgx.active =0 AND smtgx.deleted = 0 AND (smtgx.id = smtg.id OR smtgx.language_parent_id = smtg.id )AND smtgx.language_id = lx.id
                     INNER JOIN sys_manufacturer m ON m.id = smt.manufactuer_id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0 AND m.language_parent_id =0
@@ -1782,39 +1784,64 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 }  
 
                 if (isset($params['machine_id'])) {
-                    $addSql .= " AND a.sys_machine_tool_id = " . intval($params['machine_id']) . " ";
+                    $addSql .= " AND machine_id = " . intval($params['machine_id']) . " ";
                 }
 
                 $sql = " 
-                SELECT    
-                    smtp.id,  
-                    a.sys_machine_tool_id AS machine_id ,		   
-                    COALESCE(NULLIF(pdx.property_name, ''), pd.property_name_eng) AS property_names,
-                    pd.property_name_eng,
-                    smtp.property_value, 
-                    smtp.property_string_value, 
-                    u.id AS unit_id,
-                    COALESCE(NULLIF(u.unitcode,''), u.unitcode_eng) AS unitcodes,
-                    CASE COALESCE(NULLIF(a.picture, ''),'-') 
-                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
-                        ELSE CONCAT(ifk.folder_name ,'/',ifk.machines_folder,'/' ,COALESCE(NULLIF(a.picture, ''),'image_not_found.png')) END AS picture
-                FROM info_firm_machine_tool a
-                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
-                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  		
-		LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0				
-                INNER JOIN info_firm_profile ifp ON ifp.act_parent_id = a.firm_id AND ifp.active =0 AND ifp.deleted =0 AND ifp.language_id = l.id AND ifp.language_parent_id =0 
-                INNER JOIN info_firm_keys ifk ON ifp.act_parent_id = ifk.firm_id                      
-                INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.language_id = l.id AND smt.deleted =0 AND smt.active=0                
-                INNER JOIN sys_machine_tool_properties smtp ON smtp.machine_tool_id = a.sys_machine_tool_id AND smtp.language_id = l.id                
-                INNER JOIN sys_machine_tool_property_definition pd ON pd.id = smtp.machine_tool_property_definition_id AND pd.language_id = l.id AND pd.deleted =0 AND pd.active=0
-                LEFT JOIN sys_machine_tool_property_definition pdx ON (pdx.id = pd.id OR pdx.language_parent_id = pd.id) AND pdx.active =0 AND pdx.deleted = 0 AND pdx.language_id = lx.id                
-                LEFT JOIN sys_units u ON u.id = smtp.unit_id AND u.language_id = l.id AND u.deleted =0 AND u.active=0
-                WHERE a.deleted =0 AND 
-                    a.active =0 AND
-                    a.language_parent_id =0 AND 
-                    a.firm_id = ".  intval($firmIdValue)." 
-                   " . $addSql . "
-                ORDER BY a.sys_machine_tool_id  
+                SELECT  
+                    id,  
+                    machine_id,
+                    CASE
+                      WHEN material_name IS NOT NULL THEN CONCAT(property_names,' (' ,material_name ,')' ) 
+                      ELSE property_names END  AS property_names,         
+                    CASE  
+                      WHEN material_name_eng IS NOT NULL THEN CONCAT(property_name_eng,' (' ,material_name_eng ,')' ) 
+                      ELSE property_name_eng END AS property_name_eng,
+                    property_value, 
+                    property_string_value, 
+                    unit_id,
+                    unitcodes,
+                    model_materials_id
+                    material_name,
+                    material_name_eng,
+                    picture
+			FROM ( 
+                        SELECT    
+                            smtp.id,  
+                            a.sys_machine_tool_id AS machine_id ,		   
+                            COALESCE(NULLIF(pdx.property_name, ''), pd.property_name_eng) AS property_names,
+                            pd.property_name_eng,
+                            smtp.property_value, 
+                            smtp.property_string_value, 
+                            u.id AS unit_id,
+                            COALESCE(NULLIF(u.unitcode,''), u.unitcode_eng) AS unitcodes,
+                            smtp.model_materials_id,
+                            COALESCE(NULLIF(srwx.name, ''), srw.name_eng) AS material_name,
+                            srw.name_eng AS material_name_eng,
+                            CASE smt.picture_upload 
+                                WHEN false  THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(sm.machine_not_found_picture, ''),'image_not_found.png'))
+                                ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png')) END AS picture 
+                        FROM info_firm_machine_tool a
+                        INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
+                        INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  		
+                        LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0				
+                        INNER JOIN info_firm_profile ifp ON ifp.act_parent_id = a.firm_id AND ifp.active =0 AND ifp.deleted =0 AND ifp.language_id = l.id AND ifp.language_parent_id =0 
+                        INNER JOIN info_firm_keys ifk ON ifp.act_parent_id = ifk.firm_id                      
+                        INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.language_id = l.id AND smt.deleted =0 AND smt.active=0                
+                        INNER JOIN sys_manufacturer sm ON sm.id = smt.manufactuer_id AND sm.active =0 and sm.deleted =0 
+                        INNER JOIN sys_machine_tool_properties smtp ON smtp.machine_tool_id = a.sys_machine_tool_id AND smtp.language_id = l.id                
+                        INNER JOIN sys_machine_tool_property_definition pd ON pd.id = smtp.machine_tool_property_definition_id AND pd.language_id = l.id AND pd.deleted =0 AND pd.active=0
+                        LEFT JOIN sys_machine_tool_property_definition pdx ON (pdx.id = pd.id OR pdx.language_parent_id = pd.id) AND pdx.active =0 AND pdx.deleted = 0 AND pdx.language_id = lx.id                
+                        LEFT JOIN sys_units u ON u.id = smtp.unit_id AND u.language_id = l.id AND u.deleted =0 AND u.active=0
+                        LEFT JOIN sys_raw_materials srw ON srw.id = smtp.model_materials_id AND srw.active =0 AND srw.deleted =0  AND srw.language_parent_id = 0               
+                        LEFT JOIN sys_raw_materials srwx ON (srwx.id = srw.id OR srwx.language_parent_id = srw.id) AND srwx.language_id = lx.id
+                        WHERE a.deleted =0 AND 
+                            a.active =0 AND
+                            a.language_parent_id =0 AND 
+                            a.firm_id = ".  intval($firmIdValue)." 
+                           " . $addSql . "
+                    ) as xtable
+                    ORDER BY machine_id,property_names   
                                  ";
                 $statement = $pdo->prepare($sql);
           // echo debugPDO($sql, $params);
@@ -1988,9 +2015,9 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         smt.machine_code AS series,
                         fp.act_parent_id AS firm_id,
                         a.total,
-                        CASE COALESCE(NULLIF(a.picture, ''),'-')
-                            WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
-                        ELSE CONCAT(fk.folder_name ,'/',fk.machines_folder,'/' ,COALESCE(NULLIF(a.picture, ''),'image_not_found.png')) END AS picture
+                        CASE smt.picture_upload 
+                            WHEN false  THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(m.machine_not_found_picture, ''),'image_not_found.png'))
+                            ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png')) END AS picture 
                     FROM info_firm_machine_tool a 
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
@@ -2224,9 +2251,9 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         smt.machine_code AS series,
                         fp.act_parent_id AS firm_id,
                         a.total,
-                        CASE COALESCE(NULLIF(a.picture, ''),'-')
-                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png'))
-                        ELSE CONCAT(fk.folder_name ,'/',fk.machines_folder,'/' ,COALESCE(NULLIF(a.picture, ''),'image_not_found.png')) END AS picture,
+                        CASE smt.picture_upload 
+                            WHEN false  THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(m.machine_not_found_picture, ''),'image_not_found.png'))
+                            ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png')) END AS picture ,
                         fk.network_key                        
                     FROM info_firm_machine_tool a 
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
