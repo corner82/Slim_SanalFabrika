@@ -115,7 +115,8 @@ class BLLManagerConfig{
                  'sysOsbPersonBLL' => 'BLL\BLL\SysOsbPerson',
                  'infoUsersSendingMailBLL' => 'BLL\BLL\InfoUsersSendingMail',
                  'sysMachineToolModelMaterialsBLL' => 'BLL\BLL\SysMachineToolModelMaterials',
-                                  
+                 'infoFirmNaceBLL' => 'BLL\BLL\InfoFirmNace',
+                 
                  'logConnectionBLL' => 'BLL\BLL\LogConnection',  
                  'logServicesBLL' => 'BLL\BLL\LogServices',
                  'logConsultantBLL' => 'BLL\BLL\LogConsultant',
@@ -123,6 +124,10 @@ class BLLManagerConfig{
                  
                 'pgClassBLL' => 'BLL\BLL\PgClass',
                 'sysOperationTypesRrpBLL' => 'BLL\BLL\SysOperationTypesRrp',
+                'sysNotificationRestservicesBLL' => 'BLL\BLL\SysNotificationRestservices',
+                'actUsersActionStatisticsBLL' => 'BLL\BLL\ActUsersActionStatistics',
+                 
+                 
                  
                 'languageidBLL' => 'BLL\BLL\SysLanguage',  
                

@@ -118,8 +118,10 @@ class DalManagerConfig {
                 'sysAclActionRrpRestservicesPDO' => 'DAL\Factory\PDO\SysAclActionRrpRestservicesFactory',   
                 'infoFirmConsultantsPDO' => 'DAL\Factory\PDO\InfoFirmConsultantsFactory',   
                 'sysOsbPersonPDO' => 'DAL\Factory\PDO\SysOsbPersonFactory',   
-                'infoUsersSendingMailPDO' => 'DAL\Factory\PDO\InfoUsersSendingMailFactory',                   
-                'sysMachineToolModelMaterialsPDO' => 'DAL\Factory\PDO\SysMachineToolModelMaterialsFactory',                
+                'infoUsersSendingMailPDO' => 'DAL\Factory\PDO\InfoUsersSendingMailFactory',
+                'sysMachineToolModelMaterialsPDO' => 'DAL\Factory\PDO\SysMachineToolModelMaterialsFactory', 
+                'infoFirmNacePDO' => 'DAL\Factory\PDO\InfoFirmNaceFactory',
+                
                                  
                 'logConnectionPDO' => 'DAL\Factory\PDO\LogConnectionFactory',
                 'logServicesPDO' => 'DAL\Factory\PDO\LogServicesFactory',
@@ -130,7 +132,11 @@ class DalManagerConfig {
                 
                 'sysOperationTypesRrpPDO' => 'DAL\Factory\PDO\SysOperationTypesRrpFactory',   
                 'pgClassPDO' => 'DAL\Factory\PDO\PgClassFactory',
-                 
+                'sysNotificationRestservicesPDO' => 'DAL\Factory\PDO\SysNotificationRestservicesFactory',   
+                'actUsersActionStatisticsPDO' => 'DAL\Factory\PDO\ActUsersActionStatisticsFactory',   
+                
+                
+                
                 
                 
             ],
