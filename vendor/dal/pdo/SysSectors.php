@@ -507,37 +507,34 @@ class SysSectors extends \DAL\DalSlim {
              * table names and column names will be changed for specific use
              */
             $statement = $pdo->prepare(" 
-                
-                INSERT INTO sys_sectors(
-                    name, name_eng, language_id, ordr, language_parent_id, 
-                    description, description_eng, user_id, language_code)
-                   
-                SELECT    
-                    name, name_eng, language_id, ordr, language_parent_id, 
-                    description, description_eng, user_id, language_main_code
-                FROM ( 
-                       SELECT 
-                            '' AS name,                             
-                            COALESCE(NULLIF(c.name_eng, ''), c.name) AS name_eng, 
-                            l.id as language_id, 
-                            c.ordr,
-                            c.id AS language_parent_id,    
-                            '' AS description,
-                            description_eng,
-                            c.user_id, 		 
-                            l.language_main_code
-                        FROM sys_sectors c
-                        LEFT JOIN sys_language l ON l.deleted =0 AND l.active =0 
-                        WHERE c.id =  ".intval($params['id'])."
-                        ) AS xy   
-                        WHERE xy.language_main_code NOT IN 
-                            (SELECT DISTINCT language_code 
-                            FROM sys_sectors cx 
-                            WHERE 
-                                (cx.language_parent_id = ".intval($params['id'])."  OR
-                                cx.id = ".intval($params['id'])." ) AND
-                                cx.deleted =0 AND 
-                                cx.active =0)) 
+            INSERT INTO sys_sectors(
+		  language_parent_id,language_id, 
+                    name, name_eng,ordr, 
+		   description, description_eng, logo)  		   
+                SELECT   
+                    language_parent_id,language_id, 
+                    name, name_eng,ordr, 
+		   description, description_eng, logo
+                    FROM ( 
+                            SELECT 
+				c.id AS language_parent_id, 
+				l.id as language_id,                        
+				'' AS name, 
+                                c.name_eng, 
+                                c.ordr,                                 
+				'' AS description, 
+				description_eng	, logo			
+                            FROM sys_sectors c
+                            LEFT JOIN sys_language l ON l.deleted =0 AND l.active =0 
+                            WHERE c.id =   " . intval($params['id']) . "
+                    ) AS xy  
+                    WHERE xy.language_id NOT IN 
+                        (SELECT 
+                            DISTINCT language_id 
+                         FROM sys_sectors cx 
+                         WHERE (cx.language_parent_id =    " . intval($params['id']) . "
+						OR cx.id =    " . intval($params['id']) . "
+					) AND cx.deleted =0 AND cx.active =0)
                     ");            
             $result = $statement->execute();
             $insertID = $pdo->lastInsertId('sys_sectors_id_seq');
@@ -635,18 +632,38 @@ class SysSectors extends \DAL\DalSlim {
             }
             $whereSql = " WHERE a.active =0 AND a.deleted = 0 AND a.language_parent_id =0 "; 
             $sql = "
+                (
+                SELECT   
+                    0 AS id, 	
+                    COALESCE(NULLIF(ax.description, ''), a.description_eng) AS name,
+                    a.description_eng AS name_eng ,
+                    '' AS description , 
+                    '' AS description_eng,
+                    true AS selected
+                FROM sys_specific_definitions a 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0  
+                INNER JOIN sys_specific_definitions ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.active = 0 AND ax.deleted =0 AND ax.language_id = lx.id
+                WHERE 
+                    a.main_group = 0 AND 
+                    a.first_group = 24 AND
+                    a.language_parent_id =0
+                limit 1   
+                )
+                UNION
+                (
                 SELECT 
                     a.id, 
                     COALESCE(NULLIF(ax.name, ''), a.name_eng) AS name,
                     a.name_eng,
                     COALESCE(NULLIF(ax.description, ''), a.description_eng) AS description,
-                    a.description_eng 
+                    a.description_eng ,
+                    false AS selected
                 FROM sys_sectors a
 	        INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
 	        LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
 	        LEFT JOIN sys_sectors ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.deleted =0 AND ax.active =0 AND ax.language_id =lx.id
                 " . $whereSql . "
-                ORDER BY a.name
+                ORDER BY a.name) 
                                  ";
             $statement = $pdo->prepare($sql);            
           // echo debugPDO($sql, $params);

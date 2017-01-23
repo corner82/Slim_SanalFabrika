@@ -70,7 +70,7 @@ $app->get("/pkFillGrid_syssectors/", function () use ($app ) {
  *  Okan CIRAN
  * @since 09-06-2016
  */
-$app->get("/pkGetSectors_syssectors/", function () use ($app ) {
+$app->get("/pkGetSectors1_syssectors/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
     $BLL = $app->getBLLManager()->get('sysSectorsBLL');
@@ -96,6 +96,58 @@ $app->get("/pkGetSectors_syssectors/", function () use ($app ) {
     $app->response()->body(json_encode($resultArray));
 });
 
+/**
+ *  * Okan CIRAN
+ * @since 30-12-2016
+ */
+$app->get("/getSectors_syssectors/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('sysSectorsBLL');
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, 
+                                                                $app, 
+                                                                $_GET['language_code']));
+    }
+    $componentType = 'ddslick';
+    if (isset($_GET['component_type'])) {
+        $componentType = strtolower(trim($_GET['component_type']));
+    }
+    $stripper->strip(); 
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }   
+    
+    $resCombobox = $BLL->getSectors(array('language_code' => $vLanguageCode
+    ));
+
+        $menus = array();
+      //  $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
+    if ($componentType == 'bootstrap') {
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "text" => $menu["name"],
+                "state" => $menu["state_type"], //   'closed',
+                "checked" => $menu["selected"],
+                "attributes" => array("notroot" => true, "active" => $menu["active"]),
+            );
+        }
+    } else if ($componentType == 'ddslick') {       
+        foreach ($resCombobox as $menu) {
+            $menus[] = array(
+                "text" => $menu["name"],
+                "value" =>  intval($menu["id"]),
+                "selected" => $menu["selected"],
+                "description" => $menu["name_eng"],
+               // "imageSrc" => ""
+            );
+        }
+    }
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($menus));
+});
 
 
 
