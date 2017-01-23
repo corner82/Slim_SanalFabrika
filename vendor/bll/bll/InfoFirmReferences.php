@@ -163,7 +163,16 @@ class InfoFirmReferences extends \BLL\BLLSlim{
         $DAL = $this->slimApp->getDALManager()->get('infoFirmReferencesPDO');     
         return $DAL->fillBeReferencedRtc($params);
     } 
-  
+   
+    /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */
+    public function fillWithReferenceNpk($params = array()) {        
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmReferencesPDO');     
+        return $DAL->fillWithReferenceNpk($params);
+    }
     
 }
 

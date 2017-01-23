@@ -89,7 +89,7 @@ class InfoFirmReferences extends \DAL\DalSlim {
                     a.op_user_id,
                     u.username AS op_username,
                     a.operation_type_id,
-                    COALESCE(NULLIF(opx.operation_name, ''), op.operation_name_eng) AS operation_name,                    
+                    COALESCE(NULLIF(opx.operation_name, ''), op.operation_name_eng) AS operation_name,
                     a.s_date,
                     a.c_date,
                     a.consultant_id,		    
@@ -107,8 +107,8 @@ class InfoFirmReferences extends \DAL\DalSlim {
                 INNER JOIN info_firm_profile fpref ON  fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id=2 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
-                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.cons_allow_id=2 AND fprefx.language_id = lx.id 
+                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.act_parent_id OR fpx.act_parent_id=fp.act_parent_id ) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
+                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.act_parent_id = a.ref_firm_id) AND fprefx.cons_allow_id=2 AND fprefx.language_id = lx.id 
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0                
                 INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
                 INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_parent_id =0 AND sd15.deleted =0 AND sd15.active =0 
@@ -542,8 +542,8 @@ class InfoFirmReferences extends \DAL\DalSlim {
                 INNER JOIN info_firm_profile fpref ON  fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id=2 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
-                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.cons_allow_id=2 AND fprefx.language_id = lx.id 
+                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.act_parent_id OR fpx.act_parent_id=fp.act_parent_id ) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
+                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.act_parent_id = a.ref_firm_id) AND fprefx.cons_allow_id=2 AND fprefx.language_id = lx.id 
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0                
                 INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
                 INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_parent_id =0 AND sd15.deleted =0 AND sd15.active =0 
@@ -632,8 +632,8 @@ class InfoFirmReferences extends \DAL\DalSlim {
                 INNER JOIN info_firm_profile fpref ON  fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id=2 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
-                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.cons_allow_id=2 AND fprefx.language_id = lx.id 
+                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.act_parent_id OR fpx.id=fp.act_parent_id ) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
+                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.act_parent_id = a.ref_firm_id) AND fprefx.cons_allow_id=2 AND fprefx.language_id = lx.id 
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0                
                 INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
                 INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_parent_id =0 AND sd15.deleted =0 AND sd15.active =0 
@@ -731,9 +731,9 @@ class InfoFirmReferences extends \DAL\DalSlim {
                 SELECT 
                         COUNT(a.id) AS COUNT  
                 FROM info_firm_profile fp 
-                INNER JOIN info_firm_references a ON a.firm_id = fp.id AND a.active =0 AND a.deleted =0
+                INNER JOIN info_firm_references a ON a.firm_id = fp.act_parent_id AND a.active =0 AND a.deleted =0
                 INNER JOIN info_users u ON u.id = a.op_user_id
-                INNER JOIN info_firm_profile fpref ON  fpref.id = a.ref_firm_id AND fpref.active =0 AND fpref.deleted =0 AND fpref.language_parent_id = 0 
+                INNER JOIN info_firm_profile fpref ON  fpref.act_parent_id = a.ref_firm_id AND fpref.active =0 AND fpref.deleted =0 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = 647 AND op.deleted =0 AND op.active =0
                 INNER JOIN sys_operation_types cop ON cop.id = a.operation_type_id AND cop.language_id = 647 AND cop.deleted =0 AND cop.active =0 
@@ -934,8 +934,8 @@ class InfoFirmReferences extends \DAL\DalSlim {
                 INNER JOIN info_firm_profile fpref ON fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id =2 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id ) AND fpx.cons_allow_id =2 AND fpx.language_id = lx.id
-                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.cons_allow_id =2 AND fprefx.language_id = lx.id
+                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.act_parent_id OR fpx.id=fp.act_parent_id ) AND fpx.cons_allow_id =2 AND fpx.language_id = lx.id
+                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.act_parent_id = a.ref_firm_id) AND fprefx.cons_allow_id =2 AND fprefx.language_id = lx.id
 	        WHERE  
                     fp.language_parent_id = 0 AND 
                     fp.cons_allow_id =2
@@ -1081,8 +1081,8 @@ class InfoFirmReferences extends \DAL\DalSlim {
                 INNER JOIN info_firm_profile fpref ON  fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id =2 AND fpref.language_parent_id = 0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
                 LEFT JOIN sys_language lx ON lx.id =" . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
-                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.id = a.ref_firm_id) AND fprefx.cons_allow_id =2 AND fprefx.language_id = lx.id                 
+                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.act_parent_id OR fpx.act_parent_id=fp.act_parent_id) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id
+                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = a.ref_firm_id OR fprefx.act_parent_id = a.ref_firm_id) AND fprefx.cons_allow_id =2 AND fprefx.language_id = lx.id                 
 	        WHERE  
                     fp.language_parent_id = 0 AND 
                     fp.cons_allow_id =2
@@ -1155,5 +1155,71 @@ class InfoFirmReferences extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
+    
+    /**
+     * @author Okan CIRAN
+     * @ info_firm_references tablosundan npk sı gönderilen firmaya referans olan firmaları döndürür.
+     * @version v 1.0  22.12.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillWithReferenceNpk($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+
+            $networkKey = "-1";
+            if ((isset($params['network_key']) && $params['network_key'] != "")) {                
+                $networkKey = $params['network_key'] ;
+            }  
+
+            $sql = "                                 
+                SELECT  distinct
+		    a.id,
+		    COALESCE(NULLIF(COALESCE(NULLIF(fprefx.firm_name_short, ''), fpref.firm_name_short_eng), ''), fpref.firm_name_short) AS ref_firm_name,		    
+		    ifk.network_key AS ref_network_key, 
+                    fp.firm_name_eng,
+                    CASE COALESCE(NULLIF(fpref.logo, ''),'-') 
+                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/' ,COALESCE(NULLIF(fpref.logo, ''),'image_not_found.png'))
+                        ELSE CONCAT(ifk.folder_name ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(fpref.logo, ''),'image_not_found.png')) END AS ref_logo 
+                FROM info_firm_profile fp
+                INNER JOIN info_firm_references a ON a.firm_id = fp.act_parent_id AND a.cons_allow_id =2
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
+                INNER JOIN info_firm_profile fpref ON fpref.act_parent_id = a.ref_firm_id AND fpref.cons_allow_id =2 AND fpref.language_parent_id = 0 
+                INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.ref_firm_id
+                INNER JOIN info_firm_keys ifkm ON ifkm.firm_id = a.firm_id
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
+                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.act_parent_id OR fpx.id=fp.act_parent_id ) AND fpx.cons_allow_id =2 AND fpx.language_id = lx.id
+                LEFT JOIN info_firm_profile fprefx ON (fprefx.language_parent_id = fpref.id OR fprefx.act_parent_id = fpref.id) AND fprefx.cons_allow_id =2 AND fprefx.language_id = lx.id
+	        WHERE  
+                    fp.language_parent_id = 0 AND 
+                    fp.cons_allow_id =2 AND 
+                    ifkm.network_key = '".$networkKey."'
+                ORDER BY fp.firm_name_eng "; 
+              
+            $statement = $pdo->prepare($sql);
+          //  echo debugPDO($sql, $params);                
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    
 
 }

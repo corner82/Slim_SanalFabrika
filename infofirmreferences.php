@@ -522,6 +522,54 @@ $app->get("/pkInsert_infoFirmReferences/", function () use ($app ) {
     $app->response()->body(json_encode($resData));
 }
 ); 
-
-
+ 
+ /**
+ *  * Okan CIRAN
+ * @since 22-12-2016
+ */
+$app->get("/fillWithReferenceNpk_infoFirmReferences/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('infoFirmReferencesBLL');    
+    
+    $vNpk = NULL;    
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                                                $app,
+                                                $_GET['npk']));
+    } 
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    
+    $stripper->strip(); 
+    if ($stripper->offsetExists('npk')) {
+        $vNpk = $stripper->offsetGet('npk')->getFilterValue();         
+    }
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+      $result = $BLL->fillWithReferenceNpk(array(
+        'language_code' => $vLanguageCode,
+        'network_key' => $vNpk,       
+        ));                            
+                  
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array(
+            "ref_firm_name" =>  $flow["ref_firm_name"],
+            "ref_network_key" => $flow["ref_network_key"],  
+            "ref_logo" => $flow["ref_logo"],
+            "attributes" => array(),
+        );
+    }
+ 
+    $app->response()->header("Content-Type", "application/json");    
+    $app->response()->body(json_encode($flows));
+}
+); 
+ 
 $app->run();
