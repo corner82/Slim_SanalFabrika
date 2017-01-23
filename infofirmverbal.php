@@ -938,6 +938,7 @@ $app->get("/pkFillUsersFirmVerbalNpk_infoFirmVerbal/", function () use ($app ) {
     $resDataGrid = $BLL->fillUsersFirmVerbalNpk(array(
         'language_code' => $vLanguageCode,
         'network_key' => $vNetworkKey,  
+        'url'=> $_GET['url'],
         'pk'=> $pk,
     ));
      
@@ -964,7 +965,7 @@ $app->get("/pkFillUsersFirmVerbalNpk_infoFirmVerbal/", function () use ($app ) {
             "verbal3_eng" => html_entity_decode($flow["verbal3_eng"]),
             "language_id" => $flow["language_id"],
             "language_name" => html_entity_decode($flow["language_name"]),
-            "logo" => $flow["logo"],  
+          //  "logo" => $flow["logo"],  
             "attributes" => array("notroot" => true,  "userb" => $flow["userb"],),
         );
     }
@@ -1006,7 +1007,8 @@ $app->get("/fillUsersFirmVerbalNpkGuest_infoFirmVerbal/", function () use ($app 
     } 
     $resDataGrid = $BLL->fillUsersFirmVerbalNpkGuest(array(
         'language_code' => $vLanguageCode,
-        'network_key' => $vNetworkKey,        
+        'network_key' => $vNetworkKey,   
+        'url'=> $_GET['url'],
     ));
     
     $flows = array();
@@ -1032,7 +1034,7 @@ $app->get("/fillUsersFirmVerbalNpkGuest_infoFirmVerbal/", function () use ($app 
             "verbal3_eng" => html_entity_decode($flow["verbal3_eng"]),               
             "language_id" => $flow["language_id"],
             "language_name" => html_entity_decode($flow["language_name"]),
-            "logo" => $flow["logo"],           
+         //   "logo" => $flow["logo"],           
             "attributes" => array("notroot" => true,"userb" => $flow["userb"] ),
         );
     }
@@ -1089,11 +1091,12 @@ $app->get("/pkcpkGetFirmVerbalConsultant_infoFirmVerbal/", function () use ($app
             "name" => html_entity_decode($flow["name"]),   
             "surname" => html_entity_decode($flow["surname"]),
             "auth_email" => $flow["auth_email"],
+            "phone" => $flow["phone"],
         //    "communications_type_id" => $flow["communications_type_id"],
         //    "communications_type_name" => $flow["communications_type_name"],             
         //    "communications_no" => $flow["communications_no"],
             "cons_picture" => $flow["cons_picture"],
-         //   "npk" => $flow["network_key"],             
+            "npk" => $flow["network_key"],             
             "attributes" => array(),
         );
     }

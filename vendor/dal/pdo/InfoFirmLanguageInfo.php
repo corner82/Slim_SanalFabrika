@@ -1053,7 +1053,7 @@ class InfoFirmLanguageInfo extends \DAL\DalSlim {
                     INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.cons_allow_id=2 AND fp.language_parent_id =0
                     INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
-                    LEFT JOIN info_firm_profile fpx ON (fpx.id = fp.id OR fpx.language_parent_id = fp.id) AND fpx.language_id = lx.id AND fpx.active =0 AND fpx.deleted =0
+                    LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id = a.firm_id) AND fpx.language_id = lx.id AND fpx.active =0 AND fpx.deleted =0
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
 		    INNER JOIN sys_language ssl ON ssl.id = a.firm_language_id AND ssl.deleted =0 AND ssl.active =0 AND ssl.language_parent_id =0 AND ssl.lang_choose=1 
                     LEFT JOIN sys_language sslx ON (sslx.id = ssl.id OR sslx.language_parent_id = ssl.id) and sslx.language_id =lx.id  AND sslx.deleted =0 AND sslx.active =0                    

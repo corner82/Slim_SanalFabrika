@@ -101,7 +101,7 @@ class InfoFirmConsultants extends \DAL\DalSlim {
                 INNER JOIN sys_language l ON l.id = iud.language_id AND l.deleted =0 AND l.active = 0 
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                 INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_id =l.id
-                LEFT JOIN info_firm_profile fpx ON (fpx.act_parent_id = fp.id OR fpx.language_parent_id = fp.id) AND fp.active = 0 AND fp.deleted = 0 AND fpx.language_id =lx.id
+                LEFT JOIN info_firm_profile fpx ON (fpx.act_parent_id = a.firm_id OR fpx.language_parent_id = a.firm_id) AND fp.active = 0 AND fp.deleted = 0 AND fpx.language_id =lx.id
                 INNER JOIN info_firm_keys fk ON  a.firm_id =  fk.firm_id  
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id =l.id  AND op.deleted =0 AND op.active =0
                 LEFT JOIN sys_operation_types opx ON (opx.id = a.operation_type_id OR opx.language_parent_id = a.operation_type_id) and opx.language_id =lx.id AND opx.deleted =0 AND opx.active =0
@@ -401,7 +401,7 @@ class InfoFirmConsultants extends \DAL\DalSlim {
                 INNER JOIN sys_language l ON l.id = iud.language_id AND l.deleted =0 AND l.active = 0 
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                 INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_id =l.id
-                LEFT JOIN info_firm_profile fpx ON (fpx.act_parent_id = fp.id OR fpx.language_parent_id = fp.id) AND fp.active = 0 AND fp.deleted = 0 AND fpx.language_id =lx.id
+                LEFT JOIN info_firm_profile fpx ON (fpx.act_parent_id = a.firm_id OR fpx.language_parent_id = a.firm_id) AND fp.active = 0 AND fp.deleted = 0 AND fpx.language_id =lx.id
                 INNER JOIN info_firm_keys fk ON  a.firm_id =  fk.firm_id  
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id =l.id  AND op.deleted =0 AND op.active =0
                 LEFT JOIN sys_operation_types opx ON (opx.id = a.operation_type_id OR opx.language_parent_id = a.operation_type_id) and opx.language_id =lx.id AND opx.deleted =0 AND opx.active =0

@@ -118,8 +118,8 @@ class InfoFirmAddress extends \DAL\DalSlim {
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     LEFT JOIN info_firm_address ax on (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.deleted = 0 AND ax.active = 0 AND ax.language_id = lx.id
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
-                    LEFT JOIN info_firm_profile fpx ON (fpx.id = fp.id OR fpx.language_parent_id = fp.id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
+                    LEFT JOIN info_firm_profile fpx ON (fpx.act_parent_id = a.firm_id OR fpx.language_parent_id = a.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id
 		    LEFT JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.deleted =0 AND op.active =0 AND op.language_parent_id =0
                     LEFT JOIN sys_operation_types opx ON (opx.id = a.operation_type_id OR opx.language_parent_id = a.operation_type_id) and opx.language_id =lx.id  AND opx.deleted =0 AND opx.active =0
@@ -646,8 +646,8 @@ class InfoFirmAddress extends \DAL\DalSlim {
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     LEFT JOIN info_firm_address ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.deleted = 0 AND ax.active = 0 AND ax.language_id = lx.id
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
-                    LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
+                    LEFT JOIN info_firm_profile fpx ON (fpx.act_parent_id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id
 		    LEFT JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.deleted =0 AND op.active =0 AND op.language_parent_id =0
                     LEFT JOIN sys_operation_types opx ON (opx.id = a.operation_type_id OR opx.language_parent_id = a.operation_type_id) and opx.language_id =lx.id  AND opx.deleted =0 AND opx.active =0
@@ -717,7 +717,7 @@ class InfoFirmAddress extends \DAL\DalSlim {
                     FROM info_firm_address a                    
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                    
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id
 		    INNER JOIN sys_specific_definitions sd4 ON sd4.main_group = 4 AND a.firm_building_type_id = sd4.first_group AND sd4.deleted =0 AND sd4.active =0 AND sd4.language_parent_id =0
 		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
@@ -1580,7 +1580,7 @@ class InfoFirmAddress extends \DAL\DalSlim {
                     INNER JOIN info_firm_keys fk ON a.firm_id = fk.firm_id                      
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id		    
 		    INNER JOIN sys_specific_definitions sd4 ON sd4.main_group = 4 AND a.firm_building_type_id = sd4.first_group AND sd4.deleted =0 AND sd4.active =0 AND sd4.language_parent_id =0
                     INNER JOIN sys_countrys co ON co.id = a.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = a.language_id

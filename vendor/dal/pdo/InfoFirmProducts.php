@@ -120,7 +120,7 @@ class InfoFirmProducts extends \DAL\DalSlim {
                     LEFT JOIN sys_language lx ON lx.id =  " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     LEFT JOIN info_firm_products ifpx ON (ifpx.id = a.id OR ifpx.language_parent_id=a.id) AND ifpx.active = 0 AND ifpx.deleted = 0 AND ifpx.language_id =lx.id  
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
 
 		    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.deleted =0 AND op.active =0 AND op.language_parent_id =0
@@ -616,7 +616,7 @@ class InfoFirmProducts extends \DAL\DalSlim {
                     LEFT JOIN sys_language lx ON lx.id =  " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     LEFT JOIN info_firm_products ifpx ON (ifpx.id = a.id OR ifpx.language_parent_id=a.id) AND ifpx.active = 0 AND ifpx.deleted = 0 AND ifpx.language_id =lx.id  
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
 
 		    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.deleted =0 AND op.active =0 AND op.language_parent_id =0
@@ -677,7 +677,7 @@ class InfoFirmProducts extends \DAL\DalSlim {
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
 		    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.deleted =0 AND op.active =0 AND op.language_parent_id =0
 		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0
@@ -1064,7 +1064,7 @@ class InfoFirmProducts extends \DAL\DalSlim {
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     LEFT JOIN info_firm_products ifpx ON (ifpx.id = a.id OR ifpx.language_parent_id=a.id) AND ifpx.active = 0 AND ifpx.deleted = 0 AND ifpx.language_id =lx.id                      
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
 		    LEFT JOIN sys_gtip_codes sgc ON sgc.id = a.gtip_no_id AND sgc.active = 0 AND sgc.deleted = 0 AND sgc.language_id =l.id AND sgc.language_parent_id =0 
 		    LEFT JOIN sys_gtip_codes sgcx ON (sgcx.id = sgc.id OR sgcx.language_parent_id = sgc.id) AND sgcx.active = 0 AND sgcx.deleted = 0 AND sgcx.language_id =lx.id 
@@ -1123,7 +1123,7 @@ class InfoFirmProducts extends \DAL\DalSlim {
                     FROM info_firm_products a 
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
 		    LEFT JOIN sys_gtip_codes sgc ON sgc.id = a.gtip_no_id AND sgc.active = 0 AND sgc.deleted = 0 AND sgc.language_id =l.id AND sgc.language_parent_id =0 
                     WHERE 
@@ -1350,7 +1350,7 @@ class InfoFirmProducts extends \DAL\DalSlim {
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted = 0 AND lx.active = 0
                     LEFT JOIN info_firm_products ifpx ON (ifpx.id = a.id OR ifpx.language_parent_id=a.id) AND ifpx.cons_allow_id =2 AND ifpx.language_id = lx.id                      
                     INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.cons_allow_id = 2 AND fp.language_parent_id = 0
-                    LEFT JOIN info_firm_profile fpx ON (fpx.id = fp.id OR fpx.language_parent_id = fp.id) AND fpx.cons_allow_id = 2 AND fpx.language_id = lx.id  
+                    LEFT JOIN info_firm_profile fpx ON (fpx.act_parent_id =a.firm_id OR fpx.language_parent_id = a.firm_id) AND fpx.cons_allow_id = 2 AND fpx.language_id = lx.id  
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
 		    INNER JOIN sys_gtip_codes sgc ON sgc.id = a.gtip_no_id AND sgc.active = 0 AND sgc.deleted = 0 AND sgc.language_id = l.id AND sgc.language_parent_id = 0 
 		    LEFT JOIN sys_gtip_codes sgcx ON (sgcx.id = sgc.id OR sgcx.language_parent_id = sgc.id) AND sgcx.active = 0 AND sgcx.deleted = 0 AND sgcx.language_id = lx.id 

@@ -110,7 +110,7 @@ class InfoFirmSocialmedia extends \DAL\DalSlim {
                 INNER JOIN info_firm_keys fk ON a.firm_id =  fk.firm_id  
                 INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active = 0 
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
-                LEFT JOIN info_firm_profile fpx ON (fpx.id = fp.id OR fpx.language_parent_id = fp.id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id = l.id
+                LEFT JOIN info_firm_profile fpx ON (fpx.act_parent_id = fp.act_parent_id OR fpx.language_parent_id = fp.act_parent_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id = l.id
                 INNER JOIN sys_socialmedia sm ON sm.id = a.sys_socialmedia_id AND sm.deleted =0 AND sm.active =0 AND sm.language_id = l.id
 		LEFT JOIN sys_socialmedia smx ON (smx.id = sm.id OR smx.language_parent_id = sm.id) AND smx.language_id = lx.id AND smx.active =0 AND smx.deleted =0
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id =l.id  AND op.deleted =0 AND op.active =0
@@ -521,7 +521,7 @@ class InfoFirmSocialmedia extends \DAL\DalSlim {
                 INNER JOIN info_firm_keys fk ON a.firm_id =  fk.firm_id  
                 INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active = 0 
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
-                LEFT JOIN info_firm_profile fpx ON (fpx.id = fp.id OR fpx.language_parent_id = fp.id) AND fpx.cons_allow_id = 2 AND fpx.language_id = l.id
+                LEFT JOIN info_firm_profile fpx ON (fpx.act_parent_id = fp.act_parent_id OR fpx.language_parent_id = fp.act_parent_id) AND fpx.cons_allow_id = 2 AND fpx.language_id = l.id
                 INNER JOIN sys_socialmedia sm ON sm.id = a.sys_socialmedia_id AND sm.deleted =0 AND sm.active =0 AND sm.language_id = l.id
 		LEFT JOIN sys_socialmedia smx ON (smx.id = sm.id OR smx.language_parent_id = sm.id) AND smx.language_id = lx.id AND smx.active =0 AND smx.deleted =0
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id =l.id  AND op.deleted =0 AND op.active =0
@@ -710,7 +710,7 @@ class InfoFirmSocialmedia extends \DAL\DalSlim {
                 INNER JOIN info_firm_keys fk ON a.firm_id =  fk.firm_id  
                 INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active = 0 
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
-                LEFT JOIN info_firm_profile fpx ON (fpx.id = fp.id OR fpx.language_parent_id = fp.id) AND fpx.cons_allow_id = 2 AND fpx.language_id = l.id
+                LEFT JOIN info_firm_profile fpx ON (fpx.act_parent_id = fp.act_parent_id OR fpx.language_parent_id = fp.act_parent_id) AND fpx.cons_allow_id = 2 AND fpx.language_id = l.id
                 INNER JOIN sys_socialmedia sm ON sm.id = a.sys_socialmedia_id AND sm.deleted =0 AND sm.active =0 AND sm.language_id = l.id
 		LEFT JOIN sys_socialmedia smx ON (smx.id = sm.id OR smx.language_parent_id = sm.id) AND smx.language_id = lx.id AND smx.active =0 AND smx.deleted =0
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id =l.id  AND op.deleted =0 AND op.active =0

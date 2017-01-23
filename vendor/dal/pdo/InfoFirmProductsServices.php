@@ -105,7 +105,7 @@ class InfoFirmProductsServices extends \DAL\DalSlim {
                         COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow
                     FROM info_firm_products_services a
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
                     INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id =  " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
@@ -530,7 +530,7 @@ class InfoFirmProductsServices extends \DAL\DalSlim {
                         COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow
                     FROM info_firm_products_services a
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
                     INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
@@ -592,7 +592,7 @@ class InfoFirmProductsServices extends \DAL\DalSlim {
                     COUNT(a.id) AS COUNT
                 FROM info_firm_products_services a                           
                 INNER JOIN info_users u ON u.id = a.op_user_id
-                INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
+                INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
                 INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
                 INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.deleted =0 AND op.active =0 AND op.language_parent_id =0
@@ -760,7 +760,7 @@ class InfoFirmProductsServices extends \DAL\DalSlim {
                         COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
 		        COALESCE(NULLIF(lx.language, ''), 'en') AS language_name
                     FROM info_firm_products_services a                     
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
                     INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
@@ -818,7 +818,7 @@ class InfoFirmProductsServices extends \DAL\DalSlim {
                     SELECT 
                         COUNT(a.id) AS count 
                     FROM info_firm_products_services a                     
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
                     INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0                    
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
 		    INNER JOIN sys_unspsc_codes suc ON suc.id = a.unspsc_codes_id AND suc.active = 0 AND suc.deleted = 0 AND suc.language_id =l.id AND suc.language_parent_id =0 		    
@@ -887,7 +887,7 @@ class InfoFirmProductsServices extends \DAL\DalSlim {
                         COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
 		        COALESCE(NULLIF(lx.language, ''), 'en') AS language_name
                     FROM info_firm_products_services a                     
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
                     INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
@@ -937,12 +937,12 @@ class InfoFirmProductsServices extends \DAL\DalSlim {
                     SELECT 
                         COUNT(a.id) AS count 
                     FROM info_firm_products_services a                     
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0
                     INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
-                    LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+                   
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
 		    INNER JOIN sys_unspsc_codes suc ON suc.id = a.unspsc_codes_id AND suc.active = 0 AND suc.deleted = 0 AND suc.language_id =l.id AND suc.language_parent_id =0 
-		    LEFT JOIN sys_unspsc_codes sucx ON (sucx.id = suc.id OR sucx.language_parent_id = suc.id) AND sucx.active = 0 AND sucx.deleted = 0 AND sucx.language_id =lx.id 		    
+
 		    WHERE 
                         a.firm_id = " . intval($firmIdValue) . " AND
                         a.cons_allow_id =2 AND                         
