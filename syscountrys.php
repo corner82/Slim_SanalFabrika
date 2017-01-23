@@ -72,12 +72,12 @@ $app->get("/fillComboBox_syscountrys/", function () use ($app ) {
         }
     } else if ($componentType == 'ddslick') {
         $menus = array();
-        $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
+      //  $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
         foreach ($resCombobox as $menu) {
             $menus[] = array(
                 "text" => $menu["name"],
                 "value" => intval($menu["id"]),
-                "selected" => false,
+                "selected" => $menu["selected"],
                 "description" => $menu["name_eng"],
                 "attributes" => array("citylist" => $menu["citylist"], "active" => $menu["active"],
                  
