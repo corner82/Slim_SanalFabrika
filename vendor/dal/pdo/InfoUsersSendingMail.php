@@ -833,6 +833,8 @@ class InfoUsersSendingMail extends \DAL\DalSlim {
             $mail->setSMTPServerUser('sanalfabrika.urgetest@gmail.com');
             $mail->setSMTPServerUserPassword('1Qaaal123');
             $mail->setFromUserName('sanalfabrika.urgetest@gmail.com');
+            $mail->setSMTPServerSecureProtocol('SSL');
+            $mail->setSMTPServerPort('587');
             
             
             
