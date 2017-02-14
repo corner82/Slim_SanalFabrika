@@ -20,6 +20,9 @@ final class FilterFactoryNames {
     const FILTER_PARANOID_LEVEL4 = 'onlyParanoidLevel4';
     
     const FILTER_PARANOID_JASON_LVL1 = 'onlyParanoidJasonLvl1'; 
+    const FILTER_PARANOID_FILTER_RULES_JSON_LVL1 = 'onlyFilterRules'; 
+     const FILTER_ONLY_FILTER_RULES = 'filterOnlyFilterRules';
+    
     
     const FILTER_ONLY_ALPHABETIC_ALLOWED = 'onlyAlphabetic';
     const FILTER_ONLY_NUMBER_ALLOWED = 'onlyNumber';

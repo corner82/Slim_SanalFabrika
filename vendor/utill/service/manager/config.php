@@ -61,7 +61,8 @@ class config {
                 'filterOnlyBoolean' => 'Services\Filter\FilterOnlyBoolean',
                 'filterTrim' => 'Services\Filter\FilterTrim',
                 'filterOnlyOrder' => 'Services\Filter\FilterOnlyOrder',
-                
+                'filterOnlyFilterRules' => 'Services\Filter\FilterOnlyFilterRules',
+                   
                 
             ],
         ),

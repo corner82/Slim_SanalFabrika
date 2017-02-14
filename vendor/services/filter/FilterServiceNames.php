@@ -33,7 +33,7 @@ final class FilterServiceNames {
     const FILTER_ONLY_LANGUAGE_CODE = 'filterOnlyLanguageCode';
     const FILTER_ONLY_ORDER = 'filterOnlyOrder';
     
-    
+    const FILTER_ONLY_FILTER_RULES = 'FilterOnlyFilterRules';
     
     const FILTER_SQL_RESERVEDWORDS = 'filterSQLReservedWords';
        
