@@ -20,7 +20,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
-     * @ info_firm_machine_tool tablosundan parametre olarak  gelen id kaydını siler. !!
+     * @ info_firm_machine_tool tablosundan parametre olarak gelen id kaydını siler. !!
      * @version v 1.0 18.02.2016
      * @param array | null $args
      * @return array
@@ -111,7 +111,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                             confirm_id,
                             language_id,                         
                             profile_public,
-                            0,
+                            1,
                             language_parent_id,
                             1,
                             1,
@@ -220,16 +220,14 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         COALESCE(NULLIF(sd119x.description, ''), sd119.description_eng) AS state_availability,
                         a.language_parent_id ,  
                         a.total,
-                        CASE smt.picture_upload 
-                            WHEN false  THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(sm.machine_not_found_picture, ''),'image_not_found.png'))
-                            ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png')) END AS picture
+                        '' AS picture
                     FROM info_firm_machine_tool a 
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
-                    LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
+                    LEFT JOIN info_firm_profile fpx ON (fpx.act_parent_id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
                     INNER JOIN info_users own ON own.id = fp.owner_user_id                     
 		    LEFT JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.deleted =0 AND op.active =0 AND op.language_parent_id =0
@@ -287,12 +285,12 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             FROM info_firm_machine_tool a             
             WHERE a.firm_id = " . intval($params['firm_id']) . "
                 AND a.sys_machine_tool_id = " . intval($params['machine_id']) . "
-                AND a.active = 0 
                 AND a.deleted = 0     
+                AND a.active = 0 
                 " . $addSql . "                  
                                ";
             $statement = $pdo->prepare($sql);
-            // echo debugPDO($sql, $params);
+       //   echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -380,50 +378,42 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $getFirm = InfoFirmProfile :: getFirmIdsForNetworkKey(array('network_key' => $params['network_key']));
-                if (\Utill\Dal\Helper::haveRecord($getFirm)) {
-                    $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
-
-                    $kontrol = $this->haveRecords(array('firm_id' => $getFirmId,'machine_id' => $params['machine_id'],));
+                $getFirmIdValue = $opUserId ['resultSet'][0]['user_firm_id'];
+                if ($getFirmIdValue > 0 ) {
+                    $kontrol = $this->haveRecords(array('firm_id' => $getFirmIdValue, 'machine_id' => $params['machine_id'],));
                     if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-                        $addSql = " op_user_id, ";
-                        $addSqlValue = " " . $opUserIdValue . ",";
-                        
                         $operationIdValue = -1;
                         $operationId = SysOperationTypes::getTypeIdToGoOperationId(
-                                    array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 41, 'type_id' => 1,));
+                                        array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 41, 'type_id' => 1,));
                         if (\Utill\Dal\Helper::haveRecord($operationId)) {
-                        $operationIdValue = $operationId ['resultSet'][0]['id'];
+                            $operationIdValue = $operationId ['resultSet'][0]['id'];
                         }
                         $languageId = NULL;
                         $languageIdValue = 647;
-                        if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                        if ((isset($params['language_code']) && $params['language_code'] != "")) {
                             $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                             if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                                $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                                $languageIdValue = $languageId ['resultSet'][0]['id'];
                             }
-                        }  
+                        }
                         $ConsultantId = 1001;
-                        $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_machine_tool' , 
-                                                                                              'operation_type_id' => $operationIdValue, 
-                                                                                              'language_id' => $languageIdValue,  
-                                                                                               ));
+                        $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_machine_tool',
+                                    'operation_type_id' => $operationIdValue,
+                                    'language_id' => $languageIdValue,
+                        ));
                         if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
                             $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
-                        }                                                 
-                            
-                        $profilePublic= 0;
+                        }
+
+                        $profilePublic = 0;
                         if ((isset($params['profile_public']) && $params['profile_public'] != "")) {
                             $profilePublic = intval($params['profile_public']);
                         }
-                        
+
                         $ownerShipId = 1;
                         if ((isset($params['ownership_id']) && $params['ownership_id'] != "")) {
                             $ownerShipId = intval($params['ownership_id']);
                         }
-                        
-                        $addSql .= " language_id, ";
-                        $addSqlValue .= " " . $languageIdValue . ",";
 
                         $sql = " 
                         INSERT INTO info_firm_machine_tool(
@@ -434,10 +424,10 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                              availability_id,
                              ownership_id,
                              profile_public,
-                              " . $addSql . "
+                             op_user_id, 
+                             language_id,                            
                              act_parent_id,
-                             total,
-                             picture
+                             total                             
                              )
                         VALUES (
                              :firm_id, 
@@ -447,38 +437,35 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                              :availability_id, 
                               " . intval($ownerShipId) . ",
                               " . intval($profilePublic) . ",
-                              " . $addSqlValue . "
+                              " . intval($opUserIdValue) . ",
+                              " . intval($languageIdValue) . ",                              
                              (SELECT last_value FROM info_firm_machine_tool_id_seq),
-                             :total,
-                             :picture
-
+                             :total
                              )";
                         $statement = $pdo->prepare($sql);
-                        $statement->bindValue(':firm_id', $getFirmId, \PDO::PARAM_INT);
+                        $statement->bindValue(':firm_id', $getFirmIdValue, \PDO::PARAM_INT);
                         $statement->bindValue(':operation_type_id', $operationIdValue, \PDO::PARAM_INT);
                         $statement->bindValue(':sys_machine_tool_id', $params['machine_id'], \PDO::PARAM_INT);
                         $statement->bindValue(':availability_id', $params['availability_id'], \PDO::PARAM_INT);
                         $statement->bindValue(':total', $params['total'], \PDO::PARAM_INT);
-                        $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
-                        $statement->bindValue(':picture', $params['picture'], \PDO::PARAM_STR);
-                      //  echo debugPDO($sql, $params);
+                        //  echo debugPDO($sql, $params);
                         $result = $statement->execute();
                         $insertID = $pdo->lastInsertId('info_firm_machine_tool_id_seq');
                         $errorInfo = $statement->errorInfo();
                         if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                             throw new \PDOException($errorInfo[0]);
-                        
-                         $xjobs = ActProcessConfirm::insert(array(
-                                'op_user_id' => intval($opUserIdValue),
-                                'operation_type_id' => intval($operationIdValue),
-                                'table_column_id' => intval($insertID),
-                                'cons_id' => intval($ConsultantId),
-                                'preferred_language_id' => intval($languageIdValue),
-                                    )
+
+                        $xjobs = ActProcessConfirm::insert(array(
+                                    'op_user_id' => intval($opUserIdValue),
+                                    'operation_type_id' => intval($operationIdValue),
+                                    'table_column_id' => intval($insertID),
+                                    'cons_id' => intval($ConsultantId),
+                                    'preferred_language_id' => intval($languageIdValue),
+                                        )
                         );
-                         if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
-                        throw new \PDOException($xjobs['errorInfo']);
-                        
+                        if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                            throw new \PDOException($xjobs['errorInfo']);
+
                         $pdo->commit();
 
                         return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
@@ -550,7 +537,127 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                             $languageIdValue = $languageId ['resultSet'][0]['id'];
                         }
                     }
-                    $ConsultantId = $opUserIdValue; 
+                    $ConsultantId = 5; 
+                            
+                    $profilePublic = 0;
+                    if ((isset($params['profile_public']) && $params['profile_public'] != "")) {
+                        $profilePublic = intval($params['profile_public']);
+                    }
+
+                    $ownerShipId = 1;
+                    if ((isset($params['ownership_id']) && $params['ownership_id'] != "")) {
+                        $ownerShipId = intval($params['ownership_id']);
+                    }
+                    $availabilityId = 1;
+                    if ((isset($params['availability_id']) && $params['availability_id'] != "")) {
+                        $availabilityId = intval($params['availability_id']);
+                    }
+                    $total = 0;
+                    if ((isset($params['total']) && $params['total'] != "")) {
+                        $total = intval($params['total']);
+                    } 
+
+                    $sql = " 
+                        INSERT INTO info_firm_machine_tool(
+                             firm_id, 
+                             consultant_id,
+                             operation_type_id, 
+                             sys_machine_tool_id,                           
+                             availability_id,
+                             ownership_id,
+                             profile_public,
+                             op_user_id,                              
+                             act_parent_id,
+                             total,
+                             language_id,
+                             cons_allow_id
+                             )
+                        VALUES (
+                             " . intval($firmId) . ",
+                             " . intval($ConsultantId) . ",
+                             " . intval($operationIdValue) . ", 
+                             " . intval($machineId) . ", 
+                              " . intval($availabilityId) . ", 
+                              " . intval($ownerShipId) . ",
+                              " . intval($profilePublic) . ",
+                              " . intval($opUserIdValue) . ",                              
+                             (SELECT last_value FROM info_firm_machine_tool_id_seq),
+                              " . intval($total) . ",
+                              " . intval($languageIdValue) . ",
+                              2
+                             )";
+                    $statement = $pdo->prepare($sql);
+                    //  echo debugPDO($sql, $params);
+                    $result = $statement->execute();
+                    $insertID = $pdo->lastInsertId('info_firm_machine_tool_id_seq');
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]); 
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
+                } else {
+                    // 23505  unique_violation
+                    $errorInfo = '23505';
+                    $errorInfoColumn = 'machine_id';
+                    $pdo->rollback();
+                    // $result = $kontrol;
+                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+                }
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ urge elemanı tarafından info_firm_machine_tool tablosuna yeni bir kayıt oluşturur. !!
+     * @version v 1.0  02.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function insertUrgeMachines($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                
+                $machineId = 0;
+                if ((isset($params['machine_id']) && $params['machine_id'] != "")) {
+                    $machineId = intval($params['machine_id']);
+                }
+                $firmId = 0;
+                if ((isset($params['firm_id']) && $params['firm_id'] != "")) {
+                    $firmId = intval($params['firm_id']);
+                } 
+
+                $kontrol = $this->haveRecords(array('firm_id' => $firmId, 'machine_id' => $machineId,));
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                            
+                    $operationIdValue = -1;
+                    $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                                    array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 41, 'type_id' => 1,));
+                    if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                        $operationIdValue = $operationId ['resultSet'][0]['id'];
+                    }
+                    $languageId = NULL;
+                    $languageIdValue = 647;
+                    if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                            $languageIdValue = $languageId ['resultSet'][0]['id'];
+                        }
+                    }
+                    $ConsultantId = 5; 
                             
                     $profilePublic = 0;
                     if ((isset($params['profile_public']) && $params['profile_public'] != "")) {
@@ -643,13 +750,8 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-
-                $getFirm = InfoFirmProfile :: getFirmIdsForNetworkKey(array('network_key' => $params['network_key']));
-                if (\Utill\Dal\Helper::haveRecord($getFirm)) {
-                    $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
-
-                    $kontrol = $this->haveRecords(array('id' => $params['id'], 'firm_id' => $getFirmId, 'machine_id' => $params['sys_machine_tool_id'],));
-                    if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
+                $getFirmIdValue = $opUserId ['resultSet'][0]['user_firm_id'];
+                if ($getFirmIdValue > 0 ) {  
                         $this->makePassive(array('id' => $params['id']));
                         $operationIdValue = -2;
                         $operationId = SysOperationTypes::getTypeIdToGoOperationId(
@@ -669,12 +771,19 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         $availabilityId = NULL;
                         if ((isset($params['availability_id']) && $params['availability_id'] != "")) {
                             $availabilityId = intval($params['availability_id']);
+                        }       
+                        $profilePublic = 0;
+                        if ((isset($params['profile_public']) && $params['profile_public'] != "")) {
+                            $profilePublic = intval($params['profile_public']);
                         }
-                        $sysMachineToolId = NULL;
-                        if ((isset($params['sys_machine_tool_id']) && $params['sys_machine_tool_id'] != "")) {
-                            $sysMachineToolId = intval($params['sys_machine_tool_id']);
+                        $ownerShipId = 1;
+                        if ((isset($params['ownership_id']) && $params['ownership_id'] != "")) {
+                            $ownerShipId = intval($params['ownership_id']);
                         }
-
+                        $total = 0;
+                        if ((isset($params['total']) && $params['total'] != "")) {
+                            $total = intval($params['total']);
+                        }
                         $statement_act_insert = $pdo->prepare(" 
                  INSERT INTO info_firm_machine_tool(
                         profile_public, 
@@ -688,24 +797,26 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         consultant_id, 
                         language_parent_id,
                         total,
-                        picture
+                        ownership_id,
+                        picture  
                         )
                         SELECT  
-                            " . intval($params['profile_public']) . " AS profile_public, 
+                            " . intval($profilePublic) . " AS profile_public, 
                             " . intval($languageIdValue) . ",   
                             " . intval($opUserIdValue) . ",
                             " . intval($operationIdValue) . ",    
                             act_parent_id,                       
                             firm_id, 
                             " . intval($availabilityId) . " AS availability_id,
-                            " . intval($sysMachineToolId) . " AS sys_machine_tool_id,                            
+                            sys_machine_tool_id,                            
                             consultant_id,
                             language_parent_id,
-                            " . intval($params['total']) . " AS total,
-                            '" . $params['picture'] . "' AS picture
+                            " . intval($total) . " AS total,
+                            " . intval($ownerShipId) . " AS ownership_id,
+                            picture
                         FROM info_firm_machine_tool 
                         WHERE id =  " . intval($params['id']) . " 
-                        ");
+                        ");                        
                         $insert_act_insert = $statement_act_insert->execute();
                         $affectedRows = $statement_act_insert->rowCount();
                         $insertID = $pdo->lastInsertId('info_firm_machine_tool_id_seq');
@@ -734,25 +845,124 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                                     'preferred_language_id' => intval($languageIdValue), // dil bilgisi
                                         )
                         );
+                        
+                       // $this->makePassive(array('id' => $params['id']));
 
                         if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
                             throw new \PDOException($xjobs['errorInfo']);
                         
                         $pdo->commit();
-                        return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
-                    } else {
-                        // 23505  unique_violation
-                        $errorInfo = '23505';
-                        $pdo->rollback();
-                        $result = $kontrol;
-                        return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '');
-                    }
+                        return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);                    
                 } else {
                     $errorInfo = '23502';   // 23502  not_null_violation
                     $errorInfoColumn = 'npk';
                     $pdo->rollback();
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @  urge elemanı tarafından info_firm_machine_tool tablosundan secilmiş kaydı günceller. !!
+     * @version v 1.0  19.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */   
+    public function updateUrgeMachines($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                            
+                $operationIdValue = -2;
+                $operationId = SysOperationTypes::getTypeIdToGoOperationId(
+                                array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 41, 'type_id' => 2,));
+                if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                    $operationIdValue = $operationId ['resultSet'][0]['id'];
+                }
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }                            
+                $profilePublic = 0;
+                if ((isset($params['profile_public']) && $params['profile_public'] != "")) {
+                    $profilePublic = intval($params['profile_public']);
+                }
+                $ownerShipId = 1;
+                if ((isset($params['ownership_id']) && $params['ownership_id'] != "")) {
+                    $ownerShipId = intval($params['ownership_id']);
+                }
+                $availabilityId = 1;
+                if ((isset($params['availability_id']) && $params['availability_id'] != "")) {
+                    $availabilityId = intval($params['availability_id']);
+                }
+                $total = 0;
+                if ((isset($params['total']) && $params['total'] != "")) {
+                    $total = intval($params['total']);
+                }
+                $statement_act_insert = $pdo->prepare(" 
+                 INSERT INTO info_firm_machine_tool(
+                        firm_id, 
+                        consultant_id,
+                        operation_type_id, 
+                        sys_machine_tool_id,
+                        availability_id,
+                        ownership_id,
+                        profile_public,
+                        op_user_id,
+                        act_parent_id,
+                        total,
+                        language_id,
+                        language_parent_id,
+                        cons_allow_id,
+                        picture
+                        )
+                        SELECT  
+                            firm_id,
+                            consultant_id,
+                            " . intval($operationIdValue) . ", 
+                            sys_machine_tool_id, 
+                            " . intval($availabilityId) . ", 
+                            " . intval($ownerShipId) . ",
+                            " . intval($profilePublic) . ",
+                            " . intval($opUserIdValue) . ",
+                            act_parent_id,
+                            " . intval($total) . ",
+                            " . intval($languageIdValue) . ", 
+                            language_parent_id, 
+                            2,
+                            picture
+                        FROM info_firm_machine_tool 
+                        WHERE id =  " . intval($params['id']) . " 
+                        ");
+                $insert_act_insert = $statement_act_insert->execute();
+                $insertID = $pdo->lastInsertId('info_firm_machine_tool_id_seq');
+                $errorInfo = $statement_act_insert->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                
+                $this->makePassive(array('id' => $params['id']));
+                $this->makeConsAllowZero(array('id' => $params['id']));
+                
+                $pdo->commit();
+                return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
             } else {
                 $errorInfo = '23502';   // 23502  not_null_violation
                 $errorInfoColumn = 'pk';
@@ -868,7 +1078,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-
+    
     /**     
      * @author Okan CIRAN
      * @ Gridi doldurmak için info_firm_machine_tool tablosundan kayıtları döndürür !!
@@ -958,8 +1168,8 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
-                    LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
+                    LEFT JOIN info_firm_profile fpx ON (fpx.act_parent_id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
                     INNER JOIN info_users own ON own.id = fp.owner_user_id                     
 		    LEFT JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.deleted =0 AND op.active =0 AND op.language_parent_id =0
@@ -1032,7 +1242,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                    
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
                     INNER JOIN info_users own ON own.id = fp.owner_user_id                     		                        
                     INNER JOIN sys_machine_tools smt ON smt.id = sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id                   
@@ -1286,8 +1496,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         consultant_id,
                         consultant_confirm_type_id,
                         confirm_id,
-                        language_id,
-                        language_code,
+                        language_id,                        
                         cons_allow_id,
                         language_parent_id,
                         active,
@@ -1305,9 +1514,8 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                             consultant_id,
                             consultant_confirm_type_id,
                             confirm_id,
-                            language_id,                         
-                            language_code,
-                            cons_allow_id,
+                            language_id,
+                            0,
                             language_parent_id,
                             1,
                             1,
@@ -1428,8 +1636,8 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
-                    LEFT JOIN info_firm_profile fpx ON (fpx.id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
+                    LEFT JOIN info_firm_profile fpx ON (fpx.act_parent_id = a.firm_id OR fpx.language_parent_id=a.firm_id) AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
                     INNER JOIN info_users own ON own.id = fp.owner_user_id                     
 		    LEFT JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.deleted =0 AND op.active =0 AND op.language_parent_id =0
@@ -1451,7 +1659,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
 		    WHERE a.language_parent_id = 0 AND
                         a.deleted =0 AND 
                         a.firm_id = ".  intval($firmIdValue)."
-		    ORDER BY l.priority                       
+		   
               
                 ";
                 $statement = $pdo->prepare($sql);
@@ -1505,7 +1713,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                    
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
                     INNER JOIN info_users own ON own.id = fp.owner_user_id                     		                        
                     INNER JOIN sys_machine_tools smt ON smt.id = sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id                   
@@ -1618,23 +1826,83 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
     public function fillUsersFirmMachines($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-           $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $opUserIdValue = $userId ['resultSet'][0]['user_id'];
+                //$opUserIdValue = $userId ['resultSet'][0]['user_id'];
+                $getFirmIdValue = $userId ['resultSet'][0]['user_firm_id'];
                 $addSql = "";
-                $firmIdValue=-1;                
-                $firmId = InfoUsers::getUserFirmId(array('user_id' =>$opUserIdValue));
-                if (\Utill\Dal\Helper::haveRecord($firmId)) {
-                    $firmIdValue = $firmId ['resultSet'][0]['firm_id'];
-                }  
+
+                if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                    $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+                    $limit = intval($params['rows']);
+                } else {
+                    $limit = 10;
+                    $offset = 0;
+                }
+
+                $sortArr = array();
+                $orderArr = array();
+                $whereSql = "";
+                if (isset($params['sort']) && $params['sort'] != "") {
+                    $sort = trim($params['sort']);
+                    $sortArr = explode(",", $sort);
+                    if (count($sortArr) === 1)
+                        $sort = trim($params['sort']);
+                } else {
+                    $sort = " machine_tool_grup_names, manufacturer_name,machine_tool_names  ";
+                }
+
+                if (isset($params['order']) && $params['order'] != "") {
+                    $order = trim($params['order']);
+                    $orderArr = explode(",", $order);
+                    if (count($orderArr) === 1)
+                        $order = trim($params['order']);
+                } else {
+                    $order = "ASC";
+                }
+                $sorguStr = null;  
+                if (isset($params['filterRules']) && $params['filterRules'] != "") {
+                    $filterRules = trim($params['filterRules']);
+                    $jsonFilter = json_decode($filterRules, true);
+
+                    $sorguExpression = null;
+                    foreach ($jsonFilter as $std) {
+                        if ($std['value'] != null) {
+                            switch (trim($std['field'])) {
+                                case 'machine_tool_names':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                    $sorguStr.=" AND LOWER(COALESCE(NULLIF(smtx.machine_tool_name, ''), smt.machine_tool_name_eng))" . $sorguExpression . ' ';
+
+                                    break;                                
+                                case 'manufacturer_name':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\')  ';
+                                    $sorguStr.=" AND LOWER(m.name)" . $sorguExpression . ' ';
+
+                                    break;
+                                case 'model':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\')  ';
+                                    $sorguStr.=" AND LOWER(smt.model)" . $sorguExpression . ' ';
+
+                                    break;                                
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                } else {
+                    $sorguStr = null;
+                    $filterRules = "";
+                }
+                $sorguStr = rtrim($sorguStr, "AND ");
+
                 $languageId = NULL;
                 $languageIdValue = 647;
-                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
                     $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                     if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
                     }
-                }  
+                }
 
                 if (isset($params['machine_id'])) {
                     $addSql .= " AND a.sys_machine_tool_id = " . intval($params['machine_id']) . " ";
@@ -1645,21 +1913,23 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                         a.id,
                         cast(a.sys_machine_tool_id as text) AS machine_id,
                         m.name as manufacturer_name,
-                        COALESCE(NULLIF(smtgx.group_name, ''), smtg.group_name_eng) AS machine_tool_grup_names,
-                        COALESCE(NULLIF(smtx.machine_tool_name, ''), smt.machine_tool_name_eng) AS machine_tool_names,
-                        smt.model,
-                        cast(smt.model_year AS text) AS model_year,
+                        LOWER(COALESCE(NULLIF(smtgx.group_name, ''), smtg.group_name_eng)) AS machine_tool_grup_names,
+                        LOWER(COALESCE(NULLIF(smtx.machine_tool_name, ''), smt.machine_tool_name_eng)) AS machine_tool_names ,
+                        LOWER(smt.model) AS model,
+                        smt.model_year,
                         fp.act_parent_id,
                         a.total,
-                        CASE smt.picture_upload 
-                            WHEN false  THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(m.machine_not_found_picture, ''),'image_not_found.png'))
-                            ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.machines_folder,'/' ,COALESCE(NULLIF(smt.picture, ''),'image_not_found.png')) END AS picture 
-                    FROM info_firm_machine_tool a 
-                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
-                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
-                    LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                    
-                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
-                    INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id                      
+                        a.active,   
+                        COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng) AS state_active,
+			a.profile_public,                         
+                        COALESCE(NULLIF(sd19x.description, ''), sd19.description_eng) AS state_profile_public,
+                        a.cons_allow_id,                        
+                        COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow,
+                        a.availability_id ,                        
+                        COALESCE(NULLIF(sd119x.description, ''), sd119.description_eng) AS state_availability                        
+                    FROM info_firm_machine_tool a                     
+                    LEFT JOIN sys_language lx ON lx.id =  " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                    
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                                          
                     INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_parent_id =0
                     LEFT JOIN sys_machine_tools smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
                     
@@ -1667,15 +1937,29 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
 		    LEFT JOIN sys_machine_tool_groups smtgx ON smtgx.active =0 AND smtgx.deleted = 0 AND (smtgx.id = smtg.id OR smtgx.language_parent_id = smtg.id )AND smtgx.language_id = lx.id
                     INNER JOIN sys_manufacturer m ON m.id = smt.manufactuer_id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0 AND m.language_parent_id =0
                     LEFT JOIN sys_manufacturer mx ON (mx.id = m.id OR mx.language_parent_id = m.id) AND mx.language_id = lx.id AND mx.deleted =0 AND mx.active =0        
+                    
+                    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0		    
+		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd119 ON sd119.main_group = 19 AND sd119.first_group= a.availability_id AND sd119.deleted = 0 AND sd119.active = 0 AND sd119.language_parent_id =0
+                  
+                    LEFT JOIN sys_specific_definitions sd14x ON sd14x.main_group = 14 AND sd14x.language_id = lx.id AND (sd14x.id = sd14.id OR sd14x.language_parent_id = sd14.id) AND sd14x.deleted =0 AND sd14x.active =0
+                    LEFT JOIN sys_specific_definitions sd16x ON sd16x.main_group = 16 AND sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.deleted = 0 AND sd16x.active = 0
+                    LEFT JOIN sys_specific_definitions sd19x ON sd19x.main_group = 19 AND sd19x.language_id = lx.id AND (sd19x.id = sd19.id OR sd19x.language_parent_id = sd19.id) AND sd19x.deleted = 0 AND sd19x.active = 0
+                    LEFT JOIN sys_specific_definitions sd119x ON sd119x.main_group = 19 AND sd119x.language_id = lx.id AND (sd119x.id = sd119.id OR sd119x.language_parent_id = sd119.id) AND sd119x.deleted = 0 AND sd119x.active = 0		     
+
                     WHERE a.language_parent_id = 0 AND
                         a.deleted =0 AND 
                         a.active =0 AND
-                        a.firm_id = ".  intval($firmIdValue)."
-                " . $addSql . "
-                ORDER BY machine_tool_grup_names, manufacturer_name,machine_tool_names                
-                ";
+                        a.firm_id = " . intval($getFirmIdValue) . "
+                    " . $addSql . "    
+                    " . $sorguStr . " 
+                    ORDER BY    " . $sort . " "
+                        . "" . $order . " "
+                        . "LIMIT " . $pdo->quote($limit) . " "
+                        . "OFFSET " . $pdo->quote($offset) . " ";
                 $statement = $pdo->prepare($sql);
-               //echo debugPDO($sql, $params);
+                //echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -1705,38 +1989,105 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {
-                $opUserIdValue = $userId ['resultSet'][0]['user_id'];
-                $addSql = "";
+                //$opUserIdValue = $userId ['resultSet'][0]['user_id'];
+                $getFirmIdValue = $userId ['resultSet'][0]['user_firm_id'];
+                $addSql = "";  
+                $whereSql = ""; 
+                                
+                $sorguStr = null;  
+                if (isset($params['filterRules']) && $params['filterRules'] != "") {
+                    $filterRules = trim($params['filterRules']);
+                    $jsonFilter = json_decode($filterRules, true);
 
-                $firmIdValue=-1;                
-                $firmId = InfoUsers::getUserFirmId(array('user_id' =>$opUserIdValue));
-                if (\Utill\Dal\Helper::haveRecord($firmId)) {
-                    $firmIdValue = $firmId ['resultSet'][0]['firm_id'];
-                }                  
+                    $sorguExpression = null;
+                    foreach ($jsonFilter as $std) {
+                        if ($std['value'] != null) {
+                            switch (trim($std['field'])) {
+                                case 'machine_tool_names':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                    $sorguStr.=" AND LOWER(COALESCE(NULLIF(smtx.machine_tool_name, ''), smt.machine_tool_name_eng))" . $sorguExpression . ' ';
+
+                                    break;                                
+                                case 'manufacturer_name':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\')  ';
+                                    $sorguStr.=" AND LOWER(m.name)" . $sorguExpression . ' ';
+
+                                    break;
+                                case 'model':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\')  ';
+                                    $sorguStr.=" AND LOWER(smt.model)" . $sorguExpression . ' ';
+
+                                    break;                                
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                } else {
+                    $sorguStr = null;
+                    $filterRules = "";
+                }
+                $sorguStr = rtrim($sorguStr, "AND ");
+
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
 
                 if (isset($params['machine_id'])) {
                     $addSql .= " AND a.sys_machine_tool_id = " . intval($params['machine_id']) . " ";
                 }
 
                 $sql = " 
+                    SELECT COUNT(id) AS count FROM ( 
                     SELECT 
-                         COUNT(a.id ) AS COUNT                      
-                    FROM info_firm_machine_tool a 
-                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                     
-                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                    
-                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
-                    INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id                      
-                    INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id                    
-		    INNER JOIN sys_machine_tool_groups smtg ON smtg.id = smt.machine_tool_grup_id AND smtg.language_id = l.id		    
-                    INNER JOIN sys_manufacturer m ON m.id = smt.manufactuer_id AND m.language_id = l.id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0                     
+                        a.id,                        
+                        m.name as manufacturer_name,
+                        LOWER(COALESCE(NULLIF(smtgx.group_name, ''), smtg.group_name_eng)) AS machine_tool_grup_names,
+                        LOWER(COALESCE(NULLIF(smtx.machine_tool_name, ''), smt.machine_tool_name_eng)) AS machine_tool_names ,
+                        LOWER(smt.model) AS model,
+                        smt.model_year,
+                        fp.act_parent_id,
+                        a.total,
+                        a.active,   
+                        sd16.description_eng AS state_active,
+			a.profile_public,                         
+                        sd19.description AS state_profile_public,
+                        a.cons_allow_id,                        
+                        sd14.description_eng AS cons_allow,
+                        a.availability_id ,                        
+                        sd119.description_eng AS state_availability                        
+                    FROM info_firm_machine_tool a                     
+                    LEFT JOIN sys_language lx ON lx.id =  " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                    
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                                          
+                    INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_parent_id =0
+                    LEFT JOIN sys_machine_tools smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id) AND smtx.active =0 AND smtx.deleted = 0 AND smtx.language_id = lx.id
+                    
+		    INNER JOIN sys_machine_tool_groups smtg ON smtg.active =0 AND smtg.deleted = 0 AND smtg.id = smt.machine_tool_grup_id AND smtg.language_parent_id =0
+		    LEFT JOIN sys_machine_tool_groups smtgx ON smtgx.active =0 AND smtgx.deleted = 0 AND (smtgx.id = smtg.id OR smtgx.language_parent_id = smtg.id )AND smtgx.language_id = lx.id
+                    INNER JOIN sys_manufacturer m ON m.id = smt.manufactuer_id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0 AND m.language_parent_id =0
+                    LEFT JOIN sys_manufacturer mx ON (mx.id = m.id OR mx.language_parent_id = m.id) AND mx.language_id = lx.id AND mx.deleted =0 AND mx.active =0        
+                    
+                    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0		    
+		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd119 ON sd119.main_group = 19 AND sd119.first_group= a.availability_id AND sd119.deleted = 0 AND sd119.active = 0 AND sd119.language_parent_id =0
+                  
+                    
                     WHERE a.language_parent_id = 0 AND
                         a.deleted =0 AND 
                         a.active =0 AND
-                        a.firm_id = ".  intval($firmIdValue)."
-                " . $addSql . "
-                                 ";
+                        a.firm_id = " . intval($getFirmIdValue) . "
+                    " . $addSql . "    
+                    " . $sorguStr . " 
+                        ) as xztable 
+                    ";
                 $statement = $pdo->prepare($sql);
-                // echo debugPDO($sql, $params);
+               // echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -1880,9 +2231,19 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     $languageIdValue = $languageId ['resultSet'][0]['id'];
                 }
             }
+                            
+            $opUserIdValue = NULL;
+            $opUserFirmIdValue = NULL;
+            if ((isset($params['pk']) && $params['pk'] != "")) {
+                $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+                if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                    $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                    $opUserFirmIdValue = $opUserId ['resultSet'][0]['user_firm_id'];
+                }
+            }
 
             $sql = " 
-            SELECT machine_grup_id, sum(machine_count) AS machine_count ,group_name FROM (
+            SELECT machine_grup_id, SUM(machine_count) AS machine_count ,group_name FROM (
                 SELECT                     
                    mtg.id AS machine_grup_id ,
                    SUM(a.total) AS machine_count,
@@ -1895,8 +2256,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 INNER JOIN sys_machine_tool_groups mtg ON mtg.id = mt.machine_tool_grup_id AND mtg.deleted =0 AND mtg.active =0 AND mt.language_parent_id =0 
                 LEFT JOIN sys_machine_tool_groups mtgx ON (mtgx.id =  mtg.id  OR mtgx.language_parent_id = mtg.id) AND mtgx.deleted =0 AND mtgx.active =0 AND  lx.id = mtgx.language_id
                 WHERE 
-                    a.deleted =0 AND a.active =0 AND
-                    a.profile_public =0 AND
+                    a.deleted =0 AND a.active =0 AND                  
                     fk.network_key = '".$params['network_key']."' AND
                     a.language_parent_id =0
                 GROUP BY a.sys_machine_tool_id,mtg.id, mtg.group_name, mtgx.group_name, mtg.group_name_eng 
@@ -1908,7 +2268,15 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
        //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            $errorInfo = $statement->errorInfo();
+            $errorInfo = $statement->errorInfo(); 
+            ActUsersActionStatistics::insert (
+                    array('url' =>  $params['url'],
+                        'opUserIdValue' => $opUserIdValue,
+                        'npk' => $params['network_key'],
+                        'unpk' => NULL,
+                        'opUserFirmIdValue' => $opUserFirmIdValue,                           
+                        'language_id' => $languageIdValue,
+                    ));  
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -1934,6 +2302,16 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (\Utill\Dal\Helper::haveRecord($languageId)) {
                     $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+            
+            $opUserIdValue = NULL;
+            $opUserFirmIdValue = NULL;
+            if ((isset($params['pk']) && $params['pk'] != "")) {
+                $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+                if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                    $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                    $opUserFirmIdValue = $opUserId ['resultSet'][0]['user_firm_id'];
                 }
             }
 
@@ -1965,6 +2343,15 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
+            
+            ActUsersActionStatistics::insert (
+                    array('url' =>  $params['url'],
+                        'opUserIdValue' => $opUserIdValue,
+                        'npk' => $params['network_key'],
+                        'unpk' => NULL,
+                        'opUserFirmIdValue' => $opUserFirmIdValue,    
+                        'language_id' => $languageIdValue,
+                    ));     
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -1984,9 +2371,19 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
     public function fillUsersFirmMachinesNpk($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
-           $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($userId)) {               
                 $addSql = "";
+                
+                $opUserIdValue = $userId;
+                $opUserFirmIdValue = NULL;
+                if ((isset($params['pk']) && $params['pk'] != "")) {
+                    $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+                    if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                        $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                        $opUserFirmIdValue = $opUserId ['resultSet'][0]['user_firm_id'];
+                    }
+                }
                 $languageId = NULL;
                 $languageIdValue = 647;
                 if ((isset($params['language_code']) && $params['language_code'] != "")) {                
@@ -1994,7 +2391,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     if (\Utill\Dal\Helper::haveRecord($languageId)) {
                         $languageIdValue = $languageId ['resultSet'][0]['id'];                    
                     }
-                }  
+                }                
 
                 if (isset($params['machine_id'])) {
                     $addSql .= " AND a.sys_machine_tool_id = " . intval($params['machine_id']) . " ";
@@ -2031,8 +2428,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     INNER JOIN sys_manufacturer m ON m.id = smt.manufactuer_id AND m.language_id = l.id AND m.deleted =0 AND m.active =0 AND m.language_parent_id = 0 
                     LEFT JOIN sys_manufacturer mx ON (mx.id = m.id OR mx.language_parent_id = m.id) AND mx.language_id = lx.id AND mx.deleted =0 AND mx.active =0        
                     WHERE 
-                        a.deleted =0 AND a.active =0 AND
-                        a.profile_public =0 AND
+                        a.deleted =0 AND a.active =0 AND                        
                         fk.network_key = '".$params['network_key']."' AND
                         a.language_parent_id =0                         
                 " . $addSql . "
@@ -2043,6 +2439,14 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
+                ActUsersActionStatistics::insert (
+                       array('url' =>  $params['url'],
+                        'opUserIdValue' => $opUserIdValue,
+                        'npk' => $params['network_key'],
+                        'unpk' => NULL,
+                        'opUserFirmIdValue' => $opUserFirmIdValue,                           
+                        'language_id' => $languageIdValue,
+                    ));  
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -2157,9 +2561,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
             } else {
                 $order = "ASC";
             }
-            $sorguStr = null; 
-                            
-                            
+            $sorguStr = null;  
             if (isset($params['filterRules']) && $params['filterRules'] != "") {
                 $filterRules = trim($params['filterRules']);
                 $jsonFilter = json_decode($filterRules, true);
@@ -2468,7 +2870,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 if (count($sortArr) === 1)
                     $sort = trim($params['sort']);
             } else {
-                $sort = " firm_name ,machine_tool_name ";
+                $sort = " id ";
             }
 
             if (isset($params['order']) && $params['order'] != "") {
@@ -2477,7 +2879,7 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 if (count($orderArr) === 1)
                     $order = trim($params['order']);
             } else {
-                $order = "ASC";
+                $order = "desc";
             }
             $sorguStr = null; 
                             
@@ -2491,46 +2893,45 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                     if ($std['value'] != null) {
                         switch (trim($std['field'])) {
                             case 'firm_name':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
-                                $sorguStr.=" AND COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng)" . $sorguExpression . ' ';
-                              
-                                break;                            
-                            
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND  lower(fp.firm_name)" . $sorguExpression . ' ';
+                                
+                                break;
                             case 'machine_tool_grup_name':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND smtg.group_name" . $sorguExpression . ' ';
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\')  ';
+                                $sorguStr.=" AND LOWER(smtg.group_name)" . $sorguExpression . ' ';
 
                                 break;
                             case 'machine_tool_name':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND smt.machine_tool_name" . $sorguExpression . ' ';
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\')  ';
+                                $sorguStr.=" AND LOWER(smt.machine_tool_name)" . $sorguExpression . ' ';
 
                                 break;
                             case 'machine_tool_name_eng':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND smt.machine_tool_name_eng" . $sorguExpression . ' ';
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\')  ';
+                                $sorguStr.=" AND LOWER(smt.machine_tool_name_eng)" . $sorguExpression . ' ';
 
                                 break;
                             case 'state_availability':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND sd21.description" . $sorguExpression . ' ';
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\')  ';
+                                $sorguStr.=" AND LOWER(sd21.description)" . $sorguExpression . ' ';
 
                                 break;
                             case 'state_ownership':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND sd22.description" . $sorguExpression . ' ';
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\')  ';
+                                $sorguStr.=" AND LOWER(sd22.description)" . $sorguExpression . ' ';
 
                                 break;
                             case 'firm_name_short':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND fp.firm_name_short" . $sorguExpression . ' ';
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\')  ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_short)" . $sorguExpression . ' ';
 
                                 break;
                             case 'firm_name_short_eng':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND fp.firm_name_short_eng" . $sorguExpression . ' ';
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\')  ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_short_eng)" . $sorguExpression . ' ';
 
-                                break;
+                                break; 
                             
                             
                             default:
@@ -2584,11 +2985,11 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
 		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.first_group = a.cons_allow_id AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0		    
 		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
 		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
-		    INNER JOIN sys_specific_definitions sd21 ON sd21.main_group = 21 AND sd21.first_group= a.availability_id AND sd21.deleted = 0 AND sd21.active = 0 AND sd21.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd21 ON sd21.main_group = 19 AND sd21.first_group= a.availability_id AND sd21.deleted = 0 AND sd21.active = 0 AND sd21.language_parent_id =0
 		    INNER JOIN sys_specific_definitions sd22 ON sd22.main_group = 22 AND sd22.first_group= a.ownership_id AND sd22.deleted = 0 AND sd22.active = 0 AND sd22.language_parent_id =0                  
 		    WHERE fp.language_parent_id = 0 AND
 			  fp.cons_allow_id = 2 AND			  
-			  a.consultant_id =  " . intval($opUserIdValue). "		
+			  fp.consultant_id =  " . intval($opUserIdValue). "		
                 " . $sorguStr . " 
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
@@ -2641,47 +3042,47 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
                 foreach ($jsonFilter as $std) {
                     if ($std['value'] != null) {
                         switch (trim($std['field'])) {
-                             case 'firm_name':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
-                                $sorguStr.=" AND COALESCE(NULLIF(fpx.firm_name, ''), fp.firm_name_eng)" . $sorguExpression . ' ';
+                            case 'firm_name':
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND  fp.firm_name" . $sorguExpression . ' ';
                               
                                 break;                            
                             
                             case 'machine_tool_grup_name':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND smtg.group_name" . $sorguExpression . ' ';
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\')  ';
+                                $sorguStr.=" AND LOWER(smtg.group_name)" . $sorguExpression . ' ';
 
                                 break;
                             case 'machine_tool_name':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND smt.machine_tool_name" . $sorguExpression . ' ';
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\')  ';
+                                $sorguStr.=" AND LOWER(smt.machine_tool_name)" . $sorguExpression . ' ';
 
                                 break;
                             case 'machine_tool_name_eng':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND smt.machine_tool_name_eng" . $sorguExpression . ' ';
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\')  ';
+                                $sorguStr.=" AND LOWER(smt.machine_tool_name_eng)" . $sorguExpression . ' ';
 
                                 break;
                             case 'state_availability':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND sd21.description" . $sorguExpression . ' ';
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\')  ';
+                                $sorguStr.=" AND LOWER(sd21.description)" . $sorguExpression . ' ';
 
                                 break;
                             case 'state_ownership':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND sd22.description" . $sorguExpression . ' ';
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\')  ';
+                                $sorguStr.=" AND LOWER(sd22.description)" . $sorguExpression . ' ';
 
                                 break;
                             case 'firm_name_short':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND fp.firm_name_short" . $sorguExpression . ' ';
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\')  ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_short)" . $sorguExpression . ' ';
 
                                 break;
                             case 'firm_name_short_eng':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND fp.firm_name_short_eng" . $sorguExpression . ' ';
+                                $sorguExpression = '  ILIKE LOWER( \'%' . $std['value'] . '%\')  ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_short_eng)" . $sorguExpression . ' ';
 
-                                break;
+                                break; 
                             
                             default:
                                 break;
@@ -2735,11 +3136,11 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
 		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.first_group = a.cons_allow_id AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0		    
 		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
 		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
-		    INNER JOIN sys_specific_definitions sd21 ON sd21.main_group = 21 AND sd21.first_group= a.availability_id AND sd21.deleted = 0 AND sd21.active = 0 AND sd21.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd21 ON sd21.main_group = 19 AND sd21.first_group= a.availability_id AND sd21.deleted = 0 AND sd21.active = 0 AND sd21.language_parent_id =0
 		    INNER JOIN sys_specific_definitions sd22 ON sd22.main_group = 22 AND sd22.first_group= a.ownership_id AND sd22.deleted = 0 AND sd22.active = 0 AND sd22.language_parent_id =0                  
 		    WHERE fp.language_parent_id = 0 AND
 			  fp.cons_allow_id = 2 AND			  
-			  a.consultant_id =  " . intval($opUserIdValue). "		
+			  fp.consultant_id =  " . intval($opUserIdValue). "		
                 " . $sorguStr . " 
                     ) AS xtable 
                 ";     
@@ -2815,5 +3216,605 @@ class InfoFirmMachineTool extends \DAL\DalSlim {
         }
     }
     
+    /**
+     * @author Okan CIRAN
+     * @ urge deki firmaların makina parklarının kayıtlarını döndürür !!
+     * @version v 1.0  05.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillUrgeCompanyMachineLists($params = array()) {
+        try {             
+            if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+                $limit = intval($params['rows']);
+            } else {
+                $limit = 10;
+                $offset = 0;
+            }           
+
+            $sortArr = array();
+            $orderArr = array();
+                            
+            if (isset($params['sort']) && $params['sort'] != "") {
+                $sort = trim($params['sort']);
+                $sortArr = explode(",", $sort);
+                if (count($sortArr) === 1)
+                    $sort = trim($params['sort']);
+            } else {
+                $sort = " firm_name ,machine_tool_name ";
+            }
+
+            if (isset($params['order']) && $params['order'] != "") {
+                $order = trim($params['order']);
+                $orderArr = explode(",", $order);
+                if (count($orderArr) === 1)
+                    $order = trim($params['order']);
+            } else {
+                $order = "ASC";
+            }
+            $sorguStr = null; 
+                            
+                            
+            if (isset($params['filterRules']) && $params['filterRules'] != "") {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+              
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'firm_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND fp.firm_name" . $sorguExpression . ' ';
+                              
+                                break;                            
+                            
+                            case 'machine_tool_grup_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND smtg.group_name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'machine_tool_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND smt.machine_tool_name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'machine_tool_name_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND smt.machine_tool_name_eng" . $sorguExpression . ' ';
+
+                                break;
+                            case 'state_availability':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND sd21.description" . $sorguExpression . ' ';
+
+                                break;
+                            case 'state_ownership':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND sd22.description" . $sorguExpression . ' ';
+
+                                break;
+                            case 'firm_name_short':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND fp.firm_name_short" . $sorguExpression . ' ';
+
+                                break;
+                            case 'firm_name_short_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND fp.firm_name_short_eng" . $sorguExpression . ' ';
+
+                                break;
+                            
+                            
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+
+
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                            
+                $sql = "
+                    SELECT 
+                        a.id,
+                        a.firm_id,
+                        fp.firm_name,
+                        fp.firm_name_short,
+                        fp.firm_name_short_eng,
+			a.sys_machine_tool_id,
+                        smt.machine_tool_name,
+                        smt.machine_tool_name_eng,
+                        a.total,
+                        smt.machine_tool_grup_id,
+                        smtg.group_name AS machine_tool_grup_name,                        
+                        a.profile_public,
+                        sd19.description AS state_profile_public,
+                        a.availability_id,
+                        sd21.description AS state_availability, 
+			a.ownership_id,
+                        sd22.description AS state_ownership,
+                        a.active,
+                        sd16.description AS state_active,
+                        a.op_user_id,
+                        u.username AS op_user_name,
+                        a.s_date,
+                        a.c_date
+                    FROM info_firm_profile fp                    
+		    INNER JOIN sys_osb_person sop ON sop.user_id = ".intval($opUserIdValue)." AND sop.active =0 AND sop.deleted =0 
+                    INNER JOIN info_firm_clusters ifc ON ifc.osb_cluster_id = sop.osb_cluster_id AND ifc.firm_id = fp.act_parent_id AND ifc.cons_allow_id =2                    
+                    INNER JOIN info_firm_machine_tool a ON fp.act_parent_id = a.firm_id AND a.language_parent_id =0 AND a.deleted =0 AND a.cons_allow_id in (0,2) 
+                    
+                    INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_parent_id =0
+                    INNER JOIN sys_machine_tool_groups smtg ON smtg.id = smt.machine_tool_grup_id AND smtg.language_parent_id =0 AND smtg.active =0 AND smtg.deleted =0 
+		    INNER JOIN info_users u ON u.id = a.op_user_id 
+		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.first_group = a.cons_allow_id AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0		    
+		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd21 ON sd21.main_group = 19 AND sd21.first_group= a.availability_id AND sd21.deleted = 0 AND sd21.active = 0 AND sd21.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd22 ON sd22.main_group = 22 AND sd22.first_group= a.ownership_id AND sd22.deleted = 0 AND sd22.active = 0 AND sd22.language_parent_id =0                  
+		    WHERE fp.language_parent_id = 0 AND
+			  fp.cons_allow_id = 2  		 
+                " . $sorguStr . " 
+                ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            ); 
+                $statement = $pdo->prepare($sql);
+               //echo debugPDO($sql, $parameters);                
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                $affectedRows = $statement->rowCount();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+            
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ urge deki firmaların makina parklarının kayıtlarının sayısını döndürür !!
+     * @version v 1.0  05.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillUrgeCompanyMachineListsRtc($params = array()) {
+        try {
+            $sorguStr = null;
+            if (isset($params['filterRules']) && $params['filterRules'] != "") {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'firm_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=" AND fp.firm_name" . $sorguExpression . ' ';
+
+                                break;
+
+                            case 'machine_tool_grup_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND smtg.group_name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'machine_tool_name':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND smt.machine_tool_name" . $sorguExpression . ' ';
+
+                                break;
+                            case 'machine_tool_name_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND smt.machine_tool_name_eng" . $sorguExpression . ' ';
+
+                                break;
+                            case 'state_availability':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND sd21.description" . $sorguExpression . ' ';
+
+                                break;
+                            case 'state_ownership':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND sd22.description" . $sorguExpression . ' ';
+
+                                break;
+                            case 'firm_name_short':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND fp.firm_name_short" . $sorguExpression . ' ';
+
+                                break;
+                            case 'firm_name_short_eng':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND fp.firm_name_short_eng" . $sorguExpression . ' ';
+
+                                break;
+
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+
+
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+             //   $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+
+                $sql = "
+                    SELECT COUNT(id) AS count FROM (
+                    SELECT 
+                        a.id,                        
+                        a.firm_id,
+                        fp.firm_name,
+                        fp.firm_name_short,
+                        fp.firm_name_short_eng,
+			a.sys_machine_tool_id,
+                        smt.machine_tool_name,
+                        smt.machine_tool_name_eng,
+                        a.total,
+                        smt.machine_tool_grup_id,
+                        smtg.group_name AS machine_tool_grup_name,                        
+                        a.profile_public,
+                        sd19.description AS state_profile_public,
+                        a.availability_id,
+                        sd21.description AS state_availability, 
+			a.ownership_id,
+                        sd22.description AS state_ownership,
+                        a.active,
+                        sd16.description AS state_active,
+                        a.op_user_id,
+                        u.username AS op_user_name,
+                        a.s_date,
+                        a.c_date
+                    FROM info_firm_profile fp
+                    INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
+		 
+		    INNER JOIN sys_osb_person sop ON sop.user_id = 885 AND sop.active =0 AND sop.deleted =0 
+                    INNER JOIN info_firm_clusters ifc ON ifc.osb_cluster_id = sop.osb_cluster_id AND ifc.firm_id = fp.act_parent_id AND ifc.cons_allow_id =2
+                    
+                    INNER JOIN info_firm_machine_tool a ON fp.act_parent_id = a.firm_id AND a.language_parent_id =0 AND a.active=0 AND a.deleted =0 
+                    
+                    INNER JOIN sys_machine_tools smt ON smt.id = a.sys_machine_tool_id AND smt.active =0 AND smt.deleted = 0 AND smt.language_id = l.id
+                    INNER JOIN sys_machine_tool_groups smtg ON smtg.id = smt.machine_tool_grup_id AND smtg.language_id = l.id AND smtg.active =0 AND smtg.deleted =0 
+		    INNER JOIN info_users u ON u.id = a.op_user_id 
+		    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.first_group = a.cons_allow_id AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0		    
+		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= a.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd21 ON sd21.main_group = 19 AND sd21.first_group= a.availability_id AND sd21.deleted = 0 AND sd21.active = 0 AND sd21.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd22 ON sd22.main_group = 22 AND sd22.first_group= a.ownership_id AND sd22.deleted = 0 AND sd22.active = 0 AND sd22.language_parent_id =0                  
+		    WHERE fp.language_parent_id = 0 AND
+			  fp.cons_allow_id = 2  		
+                " . $sorguStr . " 
+                    ) AS xtable 
+                ";
+                $statement = $pdo->prepare($sql);
+                // echo debugPDO($sql, $params);                
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                $affectedRows = $statement->rowCount();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ firmanın makina verilerinin danısman bilgisini döndürür !!
+     * @version v 1.0  09.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getFirmMachineConsultant($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+              //  $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $opUserFirmIdValue = $opUserId ['resultSet'][0]['user_firm_id'];
+                    $languageId = NULL;
+                    $languageIdValue = 647;
+                    if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                            $languageIdValue = $languageId ['resultSet'][0]['id'];
+                        }
+                    }
+
+                    $sql = "
+                SELECT DISTINCT 
+                    a.act_parent_id AS firm_id,
+                    u.id as consultant_id,
+                    iud.name, 
+                    iud.surname,
+                    iud.auth_email,
+                    ifk.network_key,
+		    CASE COALESCE(NULLIF(TRIM(iud.picture), ''),'-') 
+                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' ,'image_not_found.png')
+                        ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' ,TRIM(iud.picture)) END AS cons_picture,
+                    (SELECT iucz.communications_no FROM info_users_communications iucz WHERE iucz.user_id = u.id AND iucz.language_parent_id =0 AND iucz.cons_allow_id = 2 limit 1) AS phone 
+                FROM info_firm_profile a
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
+                INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.act_parent_id 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
+		LEFT JOIN info_firm_profile ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0
+		INNER JOIN info_users u ON  u.id in (select distinct zx.consultant_id from info_firm_machine_tool zx where zx.firm_id = a.act_parent_id ) AND u.role_id in (1,2,6)
+                INNER JOIN info_users_detail iud ON iud.root_id = u.id AND iud.cons_allow_id = 2                    
+                WHERE                      
+                    a.language_parent_id =0 AND 
+                    a.act_parent_id = " . intval($opUserFirmIdValue) . " 
+                ORDER BY  iud.name, iud.surname 
+                ";
+                    $statement = $pdo->prepare($sql);
+                    //   echo debugPDO($sql, $params);                
+                    $statement->execute();
+                    $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                    $errorInfo = $statement->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);                            
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
     
+    /**  
+     * @author Okan CIRAN
+     * @ firma makinalarının ana gruplarını döndürür !!
+     * hangi işleri yaptıklarının listesi
+     * @version v 1.0  18.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillFirmWhatWorks($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+                            
+            $opUserIdValue = NULL;
+            $opUserFirmIdValue = NULL;
+            if ((isset($params['pk']) && $params['pk'] != "")) {
+                $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+                if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                    $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                    $opUserFirmIdValue = $opUserId ['resultSet'][0]['user_firm_id'];
+                }
+            }
+                         
+            $networkKeyValue  ="-19";
+            if (isset($params['network_key']) && $params['network_key'] != "") {
+                $networkKeyValue = $params['network_key'];              
+            }
+
+            $sql = "            
+                    SELECT 
+                        DISTINCT main_group_id, smtgf.group_name 
+                    FROM (
+                        SELECT 
+                            ab.id, 
+                            CAST(ab.root_json::json#>>'{1}' AS integer) AS main_group_id, 
+                            ab.root_json,
+                            group_name, 
+                            group_name_eng,
+                            CAST( CAST (json_array_elements(ab.root_json) AS text) AS integer) AS ddd 
+                        FROM sys_machine_tool_groups ab  
+                        WHERE ab.deleted =0 AND
+                            ab.active =0 AND 
+                            ab.parent_id> 0
+                    ) AS xtable 
+                    INNER JOIN sys_machine_tool_groups smtgf ON smtgf.id = main_group_id
+                    WHERE 
+			ddd IN
+			(
+                            SELECT              
+                                DISTINCT mtg.id AS machine_grup_id  					
+                            FROM info_firm_machine_tool a
+                            INNER JOIN info_firm_keys fk ON fk.firm_id = a.firm_id 					
+                            INNER JOIN sys_machine_tools mt ON mt.id = a.sys_machine_tool_id AND mt.deleted =0 AND mt.active =0 AND mt.language_parent_id =0 
+                            INNER JOIN sys_machine_tool_groups mtg ON mtg.id = mt.machine_tool_grup_id AND mtg.deleted =0 AND mtg.active =0 AND mt.language_parent_id =0                 
+                            WHERE 
+                                a.deleted =0 AND 
+                                a.active =0 AND                  
+                                fk.network_key = '".$networkKeyValue."' AND
+                                a.language_parent_id =0					
+			)
+			ORDER BY smtgf.group_name
+                                 ";
+            $statement = $pdo->prepare($sql);
+       //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo(); 
+            ActUsersActionStatistics::insert (
+                    array('url' =>  $params['url'],
+                        'opUserIdValue' => $opUserIdValue,
+                        'npk' => $params['network_key'],
+                        'unpk' => NULL,
+                        'opUserFirmIdValue' => $opUserFirmIdValue,                           
+                        'language_id' => $languageIdValue,
+                    ));  
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+ 
+     /**
+     * @author Okan CIRAN
+     * danısman confirm - info_firm_machine_tool tablosuna parametre olarak gelen id deki kaydın onay işlemini kayıt altına alır. !!
+     * @version v 1.0  27.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function updateConsConfirmMachineAct($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+              //  $opUserIdValue = $opUserId ['resultSet'][0]['user_id']; 
+                    $consAllowId = 2; 
+                    $operationTypeId = -22;
+                    if ((isset($params['operation_id']) && $params['operation_id'] != "")) {                    
+                        $operationTypeId =  $params['operation_id'];
+                            
+                         switch ($operationTypeId) {
+                            case 1:
+                                $consAllowId = 2;     
+                                 $this->makeConsAllowOne(array('id' => $params['id']));   
+                                break;
+                            case 2:
+                                $consAllowId = 2;     
+                                 $this->makeConsAllowOne(array('id' => $params['id']));   
+                                break;
+                            case 3:
+                                 $consAllowId = 1; 
+                                break;
+                            case 4:
+                                 $consAllowId = 1; 
+                                break;
+                            case 9:
+                                 $consAllowId = 2; 
+                                 $this->makeConsAllowOne(array('id' => $params['id']));  
+                                break;
+                            case 10:
+                                 $consAllowId = 1; 
+                                break;                            
+                            default:
+                                break;
+                        }
+                        
+                    } 
+                    $operationIdValue = -77;
+                    $operationId = SysOperationTypes::getTypeIdToGoOperationIdConfirm(
+                                    array( 'sub_grup_id' => 23, 'type_id' => $operationTypeId,));
+                    if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                        $operationIdValue = $operationId ['resultSet'][0]['id'];
+                    }
+                            
+                    $statement_act_insert = $pdo->prepare(" 
+                        UPDATE info_firm_machine_tool
+                           SET cons_allow_id =  " . intval($consAllowId) . "   ,
+                               operation_type_id = " . intval($operationIdValue) . "   
+                        WHERE id =  " . intval($params['id']) . " 
+                        ");
+                    $insert_act_insert = $statement_act_insert->execute();
+                    $affectedRows = $statement_act_insert->rowCount(); 
+                    $errorInfo = $statement_act_insert->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                            
+            } else {
+                $errorInfo = '23502';   // 23502 not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+  
+    /**
+     * @author Okan CIRAN
+     * @ info_firm_machine_tool tablosundan parametre olarak  gelen id kaydını danısman onayını kaldırır. !!
+     * @version v 1.0  27.01.2017
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function makeConsAllowOne($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
+            $statement = $pdo->prepare(" 
+                UPDATE info_firm_machine_tool
+                SET                         
+                    c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                     
+                    cons_allow_id = 1                    
+                WHERE cons_allow_id = 2 AND 
+                language_id IN
+                    (SELECT language_id FROM info_firm_machine_tool WHERE id = :id ) AND 
+                 act_parent_id IN
+                    (SELECT act_parent_id FROM info_firm_machine_tool WHERE id = :id ) ");
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
+            $update = $statement->execute();
+            $afterRows = $statement->rowCount();
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);            
+            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+        } catch (\PDOException $e /* Exception $e */) {            
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+                         
 }

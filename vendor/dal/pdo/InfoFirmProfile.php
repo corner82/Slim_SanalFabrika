@@ -187,9 +187,10 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 LOWER(REPLACE(firm_name,' ','')) = LOWER(REPLACE('" . $params['firm_name'] . "',' ',''))
                 ". $addSql . " 
                AND deleted =0   
+               AND active =0 
                                ";
             $statement = $pdo->prepare($sql);
-          // echo debugPDO($sql, $params);
+          //echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -265,14 +266,14 @@ class InfoFirmProfile extends \DAL\DalSlim {
                             $languageIdValue = $languageId ['resultSet'][0]['id'];                    
                             }
                     }
-                    $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_profile' , 
-                                                                                              'operation_type_id' => $operationIdValue, 
-                                                                                              'language_id' => $languageIdValue,  
-                                                                                               ));
-                    $ConsultantId = 1001;
-                    if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
-                        $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
-                    }      
+                //    $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_profile' , 
+                  //                                                                            'operation_type_id' => $operationIdValue, 
+                  //                                                                            'language_id' => $languageIdValue,  
+                  //                                                                             ));
+                    $ConsultantId = 5;
+                 //   if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
+                 //       $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
+                 //   }      
                     
                     $foundationYear = NULL;
                     if ((isset($params['foundation_year']) && $params['foundation_year'] != "")) {
@@ -295,20 +296,18 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         web_address, 
                         tax_office, 
                         tax_no, 
-                        sgk_sicil_no, 
-                        ownership_status_id,                         
                         language_id,
                         consultant_id, 
                         operation_type_id,
                         op_user_id,  
-                        foundation_year, 
+                        foundation_yearx, 
                         firm_name_eng, 
                         firm_name_short,
+                        firm_name_short_eng,
                         act_parent_id,
                         description,
-                        description_eng,
-                        duns_number,
-                        logo                     
+                        description_eng,                        
+                        logo  
                         )
                 VALUES (
                         ". intval($profilePublic).",
@@ -316,9 +315,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         :firm_name, 
                         :web_address, 
                         :tax_office, 
-                        :tax_no, 
-                        :sgk_sicil_no, 
-                        :ownership_status_id,                         
+                        :tax_no,  
                         ". intval($languageIdValue).",
                         ". intval($ConsultantId).",
                         ". intval($operationIdValue).",    
@@ -326,23 +323,22 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         ". intval($foundationYear).",
                         :firm_name_eng, 
                         :firm_name_short,
+                        :firm_name_short_eng,
                         (SELECT last_value FROM info_firm_profile_id_seq),                       
                         :description,
-                        :description_eng,
-                        :duns_number,
+                        :description_eng,                        
                         :logo                       
-                                                ");                                        
+                                             )   ");                                        
                     $statement->bindValue(':firm_name', $params['firm_name'], \PDO::PARAM_STR);
                     $statement->bindValue(':web_address', $params['web_address'], \PDO::PARAM_STR);
                     $statement->bindValue(':tax_office', $params['tax_office'], \PDO::PARAM_STR);
                     $statement->bindValue(':tax_no', $params['tax_no'], \PDO::PARAM_STR);
-                    $statement->bindValue(':sgk_sicil_no', $params['sgk_sicil_no'], \PDO::PARAM_STR);
-                    $statement->bindValue(':ownership_status_id', $params['ownership_status_id'], \PDO::PARAM_INT);                                                          
+                    $statement->bindValue(':firm_name_short_eng', $params['firm_name_short_eng'], \PDO::PARAM_STR);
+                //    $statement->bindValue(':ownership_status_id', $params['ownership_status_id'], \PDO::PARAM_INT);                                                          
                     $statement->bindValue(':firm_name_eng', $params['firm_name_eng'], \PDO::PARAM_STR);
                     $statement->bindValue(':firm_name_short', $params['firm_name_short'], \PDO::PARAM_STR);
                     $statement->bindValue(':description', $params['description'], \PDO::PARAM_STR);
-                    $statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
-                    $statement->bindValue(':duns_number', $params['duns_number'], \PDO::PARAM_STR);
+                    $statement->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);                    
                     $statement->bindValue(':logo', $params['logo'], \PDO::PARAM_STR);                    
                     $result = $statement->execute();
                     $insertID = $pdo->lastInsertId('info_firm_profile_id_seq');
@@ -351,7 +347,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         throw new \PDOException($errorInfo[0]);
                                 
                     InfoFirmKeys::insert(array('firm_id' => $insertID, 
-                                              'country_id' => $params['country_id']));
+                                              'country_id' => $countryId));
                    
                     $this ->insertCompanyUser(array('firm_id' => $insertID, 
                                               'language_id' => $languageIdValue, 
@@ -368,8 +364,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                                 'preferred_language_id' => intval($languageIdValue),
                                     )
                         );
-                         if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
-                        throw new \PDOException($xjobs['errorInfo']);
+                    if ($xjobs['errorInfo'][0] != "00000" && $xjobs['errorInfo'][1] != NULL && $xjobs['errorInfo'][2] != NULL)
+                    throw new \PDOException($xjobs['errorInfo']);
                     
                     $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
@@ -409,15 +405,13 @@ class InfoFirmProfile extends \DAL\DalSlim {
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $kontrol = $this->haveRecords($params);
-                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {
-
+                if (!\Utill\Dal\Helper::haveRecord($kontrol)) {                             
                     $operationIdValue = 1;
                     $operationId = SysOperationTypes::getTypeIdToGoOperationId(
                                     array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 23, 'type_id' => 1,));
                     if (\Utill\Dal\Helper::haveRecord($operationId)) {
                         $operationIdValue = $operationId ['resultSet'][0]['id'];
-                    }
-
+                    }                    
                     $countryId = 91;
                     $languageIdValue = 647;
                     $ConsultantId = $opUserIdValue;
@@ -459,20 +453,22 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     $result = $statement->execute();
                     $insertID = $pdo->lastInsertId('info_firm_profile_id_seq');
                     $errorInfo = $statement->errorInfo();
+                             
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
 
                     InfoFirmKeys::insert(array('firm_id' => $insertID,
                         'country_id' => $countryId));
 
-                    $xc = $this->insertCompanyClusters(array('firm_id' => $insertID,
-                        'op_user_id' => $opUserIdValue,
-                        'clusters_id' => $params['clusters_id'],
-                    ));
-
-                    if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
-                        throw new \PDOException($xc['errorInfo']);
-
+                    if (isset($params['clusters_id']) && $params['clusters_id'] != "") {
+                        $xc = $this->insertCompanyClusters(array('firm_id' => $insertID,
+                            'op_user_id' => $opUserIdValue,
+                            'clusters_id' => $params['clusters_id'],
+                        ));
+                             
+                        if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                            throw new \PDOException($xc['errorInfo']);
+                    }
                     $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "lastInsertId" => $insertID);
                 } else {
@@ -582,18 +578,22 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     cons_allow_id =1, 
                     op_user_id = " . intval( $params['op_user_id']) . "
                 WHERE 
-                    firm_id = " .$addSql . "  AND 
-                    osb_cluster_id IN (
+                    firm_id = " .$addSql . " AND 
+                    cons_allow_id =2 
+                    ";
+                /*
+                  osb_cluster_id IN (
                         SELECT 
                             id AS cluster_id 
                         FROM sys_osb_clusters 
                         WHERE 
                             cons_allow_id = 2 AND 
                             id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_each('" . $params['clusters_id'] . "'))
-                                ) 
-                    ";
+                                )  
+                 */
+                
                 $statement = $pdo->prepare($sql);
-              //echo debugPDO($sql, $params);
+            // echo debugPDO($sql, $params);
                 $result = $statement->execute();
              //   $insertID = $pdo->lastInsertId('info_firm_clusters_id_seq');
                 $errorInfo = $statement->errorInfo();
@@ -622,7 +622,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-
+              
                 /// update yapan kullanıcı bu firmanın elemanımı ? 
                 $checkFirmUser = InfoFirmProfile::getCheckIsThisFirmRegisteredUser(array('op_user_id' => $opUserIdValue, 'cpk' => $params['cpk']));
                 if (\Utill\Dal\Helper::haveRecord($checkFirmUser)) {
@@ -635,11 +635,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                                         array('parent_id' => 3, 'main_group' => 3, 'sub_grup_id' => 23, 'type_id' => 2,));
                         if (\Utill\Dal\Helper::haveRecord($operationId)) {
                             $operationIdValue = $operationId ['resultSet'][0]['id'];
-                        }
-                        $active = 0;
-                        if ((isset($params['active']) && $params['active'] != "")) {
-                            $active = intval($params['active']);
-                        }
+                        }                      
                         $countryId = 91;
                         if ((isset($params['country_id']) && $params['country_id'] != "")) {
                             $countryId = intval($params['country_id']);
@@ -660,16 +656,14 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         $statement_act_insert = $pdo->prepare(" 
                  INSERT INTO info_firm_profile(
                         profile_public, 
-                        operation_type_id, 
-                        active,
+                        operation_type_id,                         
                         consultant_id,
-                        op_user_id,                     
-                        country_id,                        
+                        op_user_id,
+                        country_id,
                         firm_name, 
                         web_address, 
                         tax_office, 
-                        tax_no, 
-                        sgk_sicil_no,                             
+                        tax_no,                                                   
                         foundation_yearx,     
                         firm_name_eng, 
                         firm_name_short,
@@ -679,21 +673,19 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         language_id,
                         description,
                         description_eng,
-                        duns_number,
-                        logo
+                        logo,
+                        cons_allow_id
                         )
                         SELECT  
                             " . intval($params['profile_public']) . " AS profile_public, 
-                            " . intval($operationIdValue) . " AS operation_type_id,
-                            " . intval($active) . " AS active,
+                            " . intval($operationIdValue) . " AS operation_type_id,                          
                             consultant_id,
-                            " . intval($opUserIdValue) . " AS op_user_id,                            
-                            " . intval($countryId) . " AS country_id,                             
+                            " . intval($opUserIdValue) . " AS op_user_id,
+                            " . intval($countryId) . " AS country_id,
                             '" . $params['firm_name'] . "' AS firm_name, 
                             '" . $params['web_address'] . "' AS web_address, 
                             '" . $params['tax_office'] . "' AS tax_office, 
-                            '" . $params['tax_no'] . "' AS tax_no, 
-                            '" . $params['sgk_sicil_no'] . "' AS sgk_sicil_no,                                                         
+                            '" . $params['tax_no'] . "' AS tax_no,                             
                             " . intval($foundationYearx) . " AS foundation_yearx,
                             '" . $params['firm_name_eng'] . "' AS firm_name_eng, 
                             '" . $params['firm_name_short'] . "' AS firm_name_short,
@@ -702,9 +694,9 @@ class InfoFirmProfile extends \DAL\DalSlim {
                             auth_allow_id,
                             " . intval($languageIdValue) . " AS language_id,
                             '" . $params['description'] . "' AS description, 
-                            '" . $params['description_eng'] . "' AS description_eng, 
-                            '" . $params['duns_number'] . "' AS duns_number,
-                            logo       
+                            '" . $params['description_eng'] . "' AS description_eng,                             
+                            logo ,
+                            2
                         FROM info_firm_profile 
                         WHERE id =  " . intval($params['id']) . " 
                         ");
@@ -781,7 +773,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $kontrol = $this->haveRecords($params);
+                $kontrol = $this->haveRecords($params);                            
                 if (!\Utill\Dal\Helper::haveRecord($kontrol)) {                    
                     $operationIdValue = -2;
                     $operationId = SysOperationTypes::getTypeIdToGoOperationId(
@@ -790,6 +782,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
                     $languageIdValue = 647;
+                    
+                    $consultantId = 5;
                     $statement_act_insert = $pdo->prepare(" 
                  INSERT INTO info_firm_profile(
                         profile_public, 
@@ -811,8 +805,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         auth_allow_id,
                         language_id,
                         description,
-                        description_eng,
-                        duns_number,
+                        description_eng,                       
                         logo,
                         cons_allow_id
                         )
@@ -820,7 +813,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                             profile_public, 
                             " . intval($operationIdValue) . " AS operation_type_id,
                             active,
-                            consultant_id,
+                            ".intval($consultantId).",
                             " . intval($opUserIdValue) . " AS op_user_id,                            
                             country_id,                             
                             '" . $params['firm_name'] . "' AS firm_name, 
@@ -836,8 +829,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                             auth_allow_id,
                             " . intval($languageIdValue) . " AS language_id,
                             description, 
-                            description_eng, 
-                            duns_number,
+                            description_eng,                           
                             logo,
                             2
                         FROM info_firm_profile 
@@ -854,19 +846,21 @@ class InfoFirmProfile extends \DAL\DalSlim {
                             
                     $xc = $this->deleteCompanyClusters(array('id' => $params['id'],                     
                                                 'op_user_id' => $opUserIdValue,
-                                                'clusters_id' => $params['clusters_id'],
+                                                //'clusters_id' => $params['clusters_id'],
                     ));
 
                     if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
                         throw new \PDOException($xc['errorInfo']);       
                             
-                    $xc = $this->insertCompanyClusters(array('id' => $params['id'],                  
-                                                'op_user_id' => $opUserIdValue,
-                                                'clusters_id' => $params['clusters_id'],
-                    ));                            
-
-                    if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
-                        throw new \PDOException($xc['errorInfo']);  
+                    
+                    if ((isset($params['clusters_id']) && $params['clusters_id'] != "")) {                            
+                        $xc = $this->insertCompanyClusters(array('id' => $params['id'],                  
+                                                    'op_user_id' => $opUserIdValue,
+                                                    'clusters_id' => $params['clusters_id'],
+                        ));
+                        if ($xc['errorInfo'][0] != "00000" && $xc['errorInfo'][1] != NULL && $xc['errorInfo'][2] != NULL)
+                            throw new \PDOException($xc['errorInfo']);  
+                    }
                             
                     $pdo->commit();
                     return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
@@ -888,10 +882,95 @@ class InfoFirmProfile extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-          
+    
     /**
      * @author Okan CIRAN
-     * @ info_firm_machine_tool tablosundan parametre olarak  gelen id kaydını danısman onayını kaldırır. !!
+     * danısman confirm - info_firm_profile tablosuna parametre olarak gelen id deki kaydın onay işlemini kayıt altına alır. !!
+     * @version v 1.0  22.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function updateConsConfirmAct($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+              //  $opUserIdValue = $opUserId ['resultSet'][0]['user_id']; 
+                    $consAllowId = 2; 
+                    $operationTypeId = -22;
+                    if ((isset($params['operation_id']) && $params['operation_id'] != "")) {                    
+                        $operationTypeId =  $params['operation_id'];
+                            
+                         switch ($operationTypeId) {
+                             case 2:
+                                $consAllowId = 2;     
+                                 $this->makeConsAllowOne(array('id' => $params['id']));   
+                                break;
+                            case 5:
+                                $consAllowId = 2;     
+                                 $this->makeConsAllowOne(array('id' => $params['id']));   
+                                break;
+                            case 7:
+                                 $consAllowId = 2; 
+                                 $this->makeConsAllowOne(array('id' => $params['id']));  
+                                break;
+                            case 17:
+                                 $consAllowId = 1; 
+                                break;
+                            case 23:
+                                 $consAllowId = 1; 
+                                break;
+                            case 27:
+                                 $consAllowId = 2; 
+                                 $this->makeConsAllowOne(array('id' => $params['id']));   
+                                break;
+                            case 6002:
+                                 $consAllowId = 1; 
+                                break;                            
+                            default:
+                                break;
+                        }
+                        
+                    } 
+                    $operationIdValue = -22;
+                    $operationId = SysOperationTypes::getTypeIdToGoOperationIdConfirm(
+                                    array( 'sub_grup_id' => 23, 'type_id' => $operationTypeId,));
+                    if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                        $operationIdValue = $operationId ['resultSet'][0]['id'];
+                    }
+                            
+                    $statement_act_insert = $pdo->prepare(" 
+                        UPDATE info_firm_profile
+                           SET cons_allow_id =  " . intval($consAllowId) . "   ,
+                               operation_type_id = " . intval($operationIdValue) . "   
+                        WHERE id =  " . intval($params['id']) . " 
+                        ");
+                    $insert_act_insert = $statement_act_insert->execute();
+                    $affectedRows = $statement_act_insert->rowCount(); 
+                    $errorInfo = $statement_act_insert->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                            
+            } else {
+                $errorInfo = '23502';   // 23502 not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+  
+    /**
+     * @author Okan CIRAN
+     * @ info_firm_profile tablosundan parametre olarak  gelen id kaydını danısman onayını kaldırır. !!
      * @version v 1.0  19.08.2016
      * @param type $params
      * @return array
@@ -906,6 +985,39 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                     
                     cons_allow_id = 1                    
                 WHERE id = :id");
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
+            $update = $statement->execute();
+            $afterRows = $statement->rowCount();
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);            
+            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+        } catch (\PDOException $e /* Exception $e */) {            
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+        /**
+     * @author Okan CIRAN
+     * @ info_firm_profile tablosundan parametre olarak  gelen id kaydını danısman onayını kaldırır. !!
+     * @version v 1.0  19.08.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function makeConsAllowOne($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
+            $statement = $pdo->prepare(" 
+                UPDATE info_firm_profile
+                SET                         
+                    c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                     
+                    cons_allow_id = 1                    
+                WHERE cons_allow_id = 2 AND 
+                language_id IN
+                    (SELECT language_id FROM info_firm_profile WHERE id = :id ) AND 
+                 act_parent_id IN
+                    (SELECT act_parent_id FROM info_firm_profile WHERE id = :id ) ");
             $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
             $update = $statement->execute();
             $afterRows = $statement->rowCount();
@@ -998,7 +1110,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                             " . intval($params['profile_public']) . " AS profile_public, 
                             " . intval($operationIdValue) . " AS operation_type_id,
                             " . intval($active) . " AS active,
-                            consultant_id,
+                            5,
                             " . intval($opUserIdValue) . " AS op_user_id,
                             " . intval($params['country_id']) . " AS country_id,
                             '" . $params['firm_name'] . "' AS firm_name, 
@@ -1391,7 +1503,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
 			operation_type_id,  web_address, tax_office, 
 			tax_no, sgk_sicil_no, ownership_status_id, foundation_year,  
 			act_parent_id, bagkur_sicil_no, deleted, 
-			auth_allow_id, owner_user_id, firm_name_short ,op_user_id,   language_code)  
+			auth_allow_id, owner_user_id, firm_name_short ,op_user_id, language_code)
                     SELECT                          
 			language_parent_id,  
                         firm_name,
@@ -1828,11 +1940,11 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
                     
-                    $ConsultantId = 1001;
-                    $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_profile' , 'operation_type_id' => $operationIdValue));
-                    if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
-                        $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
-                    } 
+                    $ConsultantId = 5;
+              //      $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_firm_profile' , 'operation_type_id' => $operationIdValue));
+              //      if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
+              //          $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
+              //      } 
                     
                     $foundationYearx=NULL;
                     if ((isset($params['foundation_yearx']) && $params['foundation_yearx'] != "")) {
@@ -1869,8 +1981,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         act_parent_id,                      
                         description,
                         description_eng,
-                        duns_number,
-                        logo
+                        duns_number 
+                         
                         )
                 VALUES (
                         " . intval($params['profile_public']) . ", 
@@ -1891,8 +2003,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                         (SELECT last_value FROM info_firm_profile_id_seq),
                         :description,
                         :description_eng,
-                        :duns_number,
-                        :logo
+                        :duns_number 
+                         
                                             )    ";
                     $statementInsert = $pdo->prepare($sql);
                     $statementInsert->bindValue(':firm_name', $params['firm_name'], \PDO::PARAM_STR);
@@ -1905,7 +2017,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     $statementInsert->bindValue(':description', $params['description'], \PDO::PARAM_STR);
                     $statementInsert->bindValue(':description_eng', $params['description_eng'], \PDO::PARAM_STR);
                     $statementInsert->bindValue(':duns_number', $params['duns_number'], \PDO::PARAM_STR);
-                    $statementInsert->bindValue(':logo', $params['logo'], \PDO::PARAM_STR);
+                 //   $statementInsert->bindValue(':logo', $params['logo'], \PDO::PARAM_STR);
                  // echo debugPDO($sql, $params);     
                     $result = $statementInsert->execute();
                     $insertID = $pdo->lastInsertId('info_firm_profile_id_seq');
@@ -1959,7 +2071,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 $user = $params['user_id'];  
                 $sql = " 
                 SELECT id AS firm_id, 1=1 AS control FROM (
-                            SELECT ifp.id 
+                            SELECT ifp.act_parent_id AS id 
                             FROM info_users a
                             INNER JOIN info_firm_users ifu ON ifu.user_id = " . intval($user) . " AND ifu.language_parent_id =0 AND a.id = ifu.user_id                            
 			    INNER JOIN info_firm_profile ifp ON ifp.active =0 AND ifp.deleted =0 AND ifp.language_parent_id =0 AND ifu.firm_id = ifp.act_parent_id     
@@ -2078,8 +2190,10 @@ class InfoFirmProfile extends \DAL\DalSlim {
     public function getFirmIdsForNetworkKey($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $npk = -142;
             if (isset($params['network_key'])) {
                 $npk = $params['network_key'];  
+            }
                 $sql = " 
                 SELECT firm_id, 1=1 AS control FROM (
                             SELECT a.firm_id 
@@ -2089,18 +2203,14 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 ) AS xtable limit 1                             
                                  ";
                 $statement = $pdo->prepare($sql);
-              // echo debugPDO($sql, $params);
+           //  echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-            } else {
-                $errorInfo = '23502';   // 23502  network_key not_null_violation
-                $errorInfoColumn = 'network_key';
-                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
-            }
+                                
         } catch (\PDOException $e /* Exception $e */) {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
@@ -2129,13 +2239,14 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 $sortArr = array();
                 $orderArr = array();
                 $whereSql = "";
+                $innerSql = "";
                 if (isset($params['sort']) && $params['sort'] != "") {
                     $sort = trim($params['sort']);
                     $sortArr = explode(",", $sort);
                     if (count($sortArr) === 1)
                         $sort = trim($params['sort']);
                 } else {
-                    $sort = " firm_names";
+                    $sort = " a.firm_name_eng";
                 }
 
                 if (isset($params['order']) && $params['order'] != "") {
@@ -2149,39 +2260,159 @@ class InfoFirmProfile extends \DAL\DalSlim {
  
                 $languageId = NULL;
                 $languageIdValue = 647;
-                if ((isset($params['language_code']) && $params['language_code'] != "")) { 
-                    
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                     
                     $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                     if (\Utill\Dal\Helper::haveRecord($languageId)) {
                         $languageIdValue = $languageId ['resultSet'][0]['id'];                    
                     }
-                }                                 
+                }   
+                $companyName = NULL;                                
+                if ((isset($params['company_name']) && $params['company_name'] != "")) {
+                        $companyName = $params['company_name'];  
+                        $whereSql .= "  AND ( LOWER(ax.firm_name) LIKE lower('%".$companyName."%')   ";
+                        $whereSql .= "  OR LOWER(a.firm_name_eng) LIKE lower('%".$companyName."%')   ";
+                        $whereSql .= "  OR LOWER(a.firm_name) LIKE lower('%".$companyName."%')  ) ";
+                }
+                $countryId = NULL;                                
+                if ((isset($params['country_id']) && $params['country_id'] != "")) {
+                     if ($params['country_id']!=0) {
+                        $countryId = $params['country_id'];  
+                        $whereSql .= "  AND a.country_id = ".intval($countryId) ;
+                     }
+                }
+                
+                
+                $sectorId= NULL;                                
+                if ((isset($params['sector_id']) && $params['sector_id'] != "")) {
+                      if ($params['sector_id']!=0) {
+                        $sectorId = $params['sector_id'];  
+                        $innerSql .= "  INNER JOIN info_firm_sectoral ifsz ON ifsz.firm_id = a.act_parent_id AND ifsz.cons_allow_id = 2 AND ifsz.sector_id = ".intval($sectorId) ;
+                      }
+                }
+                
+                $sorguStr = null;
+                if (isset($params['filterRules'])) {
+                    $filterRules = trim($params['filterRules']);
+                    $jsonFilter = json_decode($filterRules, true);
+                    $sorguExpression = null;
+                    foreach ($jsonFilter as $std) {
+                        if ($std['value'] != null) {
+                            switch (trim($std['field'])) {
+                                case 'firm_name':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                    $sorguStr.=" AND LOWER(COALESCE(NULLIF(COALESCE(NULLIF(ax.firm_name, ''), a.firm_name_eng), ''), a.firm_name))" . $sorguExpression . ' ';
+
+                                    break;
+                                case 'web_address':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\')  ';
+                                    $sorguStr.=" AND LOWER(a.web_address)" . $sorguExpression . ' ';
+
+                                    break;
+                                case 'firm_name_short':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\')  ';
+                                    $sorguStr.=" AND LOWER(a.firm_name_short)" . $sorguExpression . ' ';
+
+                                    break;
+                                 case 'country_names':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\')  ';
+                                    $sorguStr.=" AND LOWER(COALESCE(NULLIF(cox.name, ''), co.name_eng))" . $sorguExpression . ' ';
+
+                                    break;
+                                 case 'npk':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\')  ';
+                                    $sorguStr.=" AND LOWER(k.network_key)" . $sorguExpression . ' ';
+
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                } else {
+                    $sorguStr = null;
+                    $filterRules = "";
+                }
+                $sorguStr = rtrim($sorguStr, "AND ");    
+                                
 
                 $sql = "                  
-                SELECT 
+                SELECT DISTINCT
                     k.network_key AS npk ,
                     LOWER(COALESCE(NULLIF(COALESCE(NULLIF(ax.firm_name, ''), a.firm_name_eng), ''), a.firm_name)) AS firm_names,   
-                    LOWER(a.web_address) AS web_address,
+                    COALESCE(NULLIF(   COALESCE(NULLIF( LOWER(a.web_address) , ''), sd23x.description) , ''), sd23.description_eng) AS web_address,
                     LOWER(a.firm_name_short) AS firm_name_short,
                     a.country_id,
 		    LOWER(COALESCE(NULLIF(cox.name, ''), co.name_eng)) AS country_names,
-                    LOWER(COALESCE(NULLIF(COALESCE(NULLIF(ax.description, ''), a.description_eng), ''), a.description)) AS descriptions,
-                      CASE COALESCE(NULLIF(a.logo, ''),'-') 
+                    
+                    upper(COALESCE(NULLIF(COALESCE(NULLIF(ax.description, ''), a.description_eng), ''), a.description)) AS descriptions,
+                    
+                    CASE COALESCE(NULLIF(a.logo, ''),'-') 
                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/' ,COALESCE(NULLIF(a.logo, ''),'image_not_found.png'))
-                        ELSE CONCAT(k.folder_name ,'/',k.logos_folder,'/' ,COALESCE(NULLIF(a.logo, ''),'image_not_found.png')) END AS logo, 
-                    a.web_address
+                        ELSE CONCAT(k.folder_name ,'/',k.logos_folder,'/' ,COALESCE(NULLIF(a.logo, ''),'image_not_found.png')) END AS logo,
+                    COALESCE(NULLIF(   COALESCE(NULLIF(ifc.tel , ''), sd23x.description) , ''), sd23.description_eng) AS tel,
+                    COALESCE(NULLIF(   COALESCE(NULLIF(ifc.fax , ''), sd23x.description) , ''), sd23.description_eng) AS fax,
+                    COALESCE(NULLIF(   COALESCE(NULLIF(ifc.email , ''), sd23x.description) , ''), sd23.description_eng) AS email,                           
+                    
+                    COALESCE(NULLIF(   COALESCE(NULLIF(                     
+                        LOWER(COALESCE(NULLIF(COALESCE(NULLIF(ax.description, ''), a.description_eng), ''), a.description))  
+                            , ''), (  SELECT description_short FROM (
+				SELECT  a.act_parent_id,
+					CAST(random()*100-1 AS int) AS ccc,                               
+					COALESCE(NULLIF(axu.description_short, ''), au.description_short_eng) AS description_short 
+				FROM info_firm_verbal au
+				INNER JOIN sys_language lu ON lu.id = au.language_id AND lu.deleted =0 AND lu.active =0
+				LEFT JOIN sys_language lxu ON lxu.id =  " . intval($languageIdValue) . " AND lxu.deleted =0 AND lxu.active =0
+				LEFT JOIN info_firm_verbal axu ON (axu.id = au.id OR axu.language_parent_id=au.id) AND axu.language_id =lxu.id AND axu.cons_allow_id =2 
+				WHERE 
+					au.cons_allow_id=2  AND 
+					au.language_parent_id =0 AND
+					au.firm_id = 1
+				ORDER BY ccc DESC
+				limit 1   ) AS xxrtable) ) , ''), sd23.description_eng)  
+                            AS fim_description,
+
+                    COALESCE(NULLIF(  COALESCE(NULLIF(
+			(SELECT replace(replace( cast(ARRAY(
+				 SELECT distinct LOWER(COALESCE(NULLIF(sssx.name, ''), sss.name_eng)) AS ssname 
+			 FROM sys_sectors sss
+			 LEFT JOIN sys_sectors sssx ON (sssx.id = sss.id OR sssx.language_parent_id = sss.id) AND sssx.deleted =0 AND sssx.active =0 AND sssx.language_id =  lx.id  
+			 WHERE 
+				sss.language_parent_id=0 AND 
+				sss.deleted =0 AND 
+				sss.active =0 AND 
+				sss.id IN ( SELECT sector_id FROM info_firm_sectoral ifs WHERE ifs.cons_allow_id = 2 AND  ifs.firm_id =  a.act_parent_id ) 
+                         ORDER BY ssname
+				 ) AS character varying(300)) ,'{',''),'}','') ) 
+
+			 , ''), sd23x.description) , ''), sd23.description_eng)  
+			 AS firm_sectoral ,
+                         
+                    COALESCE(NULLIF(   COALESCE(NULLIF(
+                    (SELECT CAST(SUM(ifmt.total) AS character varying(5)) FROM info_firm_machine_tool ifmt  
+                        INNER JOIN sys_machine_tools smt ON smt.id = ifmt.sys_machine_tool_id AND smt.active=0 AND smt.deleted=0
+                        WHERE ifmt.firm_id = a.act_parent_id AND ifmt.language_parent_id =0 AND ifmt.cons_allow_id = 2 )
+                         , ''), sd23x.description) , ''), sd23.description_eng)  
+                        AS total_machines,
+                        a.firm_name_eng , 
+                        lower(k.network_name) AS network_name
                 FROM info_firm_profile a    
                 INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0  
-                INNER JOIN info_firm_keys k ON a.id = k.firm_id
+                INNER JOIN info_firm_keys k ON a.act_parent_id = k.firm_id
+                LEFT JOIN info_firm_communications ifc ON ifc.firm_id = a.act_parent_id AND ifc.cons_allow_id =2 AND ifc.language_parent_id = 0 
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
                 LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0 
                 LEFT JOIN sys_countrys co ON co.id = a.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_parent_id = 0
                 LEFT JOIN sys_countrys cox ON (cox.id = co.id OR cox.language_parent_id = co.id) AND cox.deleted = 0 AND cox.active = 0 AND cox.language_id = lx.id
-		LEFT JOIN info_firm_profile ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0 AND ax.profile_public =0
+		LEFT JOIN info_firm_profile ax ON (ax.id = a.act_parent_id OR ax.language_parent_id = a.act_parent_id) AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0 AND ax.profile_public =0
+                ".$innerSql."
+                INNER JOIN sys_specific_definitions sd23 ON sd23.main_group = 23 AND sd23.first_group= 2 AND sd23.language_id = a.language_id AND sd23.deleted =0 AND sd23.active =0                 
+                LEFT JOIN sys_specific_definitions sd23x ON (sd23x.id = sd23.id OR sd23x.language_parent_id = sd23.id) AND sd23x.language_id =lx.id  AND sd23x.deleted =0 AND sd23x.active =0 
                 WHERE 
                     a.language_parent_id =0 AND 
                     a.profile_public =0 AND 
-                    a.cons_allow_id = 2
+                    a.cons_allow_id = 2 
+                    ".$sorguStr."
+                    ".$whereSql." 
                 ORDER BY    " . $sort . " "
                     . "" . $order . " "
                     . "LIMIT " . $pdo->quote($limit) . " "
@@ -2194,7 +2425,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     'offset' => $pdo->quote($offset),
                 );
              
-               // echo debugPDO($sql, $params);                
+           // echo debugPDO($sql, $params);                
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -2220,28 +2451,106 @@ class InfoFirmProfile extends \DAL\DalSlim {
     public function fillCompanyListsGuestRtc($params = array()) {
         try {
                 $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');     
+                $whereSql = "";
+                $innerSql = ""; 
+                $sorguStr = null;
+                if (isset($params['filterRules'])) {
+                    $filterRules = trim($params['filterRules']);
+                    $jsonFilter = json_decode($filterRules, true);
+                    $sorguExpression = null;
+                    foreach ($jsonFilter as $std) {
+                        if ($std['value'] != null) {
+                            switch (trim($std['field'])) {
+                                case 'firm_names':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                    $sorguStr.=" AND LOWER(COALESCE(NULLIF(COALESCE(NULLIF(ax.firm_name, ''), a.firm_name_eng), ''), a.firm_name))" . $sorguExpression . ' ';
+
+                                    break;
+                                case 'web_address':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\')  ';
+                                    $sorguStr.=" AND LOWER(a.web_address)" . $sorguExpression . ' ';
+
+                                    break;
+                                case 'firm_name_short':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\')  ';
+                                    $sorguStr.=" AND LOWER(a.firm_name_short)" . $sorguExpression . ' ';
+
+                                    break;
+                                 case 'country_names':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\')  ';
+                                    $sorguStr.=" AND LOWER(COALESCE(NULLIF(cox.name, ''), co.name_eng))" . $sorguExpression . ' ';
+
+                                    break;
+                                 case 'npk':
+                                    $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\')  ';
+                                    $sorguStr.=" AND LOWER(k.network_key)" . $sorguExpression . ' ';
+
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                } else {
+                    $sorguStr = null;
+                    $filterRules = "";
+                }
+                $sorguStr = rtrim($sorguStr, "AND ");    
+
                 $languageId = NULL;
                 $languageIdValue = 647;
-                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                     
                     $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                     if (\Utill\Dal\Helper::haveRecord($languageId)) {
                         $languageIdValue = $languageId ['resultSet'][0]['id'];                    
                     }
+                }  
+                
+                $companyName = NULL;                                
+                if ((isset($params['company_name']) && $params['company_name'] != "")) {
+                        $companyName = $params['company_name'];  
+                        $whereSql .= "  AND ( LOWER(ax.firm_name) LIKE lower('%".$companyName."%')   ";
+                        $whereSql .= "  OR LOWER(a.firm_name_eng) LIKE lower('%".$companyName."%')   ";
+                        $whereSql .= "  OR LOWER(a.firm_name) LIKE lower('%".$companyName."%')  ) ";
                 }
+                $countryId = NULL;                                
+                if ((isset($params['country_id']) && $params['country_id'] != "")) {
+                     if ($params['country_id']!=0) {
+                        $countryId = $params['country_id'];  
+                        $whereSql .= "  AND a.country_id = ".intval($countryId) ;
+                     }
+                }                
+                
+                $sectorId= NULL;                                
+                if ((isset($params['sector_id']) && $params['sector_id'] != "")) {
+                      if ($params['sector_id']!=0) {
+                        $sectorId = $params['sector_id'];  
+                        $innerSql .= "  INNER JOIN info_firm_sectoral ifsz ON ifsz.firm_id = a.act_parent_id AND ifsz.cons_allow_id = 2 AND ifsz.sector_id = ".intval($sectorId) ;
+                      }
+                }
+                
                 $sql = "
 		SELECT 
                     count(a.id) AS count  
-                FROM info_firm_profile a
-                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                    
-                INNER JOIN info_firm_keys k on a.id = k.firm_id                   
+                FROM info_firm_profile a                
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0  
+                INNER JOIN info_firm_keys k ON a.act_parent_id = k.firm_id
+                LEFT JOIN info_firm_communications ifc ON ifc.firm_id = a.act_parent_id AND ifc.cons_allow_id =2 AND ifc.language_parent_id = 0 
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.id = ". intval($languageIdValue)." AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_countrys co ON co.id = a.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_parent_id = 0
+                LEFT JOIN sys_countrys cox ON (cox.id = co.id OR cox.language_parent_id = co.id) AND cox.deleted = 0 AND cox.active = 0 AND cox.language_id = lx.id
+		LEFT JOIN info_firm_profile ax ON (ax.id = a.act_parent_id OR ax.language_parent_id = a.act_parent_id) AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0 AND ax.profile_public =0
+                ".$innerSql."
                 WHERE 
                     a.language_parent_id =0 AND 
                     a.profile_public =0 AND 
                     a.cons_allow_id = 2 
+                    ".$sorguStr."
+                    ".$whereSql." 
                  ";
                 $statement = $pdo->prepare($sql);
-                //  echo debugPDO($sql, $parameters);                
+                //  echo debugPDO($sql, $params);                
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -2266,8 +2575,27 @@ class InfoFirmProfile extends \DAL\DalSlim {
      */
     public function fillCompanyInfoEmployeesGuest($params = array()) {
         try {
-                $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');               
-                $sql = "                
+                $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');  
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                    }
+                }     
+                
+                $opUserIdValue = NULL;
+                $opUserFirmIdValue = NULL;
+                if ((isset($params['pk']) && $params['pk'] != "")) {
+                    $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+                    if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                        $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                        $opUserFirmIdValue = $opUserId ['resultSet'][0]['user_firm_id'];
+                    }
+                }
+
+            $sql = "                
                   SELECT
                     ifpi.number_of_employees, 
                     ifpi.number_of_worker, 
@@ -2294,6 +2622,14 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
+                 ActUsersActionStatistics::insert (
+                       array('url' =>  $params['url'],
+                        'opUserIdValue' => $opUserIdValue,
+                        'npk' => $params['network_key'],
+                        'unpk' => NULL,
+                        'opUserFirmIdValue' => $opUserFirmIdValue,                           
+                        'language_id' => $languageIdValue,
+                    ));  
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -2321,6 +2657,15 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
                 if (\Utill\Dal\Helper::haveRecord($languageId)) {
                     $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+            $opUserIdValue = NULL;
+            $opUserFirmIdValue = NULL;
+            if ((isset($params['pk']) && $params['pk'] != "")) {
+                $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+                if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                    $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                    $opUserFirmIdValue = $opUserId ['resultSet'][0]['user_firm_id'];
                 }
             }
 
@@ -2356,6 +2701,14 @@ class InfoFirmProfile extends \DAL\DalSlim {
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
+            ActUsersActionStatistics::insert (
+                    array('url' =>  $params['url'],
+                        'opUserIdValue' => $opUserIdValue,
+                        'npk' => $params['network_key'],
+                        'unpk' => NULL,
+                        'opUserFirmIdValue' => $opUserFirmIdValue,                           
+                        'language_id' => $languageIdValue,
+                    )); 
             if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                 throw new \PDOException($errorInfo[0]);
             return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
@@ -2691,7 +3044,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 ) AS xtable limit 1
                                  ";
                 $statement = $pdo->prepare($sql);
-               //echo debugPDO($sql, $params);
+              //  echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -2724,29 +3077,36 @@ class InfoFirmProfile extends \DAL\DalSlim {
             if (\Utill\Dal\Helper::haveRecord($getFirm)) {
                 $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
 
-                $endOfId = $this->getFirmEndOfId(array('firm_id' => $getFirmId));
-                if (\Utill\Dal\Helper::haveRecord($endOfId)) {
-                    $languageId = NULL;
-                    $languageIdValue = 647;
-                    if ((isset($params['language_code']) && $params['language_code'] != "")) {
-                        $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
-                        if (\Utill\Dal\Helper::haveRecord($languageId)) {
-                            $languageIdValue = $languageId ['resultSet'][0]['id'];
-                        }
+                $addSql = NULL;
+                $opUserId = InfoUsers::getUserId(array('pk' => $params['pk'],'firm_id' => $getFirmId));
+                if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                //    $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                    $getFirmIdValue = $opUserId ['resultSet'][0]['user_firm_id'];                    
+                    if ($getFirmId != $getFirmIdValue) {
+                        $addSql = " AND a.cons_allow_id = 2 ";
                     }
-                    
-                    $CPKValue = NULL;                    
-                    $CPK = InfoFirmKeys:: getCPK(array('network_key' => $params['network_key']));
-                      if (\Utill\Dal\Helper::haveRecord($CPK)) {
-                           $CPKValue =  $CPK ['resultSet'][0]['cpk']; 
-                      }
+                }      
+                
+                
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+
+                $CPKValue = NULL;                    
+                $CPK = InfoFirmKeys:: getCPK(array('network_key' => $params['network_key']));
+                  if (\Utill\Dal\Helper::haveRecord($CPK)) {
+                       $CPKValue =  $CPK ['resultSet'][0]['cpk']; 
+                  }
                       
                     $sql = "
                 SELECT 
                     ifv.id,                    
-                    a.profile_public,                     
-                    a.s_date, 
-                    a.c_date,                     
+                    a.profile_public,  
                     COALESCE(NULLIF(COALESCE(NULLIF(ax.firm_name, ''), a.firm_name_eng), ''), a.firm_name) AS firm_name,
                     a.firm_name_eng,
 		    COALESCE(NULLIF(COALESCE(NULLIF(ax.firm_name_short, ''), a.firm_name_short_eng), ''), a.firm_name_short) AS firm_name_short,
@@ -2776,26 +3136,15 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     a.act_parent_id,
                     COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
 		    COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,                    
-                    a.operation_type_id,                   
-                    COALESCE(NULLIF(opx.operation_name, ''), op.operation_name_eng) AS operation_name,
-                    op.operation_name_eng,
                     a.active,                
                     COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng) AS state_active,    
-                    a.deleted,                  
-                    COALESCE(NULLIF(sd15x.description, ''), sd15.description_eng) AS state_deleted,    
-                    a.op_user_id,
-                    u.username,                    
-                    a.auth_allow_id,                    
-                    COALESCE(NULLIF(sd13x.description, ''), sd13.description_eng) AS auth_alow,    
-                    a.cons_allow_id,                   
-                    COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow,    
-                    a.language_parent_id,  
                     ifk.network_key,                  
                     CASE COALESCE(NULLIF(a.logo, ''),'-') 
                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/' ,COALESCE(NULLIF(a.logo, ''),'image_not_found.png'))
                         ELSE CONCAT(ifk.folder_name ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(a.logo, ''),'image_not_found.png')) END AS logo,
                     a.place_point,
-                    '".$CPKValue."' AS cpk
+                    '".$CPKValue."' AS cpk,
+                    CONCAT(ifk.folder_name ,'/',ifk.logos_folder,'/') AS folder_road 
                 FROM info_firm_profile a  
                 INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0  
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id =  a.act_parent_id 
@@ -2803,23 +3152,19 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND l.deleted =0 AND l.active =0 
 		LEFT JOIN info_firm_profile ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0
 		LEFT JOIN info_firm_verbal ifv ON ifv.firm_id = ifk.firm_id AND ifv.deleted = 0 AND ifv.active =0 AND ifv.language_parent_id=0  
-		LEFT JOIN info_firm_verbal ifvx ON (ifvx.id = ifv.id OR ifvx.language_parent_id = ifv.id) AND ifvx.deleted = 0 AND ifvx.active =0 AND ifvx.language_id = lx.id 
-                INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = a.language_id AND op.deleted =0 AND op.active =0
-		LEFT JOIN sys_operation_types opx ON (opx.id = op.id OR opx.language_parent_id = op.id) AND opx.language_id = lx.id AND opx.deleted =0 AND opx.active =0
-                INNER JOIN sys_specific_definitions sd13 ON sd13.main_group = 13 AND sd13.language_id = a.language_id AND a.auth_allow_id = sd13.first_group AND sd13.deleted =0 AND sd13.active =0
-                LEFT JOIN sys_specific_definitions sd13x ON (sd13x.id = sd13.id OR sd13.language_parent_id = sd13.id) AND sd13x.language_id = lx.id AND sd13x.deleted =0 AND sd13x.active =0
-                INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.language_id = a.language_id AND a.cons_allow_id = sd14.first_group AND sd14.deleted =0 AND sd14.active =0
-                LEFT JOIN sys_specific_definitions sd14x ON (sd14x.id = sd14.id OR sd14.language_parent_id = sd14.id) AND sd14x.language_id = lx.id AND sd14x.deleted =0 AND sd14x.active =0
-                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = a.language_id AND sd15.deleted =0 AND sd15.active =0 
-                LEFT JOIN sys_specific_definitions sd15x ON (sd15x.id = sd15.id OR sd15.language_parent_id = sd15.id) AND sd15x.language_id = lx.id AND sd15x.deleted =0 AND sd15x.active =0
+		LEFT JOIN info_firm_verbal ifvx ON (ifvx.id = ifv.id OR ifvx.language_parent_id = ifv.id) AND ifvx.deleted = 0 AND ifvx.active =0 AND ifvx.language_id = lx.id               
                 INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0 AND sd16.active = 0
-                LEFT JOIN sys_specific_definitions sd16x ON (sd16x.id = sd16.id OR sd16.language_parent_id = sd16.id) AND sd16x.language_id = lx.id AND sd16x.deleted =0 AND sd16x.active =0
-                
+                LEFT JOIN sys_specific_definitions sd16x ON (sd16x.id = sd16.id OR sd16.language_parent_id = sd16.id) AND sd16x.language_id = lx.id AND sd16x.deleted =0 AND sd16x.active =0                
                 INNER JOIN info_users u ON u.id = a.op_user_id                                      
                 INNER JOIN sys_countrys co ON co.id = a.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = a.language_id
                 LEFT JOIN sys_countrys cox ON (cox.id = a.country_id OR cox.language_parent_id = a.country_id) AND cox.deleted = 0 AND cox.active = 0 AND cox.language_id = lx.id		
-                WHERE    
-                    a.id = " . $endOfId ['resultSet'][0]['firm_id'] . "                 
+                WHERE                     
+                    a.act_parent_id = " . intval($getFirmId) . " AND 
+                    a.language_parent_id =0 AND 
+                    a.profile_public =0 
+                     ".$addSql."
+                    ORDER BY id DESC
+                    LIMIT 1   
                 ";
                     $statement = $pdo->prepare($sql);
                  //    echo debugPDO($sql, $params);                
@@ -2828,12 +3173,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     $errorInfo = $statement->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
-                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
-                } else {
-                    $errorInfo = '23502';   // 23502  user_id not_null_violation
-                    $errorInfoColumn = 'firm_id';
-                    return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
-                }
+                    return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);                                
             } else {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
                 $errorInfoColumn = 'network_key';
@@ -2876,13 +3216,11 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     iud.name, 
                     iud.surname,
                     iud.auth_email,
-                    
-		    
-                    
                     ifk.network_key,
                     CASE COALESCE(NULLIF(TRIM(iud.picture), ''),'-') 
                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' ,'image_not_found.png')
-                        ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' ,TRIM(iud.picture)) END AS cons_picture
+                        ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' ,TRIM(iud.picture)) END AS cons_picture,
+                    (SELECT iucz.communications_no FROM info_users_communications iucz WHERE iucz.user_id = u.id AND iucz.language_parent_id =0 AND iucz.cons_allow_id = 2 limit 1) AS phone 
                 FROM info_firm_profile a   
                 INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.act_parent_id 
@@ -2891,9 +3229,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
 		LEFT JOIN info_firm_profile ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0
                 INNER JOIN info_users u ON u.id = a.consultant_id AND u.role_id in (1,2,6)
                 INNER JOIN info_users_detail iud ON iud.root_id = u.id AND iud.cons_allow_id = 2
-                INNER JOIN info_users_communications iuc ON iuc.user_id = u.id AND iuc.cons_allow_id = 2
-                INNER JOIN sys_specific_definitions sd5 ON sd5.main_group = 5 AND sd5.first_group = iuc.communications_type_id AND sd5.deleted =0 AND sd5.active =0 AND l.id = sd5.language_id
-		LEFT JOIN sys_specific_definitions sd5x ON (sd5x.id =sd5.id OR sd5x.language_parent_id = sd5.id) AND sd5x.deleted =0 AND sd5x.active =0 AND lx.id = sd5x.language_id
+                INNER JOIN info_users_communications iuc ON iuc.user_id = u.id AND iuc.cons_allow_id = 2                
                 WHERE
                     a.act_parent_id = " . intval($getFirmIdValue) . "
                 ORDER BY  iud.name, iud.surname 
@@ -2941,7 +3277,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 }
                 $statement = $pdo->prepare("             
                SELECT
-                    a.id,
+                    a.act_parent_id AS id,
 		    cast( COALESCE(NULLIF( COALESCE(NULLIF(ax.firm_name_short	, ''), a.firm_name_short_eng) , '' ), ax.firm_name) as character varying(30)) AS name,  
                     cast( a.firm_name_short_eng as character varying(30)) AS name_eng,
                     a.active,
@@ -2949,7 +3285,7 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 FROM info_firm_profile a
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
 		LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
-                LEFT JOIN info_firm_profile ax ON (ax.id =a.id OR ax.language_parent_id = a.id) AND ax.deleted =0 AND ax.active =0 AND lx.id = ax.language_id
+                LEFT JOIN info_firm_profile ax ON (ax.id =a.act_parent_id OR ax.language_parent_id = a.act_parent_id) AND ax.deleted =0 AND ax.active =0 AND lx.id = ax.language_id
                 WHERE 
                     a.alliance_type_id >-1 and 
                     a.deleted = 0 AND
@@ -3024,25 +3360,25 @@ class InfoFirmProfile extends \DAL\DalSlim {
                 foreach ($jsonFilter as $std) {
                     if ($std['value'] != null) {
                         switch (trim($std['field'])) {
-                            case 'firm_name':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
-                                $sorguStr.=" AND fp.firm_name)" . $sorguExpression . ' ';
+                            case 'firm_name':                              
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name)" . $sorguExpression . ' ';
                               
                                 break;                            
                             
                             case 'firm_name_eng':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND fp.firm_name_eng" . $sorguExpression . ' ';
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_eng)" . $sorguExpression . ' ';
 
                                 break;
                             case 'firm_name_short':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND fp.firm_name_short" . $sorguExpression . ' ';
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_short)" . $sorguExpression . ' ';
 
                                 break;
                             case 'firm_name_short_eng':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND fp.firm_name_short_eng" . $sorguExpression . ' ';
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_short_eng)" . $sorguExpression . ' ';
 
                                 break; 
                             
@@ -3062,8 +3398,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     SELECT DISTINCT 
                         axv.osb_id                             
                     FROM sys_osb_clusters axv
-                    LEFT join info_firm_clusters bb ON bb.osb_cluster_id = axv.id AND bb.active=0 AND bb.deleted =0
-                    WHERE bb.firm_id = 94 AND axv.active =0 AND axv.deleted =0
+                    LEFT join info_firm_clusters bb ON bb.osb_cluster_id = axv.id AND bb.cons_allow_id=2
+                    WHERE bb.firm_id = fp.act_parent_id AND axv.active =0 AND axv.deleted =0
                     LIMIT 1
                      )
             ";
@@ -3074,8 +3410,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
                             SELECT DISTINCT
                                 axv.id                             
                             FROM sys_osb_clusters axv
-                            LEFT join info_firm_clusters bb ON bb.osb_cluster_id = axv.id AND bb.active=0 AND bb.deleted =0
-                            WHERE bb.firm_id = fp.act_parent_id AND axv.active =0 AND axv.deleted =0
+                            LEFT join info_firm_clusters bb ON bb.osb_cluster_id = axv.id AND bb.cons_allow_id=2  
+                            WHERE bb.firm_id = fp.act_parent_id AND axv.active =0 AND axv.deleted =0 
                             ORDER BY axv.id) AS cxx
                             ) AS zxtable)
             ";
@@ -3110,7 +3446,8 @@ class InfoFirmProfile extends \DAL\DalSlim {
 		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= fp.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
 		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= fp.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0    
 		    WHERE fp.language_parent_id = 0 AND
-			  fp.cons_allow_id = 2 AND
+			  fp.cons_allow_id = 2 AND 
+                          
 			  fp.consultant_id = " . intval($opUserIdValue). "
                 " . $sorguStr . " 
                 ORDER BY    " . $sort . " "
@@ -3165,24 +3502,24 @@ class InfoFirmProfile extends \DAL\DalSlim {
                     if ($std['value'] != null) {
                         switch (trim($std['field'])) {
                             case 'firm_name':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
-                                $sorguStr.=" AND fp.firm_name)" . $sorguExpression . ' ';
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name)" . $sorguExpression . ' ';
                               
                                 break;                            
                             
                             case 'firm_name_eng':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND fp.firm_name_eng" . $sorguExpression . ' ';
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_eng)" . $sorguExpression . ' ';
 
                                 break;
                             case 'firm_name_short':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND fp.firm_name_short" . $sorguExpression . ' ';
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_short)" . $sorguExpression . ' ';
 
                                 break;
                             case 'firm_name_short_eng':
-                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
-                                $sorguStr.=" AND fp.firm_name_short_eng" . $sorguExpression . ' ';
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_short_eng)" . $sorguExpression . ' ';
 
                                 break; 
                             
@@ -3256,6 +3593,287 @@ class InfoFirmProfile extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
+     * @ urge ye ait firma kayıtlarını döndürür !!
+     * @version v 1.0  04.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillUrgeCompanyLists($params = array()) {
+        try {             
+            if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+                $limit = intval($params['rows']);
+            } else {
+                $limit = 10;
+                $offset = 0;
+            }           
+
+            $sortArr = array();
+            $orderArr = array();
+                            
+            if (isset($params['sort']) && $params['sort'] != "") {
+                $sort = trim($params['sort']);
+                $sortArr = explode(",", $sort);
+                if (count($sortArr) === 1)
+                    $sort = trim($params['sort']);
+            } else {
+                $sort = " fp.firm_name ";
+            }
+
+            if (isset($params['order']) && $params['order'] != "") {
+                $order = trim($params['order']);
+                $orderArr = explode(",", $order);
+                if (count($orderArr) === 1)
+                    $order = trim($params['order']);
+            } else {
+                $order = "ASC";
+            }
+            $sorguStr = null; 
+                            
+                            
+            if (isset($params['filterRules']) && $params['filterRules'] != "") {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+              
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'firm_name':                              
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name)" . $sorguExpression . ' ';
+                              
+                                break;                            
+                            
+                            case 'firm_name_eng':
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_eng)" . $sorguExpression . ' ';
+
+                                break;
+                            case 'firm_name_short':
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_short)" . $sorguExpression . ' ';
+
+                                break;
+                            case 'firm_name_short_eng':
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_short_eng)" . $sorguExpression . ' ';
+
+                                break; 
+                            
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+
+            $jsonSqlOsbIds = "  
+                 (  
+                    SELECT DISTINCT 
+                        axv.osb_id                             
+                    FROM sys_osb_clusters axv
+                    LEFT join info_firm_clusters bb ON bb.osb_cluster_id = axv.id AND bb.cons_allow_id=2
+                    WHERE bb.firm_id = fp.act_parent_id AND axv.active =0 AND axv.deleted =0
+                    LIMIT 1
+                     )
+            ";
+            $jsonSqlClustersIds = "  
+                (SELECT array_to_json(COALESCE(NULLIF(cxx,'{}'),NULL)) FROM (
+                    SELECT  
+                        ARRAY(   
+                            SELECT DISTINCT
+                                axv.id                             
+                            FROM sys_osb_clusters axv
+                            LEFT join info_firm_clusters bb ON bb.osb_cluster_id = axv.id AND bb.cons_allow_id=2  
+                            WHERE bb.firm_id = fp.act_parent_id AND axv.active =0 AND axv.deleted =0 
+                            ORDER BY axv.id) AS cxx
+                            ) AS zxtable)
+            ";
+
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                            
+                $sql = "
+                    SELECT 
+                        fp.id,
+                        fp.act_parent_id AS firm_id ,
+                        fp.firm_name,
+			fp.firm_name_eng,
+                        fp.firm_name_short,
+                        fp.firm_name_short_eng,
+                        fp.profile_public,
+                        sd19.description AS state_profile_public,                        
+                        fp.active,
+                        sd16.description AS state_active,
+                        fp.op_user_id,
+                        u.username AS op_user_name,
+                        fp.s_date,
+                        fp.c_date,
+                        ".$jsonSqlOsbIds." AS osb_id,
+                        ".$jsonSqlClustersIds." AS cluster_ids    
+                    FROM info_firm_profile fp
+                    INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0                    
+                    INNER JOIN info_users u ON u.id = fp.op_user_id
+                    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.first_group = fp.cons_allow_id AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0		    
+		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= fp.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= fp.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0    
+		    WHERE fp.language_parent_id = 0 AND
+			  fp.cons_allow_id = 2 AND 
+                          
+			  fp.consultant_id = " . intval($opUserIdValue). "
+                " . $sorguStr . " 
+                ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            ); 
+                $statement = $pdo->prepare($sql);
+            //    echo debugPDO($sql, $parameters);                
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                $affectedRows = $statement->rowCount();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+            
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ urgeye ait firma kayıtlarının sayısını döndürür !!
+    * @version v 1.0  04.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillUrgeCompanyListsRtc($params = array()) {
+        try {                                         
+            $sorguStr = null;                              
+            if (isset($params['filterRules']) && $params['filterRules'] != "") {
+                $filterRules = trim($params['filterRules']);
+                $jsonFilter = json_decode($filterRules, true);
+              
+                $sorguExpression = null;
+                foreach ($jsonFilter as $std) {
+                    if ($std['value'] != null) {
+                        switch (trim($std['field'])) {
+                            case 'firm_name':
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name)" . $sorguExpression . ' ';
+                              
+                                break;                            
+                            
+                            case 'firm_name_eng':
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_eng)" . $sorguExpression . ' ';
+
+                                break;
+                            case 'firm_name_short':
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_short)" . $sorguExpression . ' ';
+
+                                break;
+                            case 'firm_name_short_eng':
+                                $sorguExpression = ' ILIKE LOWER(\'%' . $std['value'] . '%\') ';
+                                $sorguStr.=" AND LOWER(fp.firm_name_short_eng)" . $sorguExpression . ' ';
+
+                                break; 
+                            
+                            default:
+                                break;
+                        }
+                    }
+                }
+            } else {
+                $sorguStr = null;
+                $filterRules = "";
+            }
+            $sorguStr = rtrim($sorguStr, "AND ");
+
+
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                            
+                $sql = "
+                    SELECT COUNT(id) AS count FROM (                      
+                        SELECT 
+                        fp.id,
+                        fp.act_parent_id AS firm_id ,
+                        fp.firm_name,
+			fp.firm_name_eng,
+                        fp.firm_name_short,
+                        fp.firm_name_short_eng,
+                        fp.profile_public,
+                        sd19.description AS state_profile_public,                        
+                        fp.active,
+                        sd16.description AS state_active,
+                        fp.op_user_id,
+                        u.username AS op_user_name,
+                        fp.s_date,
+                        fp.c_date
+                    FROM info_firm_profile fp
+                    INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0                    
+                    INNER JOIN info_users u ON u.id = fp.op_user_id
+                    INNER JOIN sys_specific_definitions sd14 ON sd14.main_group = 14 AND sd14.first_group = fp.cons_allow_id AND sd14.deleted =0 AND sd14.active =0 AND sd14.language_parent_id =0		    
+		    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= fp.active AND sd16.deleted = 0 AND sd16.active = 0 AND sd16.language_parent_id =0
+		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= fp.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
+		    
+		    WHERE fp.language_parent_id = 0 AND
+			  fp.cons_allow_id = 2 AND
+			  fp.consultant_id = " . intval($opUserIdValue). "		
+                " . $sorguStr . " 
+                    ) AS xtable 
+                ";     
+                $statement = $pdo->prepare($sql);
+               // echo debugPDO($sql, $params);                
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                $affectedRows = $statement->rowCount();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+            
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+    
+    
+    /**
+     * @author Okan CIRAN
      * @ info_firm_profile tablosundan parametre olarak  gelen id kaydın aktifliğini
      *  0(aktif) ise 1 , 1 (pasif) ise 0  yapar. !!
      * @version v 1.0  22.08.2016
@@ -3305,8 +3923,442 @@ class InfoFirmProfile extends \DAL\DalSlim {
         }
     }
     
+   /** 
+     * @author Okan CIRAN
+     * @ network_key ine ait firma logosunu döndürür !!
+     * @version v 1.0  17.12.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getFirmLogo($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');   
+            
+            $networkkey ='-11';
+             if (isset($params['network_key']) && $params['network_key'] != "") {
+             $networkkey =$params['network_key'];
+             }
+                $sql = "
+                SELECT 
+                    CASE COALESCE(NULLIF(fp.logo, ''),'-') 
+                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/' ,COALESCE(NULLIF(fp.logo, ''),'image_not_found.png'))
+                        ELSE CONCAT(ifk.folder_name ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(fp.logo, ''),'image_not_found.png')) END AS logo
+                FROM info_firm_profile fp
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
+                INNER JOIN info_firm_keys ifk ON ifk.firm_id = fp.act_parent_id
+                WHERE fp.language_parent_id = 0 AND
+                    fp.cons_allow_id =2 AND 
+                    ifk.network_key = '" . $networkkey . "'
+                    limit 1                     
+                    ";        
+                $statement = $pdo->prepare($sql);
+                //  echo debugPDO($sql, $params);                
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();                 
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);            
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
     
-    
-    
-    
+    /**
+     * @author Okan CIRAN
+     * @ urge elamanlarına atanmış firma isimleri ddslick için info_firm_profile tablosundan kayıtları döndürür !!
+     * @version v 1.0  19.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException 
+     */
+    public function fillUrgeAllowFirmListDds($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+               $sql= "  
+                (
+                SELECT   0 as id, 	
+                        COALESCE(NULLIF(ax.description, ''), a.description_eng) AS name,
+                        a.description_eng as name_eng ,
+                        0 AS active , 
+                        'closed' AS state_type,
+                        true AS selected
+                  FROM sys_specific_definitions a 
+                  LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0  
+                  INNER JOIN sys_specific_definitions ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.active = 0 AND ax.deleted =0 AND ax.language_id = lx.id
+                  where a.main_group  = 0 and a.first_group = 24 and   
+                  a.language_parent_id =0
+                  limit 1   
+                )  
+                UNION 
+                (
+                SELECT
+                    a.act_parent_id AS id, 
+		    cast( COALESCE(NULLIF( COALESCE(NULLIF(ax.firm_name_short	, ''), a.firm_name_short_eng) , '' ), ax.firm_name) as character varying(30)) AS name,  
+                    cast( a.firm_name_short_eng as character varying(30)) AS name_eng,
+                    a.active,
+                    'closed' AS state_type,
+                    false AS selected
+                FROM info_firm_profile a
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  
+		LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+                LEFT JOIN info_firm_profile ax ON (ax.id =a.id OR ax.language_parent_id = a.id) AND ax.deleted =0 AND ax.active =0 AND lx.id = ax.language_id
+		INNER JOIN sys_osb_person sop ON sop.user_id = ".intval($opUserIdValue)." AND sop.active =0 AND sop.deleted =0 AND sop.user_id  = a.consultant_id 
+                LEFT JOIN info_firm_clusters ifc ON ifc.osb_cluster_id = sop.osb_cluster_id AND ifc.firm_id = a.act_parent_id AND ifc.cons_allow_id =2
+                WHERE 
+                    a.alliance_type_id >-1 and 
+                    a.deleted = 0 AND
+                    a.language_parent_id =0 and
+                    a.active =0 and 
+                    a.cons_allow_id =2
+                    )
+                                 ";
+                $statement = $pdo->prepare($sql); 
+                   //echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+      
+    /** 
+     * @author Okan CIRAN
+     * @ userin yaptığı firma genel bilgilerinden son aktif kayıt bilgisini info_firm_profile tablosundan döndürür !!
+     * @version v 1.0 11.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillCompanyProfile($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $getFirmId = -1;
+            $getFirm = InfoFirmProfile :: getFirmIdsForNetworkKey(array('network_key' => $params['network_key']));
+
+            if (\Utill\Dal\Helper::haveRecord($getFirm)) {
+                $getFirmId = $getFirm ['resultSet'][0]['firm_id'];
+                $addSql = NULL;
+                $opUserId = InfoUsers::getUserId(array('pk' => $params['pk'], 'firm_id' => $getFirmId));
+                if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                    //    $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                    $getFirmIdValue = $opUserId ['resultSet'][0]['user_firm_id'];
+                    if ($getFirmId != $getFirmIdValue) {
+                        $addSql = " AND a.cons_allow_id = 2 ";
+                    }
+                }
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+
+                $CPKValue = NULL;
+                $CPK = InfoFirmKeys:: getCPK(array('network_key' => $params['network_key']));
+                if (\Utill\Dal\Helper::haveRecord($CPK)) {
+                    $CPKValue = $CPK ['resultSet'][0]['cpk'];
+                }
+
+                $sql = "
+                SELECT 
+                    a.id,
+                    a.profile_public,
+                    COALESCE(NULLIF(COALESCE(NULLIF(ax.firm_name, ''), a.firm_name_eng), ''), a.firm_name) AS firm_name,
+                    a.firm_name_eng,
+		    COALESCE(NULLIF(COALESCE(NULLIF(ax.firm_name_short, ''), a.firm_name_short_eng), ''), a.firm_name_short) AS firm_name_short,
+		    a.firm_name_short_eng,
+		    a.web_address,
+                    a.country_id,
+		    COALESCE(NULLIF(cox.name, ''), co.name_eng) AS country_name,
+		    co.name_eng AS country_name_eng,
+                    a.tax_office, 
+                    a.tax_no, 
+                    a.foundation_yearx,
+                    a.act_parent_id,
+                    a.active,
+                    COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng) AS state_active,
+                    COALESCE(NULLIF(ax.description, ''), a.description_eng) AS description, 
+                    a.description_eng,
+                    ifk.network_key,
+                    CASE COALESCE(NULLIF(a.logo, ''),'-') 
+                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/' ,COALESCE(NULLIF(a.logo, ''),'image_not_found.png'))
+                        ELSE CONCAT(ifk.folder_name ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(a.logo, ''),'image_not_found.png')) END AS logo,
+                    a.place_point,
+                    '" . $CPKValue . "' AS cpk,
+                    CONCAT(ifk.folder_name ,'/',ifk.logos_folder,'/') AS folder_road 
+                FROM info_firm_profile a  
+                INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0  
+                INNER JOIN info_firm_keys ifk ON ifk.firm_id =  a.act_parent_id 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND l.deleted =0 AND l.active =0 
+		LEFT JOIN info_firm_profile ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0             
+                LEFt JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = a.language_id AND sd16.deleted = 0 AND sd16.active = 0
+                LEFT JOIN sys_specific_definitions sd16x ON (sd16x.id = sd16.id OR sd16.language_parent_id = sd16.id) AND sd16x.language_id = lx.id AND sd16x.deleted =0 AND sd16x.active =0                
+                INNER JOIN info_users u ON u.id = a.op_user_id
+                LEFT JOIN sys_countrys co ON co.id = a.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = a.language_id
+                LEFT JOIN sys_countrys cox ON (cox.id = a.country_id OR cox.language_parent_id = a.country_id) AND cox.deleted = 0 AND cox.active = 0 AND cox.language_id = lx.id
+                WHERE    
+                    a.act_parent_id = " . intval($getFirmId) . " AND   
+                    a.language_parent_id =0 
+                    " . $addSql . "
+                    ORDER BY id DESC
+                    LIMIT 1                    
+                ";
+                $statement = $pdo->prepare($sql);
+                //   echo debugPDO($sql, $params);                 
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'network_key'; 
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    /**  
+     * @author Okan CIRAN
+     * @ userın kayıtlı oldugu firmaların bilgilerini (kısa) döndürür  !!
+     * @version v 1.0  12.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getUserCompanyShortInformation($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+
+                $sql = "  
+                    SELECT
+                        npk, 
+                        logo,
+                        cpk,
+                        lower(network_name) AS network_name,
+                        firm_name_short
+                    FROM ( 
+                        SELECT
+                            ifk.network_key AS npk,   
+                            a.act_parent_id,
+                            CASE COALESCE(NULLIF(a.logo, ''),'-') 
+                                WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/' ,COALESCE(NULLIF(a.logo, ''),'image_not_found.png'))
+                                ELSE CONCAT(ifk.folder_name ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(a.logo, ''),'image_not_found.png')) END AS logo,                            
+			    REPLACE(TRIM(SUBSTRING(crypt(ifk.sf_private_key_value,gen_salt('xdes')),6,20)),'/','*') AS cpk, 
+			    ifk.network_name,
+			    COALESCE(NULLIF(ax.firm_name_short, ''), a.firm_name_short_eng) AS firm_name_short
+                        FROM info_firm_profile a
+                        INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
+		        INNER JOIN info_firm_users ifu ON ifu.firm_id = a.act_parent_id and ifu.active =0 and ifu.deleted =0 
+		        INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.act_parent_id
+                        INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                        LEFT JOIN sys_language lx ON (lx.id = l.id OR lx.language_parent_id = l.id) AND lx.deleted =0 AND lx.active =0 and lx.id = ".intval($languageIdValue)."
+                        LEFT JOIN info_firm_profile ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.deleted =0 AND ax.active =0 AND ax.language_id = lx.id 
+                        WHERE a.deleted =0 AND
+                            ifu.user_id = ".intval($opUserIdValue)." AND 
+                            a.active=0 AND
+                            a.language_parent_id=0  
+                            limit 1 
+                        ) AS xctable          
+ 
+                   ";
+                $statement = $pdo->prepare($sql);
+              //  echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    /**  
+     * @author Okan CIRAN
+     * @ userin firm bilgilerini döndürür  !!
+     * parametrelerde unpk varsa baska bir kullanıcı tarafından bu user bilgileri görüntüleniyor demektir. 
+     * su an için sadece 1 firması varmış senaryosu için gecerli. 
+     * @version v 1.0  17.07.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillUserFirmInformation($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk'], ));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+               // $getFirmIdValue = $opUserId ['resultSet'][0]['user_firm_id'];  
+                $addSql =NULL;
+                $addInner = NULL;
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+                $addSql =" ifu.user_id = ".intval($opUserIdValue)." AND ";
+                $unpk = "-1";                            
+                if ((isset($params['unpk']) && $params['unpk'] != "")) { 
+                    $unpk = $params['unpk']; 
+                    $addInner = " INNER JOIN info_users iu ON iu.id = ifu.user_id and iu.active =0 and iu.deleted =0";
+                    $addSql =" iu.network_key = '".$unpk."' AND ";                    
+                }
+                            
+
+                $sql = " 
+                    SELECT
+                        COALESCE(NULLIF(ax.firm_name, ''), a.firm_name_eng) AS firm_name,                        
+                        ifk.network_key AS npk,                               
+                        CASE COALESCE(NULLIF(a.logo, ''),'-') 
+                            WHEN '-' THEN NULL
+                            ELSE CONCAT(ifk.folder_name ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(a.logo, ''),'image_not_found.png')) END AS logo,
+                        COALESCE(NULLIF(ax.firm_name_short, ''), a.firm_name_short_eng) AS firm_name_short,
+                        COALESCE(NULLIF(ifux.title, ''), ifu.title_eng) AS title 			    
+                    FROM info_firm_profile a
+                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
+                    INNER JOIN info_firm_users ifu ON ifu.firm_id = a.act_parent_id and ifu.active =0 and ifu.deleted =0 		        
+                    INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.act_parent_id
+                    ".$addInner."
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                    LEFT JOIN sys_language lx ON (lx.id = l.id OR lx.language_parent_id = l.id) AND lx.deleted =0 AND lx.active =0 and lx.id = ".intval($languageIdValue)."
+                    LEFT JOIN info_firm_profile ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.deleted =0 AND ax.active =0 AND ax.language_id = lx.id 
+                    LEFT JOIN info_firm_users ifux ON (ifux.id = ifu.id OR ifux.language_parent_id = a.act_parent_id) and ifux.active =0 and ifux.deleted =0 AND ifux.language_id = lx.id 
+                    WHERE a.deleted =0 AND
+                        ".$addSql."
+                        a.active=0 AND
+                        a.language_parent_id=0                   
+                                 ";
+                $statement = $pdo->prepare($sql);
+             //echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+  
+      /**  
+     * @author Okan CIRAN
+     * @ guest kullanıcılar için unpk sı gönderilen userin firm bilgilerini döndürür  !!
+     * su an için sadece 1 firması varmış senaryosu için gecerli. 
+     * @version v 1.0  17.07.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillUserFirmInformationGuest($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
+            $unpk = "-1";                            
+            if ((isset($params['unpk']) && $params['unpk'] != "")) { 
+                $unpk = $params['unpk'];               
+            }
+
+            $sql = " 
+                   SELECT
+                        COALESCE(NULLIF(ax.firm_name, ''), a.firm_name_eng) AS firm_name,                        
+                        ifk.network_key AS npk,                               
+                        CASE COALESCE(NULLIF(a.logo, ''),'-') 
+                            WHEN '-' THEN NULL
+                            ELSE CONCAT(ifk.folder_name ,'/',ifk.logos_folder,'/' ,COALESCE(NULLIF(a.logo, ''),'image_not_found.png')) END AS logo,
+                        COALESCE(NULLIF(ax.firm_name_short, ''), a.firm_name_short_eng) AS firm_name_short,
+                        COALESCE(NULLIF(ifux.title, ''), ifu.title_eng) AS title 			    
+                    FROM info_firm_profile a
+                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
+                    INNER JOIN info_firm_users ifu ON ifu.firm_id = a.act_parent_id and ifu.active =0 and ifu.deleted =0
+                    INNER JOIN info_users iu ON iu.id = ifu.user_id and iu.active =0 and iu.deleted =0
+                    INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.act_parent_id
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                    LEFT JOIN sys_language lx ON (lx.id = l.id OR lx.language_parent_id = l.id) AND lx.deleted =0 AND lx.active =0 and lx.id = ".intval($languageIdValue)."
+                    LEFT JOIN info_firm_profile ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.deleted =0 AND ax.active =0 AND ax.language_id = lx.id 
+                    LEFT JOIN info_firm_users ifux ON (ifux.id = ifu.id OR ifux.language_parent_id = a.act_parent_id) and ifux.active =0 and ifux.deleted =0 AND ifux.language_id = lx.id 
+                    WHERE a.deleted =0 AND                        
+			iu.network_key = '".$unpk."' AND 
+                        a.active=0 AND
+                        a.language_parent_id=0                 
+                                 ";
+            $statement = $pdo->prepare($sql);
+            //echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
 }

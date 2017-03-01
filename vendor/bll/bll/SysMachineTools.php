@@ -166,4 +166,15 @@ class SysMachineTools extends \BLL\BLLSlim {
         return $resultSet['resultSet'];
     } 
     
+    /**
+     * Function to get datagrid row count on user interface layer
+     * @param array $params
+     * @return array
+     */
+    public function getLeftMenuMachineStatistic($params = array()) {
+    $DAL = $this->slimApp->getDALManager()->get('sysMachineToolsPDO');
+    return $DAL->getLeftMenuMachineStatistic($params);
+    }
+    
+    
 }

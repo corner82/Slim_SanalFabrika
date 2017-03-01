@@ -333,15 +333,15 @@ $app->get("/pkFillFirmSectorNpk_infoFirmSectoral/", function () use ($app ) {
     if (isset($resDataGrid[0]['id'])) {      
         foreach ($resDataGrid as $flow) {
             $flows[] = array(
-                "id" => intval($flow["id"]),                
-                "firm_id" => intval($flow["firm_id"]),
-                "sector_id" => $flow["sector_id"],
+             //   "id" => intval($flow["id"]),                
+             //   "firm_id" => intval($flow["firm_id"]),
+             //   "sector_id" => $flow["sector_id"],
                 "sector_name" => $flow["sector_name"],
                 "sector_name_eng" => $flow["sector_name_eng"],                
-                "act_parent_id" => $flow["act_parent_id"],
-                "language_id" => $flow["language_id"],
-                "language_name" => $flow["language_name"],
-                "network_key" => $flow["network_key"],           
+            //    "act_parent_id" => $flow["act_parent_id"],
+           //     "language_id" => $flow["language_id"],
+            //    "language_name" => $flow["language_name"],
+            //    "network_key" => $flow["network_key"],           
                 "attributes" => array("notroot" => true,),
             );
         }
@@ -391,7 +391,7 @@ $app->get("/FillFirmSectorNpkQuest_infoFirmSectoral/", function () use ($app ) {
         foreach ($resDataGrid as $flow) {
             $flows[] = array(
              //  "id" => intval($flow["id"]),                
-                "firm_id" => intval($flow["firm_id"]),
+            //     "firm_id" => intval($flow["firm_id"]),
                // "sector_id" => $flow["sector_id"],
                 "sector_name" => $flow["sector_name"],
                 "sector_name_eng" => $flow["sector_name_eng"],                

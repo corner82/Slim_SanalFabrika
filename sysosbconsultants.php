@@ -86,13 +86,14 @@ $app->get("/pkGetConsPendingFirmProfile_sysOsbConsultants/", function () use ($a
 //            "id" => $flow["id"],
  
   //          "c_date" => $flow["c_date"],
-            "company_name" => $flow["company_name"],
+            "company_name" => html_entity_decode($flow["company_name"]),
             "username" => $flow["username"],
   //          "operation_name" => $flow["operation_name"],
   //          "cep" => $flow["cep"],
   //          "istel" => $flow["istel"],  
             "s_date" => $flow["s_date"],
             "id" => $flow["id"],
+            "firm_id" => $flow["firm_id"],
             
         );
     }
@@ -129,9 +130,15 @@ $app->get("/pkGetConsConfirmationProcessDetails_sysOsbConsultants/", function ()
     if (isset($_GET['profile_id'])) {
         $profileID = $_GET['profile_id'];
     }
+    $sdate = null;
+    if (isset($_GET['s_date'])) {
+        $sdate = $_GET['s_date'];
+    }
 
-    $result = $BLL->getConsConfirmationProcessDetails(array('profile_id' => $profileID,
-                                                         'pk' => $pk));    
+    $result = $BLL->getConsConfirmationProcessDetails(array(
+        'profile_id' => $profileID,
+       
+        'pk' => $pk));    
     //print_r($resDataGrid['$result']);
     $flows = array();
     foreach ($result['resultSet'] as $flow) {
@@ -139,14 +146,17 @@ $app->get("/pkGetConsConfirmationProcessDetails_sysOsbConsultants/", function ()
 
  
             "id" => $flow["id"],
-            "firmname" => $flow["firm_name"],
-            "username" => $flow["username"],   
+            "firmname" => html_entity_decode($flow["firm_name"]),
+            "username" => html_entity_decode($flow["username"]),   
             "sgkno" => $flow["sgk_sicil_no"],
             "languagecode" => $flow["language_code"],
-            "iletisimadresi" => $flow["iletisimadresi"],
-            "faturaadresi" => $flow["faturaadresi"],
-            "irtibattel" => $flow["irtibattel"],
-            "irtibatcep" => $flow["irtibatcep"],
+            "description" => html_entity_decode($flow["description"]),
+            "description_eng" => html_entity_decode($flow["description_eng"]),
+            "iletisimadresi" => html_entity_decode($flow["iletisimadresi"]),
+            "faturaadresi" => html_entity_decode($flow["faturaadresi"]),
+            "irtibattel" => html_entity_decode($flow["irtibattel"]),
+            "irtibatcep" => html_entity_decode($flow["irtibatcep"]),
+            "foundation_year" => $flow["foundation_year"],            
             "sdate" => $flow["s_date"],
 
             
@@ -202,10 +212,10 @@ $app->get("/pkcpkGetAllFirmCons_sysOsbConsultants/", function () use ($app ) {
         'cpk' => $vcpk,
         'pk' => $pk,
     ));
-
+   
 
     $flows = array();
-    if (isset($result[0]['consultant_id'])) {
+    
         foreach ($result['resultSet'] as $flow) {
             $flows[] = array(
                 //  "firm_id" => $flow["firm_id"],
@@ -215,14 +225,15 @@ $app->get("/pkcpkGetAllFirmCons_sysOsbConsultants/", function () use ($app ) {
                 "auth_email" => $flow["auth_email"],
                 "title" => $flow["title"],
                 "title_eng" => $flow["title_eng"],
-                "osb_title" => $flow["title"],
-                "osb_title_eng" => $flow["title_eng"],
+                "cons_title" => $flow["cons_title"],
+                "cons_title_eng" => $flow["cons_title_eng"],
                 "cons_picture" => $flow["cons_picture"],
                 "npk" => $flow["network_key"],
+                "phone" => $flow["phone"],
                 "attributes" => array("firm_consultant" => $flow["firm_consultant"],),
             );
         }
-    }
+    
 
     $app->response()->header("Content-Type", "application/json");
     $app->response()->body(json_encode($flows));
@@ -462,5 +473,277 @@ $app->get("/pkDelete_sysOsbConsultants/", function () use ($app ) {
     $app->response()->body(json_encode($resDataDeleted));
 }
 );  
+ 
+/**
+ *  * Okan CIRAN
+ * @since 27-01-2017
+ */
+$app->get("/pkGetConsPendingUser_sysOsbConsultants/", function () use ($app ) { 
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysOsbConsultantsBLL');
+    $headerParams = $app->request()->headers();
+     if (!isset($headerParams['X-Public']))
+         throw new Exception('rest api "pkGetConsPendingUser_sysOsbConsultants" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, 
+                $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {        
+               $filterRules= $_GET['filterRules'];
+    }
+    
+    $stripper->strip();   
+     if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+   
+
+
+    $resDataGrid = $BLL->getConsPendingUser(array(
+            'url' =>  $_GET['url'],
+            'language_code' => $vLanguageCode,   
+            'page' => $vPage,        
+            'rows' => $vRows,
+            'sort' => $vSort,
+            'order' => $vOrder,     
+            'pk' => $pk,
+            'filterRules' => $filterRules));    
+
+    $resTotalRowCount = $BLL->getConsPendingUserRtc(array(
+        'pk' => $pk, 
+        'language_code' => $vLanguageCode,
+        'filterRules' => $filterRules));
+ 
+   
+    $flows = array();
+    foreach ($resDataGrid['resultSet'] as $flow) {
+        $flows[] = array( 
+            "name_surname" => html_entity_decode($flow["name_surname"]),
+            "username" => $flow["username"], 
+            "s_date" => $flow["s_date"],
+            "id" => $flow["id"],
+            "user_id" => $flow["user_id"], 
+            "role_id" => $flow["role_id"],
+            "role" => html_entity_decode($flow["role"]),
+            "role_eng" => html_entity_decode($flow["role_eng"]),
+             
+        );
+    }
+
+    $app->response()->header("Content-Type", "application/json");
+
+    $resultArray = array();
+    $resultArray['total'] = $resTotalRowCount['resultSet'][0]['count'];
+    $resultArray['rows'] = $flows;
+
+    /* $app->contentType('application/json');
+      $app->halt(302, '{"error":"Something went wrong"}');
+      $app->stop(); */
+
+    $app->response()->body(json_encode($resultArray));
+
+});
+
+
+/**
+ * getting user details for consultant confirmation process
+ * @author Okan CIRAN
+ * @since 27.01.2016
+ */
+$app->get("/pkGetConsUserConfirmationProcessDetails_sysOsbConsultants/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysOsbConsultantsBLL');
+    $headerParams = $app->request()->headers();
+     if (!isset($headerParams['X-Public']))
+         throw new Exception('rest api "pkGetConsUserConfirmationProcessDetails_sysOsbConsultants" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+     
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }
+    $vProfileID = NULL;
+    if (isset($_GET['profile_id'])) {
+        $stripper->offsetSet('profile_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['profile_id']));
+    }
+    $stripper->strip();   
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('profile_id')) {
+        $vProfileID = $stripper->offsetGet('profile_id')->getFilterValue();
+    }
+    
+    $result = $BLL->GetConsUserConfirmationProcessDetails(array(
+        'profile_id' => $vProfileID,
+        'language_code' => $vLanguageCode,
+        'pk' => $pk));    
+  
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array( 
+            "id" => $flow["id"], 
+            "name" => html_entity_decode($flow["name"]),
+            "username" => html_entity_decode($flow["username"]),   
+            "surname" => html_entity_decode($flow["surname"]),
+            "languagecode" => html_entity_decode($flow["language_code"]), 
+            "iletisimadresi" => html_entity_decode($flow["iletisimadresi"]),
+            "faturaadresi" => html_entity_decode($flow["faturaadresi"]),
+            "irtibattel" => html_entity_decode($flow["irtibattel"]),
+            "irtibatcep" => html_entity_decode($flow["irtibatcep"]), 
+            "auth_email" => html_entity_decode($flow["auth_email"]),
+            "role_id" => $flow["role_id"],
+            "role_eng" => html_entity_decode($flow["role_eng"]),
+            "role" => html_entity_decode($flow["role"]), 
+            "sdate" => $flow["s_date"], 
+        );
+    }
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($flows));
+});
+
+ 
+ /**
+ *  * Okan CIRAN
+ * @since 27-01-2017
+ */
+$app->get("/pkGetConsPendingFirmMachine_sysOsbConsultants/", function () use ($app ) { 
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+    $BLL = $app->getBLLManager()->get('sysOsbConsultantsBLL');
+    $headerParams = $app->request()->headers();
+     if (!isset($headerParams['X-Public']))
+         throw new Exception('rest api "pkGetConsPendingFirmMachine_sysOsbConsultants" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $vLanguageCode = strtolower(trim($_GET['language_code']));
+    }
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, 
+                $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {        
+               $filterRules= $_GET['filterRules'];
+    }
+    
+    $stripper->strip();   
+     if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+    
+
+    $resDataGrid = $BLL->getConsPendingFirmMachine(array(
+            'url' =>  $_GET['url'],
+            'language_code' => $vLanguageCode,   
+            'page' => $vPage,        
+            'rows' => $vRows,
+            'sort' => $vSort,
+            'order' => $vOrder,     
+            'pk' => $pk,
+            'filterRules' => $filterRules));    
+
+    $resTotalRowCount = $BLL->getConsPendingFirmMachineRtc(array(
+        'pk' => $pk, 
+        'language_code' => $vLanguageCode,
+        'filterRules' => $filterRules)); 
+   
+    $flows = array();
+    foreach ($resDataGrid['resultSet'] as $flow) {
+        $flows[] = array( 
+            "id" => $flow["id"],
+            "s_date" => $flow["s_date"], 
+          //  "firm_id" => $flow["firm_id"], 
+            "sys_machine_tool_id" => $flow["sys_machine_tool_id"],
+            "machine_tool_name" => html_entity_decode($flow["machine_tool_name"]),
+            "manufacturer_name" => html_entity_decode($flow["manufacturer_name"]),
+            "machine_tool_grup_id" => $flow["machine_tool_grup_id"],
+            "machine_group_name" => html_entity_decode($flow["machine_group_name"]),
+            "company_name" => html_entity_decode($flow["company_name"]),
+            "op_user_name" => html_entity_decode($flow["op_user_name"]),
+            "iletisimadresi" => html_entity_decode($flow["iletisimadresi"]),
+            "faturaadresi" => html_entity_decode($flow["faturaadresi"]),
+            "irtibattel" => html_entity_decode($flow["irtibattel"]),
+            "irtibatcep" => html_entity_decode($flow["irtibatcep"]),
+           
+        );
+    }
+
+    $app->response()->header("Content-Type", "application/json");
+
+    $resultArray = array();
+    $resultArray['total'] = $resTotalRowCount['resultSet'][0]['count'];
+    $resultArray['rows'] = $flows; 
+    $app->response()->body(json_encode($resultArray));
+
+});
 
 $app->run();

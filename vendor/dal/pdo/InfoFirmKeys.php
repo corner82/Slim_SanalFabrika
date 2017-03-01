@@ -117,24 +117,32 @@ class InfoFirmKeys extends \DAL\DalSlim {
                         products_folder, 
                         members_folder, 
                         others_folder,
-                        folder_name
+                        folder_name,
+                        network_name                        
                        )
                 VALUES (
-                        :firm_id, 
+                        ".intval( $params['firm_id']).", 
                         CONCAT('".$CountryCodeValue."',ostim_id_generator()),
                         'Machines',
                         'Logos',
                         'Products',
                         'Members',
                         'Others',
-                        'x'
+                        NULL,
+                        (   SELECT
+                              REPLACE(LOWER(REPLACE(UPPER(COALESCE(NULLIF(substring(  CONCAT(replace(firm_name_short_eng,'-',''),' ') from 1 for position(' ' IN  CONCAT(replace(firm_name_short_eng,'-',''),' ') )-1 ) , ''),
+                                    substring(  CONCAT(replace(firm_name,'-',''),' ') FROM 1 for position(' ' IN  CONCAT(replace(firm_name,'-',''),' ') )-1 ) )),'ı','I')),'İ','i')  
+                            FROM info_firm_profile WHERE act_parent_id = ".intval( $params['firm_id'])."    LIMIT 1)
                                               )  ";
-            $statement = $pdo->prepare($sql);       
-            $statement->bindValue(':firm_id', $params['firm_id'], \PDO::PARAM_STR);           
-          //  echo debugPDO($sql, $params);
-            $result = $statement->execute();           
-            $insertID = $pdo->lastInsertId('info_firm_keys_id_seq');         
-            $errorInfo = $statement->errorInfo();
+            $statement_x = $pdo->prepare($sql);       
+         //   $statement->bindValue(':firm_id', $params['firm_id'], \PDO::PARAM_INT);           
+         //  echo debugPDO($sql, $params);
+            $result = $statement_x->execute();   
+                 print_r("zzz" );    
+            print_r($statement_x);         
+                 print_r("zzz");    
+            $insertID = $pdo->lastInsertId('info_firm_keys_id_seq');              
+            $errorInfo = $statement_x->errorInfo();
             
             InfoFirmKeys::setFirmPrivateKey(array('id' => $insertID));
             
@@ -299,7 +307,7 @@ class InfoFirmKeys extends \DAL\DalSlim {
                     id = :id";
             $statement = $pdo->prepare($sql);  
             $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
-           // echo debugPDO($sql, $params);
+            echo debugPDO($sql, $params);
             $update = $statement->execute();
             $affectedRows = $statement->rowCount();
             $errorInfo = $statement->errorInfo();

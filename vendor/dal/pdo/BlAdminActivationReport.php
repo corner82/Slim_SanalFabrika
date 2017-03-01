@@ -204,6 +204,7 @@ class BlAdminActivationReport extends \DAL\DalSlim {
      * 
      * @author Okan CIRAN
      * @Admin dashboard üst bilgiler  !!
+     * 
      * @version v 1.0  05.02.2016
      * @param array | null $args
      * @return array
@@ -222,16 +223,24 @@ class BlAdminActivationReport extends \DAL\DalSlim {
 						     cast(COALESCE(count(a.id),0) as character varying(5))   AS adet                          
 						FROM sys_osb_consultants a
 						WHERE a.deleted =0 AND a.active =0  AND a.language_parent_id =0
-				) as dasda
+				) AS dasda
                     UNION 
-				SELECT   ids,  aciklama, adet from (
+                        SELECT   ids,  aciklama, adet from (
+						SELECT 
+						    2 as ids, 
+						    cast('Firma Sayısı' as character varying(50))  AS aciklama,   
+                                                    0 AS adet
+                                ) AS dasdb            
+                            /* bu kısım firma tablosu olmadıgı için kapatıldı. sablon olarak  duruyor. 
+                                SELECT   ids,  aciklama, adet from (
 						SELECT 
 						    2 as ids, 
 						    cast('Firma Sayısı' as character varying(50))  AS aciklama,   
 						      cast(COALESCE(count(a.id),0) as character varying(5))   AS adet                    
 						FROM info_firm_profile a						
-						WHERE a.deleted =0 AND a.active =0 AND a.language_parent_id =0
+						WHERE a.deleted =0 AND a.active =0 AND a.language_parent_id =0                            
 				) as dasdb
+                            */
                     UNION 
 				SELECT  ids,   aciklama,    adet from (
 						SELECT  3 as ids,

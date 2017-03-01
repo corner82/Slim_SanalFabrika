@@ -775,10 +775,22 @@ class InfoUsersSendingMail extends \DAL\DalSlim {
 
             $mail = new \Utill\Mail\PhpMailer\PhpMailInfoWrapper();
             $mail->setCharset('UTF-8');
-            $mail->setSMTPServerHost('mail.ostimteknoloji.com');
-            $mail->setSMTPServerUser('sanalfabrika@ostimteknoloji.com');
-            $mail->setSMTPServerUserPassword('1q2w3e4r');
-            $mail->setFromUserName('sanalfabrika@ostimteknoloji.com');
+            //$mail->setSMTPServerHost('mail.ostimteknoloji.com');
+            //$mail->setSMTPServerUser('sanalfabrika@ostimteknoloji.com');
+            //$mail->setSMTPServerUserPassword('1q2w3e4r');
+            //$mail->setFromUserName('sanalfabrika@ostimteknoloji.com');
+            
+            
+                
+            $mail->setSMTPServerHost('smtp.gmail.com');
+            $mail->setSMTPServerUser('sanalfabrika.urgetest@gmail.com');
+            $mail->setSMTPServerUserPassword('12345678oki');
+            $mail->setFromUserName('sanalfabrika.urgetest@gmail.com');
+            $mail->setSMTPServerSecureProtocol('SSL');
+            $mail->setSMTPServerPort('587');
+            
+            
+            
             $mail->setMessage($message);
             $params = ['subject' => 'Sanal Fabrika Küme Çalışanı Onay İşlemi',
                 'info' => 'Sanal Fabrika Yöneticileri tarafından '
@@ -831,7 +843,7 @@ class InfoUsersSendingMail extends \DAL\DalSlim {
             
             $mail->setSMTPServerHost('smtp.gmail.com');
             $mail->setSMTPServerUser('sanalfabrika.urgetest@gmail.com');
-            $mail->setSMTPServerUserPassword('1Qaaal123');
+            $mail->setSMTPServerUserPassword('12345678oki');
             $mail->setFromUserName('sanalfabrika.urgetest@gmail.com');
             $mail->setSMTPServerSecureProtocol('SSL');
             $mail->setSMTPServerPort('587');
@@ -843,7 +855,9 @@ class InfoUsersSendingMail extends \DAL\DalSlim {
                 'info' => 'Sanal Fabrika Yöneticileri tarafından '
                 . '              şifrenizi belirlemeniz amacıyla gönderilmiştir',
                 'to' => $params['auth_email'] ];  // 311corner82@gmail.com
-            $mail->sendInfoMailSMTP($params);
+            $mail->sendInfoMailSMTP($params); 
+           // $mail->sendInfoMailSMTPDebug($params); 
+            
             $sql = "";
             $statement = $pdo->prepare($sql);
             //  echo debugPDO($sql, $params);                

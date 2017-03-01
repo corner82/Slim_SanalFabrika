@@ -350,6 +350,7 @@ $app->get("/pkFillGridSingularNpk_infoFirmUsers/", function () use ($app ) {
         'language_code' => $vLanguageCode,
         'network_key' => $vNetworkKey,  
         'pk'=> $pk,
+        'url'=>  $_GET['url'],
     ));
     $resTotalRowCount = $BLL->fillGridSingularNpkRtc(array(
         'language_code' => $vLanguageCode,

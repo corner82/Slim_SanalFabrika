@@ -245,10 +245,134 @@ $app->get("/pkGetConsWaitingForConfirmYenisi_blActivationReport/", function () u
     $app->response()->body(json_encode($resultArray));
 });
 
+  
+/**
+ *  * OKAN CIRAN
+ * @since 25-01-2017
+ */
+$app->get("/pkGetUrgeUpDashBoardCount_blActivationReport/", function () use ($app ) {
+    $BLL = $app->getBLLManager()->get('blActivationReportBLL');   
+    $headerParams = $app->request()->headers();
+    $vPk = $headerParams['X-Public'];  
+    $resDataMenu = $BLL->getUrgeUpDashBoardCount(array('pk'=>$vPk));  
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body($resDataMenu); 
+  
+});
+ 
+ /**
+ *  * Okan CIRAN
+ * @since 25-01-2017
+ */
+$app->get("/pkFillUrgeOrganizations_blActivationReport/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+   $BLL = $app->getBLLManager()->get('blActivationReportBLL');
+
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkFillUrgeOrganizations_blActivationReport" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+          
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, 
+                $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+                $app, $_GET['filterRules']));
+    }
+    
+    $stripper->strip();    
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    } 
+
+    $resDataGrid = $BLL->fillUrgeOrganizations(array(        
+        'page' => $vPage,
+        'url' => $_GET['url'],
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,        
+        'filterRules' => $filterRules,
+        'pk' => $pk,
+    ));
+  
+    $resTotalRowCount = $BLL->fillUrgeOrganizationsRtc(array(        
+        'filterRules' => $filterRules,
+        'pk' => $pk,
+    ));
+    $counts=0;   
+    $menu = array();            
+  
+    if (isset($resDataGrid['resultSet'][0]['id'])) {
+        foreach ($resDataGrid['resultSet'] as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "organization_name" => html_entity_decode($menu["organization_name"]),
+                "address2" => html_entity_decode($menu["address2"]),
+                "country" => html_entity_decode($menu["country"]),
+                "city_name" => html_entity_decode($menu["city_name"]),               
+                "borough" => html_entity_decode($menu["borough"]),
+                "description" => html_entity_decode($menu["description"]),
+                "description_eng" => html_entity_decode($menu["description_eng"]),
+                "sure" =>  $menu["sure"] , 
+                "attributes" => array(  ),                   
+            );
+        }
+       $counts = $resTotalRowCount['resultSet'][0]['count'];
+      } ELSE { $menus = array(); }   
+
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['total'] = $counts;
+    $resultArray['rows'] = $menus;
+    $app->response()->body(json_encode($resultArray));
+});
+  
 
 
-
-
+/**
+ *  * OKAN CIRAN
+ * @since 25-01-2017
+ */
+$app->get("/pkGetUrgeUpFirstDashBoardCount_blActivationReport/", function () use ($app ) {
+    $BLL = $app->getBLLManager()->get('blActivationReportBLL');   
+    $headerParams = $app->request()->headers();
+    $vPk = $headerParams['X-Public'];  
+    $resDataMenu = $BLL->getUrgeUpFirstDashBoardCount(array('pk'=>$vPk));  
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body($resDataMenu);   
+});
 
 
 $app->run();

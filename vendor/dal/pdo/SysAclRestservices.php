@@ -686,7 +686,7 @@ class SysAclRestservices extends \DAL\DalSlim {
         }
     }
 
-         /**
+    /**
      * @author Okan CIRAN
      * @ sys_acl_rrp_restservices tablosunda restservices_id  daha önce kaydedilmiş mi ?  
      * @version v 1.0  27.07.2016
@@ -720,7 +720,7 @@ class SysAclRestservices extends \DAL\DalSlim {
         }
     }
  
-                                   
+                            
                             
     
     

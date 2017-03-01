@@ -140,4 +140,16 @@ class SysMachineToolProperties extends \BLL\BLLSlim {
         return $resultSet['resultSet'];
     }
     
+      /**
+     * Function to get datagrid row count on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillMachinePropertiesSubGridListRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysMachineToolPropertiesPDO');
+        $resultSet = $DAL->fillMachinePropertiesSubGridListRtc($params);  
+        return $resultSet['resultSet'];
+    }
+    
+    
 }

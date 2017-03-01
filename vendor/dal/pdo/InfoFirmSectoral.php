@@ -733,8 +733,7 @@ class InfoFirmSectoral extends \DAL\DalSlim {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $userId = InfoUsers::getUserId(array('pk' => $params['pk']));
-            if (\Utill\Dal\Helper::haveRecord($userId)) {
-                // $opUserIdValue = $userId ['resultSet'][0]['user_id'];               
+            if (\Utill\Dal\Helper::haveRecord($userId)) {                
                 $firmIdValue = NULL;
                 $getFirm = InfoFirmProfile :: getFirmIdsForNetworkKey(array('network_key' => $params['network_key']));
                 if (\Utill\Dal\Helper::haveRecord($getFirm)) {
@@ -762,7 +761,7 @@ class InfoFirmSectoral extends \DAL\DalSlim {
                         ifk.network_key
                     FROM info_firm_sectoral a
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.cons_allow_id=2 AND fp.language_parent_id =0
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.cons_allow_id=2 AND fp.language_parent_id =0 AND fp.deleted =0 
                     INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  

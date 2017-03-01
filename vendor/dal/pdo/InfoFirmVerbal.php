@@ -1509,10 +1509,20 @@ class InfoFirmVerbal extends \DAL\DalSlim {
             
            $mail = new \Utill\Mail\PhpMailer\PhpMailInfoWrapper();
            $mail->setCharset('UTF-8');
-           $mail->setSMTPServerHost('mail.ostimteknoloji.com');
-           $mail->setSMTPServerUser('sanalfabrika@ostimteknoloji.com');
-           $mail->setSMTPServerUserPassword('1q2w3e4r');
-           $mail->setFromUserName('sanalfabrika@ostimteknoloji.com');
+           //$mail->setSMTPServerHost('mail.ostimteknoloji.com');
+           //$mail->setSMTPServerUser('sanalfabrika@ostimteknoloji.com');
+           //$mail->setSMTPServerUserPassword('1q2w3e4r');
+           //$mail->setFromUserName('sanalfabrika@ostimteknoloji.com');
+           
+               
+            $mail->setSMTPServerHost('smtp.gmail.com');
+            $mail->setSMTPServerUser('sanalfabrika.urgetest@gmail.com');
+            $mail->setSMTPServerUserPassword('12345678oki');
+            $mail->setFromUserName('sanalfabrika.urgetest@gmail.com');
+            $mail->setSMTPServerSecureProtocol('SSL');
+            $mail->setSMTPServerPort('587');
+           
+           
            $mail->setMessage($message);
            $params = ['subject'=>'Sanal Fabrika Danışman Onay İşlemi',
                       'info' => 'Sanal Fabrika Yöneticileri tarafından '

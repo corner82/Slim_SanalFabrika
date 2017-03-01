@@ -32,6 +32,8 @@ class FilterOnlyFilterRules implements \Zend\ServiceManager\FactoryInterface {
                      ;
         $filterChain ->attach(new \Zend\Filter\PregReplace(array(
                         'pattern'     => array(
+                            
+                                             
                                                "/([^A-Za-z0-9])*(iframe)([^A-Za-z0-9])+/i",
                                                "/(SRC=)|(src =)|(src%3d)/i",
                                                "/(SRC=)|(src =)|(src%3d)/i",

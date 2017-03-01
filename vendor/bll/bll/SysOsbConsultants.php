@@ -156,4 +156,55 @@ class SysOsbConsultants extends \BLL\BLLSlim {
         return $DAL->makeActiveOrPassive($params);
     } 
      
+    /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */
+    public function getConsPendingUser($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysOsbConsultantsPDO');
+        return $DAL->getConsPendingUser($params);
+    }
+    
+    /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */
+    public function getConsPendingUserRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysOsbConsultantsPDO');
+        return $DAL->getConsPendingUserRtc($params);
+    }
+     
+    /**
+     * get consultant confirmation process details
+     * @param array $params
+     * @return array
+     */
+    public function getConsUserConfirmationProcessDetails($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysOsbConsultantsPDO');
+        return $DAL->getConsUserConfirmationProcessDetails($params);
+    } 
+    
+     /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */
+    public function getConsPendingFirmMachine($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysOsbConsultantsPDO');
+        return $DAL->getConsPendingFirmMachine($params);
+    }
+    
+    /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */
+    public function getConsPendingFirmMachineRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('sysOsbConsultantsPDO');
+        return $DAL->getConsPendingFirmMachineRtc($params);
+    }
+    
+    
 }

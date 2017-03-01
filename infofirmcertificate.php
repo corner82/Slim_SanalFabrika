@@ -324,6 +324,7 @@ $app->get("/pkFillFirmCertificateNpk_infoFirmCertificate/", function () use ($ap
         $vNpk = $stripper->offsetGet('npk')->getFilterValue();
 
     $resDataGrid = $BLL->fillFirmCertificateNpk(array(
+        'url' =>  $_GET['url'],
         'language_code' => $vLanguageCode,
         'network_key' => $vNpk,
         'pk' => $pk,
@@ -335,20 +336,20 @@ $app->get("/pkFillFirmCertificateNpk_infoFirmCertificate/", function () use ($ap
     ));
     $counts=0;
     $flows = array();            
-    if (isset($resDataGrid[0]['id'])) {      
+    if (isset($resDataGrid[0]['certificate_id'])) {      
         foreach ($resDataGrid as $flow) {
             $flows[] = array(
-                "id" => intval($flow["id"]),                
-                "firm_id" => intval($flow["firm_id"]),
+             //   "id" => intval($flow["id"]),                
+             //   "firm_id" => intval($flow["firm_id"]),
                 "certificate_id" => $flow["certificate_id"],
                 "certificate" => $flow["certificate"],
                 "certificate_eng" => $flow["certificate_eng"],
                 "certificate_short" => $flow["certificate_short_eng"],
                 "certificate_short_eng" => $flow["certificate_short_eng"],
-                "act_parent_id" => $flow["act_parent_id"],
-                "language_id" => $flow["language_id"],
-                "language_name" => $flow["language_name"],
-                "network_key" => $flow["network_key"],
+           //     "act_parent_id" => $flow["act_parent_id"],
+            //    "language_id" => $flow["language_id"],
+            //    "language_name" => $flow["language_name"],
+                "logo" => $flow["logo"],
                 "attributes" => array("notroot" => true,),
             );
         }
@@ -389,22 +390,24 @@ $app->get("/FillFirmCertificateNpkQuest_infoFirmCertificate/", function () use (
         $vNpk = $stripper->offsetGet('npk')->getFilterValue();
 
     $resDataGrid = $BLL->fillFirmCertificateNpkQuest(array(
+        'url' =>  $_GET['url'],
         'language_code' => $vLanguageCode,
         'network_key' => $vNpk,
   
     ));    
   
     $flows = array();            
-    if (isset($resDataGrid[0]['id'])) {      
+    if (isset($resDataGrid[0]['certificate_id'])) {      
         foreach ($resDataGrid as $flow) {
             $flows[] = array(
                // "id" => intval($flow["id"]),                
-                "firm_id" => intval($flow["firm_id"]),
+              //  "firm_id" => intval($flow["firm_id"]),
                 "certificate_id" => $flow["certificate_id"],
                 "certificate" => $flow["certificate"],
                 "certificate_eng" => $flow["certificate_eng"],
                 "certificate_short" => $flow["certificate_short_eng"],
                 "certificate_short_eng" => $flow["certificate_short_eng"],
+                "logo" => $flow["logo"],
                 //"act_parent_id" => $flow["act_parent_id"],
                // "language_id" => $flow["language_id"],
                // "language_name" => $flow["language_name"],

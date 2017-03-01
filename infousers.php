@@ -615,15 +615,15 @@ $app->get("/pkFillUsersListNpk_infoUsers/", function () use ($app ) {
     if (isset($resDataGrid[0]['name'])) { 
     foreach ($resDataGrid as $flow) {
         $flows[] = array(            
-            "name" => $flow["name"],
-            "surname" => $flow["surname"],
-            "email" => $flow["email"],
-            "iletisimadresi" => $flow["iletisimadresi"],            
-            "faturaadresi" => $flow["faturaadresi"],
+            "name" => html_entity_decode($flow["name"]),
+            "surname" => html_entity_decode($flow["surname"]),
+            "email" => html_entity_decode($flow["email"]),
+            "iletisimadresi" => html_entity_decode($flow["iletisimadresi"]),            
+            "faturaadresi" => html_entity_decode($flow["faturaadresi"]),
             "communication_number1" => $flow["communication_number1"],
             "communication_number2" => $flow["communication_number2"],  
             "language_id" => $flow["language_id"],
-            "language_name" => $flow["language_name"],    
+            "language_name" => html_entity_decode($flow["language_name"]),    
             "network_key" => $flow["network_key"],  
             "attributes" => array("notroot" => true, ),
         );
@@ -684,15 +684,15 @@ $app->get("/pkFillUsersInformationNpk_infoUsers/", function () use ($app ) {
         $flows[] = array(            
             "unpk" => $flow["unpk"],
             "registration_date" => $flow["registration_date"],
-            "name" => $flow["name"],
-            "surname" => $flow["surname"],            
+            "name" => html_entity_decode($flow["name"]),
+            "surname" => html_entity_decode($flow["surname"]),            
             "auth_email" => $flow["auth_email"],
-            "user_language" => $flow["user_language"],
+            "user_language" => html_entity_decode($flow["user_language"]),
             "npk" => $flow["npk"],  
-            "firm_name" => $flow["firm_name"],
-            "firm_name_eng" => $flow["firm_name_eng"],                
-            "title" => $flow["title"],  
-            "title_eng" => $flow["title_eng"],  
+            "firm_name" => html_entity_decode($flow["firm_name"]),
+            "firm_name_eng" => html_entity_decode($flow["firm_name_eng"]),                
+            "title" => html_entity_decode($flow["title"]),  
+            "title_eng" => html_entity_decode($flow["title_eng"]),  
             "userb" => $flow["userb"], 
             "attributes" => array("notroot" => true, ), 
         );
@@ -898,7 +898,6 @@ $app->get("/pkInsertUrgePerson_infoUsers/", function () use ($app ) {
     $app->response()->body(json_encode($resDataInsert));
 }
 );
-
  
 /**
  *  * Okan CIRAN
@@ -937,5 +936,236 @@ $app->get("/setPersonPassword_infoUsers/", function () use ($app ) {
     $app->response()->body(json_encode($resDataInsert));
 }
 );
+
+/**
+ *  * Okan CIRAN
+ * @since 10-01-2017
+ */
+$app->get("/pkGetUserShortInformation_infoUsers/", function () use ($app ) {
+    //$stripper = $app->getServiceManager()->get('filterChainerCustom');
+    //$stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('infoUsersBLL');
+    $headerParams = $app->request()->headers(); 
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkGetUserShortInformation_infoUsers" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    $resdata = $BLL->getUserShortInformation(array(  
+            'pk' => $pk,
+    )); 
+    
+    
+    $flows = array();
+    if (isset($resdata[0]['unpk'])) { 
+    foreach ($resdata as $flow) {
+        $flows[] = array(     
+            "unpk" => $flow["unpk"],
+            "registration_date" => $flow["registration_date"],
+            "name" => html_entity_decode($flow["name"]),            
+            "surname" => html_entity_decode($flow["surname"]),                        
+            "auth_email" => html_entity_decode($flow["auth_email"]),
+            "language_id" => $flow["language_id"],
+            "language_code" => html_entity_decode($flow["language_code"]),            
+            "user_picture" => $flow["user_picture"],            
+            "mem_type_id" => $flow["mem_type_id"],   
+            "mem_type" => html_entity_decode($flow["mem_type"]),
+            "mem_logo" => html_entity_decode($flow["mem_logo"]),  
+            "cons_allow" =>  $flow["cons_allow"] ,  
+            
+            
+            "attributes" => array( ), 
+        );
+        }
+     }
+    
+
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($flows));
+    
+  
+});
+
+/**
+ *  * Okan CIRAN
+ * @since 17-01-2017
+ */
+$app->get("/pkFillUsersProfileInformation_infoUsers/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('infoUsersBLL');
+    $headerParams = $app->request()->headers(); 
+     if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkFillUsersProfileInformation_infoUsers" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vUnpk = NULL;
+    if (isset($_GET['unpk'])) {
+        $stripper->offsetSet('unpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                $app, $_GET['unpk']));
+    } 
+    
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }     
+    if ($stripper->offsetExists('unpk')) {
+        $vUnpk = $stripper->offsetGet('unpk')->getFilterValue();
+    } 
+    
+    $resDataGrid = $BLL->fillUsersProfileInformation(array(
+        'url' =>  $_GET['url'],   
+        'language_code' => $vLanguageCode,   
+        'unpk' => $vUnpk, 
+        'pk'=> $pk, 
+    ));
+     
+    $flows = array();
+    if (isset($resDataGrid[0]['id'])) { 
+    foreach ($resDataGrid as $flow) {
+        $flows[] = array(            
+            "id" => $flow["id"],
+            "unpk" => $flow["unpk"],
+            "picture" => $flow["picture"],
+            "registration_date" => $flow["registration_date"],
+            "name" => html_entity_decode($flow["name"]),            
+            "surname" => html_entity_decode($flow["surname"]),            
+            "auth_allow_id" => $flow["auth_allow_id"],            
+            "auth_alow" => html_entity_decode($flow["auth_alow"]),
+            "auth_email" => html_entity_decode($flow["auth_email"]),
+            "preferred_language_id" => $flow["preferred_language_id"],
+            "preferred_language_name" => html_entity_decode($flow["preferred_language_name"]),            
+            "active" => $flow["active"],            
+            "state_active" => html_entity_decode($flow["state_active"]),   
+            "profile_public" => $flow["profile_public"],            
+            "state_profile_public" => html_entity_decode($flow["state_profile_public"]),            
+            "attributes" => array( ), 
+        );
+        }
+     }
+
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['rows'] = $flows;
+    $app->response()->body(json_encode($resultArray));
+});
+ 
+/**
+ *  * Okan CIRAN
+ * @since 18-01-2017
+ */
+$app->get("/fillUsersProfileInformationGuest_infoUsers/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('infoUsersBLL');
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    $vUnpk = NULL;
+    if (isset($_GET['unpk'])) {
+        $stripper->offsetSet('unpk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2,
+                $app, $_GET['unpk']));
+    } 
+    
+    $stripper->strip();
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }     
+    if ($stripper->offsetExists('unpk')) {
+        $vUnpk = $stripper->offsetGet('unpk')->getFilterValue();
+    } 
+    
+    $resDataGrid = $BLL->fillUsersProfileInformationGuest(array(
+        'url' =>  $_GET['url'],   
+        'language_code' => $vLanguageCode,   
+        'unpk' => $vUnpk,     
+    ));
+     
+    $flows = array();
+    if (isset($resDataGrid[0]['id'])) { 
+    foreach ($resDataGrid as $flow) {
+        $flows[] = array(            
+            //"id" => $flow["id"],
+            "unpk" => $flow["unpk"],
+            "picture" => $flow["picture"],
+            "registration_date" => $flow["registration_date"],
+            "name" => html_entity_decode($flow["name"]),            
+            "surname" => html_entity_decode($flow["surname"]),            
+          //  "auth_allow_id" => $flow["auth_allow_id"],            
+            "auth_alow" => html_entity_decode($flow["auth_alow"]),
+            "auth_email" => html_entity_decode($flow["auth_email"]),
+            "preferred_language_id" => $flow["preferred_language_id"],
+            "preferred_language_name" => html_entity_decode($flow["preferred_language_name"]),
+            "state_active" => html_entity_decode($flow["state_active"]),   
+            "profile_public" => $flow["profile_public"],            
+            "state_profile_public" => html_entity_decode($flow["state_profile_public"]),            
+            "attributes" => array( "active" => $flow["active"],  ), 
+        );
+        }
+     }
+
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['rows'] = $flows;
+    $app->response()->body(json_encode($resultArray));
+});
+  
+ /**x
+ *  * Okan CIRAN
+ * @since 26-01-2017
+ */
+$app->get("/pkUpdateConsUserConfirmAct_infoUsers/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('infoUsersBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkUpdateConsUserConfirmAct_infoUsers" end point, X-Public variable not found');
+    }
+    $Pk = $headerParams['X-Public'];      
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    } 
+    $vOperationId = NULL;
+    if (isset($_GET['operation_id'])) {
+        $stripper->offsetSet('operation_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['operation_id']));
+    } 
+    $vRoleId = NULL;
+    if (isset($_GET['role_id'])) {
+        $stripper->offsetSet('role_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['role_id']));
+    } 
+    
+    
+    $stripper->strip(); 
+    if ($stripper->offsetExists('id')) {$vId = $stripper->offsetGet('id')->getFilterValue(); }
+    if ($stripper->offsetExists('operation_id')) {$vOperationId = $stripper->offsetGet('operation_id')->getFilterValue(); }
+    if ($stripper->offsetExists('role_id')) {$vRoleId = $stripper->offsetGet('role_id')->getFilterValue(); }
+    $resData = $BLL->updateConsUserConfirmAct(array(                  
+            'id' => $vId ,    
+            'url' => $_GET['url'] ,    
+            'operation_id' => $vOperationId, 
+            'role_id' => $vRoleId, 
+            'pk' => $Pk,        
+            ));
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($resData));
+}
+); 
 
 $app->run();

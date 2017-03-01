@@ -111,7 +111,7 @@ class SysOsbClustersFirms extends \DAL\DalSlim {
 		INNER JOIN sys_clusters sc ON sc.id = soc.clusters_id AND sc.deleted =0 AND sc.active =0 AND l.id = sc.language_id
                 LEFT JOIN sys_clusters scx ON (scx.id = sc.id OR scx.language_parent_id = sc.id) AND scx.deleted =0 AND scx.active =0 AND lx.id = scx.language_id
 		INNER JOIN info_firm_profile ifp ON ifp.act_parent_id = a.firm_id AND ifp.language_parent_id =0 AND ifp.cons_allow_id =2 
-		LEFT JOIN info_firm_profile ifpx ON (ifpx.id = ifp.id OR ifpx.language_parent_id = ifp.id) AND ifpx.language_id = lx.id AND ifpx.cons_allow_id =2 
+		LEFT JOIN info_firm_profile ifpx ON (ifpx.act_parent_id = ifp.act_parent_id OR ifpx.language_parent_id = ifp.act_parent_id) AND ifpx.language_id = lx.id AND ifpx.cons_allow_id =2 
                 LEFT JOIN sys_countrys co ON co.id = so.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = so.language_id                               
 		LEFT JOIN sys_city ct ON ct.id = so.city_id AND ct.deleted = 0 AND ct.active = 0 AND ct.language_id = so.language_id                               
 		LEFT JOIN sys_borough bo ON bo.boroughs_id = so.borough_id AND bo.city_id = so.city_id AND bo.deleted = 0 AND bo.active = 0 AND bo.language_id = so.language_id                  
@@ -367,7 +367,7 @@ class SysOsbClustersFirms extends \DAL\DalSlim {
 		INNER JOIN sys_clusters sc ON sc.id = soc.clusters_id AND sc.deleted =0 AND sc.active =0 AND l.id = sc.language_id
                 LEFT JOIN sys_clusters scx ON (scx.id = sc.id OR scx.language_parent_id = sc.id) AND scx.deleted =0 AND scx.active =0 AND lx.id = scx.language_id
 		INNER JOIN info_firm_profile ifp ON ifp.act_parent_id = a.firm_id AND ifp.language_parent_id =0 AND ifp.cons_allow_id =2 
-		LEFT JOIN info_firm_profile ifpx ON (ifpx.id = ifp.id OR ifpx.language_parent_id = ifp.id) AND ifpx.language_id = lx.id AND ifpx.cons_allow_id =2 
+		LEFT JOIN info_firm_profile ifpx ON (ifpx.act_parent_id = ifp.act_parent_id OR ifpx.language_parent_id = ifp.act_parent_id) AND ifpx.language_id = lx.id AND ifpx.cons_allow_id =2 
                 LEFT JOIN sys_countrys co ON co.id = so.country_id AND co.deleted = 0 AND co.active = 0 AND co.language_id = so.language_id                               
 		LEFT JOIN sys_city ct ON ct.id = so.city_id AND ct.deleted = 0 AND ct.active = 0 AND ct.language_id = so.language_id                               
 		LEFT JOIN sys_borough bo ON bo.boroughs_id = so.borough_id AND bo.city_id = so.city_id AND bo.deleted = 0 AND bo.active = 0 AND bo.language_id = so.language_id                                 
@@ -475,7 +475,7 @@ class SysOsbClustersFirms extends \DAL\DalSlim {
                 INNER JOIN sys_language l ON l.id = so.language_id AND l.deleted =0 AND l.active = 0
 		LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue). " AND lx.deleted =0 AND lx.active =0		
 		INNER JOIN info_firm_profile ifp ON ifp.act_parent_id = a.firm_id AND ifp.language_parent_id =0 AND ifp.cons_allow_id =2
-		LEFT JOIN info_firm_profile ifpx ON (ifpx.id = ifp.id OR ifpx.language_parent_id = ifp.id) AND ifpx.language_id = lx.id AND ifpx.cons_allow_id =2 
+		LEFT JOIN info_firm_profile ifpx ON (ifpx.act_parent_id = ifp.act_parent_id OR ifpx.language_parent_id = ifp.act_parent_id) AND ifpx.language_id = lx.id AND ifpx.cons_allow_id =2 
                 INNER JOIN sys_clusters sc ON sc.id =soc.clusters_id AND sc.deleted =0 AND sc.active =0 AND l.id = sc.language_id
                 WHERE
                     a.deleted = 0 AND

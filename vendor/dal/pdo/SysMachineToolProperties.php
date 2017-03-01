@@ -145,6 +145,10 @@ class SysMachineToolProperties extends \DAL\DalSlim {
                     if ((isset($params['property_string_value']) && $params['property_string_value'] != "")) {
                         $propertyStringValue =$params['property_string_value'];
                     }
+                    $modelMaterialsId = 0;
+                    if ((isset($params['model_materials_id']) && $params['model_materials_id'] != "")) {
+                        $modelMaterialsId =$params['model_materials_id'];
+                    }
 
                     $sql = "
                 INSERT INTO sys_machine_tool_properties(
@@ -154,7 +158,8 @@ class SysMachineToolProperties extends \DAL\DalSlim {
                         property_string_value,
                         unit_id,                         
                         op_user_id,
-                        language_id        
+                        language_id,
+                        model_materials_id
                         )
                 VALUES (
                         :machine_tool_id, 
@@ -163,7 +168,8 @@ class SysMachineToolProperties extends \DAL\DalSlim {
                         :property_string_value,    
                         :unit_id,                         
                         :op_user_id,                         
-                        :language_id  
+                        :language_id,
+                        :model_materials_id
                                              )   ";                    
                     $statement = $pdo->prepare($sql);
                     $statement->bindValue(':machine_tool_id', $params['machine_tool_id'], \PDO::PARAM_INT);
@@ -172,6 +178,7 @@ class SysMachineToolProperties extends \DAL\DalSlim {
                     $statement->bindValue(':property_string_value', $propertyStringValue, \PDO::PARAM_STR);
                     $statement->bindValue(':language_id', $languageIdValue, \PDO::PARAM_INT);
                     $statement->bindValue(':op_user_id', $opUserIdValue, \PDO::PARAM_INT);                    
+                    $statement->bindValue(':model_materials_id', $modelMaterialsId, \PDO::PARAM_INT);
                     // echo debugPDO($sql, $params);
                     $result = $statement->execute();
                     $insertID = $pdo->lastInsertId('sys_machine_tool_properties_id_seq');
@@ -215,7 +222,12 @@ class SysMachineToolProperties extends \DAL\DalSlim {
             }
             * 
             */
-     
+            
+            $modelMaterialsId = 0;
+            if ((isset($params['model_materials_id']) && $params['model_materials_id'] != "")) {
+                $modelMaterialsId =$params['model_materials_id'];
+            } 
+            
             $sql = " 
             SELECT  
                  a.machine_tool_property_definition_id AS name , 
@@ -225,8 +237,9 @@ class SysMachineToolProperties extends \DAL\DalSlim {
             FROM sys_machine_tool_properties a
             INNER JOIN sys_machine_tools mt ON mt.id = a.machine_tool_id             
             INNER JOIN sys_machine_tool_property_definition mtpd ON mtpd.id = a.machine_tool_property_definition_id
-            WHERE a.machine_tool_id = " . intval($params['machine_tool_id']) . "
-            AND a.machine_tool_property_definition_id =" . intval($params['machine_tool_property_definition_id']) . "
+            WHERE   a.machine_tool_id = " . intval($params['machine_tool_id']) . " AND 
+                    a.machine_tool_property_definition_id =" . intval($params['machine_tool_property_definition_id']) . " AND 
+                    a.model_materials_id = " . intval($modelMaterialsId) . "
             " . $addSql . " 
             AND a.deleted =0            
                                ";
@@ -272,6 +285,10 @@ class SysMachineToolProperties extends \DAL\DalSlim {
                     if ((isset($params['property_string_value']) && $params['property_string_value'] != "")) {
                         $propertyStringValue =$params['property_string_value'];
                     }
+                    $modelMaterialsId = 0;
+                    if ((isset($params['model_materials_id']) && $params['model_materials_id'] != "")) {
+                        $modelMaterialsId =$params['model_materials_id'];
+                    }
 
                     $sql = "
                 UPDATE sys_machine_tool_properties
@@ -280,10 +297,12 @@ class SysMachineToolProperties extends \DAL\DalSlim {
                     property_string_value = '".$propertyStringValue."',  
                     unit_id = " . intval($params['unit_id']). ", 
                     op_user_id = " . intval($opUserIdValue). ", 
-                    language_id =" . intval($languageIdValue). " 
+                    language_id =" . intval($languageIdValue). ",
+                    model_materials_id = ". intval($modelMaterialsId). "                        
                 WHERE 
                     machine_tool_id = " . intval($params['machine_tool_id']). " AND 
                     machine_tool_property_definition_id =  " . intval($params['machine_tool_property_definition_id'])." AND 
+                    model_materials_id =     
                     active =0 AND 
                     deleted =0
                     ";
@@ -651,16 +670,31 @@ class SysMachineToolProperties extends \DAL\DalSlim {
             $pdo->beginTransaction();
              $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
-                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];               
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $machineId = -1;
+                if ((isset($params['machine_id']) && $params['machine_id'] != "")) {
+                    $machineId =$params['machine_id'];
+                }
+                $propertyId = -1;
+                if ((isset($params['property_id']) && $params['property_id'] != "")) {
+                    $propertyId =$params['property_id'];
+                }
+                $modelMaterialsId = 0;
+                if ((isset($params['model_materials_id']) && $params['model_materials_id'] != "")) {
+                    $modelMaterialsId =$params['model_materials_id'];
+                }
+                
                 $sql = "
                 UPDATE sys_machine_tool_properties
                 SET 
                     active = 1, 
                     deleted = 1,                    
                     op_user_id = " . intval($opUserIdValue)."    
-                WHERE machine_tool_property_definition_id = " . intval($params['property_id'])." AND  
-                    machine_tool_id = " . intval($params['machine_id'])." 
-                    AND active = 0 AND deleted = 0  
+                WHERE machine_tool_property_definition_id = " . intval($propertyId)." AND  
+                    machine_tool_id = " . intval($machineId)." AND 
+                    model_materials_id = " . intval($modelMaterialsId)." AND     
+                    active = 0 AND
+                    deleted = 0  
                 " ;
                 $statement = $pdo->prepare($sql);  
                  //  echo debugPDO($sql, $params);
@@ -683,9 +717,9 @@ class SysMachineToolProperties extends \DAL\DalSlim {
         }
     }
     
-       /**
+    /**
      * @author Okan CIRAN
-     * @ sys_osb bilgilerini döndürür !!
+     * @ makina propertyleri bilgilerini döndürür !!
      * filterRules aktif 
      * @version v 1.0  19.08.2016
      * @param array | null $args
@@ -693,6 +727,132 @@ class SysMachineToolProperties extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function fillMachinePropertiesSubGridList($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+             if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+                $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+                $limit = intval($params['rows']);
+            } else {
+                $limit = 10;
+                $offset = 0;
+            }           
+
+            $sortArr = array();
+            $orderArr = array();
+                            
+            if (isset($params['sort']) && $params['sort'] != "") {
+                $sort = trim($params['sort']);
+                $sortArr = explode(",", $sort);
+                if (count($sortArr) === 1)
+                    $sort = trim($params['sort']);
+            } else {
+               $sort = " machine_tool_name, property_name, material_name ,unitcode "; 
+            }
+
+            if (isset($params['order']) && $params['order'] != "") {
+                $order = trim($params['order']);
+                $orderArr = explode(",", $order);
+                if (count($orderArr) === 1)
+                    $order = trim($params['order']);
+            } else {
+                $order = "ASC";
+            } 
+            
+            
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                }
+            }  
+                        
+            $sorguStr2 = " AND 1 = 2 ";
+            if (isset($params['machine_tool_id']) && $params['machine_tool_id'] != "") {
+                $sorguStr2 = " AND a.machine_tool_id = " . $params['machine_tool_id'] ;
+            } 
+                         
+            $sql = " 
+                SELECT 
+                    id, 
+                    machine_tool_id, 
+                    machine_tool_name,
+                    machine_tool_name_eng,
+                    machine_tool_property_definition_id, 
+                    CONCAT(property_name,' (' ,material_name ,')' ) AS property_name,         
+                    CONCAT(property_name_eng,' (' ,material_name_eng ,')' ) AS property_name_eng,
+                    property_value, 
+                    property_string_value,
+                    unit_id,
+                    unitcode,
+                    unitcode_eng,
+                    model_materials_id,
+                    material_name,
+                    material_name_eng
+                    FROM ( 
+                        SELECT 
+                            a.id, 
+                            a.machine_tool_id, 
+                            COALESCE(NULLIF(mt.machine_tool_name, ''), mt.machine_tool_name_eng) AS machine_tool_name,
+                            mt.machine_tool_name_eng,
+                            a.machine_tool_property_definition_id, 
+                            COALESCE(NULLIF(mtpd.property_name, ''), mtpd.property_name_eng) AS property_name,
+                            mtpd.property_name_eng,
+                            a.property_value, 
+                            a.property_string_value,
+                            a.unit_id,
+                            COALESCE(NULLIF(su.unitcode, ''), su.unitcode_eng) AS unitcode,
+                            su.unitcode_eng,
+                            a.model_materials_id,
+                            COALESCE(NULLIF(srw.name, ''), srw.name_eng) AS material_name,
+                            srw.name_eng AS material_name_eng
+                        FROM sys_machine_tool_properties a
+                        INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = ".intval($languageIdValue)." AND sd16.deleted = 0 AND sd16.active = 0
+                        INNER JOIN info_users u ON u.id = a.op_user_id
+                        INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0  
+                        INNER JOIN sys_machine_tools mt ON mt.id = a.machine_tool_id and mt.active =0 and mt.deleted =0 AND mt.language_parent_id =0
+                        INNER JOIN sys_units su ON su.id = a.unit_id AND su.active = 0 AND su.deleted =0 AND su.language_id = l.id 
+                        INNER JOIN sys_machine_tool_property_definition mtpd ON mtpd.id = a.machine_tool_property_definition_id AND mtpd.active =0 AND mtpd.deleted =0 AND mtpd.language_id = l.id 
+                        LEFT JOIN sys_raw_materials srw ON srw.id = a.model_materials_id AND srw.active =0 AND srw.deleted =0 AND srw.language_parent_id = 0                
+                        WHERE 
+                            a.active =0 AND a.deleted =0 AND a.language_parent_id =0
+                        " . $sorguStr2 . "                                
+                ) as xtable
+                 ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";  
+            $statement = $pdo->prepare($sql);
+            $parameters = array(
+                'sort' => $sort,
+                'order' => $order,
+                'limit' => $pdo->quote($limit),
+                'offset' => $pdo->quote($offset),
+            ); 
+            $statement = $pdo->prepare($sql);
+          // echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+
+        /**
+     * @author Okan CIRAN
+     * @ makina propertyleri bilgilerinin sayısını döndürür !!
+     * filterRules aktif 
+     * @version v 1.0  19.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillMachinePropertiesSubGridListRtc($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             $languageId = NULL;
@@ -703,37 +863,60 @@ class SysMachineToolProperties extends \DAL\DalSlim {
                     $languageIdValue = $languageId ['resultSet'][0]['id'];                    
                 }
             }  
-            $sort = " machine_tool_name, property_name,unitcode ";             
+            
             $sorguStr2 = " AND 1 = 2 ";
             if (isset($params['machine_tool_id']) && $params['machine_tool_id'] != "") {
                 $sorguStr2 = " AND a.machine_tool_id = " . $params['machine_tool_id'] ;
             } 
                          
             $sql = " 
-		 SELECT 
-                    a.id, 
-                    a.machine_tool_id, 
-                    COALESCE(NULLIF(mt.machine_tool_name, ''), mt.machine_tool_name_eng) AS machine_tool_name,
-                    mt.machine_tool_name_eng,
-                    a.machine_tool_property_definition_id, 
-                    COALESCE(NULLIF(mtpd.property_name, ''), mtpd.property_name_eng) AS property_name,
-                    mtpd.property_name_eng,
-                    a.property_value, 
-                    a.property_string_value,
-                    a.unit_id,
-                    COALESCE(NULLIF(su.unitcode, ''), su.unitcode_eng) AS unitcode,
-                    su.unitcode_eng
-                FROM sys_machine_tool_properties a
-                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = ".intval($languageIdValue)." AND sd16.deleted = 0 AND sd16.active = 0
-                INNER JOIN info_users u ON u.id = a.op_user_id
-                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0  
-                INNER JOIN sys_machine_tools mt ON mt.id = a.machine_tool_id and mt.active =0 and mt.deleted =0 AND mt.language_parent_id =0
-                INNER JOIN sys_units su ON su.id = a.unit_id AND su.active = 0 AND su.deleted =0 AND su.language_id = l.id 
-                INNER JOIN sys_machine_tool_property_definition mtpd ON mtpd.id = a.machine_tool_property_definition_id AND mtpd.active =0 AND mtpd.deleted =0 AND mtpd.language_id = l.id 
-                WHERE 
-                    a.active =0 AND a.deleted =0 AND a.language_parent_id =0
-                " . $sorguStr2 . "
-                ORDER BY    " . $sort . " 
+                select count(id) AS COUNT FROM ( 
+                SELECT 
+                    id, 
+                    machine_tool_id, 
+                    machine_tool_name,
+                    machine_tool_name_eng,
+                    machine_tool_property_definition_id, 
+                    CONCAT(property_name,' (' ,material_name ,')' ) AS property_name,         
+                    CONCAT(property_name_eng,' (' ,material_name_eng ,')' ) AS property_name_eng,
+                    property_value, 
+                    property_string_value,
+                    unit_id,
+                    unitcode,
+                    unitcode_eng,
+                    model_materials_id,
+                    material_name,
+                    material_name_eng
+                    FROM ( 
+                        SELECT 
+                            a.id, 
+                            a.machine_tool_id, 
+                            COALESCE(NULLIF(mt.machine_tool_name, ''), mt.machine_tool_name_eng) AS machine_tool_name,
+                            mt.machine_tool_name_eng,
+                            a.machine_tool_property_definition_id, 
+                            COALESCE(NULLIF(mtpd.property_name, ''), mtpd.property_name_eng) AS property_name,
+                            mtpd.property_name_eng,
+                            a.property_value, 
+                            a.property_string_value,
+                            a.unit_id,
+                            COALESCE(NULLIF(su.unitcode, ''), su.unitcode_eng) AS unitcode,
+                            su.unitcode_eng,
+                            a.model_materials_id,
+                            COALESCE(NULLIF(srw.name, ''), srw.name_eng) AS material_name,
+                            srw.name_eng AS material_name_eng
+                        FROM sys_machine_tool_properties a
+                        INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = ".intval($languageIdValue)." AND sd16.deleted = 0 AND sd16.active = 0
+                        INNER JOIN info_users u ON u.id = a.op_user_id
+                        INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0  
+                        INNER JOIN sys_machine_tools mt ON mt.id = a.machine_tool_id and mt.active =0 and mt.deleted =0 AND mt.language_parent_id =0
+                        INNER JOIN sys_units su ON su.id = a.unit_id AND su.active = 0 AND su.deleted =0 AND su.language_id = l.id 
+                        INNER JOIN sys_machine_tool_property_definition mtpd ON mtpd.id = a.machine_tool_property_definition_id AND mtpd.active =0 AND mtpd.deleted =0 AND mtpd.language_id = l.id 
+                        LEFT JOIN sys_raw_materials srw ON srw.id = a.model_materials_id AND srw.active =0 AND srw.deleted =0 AND srw.language_parent_id = 0                
+                        WHERE 
+                            a.active =0 AND a.deleted =0 AND a.language_parent_id =0
+                        " . $sorguStr2 . "                                
+                ) AS xtable
+                ) AS xxtable
                   " ;
             $statement = $pdo->prepare($sql);
           // echo debugPDO($sql, $params);
@@ -748,6 +931,6 @@ class SysMachineToolProperties extends \DAL\DalSlim {
         }
     }
 
-     
+      
     
 }

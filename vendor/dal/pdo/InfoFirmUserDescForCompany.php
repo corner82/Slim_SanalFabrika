@@ -111,8 +111,8 @@ class InfoFirmUserDescForCompany extends \DAL\DalSlim {
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     LEFT JOIN info_firm_user_desc_for_company ax ON (ax.id = a.id OR ax.language_parent_id=a.id)  AND ax.active = 0 AND ax.deleted = 0 AND ax.language_id =lx.id  
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
-                    LEFT JOIN info_firm_profile fpx ON (fpx.id = fp.id OR fpx.language_parent_id=fp.id)  AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
+                    LEFT JOIN info_firm_profile fpx ON (fpx.act_parent_id = fp.act_parent_id OR fpx.language_parent_id=fp.act_parent_id)  AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
                     INNER JOIN info_users_detail ud ON ud.root_id = a.user_id AND ud.cons_allow_id = 2 
                     INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id =l.id  AND op.deleted =0 AND op.active =0
@@ -491,8 +491,8 @@ class InfoFirmUserDescForCompany extends \DAL\DalSlim {
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     LEFT JOIN info_firm_user_desc_for_company ax ON (ax.id = a.id OR ax.language_parent_id=a.id)  AND ax.active = 0 AND ax.deleted = 0 AND ax.language_id =lx.id  
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
-                    LEFT JOIN info_firm_profile fpx ON (fpx.id = fp.id OR fpx.language_parent_id=fp.id)  AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0  
+                    LEFT JOIN info_firm_profile fpx ON (fpx.act_parent_id = fp.act_parent_id OR fpx.language_parent_id=fp.act_parent_id)  AND fpx.active = 0 AND fpx.deleted = 0 AND fpx.language_id =lx.id  
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
                     INNER JOIN info_users_detail ud ON ud.root_id = a.user_id AND ud.cons_allow_id = 2 
                     INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id =l.id  AND op.deleted =0 AND op.active =0
@@ -560,7 +560,7 @@ class InfoFirmUserDescForCompany extends \DAL\DalSlim {
                     INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
                     INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                     INNER JOIN info_users u ON u.id = a.op_user_id
-                    INNER JOIN info_firm_profile fp ON fp.id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.active = 0 AND fp.deleted = 0 AND fp.language_parent_id =0                      
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
                     INNER JOIN info_users_detail ud ON ud.root_id = a.user_id AND ud.cons_allow_id = 2 
                     INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id =l.id  AND op.deleted =0 AND op.active =0                                        
@@ -922,6 +922,7 @@ class InfoFirmUserDescForCompany extends \DAL\DalSlim {
             if ((isset($params['network_key']) && $params['network_key'] != "")) {
                 $networkKey = $params['network_key'];
             }
+            //CONCAT(sps.members_folder,'/' ,COALESCE(NULLIF(ud.picture, ''),'image_not_found.png'))
             $sql = "     
                 SELECT * FROM (
                             SELECT  
@@ -939,18 +940,19 @@ class InfoFirmUserDescForCompany extends \DAL\DalSlim {
 				COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
 				COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,
                                 CASE COALESCE(NULLIF(ud.picture, ''),'-')
-                                        WHEN '-' THEN CONCAT(COALESCE(NULLIF(CONCAT(sps.folder_road,'/'), '/'),''),sps.members_folder,'/'  ,'image_not_found.png')
-                                        ELSE
-                                        CONCAT(ifks.folder_name ,'/',ifks.members_folder,'/' ,COALESCE(NULLIF(ud.picture, ''),'image_not_found.png')) END AS picture
+                                        WHEN '-' THEN NULL
+                                        ELSE                                        
+                                        CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' , TRIM(ud.picture))  END AS picture,
+                                iu.network_key AS unpk
                             FROM info_firm_user_desc_for_company a  
                             INNER JOIN info_users_detail ud ON ud.root_id = a.user_id AND ud.cons_allow_id = 2                   
-                            INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                    
-                            INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                            INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0
                             LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . "  AND lx.deleted =0 AND lx.active =0
                             LEFT JOIN info_firm_user_desc_for_company ax ON (ax.id = a.id OR ax.language_parent_id=a.id)  AND ax.active = 0 AND ax.deleted = 0 AND ax.language_id =lx.id AND ax.cons_allow_id =2
-                            INNER JOIN info_firm_users ifu ON ifu.user_id  = a.user_id AND ifu.cons_allow_id=2 AND ifu.language_id =lx.id
+                            INNER JOIN info_firm_users ifu ON ifu.user_id  = a.user_id AND ifu.cons_allow_id=2 AND ifu.language_parent_id =0
                             LEFT JOIN info_firm_users ifux ON (ifux.id  = ifu.id OR ifux.language_parent_id = a.id) AND ifux.cons_allow_id=2 AND ifux.language_id =lx.id
                             INNER JOIN info_firm_keys ifks ON  ifks.firm_id =1 
+                            INNER JOIN info_users iu ON iu.id =  a.user_id 
                             WHERE 
                                 a.cons_allow_id=2 AND 
                                 a.language_parent_id =0 AND				 
@@ -975,17 +977,19 @@ class InfoFirmUserDescForCompany extends \DAL\DalSlim {
                                 COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
                                 COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,
                                 CASE COALESCE(NULLIF(ud.picture, ''),'-')
-                                    WHEN '-' THEN CONCAT(COALESCE(NULLIF(CONCAT(sps.folder_road,'/'), '/'),''),sps.members_folder,'/'  ,'image_not_found.png')
-                                    ELSE CONCAT(ifk.folder_name ,'/',ifk.members_folder,'/' ,COALESCE(NULLIF(ud.picture, ''),'image_not_found.png')) END AS picture 
+                                    WHEN '-' THEN NULL
+                                    ELSE 
+                                         CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' , TRIM(ud.picture))  END AS picture,
+                                iu.network_key AS unpk
                             FROM info_firm_user_desc_for_company a 
                             INNER JOIN info_users_detail ud ON ud.root_id = a.user_id  AND ud.cons_allow_id = 2
-                            INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                                        
-                            INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                            INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                                                                    
                             LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                             LEFT JOIN info_firm_user_desc_for_company ax ON (ax.id = a.id OR ax.language_parent_id=a.id)  AND ax.active = 0 AND ax.deleted = 0 AND ax.language_id =lx.id
-                            INNER JOIN info_firm_users ifu ON ifu.user_id  = a.user_id AND ifu.cons_allow_id=2 AND ifu.language_id =lx.id
+                            INNER JOIN info_firm_users ifu ON ifu.user_id  = a.user_id AND ifu.cons_allow_id=2 AND ifu.language_parent_id =0
                             LEFT JOIN info_firm_users ifux ON (ifux.id  = ifu.id OR ifux.language_parent_id = a.id) AND ifux.cons_allow_id=2 AND ifux.language_id =lx.id
                             INNER JOIN info_firm_keys ifk ON a.firm_id = ifk.firm_id
+                            INNER JOIN info_users iu ON iu.id =  a.user_id 
                             where
                                 a.cons_allow_id = 2  AND 
                                 a.language_parent_id =0 AND
@@ -1058,7 +1062,7 @@ class InfoFirmUserDescForCompany extends \DAL\DalSlim {
                                 CASE COALESCE(NULLIF(ud.picture, ''),'-')
                                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(CONCAT(sps.folder_road,'/'), '/'),''),sps.members_folder,'/'  ,'image_not_found.png')
                                         ELSE
-                                        CONCAT(ifks.folder_name ,'/',ifks.members_folder,'/' ,COALESCE(NULLIF(ud.picture, ''),'image_not_found.png')) END AS picture
+                                        CONCAT(sps.members_folder,'/' ,COALESCE(NULLIF(ud.picture, ''),'image_not_found.png')) END AS picture
                             FROM info_firm_user_desc_for_company a                              
                             INNER JOIN info_users_detail ud ON ud.root_id = a.user_id AND ud.cons_allow_id = 2
                             INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                    
@@ -1102,8 +1106,8 @@ class InfoFirmUserDescForCompany extends \DAL\DalSlim {
                             INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                             LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                             LEFT JOIN info_firm_user_desc_for_company ax ON (ax.id = a.id OR ax.language_parent_id=a.id) AND ax.language_id =lx.id AND ax.cons_allow_id =2
-                            LEFT JOIN info_firm_users ifux ON ifux.id = ifu.id AND ifu.cons_allow_id = 2
-                            INNER JOIN info_users_detail ud ON ud.root_id = a.user_id AND ud.cons_allow_id = 2
+                            
+                            
                             INNER JOIN info_firm_keys ifk ON a.firm_id = ifk.firm_id
                             where
                                 a.cons_allow_id = 2  AND 

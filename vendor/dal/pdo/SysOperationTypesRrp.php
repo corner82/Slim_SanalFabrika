@@ -1195,8 +1195,7 @@ class SysOperationTypesRrp extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-    
-    
+        
     /**
      * @author Okan CIRAN
      * @ sys_operation_types_rrp tablosundan parametre olarak  gelen id kaydın aktifliğini
@@ -1249,7 +1248,50 @@ class SysOperationTypesRrp extends \DAL\DalSlim {
         }
     }
 
-    
+    /**    
+     * @author Okan CIRAN
+     * @ sys_operation_types_rrp tablosundan rrp_id ve url e karsılık gelen operasyonun bilgilerini döndürür !!  
+         * not: su anda rrp_id aktif olmadıgı için user in role ü üzerinden kontrol yapılıyor. değişecek..   
+     * @version v 1.0  08.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getRrpIdToGoOperationId($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $sql = "
+                SELECT 
+                    a.id, 
+                    1=1 AS control,
+                    a.rrp_restservice_id, 
+                    a.assign_definition_id
+                FROM sys_operation_types_rrp a                        
+                INNER JOIN sys_acl_rrp_restservices sarrs ON sarrs.id = a.rrp_restservice_id AND sarrs.active=0 AND sarrs.deleted =0
+                INNER JOIN sys_acl_restservices sar ON sar.id = sarrs.restservices_id AND sar.active =0 AND sar.deleted =0 
+                INNER JOIN info_users u ON a.active=0 AND a.deleted =0 AND u.id = ". intval($params['op_user_id'])."   
+                INNER JOIN sys_acl_rrp rrp ON rrp.id = sarrs.rrp_id AND rrp.deleted =0 AND rrp.active =0 AND rrp.role_id = u.role_id 
+                WHERE  
+                    a.deleted =0 AND 
+                    a.active =0 AND 
+                    a.language_parent_id =0 AND 
+                    sar.name =  '". $params['url']."'
+                LIMIT 1                
+                ";     
+                            
+            $statement = $pdo->prepare($sql);            
+            //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+ 
     
     
 }

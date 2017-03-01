@@ -662,6 +662,10 @@ $app->get("/pkFillMachineGroupProperties_sysMachineToolPropertyDefinition/", fun
                 "property_string_value" => html_entity_decode($flow["property_string_value"]),  
                 "unit_id" => $flow["unit_id"],  
                 "property_name_eng" => html_entity_decode($flow["property_name_eng"]),
+                "model_materials_id" => $flow["model_materials_id"],  
+                "material_name" => html_entity_decode($flow["material_name"]),  
+                "material_name_eng" => html_entity_decode($flow["material_name_eng"]),  
+              
                 ),
         );
     }

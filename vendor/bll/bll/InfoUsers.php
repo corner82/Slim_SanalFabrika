@@ -234,8 +234,48 @@ class InfoUsers extends \BLL\BLLSlim{
         $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
         return $DAL->setPersonPassword($params);
     }
+     
+     /**
+     * get User Id - pkTemp
+     * @param array $params
+     * @return array
+     */
+    public function getUserShortInformation($params = array()) { 
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
+        $resultSet = $DAL->getUserShortInformation($params);  
+        return $resultSet['resultSet'];        
+    }
     
+    /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillUsersProfileInformation ($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
+        $resultSet = $DAL->fillUsersProfileInformation($params);  
+        return $resultSet['resultSet'];
+    }  
     
-    
+       /**
+     * Function to fill datagrid on user interface layer
+     * @param array | null $params
+     * @return array
+     */
+    public function fillUsersProfileInformationGuest ($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
+        $resultSet = $DAL->fillUsersProfileInformationGuest($params);  
+        return $resultSet['resultSet'];
+    }  
+     
+    /**
+    * Data update function
+    * @param array | null $params
+    * @return array
+    */
+    public function updateConsUserConfirmAct($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoUsersPDO');
+        return $DAL->updateConsUserConfirmAct($params);
+    }
 }
 

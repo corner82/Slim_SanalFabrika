@@ -20,8 +20,8 @@ class InfoFirmCertificate extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
-     * @ info_firm_certificate tablosundan parametre olarak  gelen id kaydını siler. !!
-     * @version v 1.0 30-05-2016
+     * @ info_firm_personnel_info tablosundan parametre olarak  gelen id kaydını siler. !!
+     * @version v 1.0 10.08.2016
      * @param array | null $args
      * @return array
      * @throws \PDOException
@@ -34,7 +34,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
             if (\Utill\Dal\Helper::haveRecord($userId)) {
                 $userIdValue = $userId ['resultSet'][0]['user_id'];
                 $statement = $pdo->prepare(" 
-                UPDATE info_firm_certificate
+                UPDATE info_firm_personnel_info
                 SET  deleted= 1 , active = 1 ,
                      op_user_id = " . $userIdValue . "     
                 WHERE id = :id");
@@ -59,8 +59,8 @@ class InfoFirmCertificate extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
-     * @ info_firm_certificate tablosundaki tüm kayıtları getirir.  !!
-     * @version v 1.0  30-05-2016   
+     * @ info_firm_personnel_info tablosundaki tüm kayıtları getirir.  !!
+     * @version v 1.0  10.08.2016   
      * @param array | null $args
      * @return array
      * @throws \PDOException
@@ -77,13 +77,16 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                 }
             }
             $statement = $pdo->prepare("                    
-                    SELECT 
+                     SELECT 
                         a.id,
-                        a.firm_id,
-			a.certificate_id,			
-			COALESCE(NULLIF(scx.certificate, ''), sc.certificate_eng) AS certificate,
-			COALESCE(NULLIF(scx.certificate_short, ''), sc.certificate_short_eng) AS certificate_short,
-			sc.certificate_short_eng,
+                        a.firm_id,			
+			a.number_of_employees, 
+			a.number_of_worker, 
+			a.number_of_technician, 
+			a.number_of_engineer, 
+			a.number_of_administrative_staff, 
+			a.number_of_sales_staff, 
+			a.number_of_foreign_trade_staff,
 			a.s_date,
                         a.c_date,
                         a.profile_public,
@@ -105,16 +108,13 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                         a.cons_allow_id,
                         COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow,
                         ifk.network_key
-                    FROM info_firm_certificate a
+                    FROM info_firm_personnel_info a
                     INNER JOIN info_users u ON u.id = a.op_user_id
                     INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.cons_allow_id=2 AND fp.language_parent_id =0
                     INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
                     LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                     INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
-
-		    INNER JOIN sys_certifications sc ON sc.id = a.certificate_id AND sc.deleted =0 AND sc.active =0 AND sc.language_parent_id =0
-                    LEFT JOIN sys_certifications scx ON (scx.id = sc.id OR scx.language_parent_id = sc.id) and scx.language_id =lx.id  AND scx.deleted =0 AND scx.active =0
-
+		 
 		    INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.deleted =0 AND op.active =0 AND op.language_parent_id =0
                     LEFT JOIN sys_operation_types opx ON (opx.id = op.id OR opx.language_parent_id = op.id) and opx.language_id =lx.id  AND opx.deleted =0 AND opx.active =0
                     
@@ -128,7 +128,8 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                     LEFT JOIN sys_specific_definitions sd16x ON sd16x.language_id = lx.id AND (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.deleted = 0 AND sd16x.active = 0
                     LEFT JOIN sys_specific_definitions sd19x ON sd19x.language_id = lx.id AND (sd19x.id = sd19.id OR sd19x.language_parent_id = sd19.id) AND sd19x.deleted = 0 AND sd19x.active = 0
                     		   
-		    ORDER BY certificate
+		    ORDER BY a.firm_id
+
                           ");
             $statement->execute();
             $result = $statement->fetcAll(\PDO::FETCH_ASSOC);
@@ -144,7 +145,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
-     * @ info_firm_certificate tablosunda name sutununda daha önce oluşturulmuş mu? 
+     * @ info_firm_personnel_info tablosunda name sutununda daha önce oluşturulmuş mu? 
      * @version v 1.0 18.05.2016
      * @param array | null $args
      * @return array
@@ -163,7 +164,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                 a.certificate_id AS value , 
                 LOWER(a.certificate_id) = LOWER('" . $params['certificate_id'] . "') AS control,
                 CONCAT(a.certificate_id, ' daha önce kayıt edilmiş. Lütfen Kontrol Ediniz !!!' ) AS message                             
-            FROM info_firm_certificate a             
+            FROM info_firm_personnel_info a             
             WHERE a.firm_id = " . intval($params['firm_id']) . "
                 AND a.certificate_id =  " . intval($params['certificate_id']) . " 
                 AND a.active = 0 
@@ -185,7 +186,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
-     * @ info_firm_certificate tablosundan parametre olarak  gelen id kaydını aktifliğini 1 = pasif yapar. !!
+     * @ info_firm_personnel_info tablosundan parametre olarak  gelen id kaydını aktifliğini 1 = pasif yapar. !!
      * @version v 1.0  18.05.2016
      * @param type $params
      * @return array
@@ -196,7 +197,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             //$pdo->beginTransaction();
             $statement = $pdo->prepare(" 
-                UPDATE info_firm_certificate
+                UPDATE info_firm_personnel_info
                 SET                         
                     c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                     
                     active = 1                    
@@ -217,7 +218,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
-     * @ info_firm_certificate tablosuna yeni bir kayıt oluşturur.  !!
+     * @ info_firm_personnel_info tablosuna yeni bir kayıt oluşturur.  !!
      * @version v 1.0  18.05.2016
      * @param array | null $args
      * @return array
@@ -253,7 +254,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                         }
 
                         $ConsultantId = 1001;
-                        $getConsultant = SysOsbConsultants::getConsultantIdForTableName (array('table_name' => 'info_firm_certificate' , 
+                        $getConsultant = SysOsbConsultants::getConsultantIdForTableName (array('table_name' => 'info_firm_personnel_info' , 
                                                                                               'operation_type_id' => $operationIdValue, 
                                                                                               'language_id' => $languageIdValue,  
                                                                                                ));
@@ -267,7 +268,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                         }                             
 
                         $sql = " 
-                        INSERT INTO info_firm_certificate(
+                        INSERT INTO info_firm_personnel_info(
                             firm_id, 
                             consultant_id,
                             operation_type_id,
@@ -284,7 +285,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                             " . intval($languageIdValue) . ",
                             " . intval($opUserIdValue) . ",
                             " . intval($profilePublic) . ",
-                            (SELECT last_value FROM info_firm_certificate_id_seq),
+                            (SELECT last_value FROM info_firm_personnel_info_id_seq),
                             :certificate_id 
                              )";
                         $statement = $pdo->prepare($sql);
@@ -292,7 +293,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                         $statement->bindValue(':certificate_id', $params['certificate_id'], \PDO::PARAM_INT);                        
                       //  echo debugPDO($sql, $params);
                         $result = $statement->execute();
-                        $insertID = $pdo->lastInsertId('info_firm_certificate_id_seq');
+                        $insertID = $pdo->lastInsertId('info_firm_personnel_info_id_seq');
                         $errorInfo = $statement->errorInfo();
                         if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                             throw new \PDOException($errorInfo[0]);
@@ -339,8 +340,8 @@ class InfoFirmCertificate extends \DAL\DalSlim {
 
     /**
      * @author Okan CIRAN
-     * info_firm_certificate tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
-     * @version v 1.0  30-05-2016
+     * info_firm_personnel_info tablosuna parametre olarak gelen id deki kaydın bilgilerini günceller   !!
+     * @version v 1.0  10.08.2016
      * @param array | null $args
      * @return array
      * @throws \PDOException
@@ -380,7 +381,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                     }
                     
                     $statement_act_insert = $pdo->prepare(" 
-                 INSERT INTO info_firm_certificate(
+                 INSERT INTO info_firm_personnel_info(
                             firm_id, 
                             consultant_id,
                             operation_type_id,
@@ -401,12 +402,12 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                             act_parent_id,
                             " . intval($active) . ",   
                             " . intval($params['certificate_id']) . " AS certificate_id                            
-                        FROM info_firm_certificate 
+                        FROM info_firm_personnel_info 
                         WHERE id =  " . intval($params['id']) . " 
                         "); 
                     $insert_act_insert = $statement_act_insert->execute();
                     $affectedRows = $statement_act_insert->rowCount();
-                    $insertID = $pdo->lastInsertId('info_firm_certificate_id_seq');
+                    $insertID = $pdo->lastInsertId('info_firm_personnel_info_id_seq');
                     $errorInfo = $statement_act_insert->errorInfo();
                     if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                         throw new \PDOException($errorInfo[0]);
@@ -419,7 +420,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                      * silinen kaydı yapan kişinin dil bilgisini alıcaz.
                      */
                     $consIdAndLanguageId = SysOperationTypes::getConsIdAndLanguageId(
-                                    array('table_name' => 'info_firm_certificate', 'id' => $params['id'],));
+                                    array('table_name' => 'info_firm_personnel_info', 'id' => $params['id'],));
                     if (\Utill\Dal\Helper::haveRecord($consIdAndLanguageId)) {
                         $ConsultantId = $consIdAndLanguageId ['resultSet'][0]['consultant_id'];
                         // $languageIdValue = $consIdAndLanguageId ['resultSet'][0]['language_id'];                       
@@ -461,8 +462,8 @@ class InfoFirmCertificate extends \DAL\DalSlim {
 
     /**     
      * @author Okan CIRAN
-     * @ Gridi doldurmak için info_firm_certificate tablosundan kayıtları döndürür !!
-     * @version v 1.0  30-05-2016
+     * @ Gridi doldurmak için info_firm_personnel_info tablosundan kayıtları döndürür !!
+     * @version v 1.0  10.08.2016
      * @param array | null $args
      * @return array
      * @throws \PDOException
@@ -535,7 +536,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                         a.cons_allow_id,
                         COALESCE(NULLIF(sd14x.description, ''), sd14.description_eng) AS cons_allow,
                         ifk.network_key
-                    FROM info_firm_certificate a
+                    FROM info_firm_personnel_info a
                     INNER JOIN info_users u ON u.id = a.op_user_id
                     INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.cons_allow_id=2 AND fp.language_parent_id =0
                     INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
@@ -583,8 +584,8 @@ class InfoFirmCertificate extends \DAL\DalSlim {
 
     /**     
      * @author Okan CIRAN
-     * @ Gridi doldurmak için info_firm_certificate tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
-     * @version v 1.0  30-05-2016
+     * @ Gridi doldurmak için info_firm_personnel_info tablosundan çekilen kayıtlarının kaç tane olduğunu döndürür   !!
+     * @version v 1.0  10.08.2016
      * @param array | null $args
      * @return array
      * @throws \PDOException
@@ -597,7 +598,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
             $sql = "
                 SELECT 
                     COUNT(a.id) AS COUNT
-                FROM info_firm_certificate a
+                FROM info_firm_personnel_info a
                 INNER JOIN info_users u ON u.id = a.op_user_id
                 INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.cons_allow_id=2 AND fp.language_parent_id =0
                 INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
@@ -627,7 +628,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
      * delete olayında önce kaydın active özelliğini pasif e olarak değiştiriyoruz. 
      * daha sonra deleted= 1 ve active = 1 olan kaydı oluşturuyor. 
      * böylece tablo içerisinde loglama mekanizması için gerekli olan kayıt oluşuyor.
-     * @version 30-05-2016 
+     * @version 10.08.2016 
      * @param type $id
      * @param type $params
      * @return array
@@ -648,7 +649,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                     $operationIdValue = $operationId ['resultSet'][0]['id'];
                 }
                 $sql = "                
-                  INSERT INTO info_firm_certificate(
+                  INSERT INTO info_firm_personnel_info(
                             firm_id, 
                             consultant_id,
                             operation_type_id,
@@ -683,14 +684,14 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                             language_parent_id,
                             1,
                             1                            
-                        FROM info_firm_certificate 
+                        FROM info_firm_personnel_info 
                         WHERE id =  " . intval($params['id']) . " 
                         ";
                 $statement_act_insert = $pdo->prepare($sql);
                 //  echo debugPDO($sql, $params);
                 $insert_act_insert = $statement_act_insert->execute();
                 $affectedRows = $statement_act_insert->rowCount();
-                $insertID = $pdo->lastInsertId('info_firm_certificate_id_seq');
+                $insertID = $pdo->lastInsertId('info_firm_personnel_info_id_seq');
                 /*
                  * ufak bir trik var. 
                  * işlem update oldugunda update işlemini yapan kişinin dil bilgisini kullanıcaz. 
@@ -698,7 +699,7 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                  * silinen kaydı yapan kişinin dil bilgisini alıcaz.
                  */
                 $consIdAndLanguageId = SysOperationTypes::getConsIdAndLanguageId(
-                                array('table_name' => 'info_firm_certificate', 'id' => $params['id'],));
+                                array('table_name' => 'info_firm_personnel_info', 'id' => $params['id'],));
                 if (\Utill\Dal\Helper::haveRecord($consIdAndLanguageId)) {
                     $ConsultantId = $consIdAndLanguageId ['resultSet'][0]['consultant_id'];
                     $languageIdValue = $consIdAndLanguageId ['resultSet'][0]['language_id'];                       
@@ -769,11 +770,13 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                         COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
 		        COALESCE(NULLIF(lx.language, ''), 'en') AS language_name,
                         a.active,
-                        sc.logo
-                    FROM info_firm_certificate a                    
-                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.cons_allow_id=2 AND fp.language_parent_id =0  and fp.active =0 
+                        ifk.network_key
+                    FROM info_firm_personnel_info a
+                    INNER JOIN info_users u ON u.id = a.op_user_id
+                    INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.cons_allow_id=2 AND fp.language_parent_id =0
                     INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
-                    LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                    
+                    LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+                    INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
 		    INNER JOIN sys_certifications sc ON sc.id = a.certificate_id AND sc.deleted =0 AND sc.active =0 AND sc.language_parent_id =0
                     LEFT JOIN sys_certifications scx ON (scx.id = sc.id OR scx.language_parent_id = sc.id) and scx.language_id =lx.id  AND scx.deleted =0 AND scx.active =0                    
 		    WHERE 
@@ -827,10 +830,11 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                     $sql = " 
                     SELECT 
                         COUNT(a.id) AS count 
-                     FROM info_firm_certificate a
+                     FROM info_firm_personnel_info a
                     INNER JOIN info_users u ON u.id = a.op_user_id
                     INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.cons_allow_id=2 AND fp.language_parent_id =0
-                    INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0                                        
+                    INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0                    
+                    INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
 		    INNER JOIN sys_certifications sc ON sc.id = a.certificate_id AND sc.deleted =0 AND sc.active =0 AND sc.language_parent_id =0                    
 		    WHERE 
                         a.firm_id = " . intval($firmIdValue) . " AND
@@ -891,14 +895,13 @@ class InfoFirmCertificate extends \DAL\DalSlim {
 			a.certificate_id,			
 			COALESCE(NULLIF(scx.certificate, ''), sc.certificate_eng) AS certificate,
 			COALESCE(NULLIF(scx.certificate_short, ''), sc.certificate_short_eng) AS certificate_short,
-			sc.certificate_short_eng,
-                        sc.certificate_eng,	
-                        sc.logo
-                    FROM info_firm_certificate a
+			sc.certificate_short_eng
+                    FROM info_firm_personnel_info a
                     INNER JOIN info_users u ON u.id = a.op_user_id
                     INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.cons_allow_id=2 AND fp.language_parent_id =0
                     INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0
-                    LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0                    
+                    LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+                    INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
 		    INNER JOIN sys_certifications sc ON sc.id = a.certificate_id AND sc.deleted =0 AND sc.active =0 AND sc.language_parent_id =0
                     LEFT JOIN sys_certifications scx ON (scx.id = sc.id OR scx.language_parent_id = sc.id) and scx.language_id =lx.id  AND scx.deleted =0 AND scx.active =0                    
 		    WHERE 
@@ -944,10 +947,11 @@ class InfoFirmCertificate extends \DAL\DalSlim {
                 $sql = " 
                     SELECT 
                         COUNT(a.id) AS count 
-                    FROM info_firm_certificate a
+                    FROM info_firm_personnel_info a
                     INNER JOIN info_users u ON u.id = a.op_user_id
                     INNER JOIN info_firm_profile fp ON fp.act_parent_id = a.firm_id AND fp.cons_allow_id=2 AND fp.language_parent_id =0
-                    INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0                                        
+                    INNER JOIN sys_language l ON l.id = fp.language_id AND l.deleted =0 AND l.active =0                    
+                    INNER JOIN info_firm_keys ifk ON fp.act_parent_id = ifk.firm_id  
 		    INNER JOIN sys_certifications sc ON sc.id = a.certificate_id AND sc.deleted =0 AND sc.active =0 AND sc.language_parent_id =0                    
 		    WHERE 
                         a.firm_id = " . intval($firmIdValue) . " AND

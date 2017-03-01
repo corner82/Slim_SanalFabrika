@@ -740,7 +740,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             if (count($sortArr) === 1)
                 $sort = trim($params['sort']);
         } else {
-            $sort = "fp.s_date ASC, fp.c_date";
+            $sort = "fp.s_date desc , fp.c_date";
         }
 
         if (isset($params['order']) && $params['order'] != "") {
@@ -797,14 +797,16 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $sql = "
                 SELECT 
+                    fp.act_parent_id AS firm_id,     
                     fp.id AS id, 
-                    fpu.s_date, 
+                    fp.s_date, 
                     fp.firm_name AS company_name, 
                     fpu.username AS username 
                 FROM sys_osb_consultants a   
-                LEFT JOIN info_firm_profile fp ON fp.consultant_id = a.user_id AND fp.deleted = 0 
-                INNER JOIN info_users fpu ON fpu.id = fp.op_user_id    
-                WHERE fpu.auth_allow_id = 0 AND 
+                INNER JOIN info_firm_profile fp ON fp.consultant_id = a.user_id AND fp.cons_allow_id =0 
+                        AND fp.id in (SELECT max(zz.id) FROM info_firm_profile zz WHERE zz.act_parent_id = fp.act_parent_id )
+                INNER JOIN info_users fpu ON fpu.id = fp.op_user_id     
+                WHERE 
                      a.user_id =" . intval($opUserIdValue) . "                                                
                 " . $sorguStr . "
                 ORDER BY    " . $sort . " "
@@ -846,7 +848,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
             $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
             if (\Utill\Dal\Helper::haveRecord($opUserId)) {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
-                $sorguStr = " WHERE fpu.auth_allow_id = 0 AND a.user_id = " . intval($opUserIdValue);
+                $sorguStr = " WHERE    a.user_id = " . intval($opUserIdValue);
 
                 // sql query dynamic for filter operations
                 //$sorguStr = null;
@@ -888,13 +890,11 @@ class SysOsbConsultants extends \DAL\DalSlim {
                SELECT  
                     COUNT(a.id) AS COUNT                           		  
 		FROM sys_osb_consultants a                                
-		LEFT JOIN info_firm_profile fp ON fp.consultant_id = a.user_id AND fp.deleted = 0 
-                INNER JOIN info_users fpu ON fpu.id = fp.op_user_id
-
-                " . $sorguStr . "                
-
+                INNER JOIN info_firm_profile fp ON fp.consultant_id = a.user_id AND fp.cons_allow_id =0  
+                    AND fp.id IN (SELECT max(zz.id) FROM info_firm_profile zz WHERE zz.act_parent_id = fp.act_parent_id ) 
+                INNER JOIN info_users fpu ON fpu.id = fp.op_user_id 
+                " . $sorguStr . "  
                     ";
-                                
                 $statement = $pdo->prepare($sql);
             //echo debugPDO($sql, $params);
                 $statement->execute();
@@ -915,6 +915,222 @@ class SysOsbConsultants extends \DAL\DalSlim {
         }
     }
 
+    
+    /**
+     * @author Okan CIRAN
+     * @ Onaylanmamış user listesini grid formatında dondurur !!
+     * @version v 1.0  26.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getConsPendingUser($params = array()) {
+        if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+            $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+            $limit = intval($params['rows']);
+        } else {
+            $limit = 10;
+            $offset = 0;
+        }
+
+
+        $sortArr = array();
+        $orderArr = array();
+        if (isset($params['sort']) && $params['sort'] != "") {
+            $sort = trim($params['sort']);
+            $sortArr = explode(",", $sort);
+            if (count($sortArr) === 1)
+                $sort = trim($params['sort']);
+        } else {
+            $sort = "fpu.s_date ";
+        }
+
+        if (isset($params['order']) && $params['order'] != "") {
+            $order = trim($params['order']);
+            $orderArr = explode(",", $order);
+            if (count($orderArr) === 1)
+                $order = trim($params['order']);
+        } else {
+            $order = "DESC";
+        }
+
+        // sql query dynamic for filter operations
+        $sorguStr = null;
+        if (isset($params['filterRules'])) {
+            $filterRules = trim($params['filterRules']);
+            //print_r(json_decode($filterRules));
+            $jsonFilter = json_decode($filterRules, true);
+            //print_r($jsonFilter[0]->field);
+            $sorguExpression = null;
+            foreach ($jsonFilter as $std) {
+                if ($std['value'] != null) {
+                    switch (trim($std['field'])) {
+                        case 'username':
+                            $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                            $sorguStr.=' AND fpu.username' . $sorguExpression . ' ';
+                            break;
+                        case 'name_surname':
+                            $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                            $sorguStr.=" AND concat(iud.name , ' ' , iud.surname )" . $sorguExpression . ' ';
+
+                            break;
+                        case 's_date':
+                            $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                            $sorguStr.='AND  TO_CHAR(fp.s_date, \'DD/MM/YYYY\')' . $sorguExpression . ' ';
+
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        } else {
+            $sorguStr = null;
+            $filterRules = "";
+        }
+
+        $sorguStr = rtrim($sorguStr, "AND ");
+        //if($sorguStr!="") $sorguStr = "WHERE ".$sorguStr;          
+
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                /*$languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {                
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];                    
+                        }
+                }                   
+                 */   
+                $sql = "
+                SELECT  
+                    fpu.id AS user_id,     
+                    fpu.id AS id, 
+                    fpu.s_date, 
+                    concat(iud.name , ' ' , iud.surname ) AS name_surname, 
+                    fpu.username AS username,
+                    sar.id AS role_id,
+                    sar.name AS role_eng,
+                    sar.name_tr AS role
+                FROM sys_osb_consultants a                   
+                INNER JOIN info_users fpu ON fpu.cons_allow_id =0 and fpu.deleted =0 AND fpu.auth_allow_id =1 
+                INNER JOIN info_users_detail iud ON iud.root_id = fpu.id AND iud.deleted =0 AND iud.active =0 AND iud.language_parent_id =0 AND 
+                            iud.id = (SELECT max(z.id) FROM info_users_detail z WHERE z.root_id = fpu.id )
+                INNER JOIN sys_acl_roles sar ON sar.id = fpu.role_id 
+                WHERE 
+                     a.user_id = " . intval($opUserIdValue) . "
+                    " . $sorguStr . "
+                ORDER BY    " . $sort . " "
+                    . "" . $order . " "
+                    . "LIMIT " . $pdo->quote($limit) . " "
+                    . "OFFSET " . $pdo->quote($offset) . " ";
+                $statement = $pdo->prepare($sql);
+                // echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+         //       $pdo->commit();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    /**  
+     * @author Okan CIRAN
+     * @ Onaylanmamış user listesinin sayısını dondurur !!
+     * @version v 1.0  26.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getConsPendingUserRtc($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                        
+
+                // sql query dynamic for filter operations
+                $sorguStr = null;
+                if (isset($params['filterRules'])) {
+                    $filterRules = trim($params['filterRules']);                    
+                    $jsonFilter = json_decode($filterRules, true);                    
+                    $sorguExpression = null;
+                    foreach ($jsonFilter as $std) {
+                        if ($std['value'] != null) {
+                            switch (trim($std['field'])) {
+                            case 'username':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                $sorguStr.=' AND fpu.username' . $sorguExpression . ' ';
+                                break;
+                            case 'name_surname':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.=" AND concat(iud.name , ' ' , iud.surname )" . $sorguExpression . ' ';
+
+                                break;
+                            case 's_date':
+                                $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                $sorguStr.='AND  TO_CHAR(fp.s_date, \'DD/MM/YYYY\')' . $sorguExpression . ' ';
+
+                                break;
+                            default:
+                                break;
+                        }
+                        }
+                    }
+                } else {
+                 //   $sorguStr = null;
+                    $filterRules = "";
+                }
+
+                $sorguStr = rtrim($sorguStr, "AND ");
+                $sql = "
+                SELECT  
+                    count(fpu.id) AS count                    
+                FROM sys_osb_consultants a                   
+                INNER JOIN info_users fpu ON fpu.cons_allow_id =0 AND fpu.deleted =0 AND fpu.auth_allow_id =1  
+                INNER JOIN info_users_detail iud ON iud.root_id = fpu.id AND iud.deleted =0 AND iud.active =0 AND iud.language_parent_id =0 AND 
+                        iud.id = (SELECT max(z.id) FROM info_users_detail z WHERE z.root_id = fpu.id )
+                INNER JOIN sys_acl_roles sar ON sar.id = fpu.role_id 
+                WHERE 
+                    a.user_id = " . intval($opUserIdValue) . "
+                    " . $sorguStr . "                
+                    ";                                
+                $statement = $pdo->prepare($sql);
+                //echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                //  $pdo->commit();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+                            
     /**
      * get consultant confirmation process details
      * @param array $params
@@ -929,6 +1145,8 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 //$opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 //$whereSQL = " WHERE a.user_id = " . intval($opUserIdValue);
 
+                                
+                
                 $sql = " 
                     
                 SELECT  
@@ -982,9 +1200,12 @@ class SysOsbConsultants extends \DAL\DalSlim {
 				    ay.active =0 AND ay.deleted = 0 AND ay.communications_type_id = 2 AND                   
 				    ay.user_id =   a.id limit 1 
 			 ) As irtibatcep,
-			a.s_date                        
+			a.s_date,
+                        ff.description, 
+                        ff.description_eng,
+                        CAST(to_timestamp(ff.foundation_yearx) AS date) AS foundation_year
                     FROM info_users a                  
-                    LEFT JOIN info_firm_profile ff ON ff.op_user_id = a.id AND ff.active = 0 AND ff.deleted =0 
+                    LEFT JOIN info_firm_profile ff ON ff.op_user_id = a.id   
                     INNER JOIN sys_language l ON l.id =  a.language_id AND l.language_id = 647    
                     WHERE ff.id =:profile_id           
 
@@ -1009,7 +1230,119 @@ class SysOsbConsultants extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
         }
     }
+                            
+    /**
+     * get consultant confirmation process details
+     * @param array $params
+     * @return array
+     * @throws \PDOException
+     */
+    public function getConsUserConfirmationProcessDetails($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                //$opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                //$whereSQL = " WHERE a.user_id = " . intval($opUserIdValue);
 
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }              
+                
+                $sql = " 
+                SELECT  
+                        a.id,                                                         
+                        a.username,     
+                        iud.name, 
+                        iud.surname,                         
+                        a.language_id,
+                        COALESCE(NULLIF(lax.language, ''), l.language_eng) AS language_code,  
+                       (
+                        SELECT Concat (ax.address1,ax.address2, 
+				    'Posta Kodu = ',ax.postal_code,                  
+				    cox.name ,' ',
+				    ctx.name ,' ',
+				    box.name ,' ',
+				    ax.city_name  )                    
+				FROM info_users_addresses  ax                                                  									
+				LEFT JOIN sys_countrys cox on cox.id = ax.country_id AND cox.deleted = 0 AND cox.active = 0 AND cox.language_code = ax.language_code                               
+				LEFT JOIN sys_city ctx on ctx.id = ax.city_id AND ctx.deleted = 0 AND ctx.active = 0 AND ctx.language_code = ax.language_code                               
+				LEFT JOIN sys_borough box on box.id = ax.borough_id AND box.deleted = 0 AND box.active = 0 AND box.language_code = ax.language_code                 
+				WHERE ax.deleted =0 AND ax.active =0 AND ax.address_type_id = 1 
+				AND ax.user_id  =  a.id limit 1 
+                        )                  
+                        As iletisimadresi,
+			(
+                        SELECT Concat (ax.address1,ax.address2, 
+				    'Posta Kodu = ',ax.postal_code,                  
+				    cox.name ,' ',
+				    ctx.name ,' ',
+				    box.name ,' ',
+				    ax.city_name   )                    
+				FROM info_users_addresses  ax                                                  									
+				LEFT JOIN sys_countrys cox on cox.id = ax.country_id AND cox.deleted = 0 AND cox.active = 0 AND cox.language_code = ax.language_code                               
+				LEFT JOIN sys_city ctx on ctx.id = ax.city_id AND ctx.deleted = 0 AND ctx.active = 0 AND ctx.language_code = ax.language_code                               
+				LEFT JOIN sys_borough box on box.id = ax.borough_id AND box.deleted = 0 AND box.active = 0 AND box.language_code = ax.language_code                 
+				WHERE ax.deleted =0 AND ax.active =0 AND ax.address_type_id = 2 
+				AND ax.user_id  =  a.id limit 1 
+                        ) AS faturaadresi,                        
+                        (SELECT  
+			        ay.communications_no
+				FROM info_users_communications ay       				
+				WHERE 
+				    ay.active =0 AND ay.deleted = 0 AND ay.default_communication_id = 1 AND                   
+				    ay.user_id = a.id limit 1 
+			 ) As irtibattel,
+			 (SELECT  
+			        ay.communications_no
+				FROM info_users_communications ay       				
+				WHERE 
+				    ay.active =0 AND ay.deleted = 0 AND ay.communications_type_id = 2 AND                   
+				    ay.user_id =   a.id limit 1 
+			 ) As irtibatcep,
+			a.s_date,
+			iud.auth_email,
+			a.role_id,
+			sar.name AS role_eng,
+			sar.name_tr AS role                       
+                    FROM info_users a   
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                    LEFT JOIN sys_language lx ON lx.id = ".intval($languageIdValue)." AND lx.deleted =0 AND lx.active =0
+                    LEFT JOIN sys_language lax ON (lax.id = l.id OR  lax.language_parent_id=l.id) AND lax.deleted =0 AND lax.active =0 AND lax.language_id = lx.id		   
+		    INNER JOIN info_users_detail iud ON iud.root_id = a.id AND iud.deleted =0 and iud.active =0  AND iud.language_parent_id =0   
+		    INNER JOIN sys_acl_roles sar ON sar.id = a.role_id 
+                    WHERE                         
+                       a.cons_allow_id =0 AND
+                       a.deleted =0 AND 
+                       a.auth_allow_id =1 AND
+                       a.id = :profile_id 
+                    ";
+                $statement = $pdo->prepare($sql);
+                $statement->bindValue(':profile_id', $params['profile_id'], \PDO::PARAM_INT);
+                //   echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                //  $pdo->commit();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+                            
     /**
      * parametre olarak gelen array deki 'id' li kaydın update ini yapar  !!
      * @author Okan CIRAN
@@ -1188,7 +1521,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
                 $sql = "
                 SELECT 
-                    fp.id AS id, 
+                    fp.act_parent_id AS id, 
                     fpu.s_date, 
                     fp.firm_name AS company_name, 
                     fpu.username AS username 
@@ -1294,7 +1627,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 SELECT consultant_id, 1=1 AS control FROM ( 
                     SELECT 
                         cons.user_id AS consultant_id , 
-                        count(ifp.id) AS adet , 
+                        count(ifp.act_parent_id) AS adet , 
                         MAX(ifp.s_date) 
                     FROM sys_osb_consultants cons
                     LEFT JOIN info_firm_profile ifp ON ifp.consultant_id = cons.user_id AND ifp.cons_allow_id = 0  
@@ -1363,6 +1696,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                     INNER JOIN sys_operation_types sos ON sos.active =0 AND sos.deleted =0 ".$addSql." 
                     LEFT JOIN ".$tableName." ifp ON ifp.consultant_id = cons.user_id AND ifp.cons_allow_id = 0  
                     WHERE cons.active = 0 AND cons.deleted =0 AND cons.osb_id = 5
+                        AND cons.user_id > 0 
                         AND sos.category_id IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_array_elements(category_json))
                         AND ".intval($languageIdValue)." IN (SELECT CAST(CAST(VALUE AS text) AS integer) FROM json_array_elements(preferred_language_json))
                     GROUP BY cons.user_id
@@ -1383,7 +1717,6 @@ class SysOsbConsultants extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-
 
     /**
      * @author Okan CIRAN
@@ -1411,7 +1744,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                             $languageIdValue = $languageId ['resultSet'][0]['id'];
                         }
                     }                    
-                    
+                    //  a.consultant_id  = u.id AS firm_consultant,
                     $sql = "                
                 SELECT DISTINCT
                     a.act_parent_id AS firm_id,
@@ -1422,12 +1755,13 @@ class SysOsbConsultants extends \DAL\DalSlim {
                     CASE COALESCE(NULLIF(TRIM(iud.picture), ''),'-') 
                         WHEN '-' THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' ,'image_not_found.png')
                         ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' ,TRIM(iud.picture)) END AS cons_picture,
-                    a.consultant_id  = u.id AS firm_consultant,
+                    u.id = (SELECT consultant_id from  info_firm_profile azx where azx.act_parent_id = 94 AND azx.consultant_id =u.id limit 1 ) AS firm_consultant,
                     COALESCE(NULLIF(ifux.title, ''), ifux.title_eng) AS title,
                     ifu.title_eng,
-                    COALESCE(NULLIF(soc.title, ''), soc.title_eng) AS osb_title,
-                    soc.title_eng osb_title_eng,
-                    ifk.network_key
+                    COALESCE(NULLIF(soc.title, ''), soc.title_eng) AS cons_title,
+                    soc.title_eng cons_title_eng,
+                    ifk.network_key, 
+                    (SELECT iucz.communications_no FROM info_users_communications iucz WHERE iucz.user_id = u.id AND iucz.language_parent_id =0 AND iucz.cons_allow_id = 2 limit 1) AS phone 
                 FROM info_firm_profile a   
                 INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = a.act_parent_id 
@@ -1439,9 +1773,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                 INNER JOIN info_users_detail iud ON iud.root_id = u.id AND iud.cons_allow_id = 2
                 INNER JOIN info_users_communications iuc ON iuc.user_id = u.id AND iuc.cons_allow_id = 2
                 INNER JOIN info_firm_users ifu ON ifu.user_id = u.id AND ifu.firm_id = 1 AND ifu.cons_allow_id = 2
-                LEFT JOIN info_firm_users ifux ON (ifux.id = ifu.id OR ifux.language_parent_id = ifu.id) AND ifu.cons_allow_id = 2 AND ifux.language_id = lx.id
-                INNER JOIN sys_specific_definitions sd5 ON sd5.main_group = 5 AND sd5.first_group = iuc.communications_type_id AND sd5.deleted =0 AND sd5.active =0 AND l.id = sd5.language_id
-		LEFT JOIN sys_specific_definitions sd5x ON (sd5x.id =sd5.id OR sd5x.language_parent_id = sd5.id) AND sd5x.deleted =0 AND sd5x.active =0 AND lx.id = sd5x.language_id
+                LEFT JOIN info_firm_users ifux ON (ifux.id = ifu.id OR ifux.language_parent_id = ifu.id) AND ifu.cons_allow_id = 2 AND ifux.language_id = lx.id                
                 WHERE
                     a.act_parent_id = " . intval($getFirmIdValue) . " AND                          
                         u.id IN (
@@ -1527,7 +1859,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                             UNION
                             SELECT DISTINCT consultant_id FROM info_firm_workflow_process WHERE firm_id = " . intval($getFirmIdValue) . " 
                         )
-                        ORDER BY firm_consultant DESC,iud.name,iud.surname 
+                        ORDER BY  iud.name,iud.surname 
                         ";
                     $statement = $pdo->prepare($sql);
                     // echo debugPDO($sql, $params);
@@ -1540,7 +1872,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                     return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
                 } else {
                     $errorInfo = '23502';   // 23502  not_null_violation
-                    $errorInfoColumn = 'npk';
+                    $errorInfoColumn = 'cpk';
                     $pdo->rollback();
                     return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
                 }
@@ -1697,7 +2029,7 @@ class SysOsbConsultants extends \DAL\DalSlim {
                         u.username AS op_user_name,
                         a.deleted
                     FROM sys_osb_consultants a 
-                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                                         
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
                     INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted = 0 AND sd15.active = 0
                     INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
                     INNER JOIN info_users u ON u.id = a.op_user_id 
@@ -1977,4 +2309,296 @@ class SysOsbConsultants extends \DAL\DalSlim {
         }
     }
 
+     
+    /**
+     * @author Okan CIRAN
+     * @ Onaylanmamış firma makinaları listesini grid formatında dondurur !!
+     * @version v 1.0  26.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getConsPendingFirmMachine($params = array()) {
+        if (isset($params['page']) && $params['page'] != "" && isset($params['rows']) && $params['rows'] != "") {
+            $offset = ((intval($params['page']) - 1) * intval($params['rows']));
+            $limit = intval($params['rows']);
+        } else {
+            $limit = 10;
+            $offset = 0;
+        }
+
+
+        $sortArr = array();
+        $orderArr = array();
+        if (isset($params['sort']) && $params['sort'] != "") {
+            $sort = trim($params['sort']);
+            $sortArr = explode(",", $sort);
+            if (count($sortArr) === 1)
+                $sort = trim($params['sort']);
+        } else {
+            $sort = "ifmt.s_date ";
+        }
+
+        if (isset($params['order']) && $params['order'] != "") {
+            $order = trim($params['order']);
+            $orderArr = explode(",", $order);
+            if (count($orderArr) === 1)
+                $order = trim($params['order']);
+        } else {
+            $order = "DESC";
+        }
+
+        // sql query dynamic for filter operations
+        $sorguStr = null;
+        if (isset($params['filterRules'])) {
+            $filterRules = trim($params['filterRules']);
+            //print_r(json_decode($filterRules));
+            $jsonFilter = json_decode($filterRules, true);
+            //print_r($jsonFilter[0]->field);
+            $sorguExpression = null;
+            foreach ($jsonFilter as $std) {
+                if ($std['value'] != null) {
+                    switch (trim($std['field'])) {
+                        case 'username':
+                            $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                            $sorguStr.=' AND fpu.username' . $sorguExpression . ' ';
+                            break;
+                        case 'company_name':
+                            $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                            $sorguStr.=' AND fp.firm_name' . $sorguExpression . ' ';
+
+                            break;
+                        case 's_date':
+                            $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                            $sorguStr.='AND  TO_CHAR(fp.s_date, \'DD/MM/YYYY\')' . $sorguExpression . ' ';
+
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        } else {
+            $sorguStr = null;
+            $filterRules = "";
+        }
+
+        $sorguStr = rtrim($sorguStr, "AND ");
+        //if($sorguStr!="") $sorguStr = "WHERE ".$sorguStr;          
+
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+                $sql = "
+                SELECT 
+                    ifmt.id AS id, 
+                    ifmt.s_date,
+		    ifmt.firm_id AS firm_id, 
+		    ifmt.sys_machine_tool_id,
+		    ifmt.total,
+	            COALESCE(NULLIF(smtx.machine_tool_name, ''), smt.machine_tool_name_eng) AS machine_tool_name ,
+	            COALESCE(NULLIF(smx.name, ''), sm.name_eng) AS manufacturer_name ,
+	            COALESCE(NULLIF(smtgx.group_name, ''), smtg.group_name_eng) AS machine_group_name,                    
+	            COALESCE(NULLIF(ifpx.firm_name, ''), ifp.firm_name_eng) AS company_name,
+                    smt.machine_tool_grup_id, 
+                    concat(iu.name,' ',iu.surname) AS op_user_name ,
+                    ( SELECT Concat (ax.address1,ax.address2, 
+				    'Posta Kodu = ',ax.postal_code,                  
+				    cox.name ,' ',
+				    ctx.name ,' ',
+				    box.name ,' ',
+				    ax.city_name  )                    
+				FROM info_users_addresses  ax                                                  									
+				LEFT JOIN sys_countrys cox on cox.id = ax.country_id AND cox.deleted = 0 AND cox.active = 0 AND cox.language_code = ax.language_code                               
+				LEFT JOIN sys_city ctx on ctx.id = ax.city_id AND ctx.deleted = 0 AND ctx.active = 0 AND ctx.language_code = ax.language_code                               
+				LEFT JOIN sys_borough box on box.id = ax.borough_id AND box.deleted = 0 AND box.active = 0 AND box.language_code = ax.language_code                 
+				WHERE ax.deleted =0 AND ax.active =0 AND ax.address_type_id = 1 
+				AND ax.user_id  =  ifmt.op_user_id limit 1 
+                        )                  
+                        As iletisimadresi,
+			(
+                        SELECT Concat (ax.address1,ax.address2, 
+				    'Posta Kodu = ',ax.postal_code,                  
+				    cox.name ,' ',
+				    ctx.name ,' ',
+				    box.name ,' ',
+				    ax.city_name   )                    
+				FROM info_users_addresses  ax                                                  									
+				LEFT JOIN sys_countrys cox on cox.id = ax.country_id AND cox.deleted = 0 AND cox.active = 0 AND cox.language_code = ax.language_code                               
+				LEFT JOIN sys_city ctx on ctx.id = ax.city_id AND ctx.deleted = 0 AND ctx.active = 0 AND ctx.language_code = ax.language_code                               
+				LEFT JOIN sys_borough box on box.id = ax.borough_id AND box.deleted = 0 AND box.active = 0 AND box.language_code = ax.language_code                 
+				WHERE ax.deleted =0 AND ax.active =0 AND ax.address_type_id = 2 
+				AND ax.user_id  =  ifmt.op_user_id limit 1 
+                        ) AS faturaadresi,                        
+                        (SELECT  
+			        ay.communications_no
+				FROM info_users_communications ay       				
+				WHERE 
+				    ay.active =0 AND ay.deleted = 0 AND ay.default_communication_id = 1 AND                   
+				    ay.user_id = ifmt.op_user_id  limit 1 
+			 ) As irtibattel,
+			 (SELECT  
+			        ay.communications_no
+				FROM info_users_communications ay       				
+				WHERE 
+				    ay.active =0 AND ay.deleted = 0 AND ay.communications_type_id = 2 AND                   
+				    ay.user_id =   ifmt.op_user_id limit 1 
+			 ) As irtibatcep 
+
+                FROM sys_osb_consultants a  
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND l.deleted =0 AND l.active =0  
+                INNER JOIN info_firm_machine_tool ifmt ON ifmt.consultant_id = a.user_id AND ifmt.cons_allow_id =0 
+                        AND ifmt.id in (SELECT max(zz.id) FROM info_firm_machine_tool zz WHERE zz.act_parent_id = ifmt.act_parent_id )
+                INNER JOIN sys_machine_tools smt ON smt.id = ifmt.sys_machine_tool_id AND smt.active =0 AND smt.deleted =0 and smt.language_parent_id =0     
+	        LEFT JOIN sys_machine_tools smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id ) AND smtx.active =0 AND smtx.deleted =0 and smtx.language_id =lx.id 
+	        INNER JOIN sys_manufacturer sm ON sm.id = smt.manufactuer_id AND sm.active =0 AND sm.deleted =0 and sm.language_parent_id =0     
+	        LEFT JOIN sys_manufacturer smx ON (smx.id = sm.id OR smx.language_parent_id = sm.id ) AND smx.active =0 AND smx.deleted =0 and smx.language_id =lx.id 
+		INNER JOIN sys_machine_tool_groups smtg ON smtg.id = smt.machine_tool_grup_id AND smtg.active =0 AND smtg.deleted =0 and smtg.language_parent_id =0     
+	        LEFT JOIN sys_machine_tool_groups smtgx ON (smtgx.id = smtg.id OR smtgx.language_parent_id = smtg.id ) AND smtgx.active =0 AND smtgx.deleted =0 and smtgx.language_id =lx.id 
+	        INNER JOIN info_users_detail iu ON iu.root_id = ifmt.op_user_id AND iu.cons_allow_id = 2 AND iu.language_parent_id =0     	        
+	        INNER JOIN info_firm_profile ifp ON ifp.act_parent_id = ifmt.firm_id AND ifp.cons_allow_id = 2 AND ifp.language_parent_id =0     
+	        LEFT JOIN info_firm_profile ifpx ON (ifpx.act_parent_id = ifmt.firm_id OR ifpx.language_parent_id = ifmt.firm_id) AND ifpx.cons_allow_id = 2 AND ifpx.language_id =lx.id   
+                WHERE 
+                     a.user_id = ".intval($opUserIdValue )." 
+                    " . $sorguStr . "
+                ORDER BY    " . $sort . " "
+                        . "" . $order . " "
+                        . "LIMIT " . $pdo->quote($limit) . " "
+                        . "OFFSET " . $pdo->quote($offset) . " ";
+                $statement = $pdo->prepare($sql);
+                // echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+         //       $pdo->commit();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    /**  
+     * @author Okan CIRAN
+     * @ Onaylanmamış firma makinaların sayısını dondurur !!
+     * @version v 1.0  27.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getConsPendingFirmMachineRtc($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];
+                $sorguStr = " WHERE    a.user_id = " . intval($opUserIdValue);
+
+                // sql query dynamic for filter operations
+                //$sorguStr = null;
+                if (isset($params['filterRules'])) {
+                    $filterRules = trim($params['filterRules']);
+                    //print_r(json_decode($filterRules));
+                    $jsonFilter = json_decode($filterRules, true);
+                    //print_r($jsonFilter[0]->field);
+                    $sorguExpression = null;
+                    foreach ($jsonFilter as $std) {
+                        if ($std['value'] != null) {
+                            switch (trim($std['field'])) {
+                                case 'username':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\' ';
+                                    $sorguStr.=' AND fpu.username' . $sorguExpression . ' ';
+                                    break;
+                                case 'company_name':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                    $sorguStr.=' AND fp.firm_name' . $sorguExpression . ' ';
+
+                                    break;
+                                case 's_date':
+                                    $sorguExpression = ' ILIKE \'%' . $std['value'] . '%\'  ';
+                                    $sorguStr.='AND TO_CHAR(fp.s_date, \'DD/MM/YYYY\')' . $sorguExpression . ' ';
+
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                } else {
+                 //   $sorguStr = null;
+                    $filterRules = "";
+                }
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+
+                $sorguStr = rtrim($sorguStr, "AND ");
+                $sql = "
+               SELECT  
+                    COUNT(a.id) AS COUNT                           		  
+		FROM sys_osb_consultants a  
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND l.deleted =0 AND l.active =0  
+                INNER JOIN info_firm_machine_tool ifmt ON ifmt.consultant_id = a.user_id AND ifmt.cons_allow_id =0 
+                        AND ifmt.id in (SELECT max(zz.id) FROM info_firm_machine_tool zz WHERE zz.act_parent_id = ifmt.act_parent_id )
+                INNER JOIN sys_machine_tools smt ON smt.id = ifmt.sys_machine_tool_id AND smt.active =0 AND smt.deleted =0 and smt.language_parent_id =0     
+	        LEFT JOIN sys_machine_tools smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id ) AND smtx.active =0 AND smtx.deleted =0 and smtx.language_id =lx.id 
+	        INNER JOIN sys_manufacturer sm ON sm.id = smt.manufactuer_id AND sm.active =0 AND sm.deleted =0 and sm.language_parent_id =0     
+	        LEFT JOIN sys_manufacturer smx ON (smx.id = sm.id OR smx.language_parent_id = sm.id ) AND smx.active =0 AND smx.deleted =0 and smx.language_id =lx.id 
+		INNER JOIN sys_machine_tool_groups smtg ON smtg.id = smt.machine_tool_grup_id AND smtg.active =0 AND smtg.deleted =0 and smtg.language_parent_id =0     
+	        LEFT JOIN sys_machine_tool_groups smtgx ON (smtgx.id = smtg.id OR smtgx.language_parent_id = smtg.id ) AND smtgx.active =0 AND smtgx.deleted =0 and smtgx.language_id =lx.id 
+	        INNER JOIN info_users_detail iu ON iu.root_id = ifmt.op_user_id AND iu.cons_allow_id = 2 AND iu.language_parent_id =0     	        
+	        INNER JOIN info_firm_profile ifp ON ifp.act_parent_id = ifmt.firm_id AND ifp.cons_allow_id = 2 AND ifp.language_parent_id =0     
+	        LEFT JOIN info_firm_profile ifpx ON (ifpx.act_parent_id = ifmt.firm_id OR ifpx.language_parent_id = ifmt.firm_id) AND ifpx.cons_allow_id = 2 AND ifpx.language_id =lx.id   
+                
+                " . $sorguStr . "  
+                    ";
+                $statement = $pdo->prepare($sql);
+            //echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  not_null_violation
+                $errorInfoColumn = 'pk';
+                //  $pdo->commit();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    
+    
+    
+    
 }

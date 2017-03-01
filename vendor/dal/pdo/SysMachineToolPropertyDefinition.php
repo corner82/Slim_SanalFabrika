@@ -1229,6 +1229,27 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
             }
 
             $sql = " 
+            SELECT 
+                id,
+                machine_grup_id,
+                machine_tool_id,
+                CASE
+                    WHEN material_name IS NOT NULL THEN CONCAT(property_name,' (' ,material_name ,')' ) 
+                    ELSE property_name END AS property_name,
+                CASE 
+                    WHEN material_name_eng IS NOT NULL THEN CONCAT(property_name_eng,' (' ,material_name_eng ,')' ) 
+                    ELSE property_name_eng END AS property_name_eng,
+                state_type,
+                machinegroup, 
+                checked,
+                active,
+                unit_id,
+                property_value,
+                property_string_value,
+                model_materials_id,
+                material_name,
+                material_name_eng
+            FROM ( 
                 SELECT DISTINCT
                     a.id,
                     mpd.machine_grup_id,
@@ -1255,14 +1276,20 @@ class SysMachineToolPropertyDefinition extends \DAL\DalSlim {
 		    ELSE false END AS active ,
                     smtp.unit_id ,
                     smtp.property_value,
-                    smtp.property_string_value
+                    smtp.property_string_value,
+                    smtp.model_materials_id,
+                    COALESCE(NULLIF(srwx.name, ''), srw.name_eng) AS material_name,
+                    srw.name_eng AS material_name_eng
  		FROM sys_machine_tool_property_definition a
                 INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active = 0 
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
                 " . $innerSql . " 
                 LEFT JOIN sys_machine_tool_property_definition su ON (su.id = a.id OR su.language_parent_id = a.id) AND su.deleted =0 AND su.active =0 AND lx.id = su.language_id 
                 LEFT JOIN sys_machine_tool_properties smtp ON smtp.machine_tool_id=smt.id AND smtp.machine_tool_property_definition_id = a.id AND smtp.active =0 AND smtp.deleted =0 
+                LEFT JOIN sys_raw_materials srw ON srw.id = smtp.model_materials_id AND srw.active =0 AND srw.deleted =0  AND srw.language_parent_id = 0               
+                LEFT JOIN sys_raw_materials srwx ON (srwx.id = srw.id OR srwx.language_parent_id = srw.id) AND srwx.language_id = lx.id
                 " . $whereSql . " 
+                    ) as xtable
                 ORDER BY property_name 
                                  "; 
              $statement = $pdo->prepare($sql);

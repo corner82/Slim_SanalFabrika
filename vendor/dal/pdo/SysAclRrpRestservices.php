@@ -1411,9 +1411,9 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
         }
     }
 
-       /**
+    /**
      * @author Okan CIRAN
-     * @ sys_assign_definition tablosunda restservices_id  daha önce kaydedilmiş mi ?  
+     * @ sys_operation_types_rrp tablosunda restservices_id  daha önce kaydedilmiş mi ?  
      * @version v 1.0  08.08.2016
      * @param type $params
      * @return array
@@ -1446,6 +1446,5 @@ class SysAclRrpRestservices extends \DAL\DalSlim {
         }
     }
  
-    
-    
+  
 }

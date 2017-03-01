@@ -39,6 +39,16 @@ class InfoFirmMachineTool extends \BLL\BLLSlim{
     public function insertCons($params = array()) {
         $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
         return $DAL->insertCons($params);
+    }     
+    
+    /**
+     * DAta insert function
+     * @param array | null $params
+     * @return array
+     */
+    public function insertUrgeMachines($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        return $DAL->insertUrgeMachines($params);
     } 
     
     /**
@@ -72,6 +82,15 @@ class InfoFirmMachineTool extends \BLL\BLLSlim{
         return $DAL->updateCons($params);
     }
     
+     /**
+     * Data update function
+     * @param array | null $params
+     * @return array
+     */
+    public function updateUrgeMachines($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        return $DAL->updateUrgeMachines($params);
+    }
     /**
      * Data delete function
      * @param array | null $params
@@ -272,5 +291,60 @@ class InfoFirmMachineTool extends \BLL\BLLSlim{
         return $DAL->makeActiveOrPassive($params);
     }
     
+     /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */ 
+    public function fillUrgeCompanyMachineLists($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        $resultSet = $DAL->fillUrgeCompanyMachineLists($params);  
+        return $resultSet['resultSet'];
+    }
+    
+    /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */ 
+    public function fillUrgeCompanyMachineListsRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        $resultSet = $DAL->fillUrgeCompanyMachineListsRtc($params);  
+        return $resultSet['resultSet'];
+    }
+    
+    /**
+     * get consultant confirmation process details
+     * @param array $params
+     * @return array
+     */
+    public function getFirmMachineConsultant($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        return $DAL->getFirmMachineConsultant($params);
+    }
+    
+    /**
+     * Data update function   
+     * @param array $params
+     * @return array
+     */ 
+    public function fillFirmWhatWorks($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        $resultSet = $DAL->fillFirmWhatWorks($params);  
+        return $resultSet['resultSet'];
+    }
+ 
+     /**
+     * Data update function
+     * @param array | null $params
+     * @return array
+     */
+    public function updateConsConfirmMachineAct($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('infoFirmMachineToolPDO');
+        return $DAL->updateConsConfirmMachineAct($params);
+    } 
+    
 }
+
+
 

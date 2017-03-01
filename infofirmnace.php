@@ -295,9 +295,9 @@ $app->get("/fillFirmWhatWorksForNace_infoFirmNace/", function () use ($app ) {
     $flows = array();
     foreach ($result  as $flow) {
         $flows[] = array(
-            "id" =>  $flow["id"],
+     //       "id" =>  $flow["id"],
             "nace_code" => $flow["nace_code"],  
-            "nacecode_id" => $flow["nacecode_id"],
+       //     "nacecode_id" => $flow["nacecode_id"],
             "description" => html_entity_decode($flow["description"]),
             "attributes" => array(),
         );
@@ -349,9 +349,9 @@ $app->get("/pkFillFirmWhatWorksForNace_infoFirmNace/", function () use ($app ) {
     $flows = array();
     foreach ($result  as $flow) {
         $flows[] = array(
-            "id" =>  $flow["id"],
+         //   "id" =>  $flow["id"],
             "nace_code" => $flow["nace_code"],  
-            "nacecode_id" => $flow["nacecode_id"],
+    //        "nacecode_id" => $flow["nacecode_id"],
             "description" => html_entity_decode($flow["description"]),
             "attributes" => array(),
         );

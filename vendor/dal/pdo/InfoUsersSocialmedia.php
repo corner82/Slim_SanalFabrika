@@ -904,6 +904,9 @@ class InfoUsersSocialmedia extends \DAL\DalSlim {
                 if (isset($params['network_key']) && $params['network_key'] != "") {
                     $networkKey = $params['network_key'] ;                    
                 }
+                $opUserIdValue = $userId ['resultSet'][0]['user_id'];
+                $opUserFirmIdValue = $userId ['resultSet'][0]['user_firm_id'];
+               
                 $sql = "                     
                 SELECT 
                     a.id, 
@@ -937,6 +940,14 @@ class InfoUsersSocialmedia extends \DAL\DalSlim {
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
+                  ActUsersActionStatistics::insert (
+                    array('url' =>  $params['url'],
+                        'opUserIdValue' => $opUserIdValue,
+                        'npk' => $params['network_key'],
+                        'unpk' => NULL,
+                        'opUserFirmIdValue' => $opUserFirmIdValue,    
+                        'language_id' => $languageIdValue,
+                    ));     
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
              //   print_r( array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result) ) ;

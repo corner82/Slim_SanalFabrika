@@ -385,6 +385,7 @@ $app->get("/pkFillCompanyUsersSocialMediaNpk_infoUsersSocialmedia/", function ()
         'language_code' => $vLanguageCode,
         'network_key' => $vNpk,
         'pk' => $pk,
+        'url' => $_GET['url'],
     ));
    
     $resTotalRowCount = $BLL->fillCompanyUsersSocialMediaNpkRtc(array(

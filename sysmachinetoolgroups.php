@@ -212,7 +212,6 @@ $app->get("/pkFillJustMachineToolGroups_sysMachineToolGroups/", function () use 
  */
 
 $app->get("/pkFillMachineToolGroupsMachineProperties_sysMachineToolGroups/", function () use ($app ) {
-
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
     $BLL = $app->getBLLManager()->get('sysMachineToolGroupsBLL');
@@ -222,7 +221,7 @@ $app->get("/pkFillMachineToolGroupsMachineProperties_sysMachineToolGroups/", fun
                                                 $app,
                                                 $_GET['language_code']));
     }
-     $vMachineId = 0;
+    $vMachineId = 0;
     if (isset($_GET['machine_id'])) {
         $stripper->offsetSet('machine_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
@@ -254,20 +253,17 @@ $app->get("/pkFillMachineToolGroupsMachineProperties_sysMachineToolGroups/", fun
                 "property_string_value" =>  html_entity_decode($flow["property_string_value"]),
                 "unit_id" => $flow["unit_id"],
                 "unitcodes" => html_entity_decode($flow["unitcodes"]),
+                "model_materials_id" => $flow["model_materials_id"],
+                "material_name" => html_entity_decode($flow["material_name"]),
+                "material_name_eng" => html_entity_decode($flow["material_name_eng"]),           
                 "attributes" => array("notroot" => true ),
             );
         }
         
     }
-    $resultArray = array();
-    //  $resultArray['total'] = 2;//$resTotalRowCount[0]['count'];
+    $resultArray = array();    
     $resultArray['rows'] = $flows;
     $app->response()->header("Content-Type", "application/json");
-
-    /* $app->contentType('application/json');
-      $app->halt(302, '{"error":"Something went wrong"}');
-      $app->stop(); */
-
     $app->response()->body(json_encode($resultArray));
     
 });
@@ -327,7 +323,7 @@ $app->get("/pkFillJustMachineToolGroupsBootstrap_sysMachineToolGroups/", functio
                 "state" => $menu["state_type"],
                 "checked" => false,
                 "attributes" => array("notroot" => true, "active" => $menu["active"] ,
-                    "icon_class"=>$menu["icon_class"] ,"group_name_eng"=>$menu["group_name_eng"],
+                    "icon_class"=>$menu["icon_class"] ,"group_name_eng"=>html_entity_decode($menu["group_name_eng"]),
                     "machine"=>$menu["machine"] ,)
                 
                                 

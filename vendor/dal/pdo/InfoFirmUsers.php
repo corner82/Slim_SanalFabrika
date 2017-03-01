@@ -110,7 +110,7 @@ class InfoFirmUsers extends \DAL\DalSlim {
                 INNER JOIN info_users u ON u.id = a.op_user_id  
                 INNER JOIN info_users_detail ud ON ud.root_id = a.user_id AND ud.deleted =0 AND ud.active =0                 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = fp.act_parent_id                
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id                
+                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.act_parent_id OR fpx.id=fp.act_parent_id) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id                
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = l.id AND op.deleted =0 AND op.active =0                
                 INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted =0 AND sd15.active =0 
                 INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
@@ -119,7 +119,7 @@ class InfoFirmUsers extends \DAL\DalSlim {
                 LEFT JOIN sys_specific_definitions sd16x ON (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.language_id = lx.id AND sd16x.deleted = 0 --AND sd16x.active = 0
 	        WHERE fp.language_parent_id = 0   			
 			AND fp.active =0 AND fp.deleted =0    
-			-- and ifk.network_key = 'TR39888230632752543'            
+			            
                ORDER BY firm_names, ud.name, ud.surname  
                                  ");               
             $statement->execute();
@@ -539,7 +539,7 @@ class InfoFirmUsers extends \DAL\DalSlim {
                 INNER JOIN info_users u ON u.id = a.op_user_id  
                 INNER JOIN info_users_detail ud ON ud.root_id = a.user_id AND ud.deleted =0 AND ud.active =0 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = fp.act_parent_id 
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id 
+                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.act_parent_id OR fpx.id=fp.act_parent_id) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id 
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = l.id AND op.deleted =0 AND op.active =0 
                 INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted =0 AND sd15.active =0 
                 INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
@@ -630,7 +630,7 @@ class InfoFirmUsers extends \DAL\DalSlim {
                 INNER JOIN info_users u ON u.id = a.op_user_id  
                 INNER JOIN info_users_detail ud ON ud.root_id = a.user_id AND ud.deleted =0 AND ud.active =0                 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = fp.act_parent_id                
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id                
+                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.act_parent_id OR fpx.id=fp.act_parent_id) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id                
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = l.id AND op.deleted =0 AND op.active =0                
                 INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted =0 AND sd15.active =0 
                 INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
@@ -906,6 +906,10 @@ class InfoFirmUsers extends \DAL\DalSlim {
                         $languageIdValue = $languageId ['resultSet'][0]['id'];
                     }
                 }
+              
+                $opUserIdValue = $userId ['resultSet'][0]['user_id'];
+                $opUserFirmIdValue = $userId ['resultSet'][0]['user_firm_id'];
+                
                 $sql = "
                 SELECT 
                     a.id,                     
@@ -944,15 +948,16 @@ class InfoFirmUsers extends \DAL\DalSlim {
                 INNER JOIN info_users u ON u.id = a.op_user_id  
                 INNER JOIN info_users_detail ud ON ud.root_id = a.user_id AND ud.deleted =0 AND ud.active =0                 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = fp.act_parent_id                
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id                
+                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.act_parent_id OR fpx.act_parent_id=fp.act_parent_id) AND fpx.active =0 AND fpx.deleted =0 AND fpx.language_id = lx.id                
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = l.id AND op.deleted =0 AND op.active =0                
-                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted =0 AND sd15.active =0 
-                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = l.id AND sd15.deleted =0 AND sd15.active =0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = l.id AND sd16.deleted = 0 AND sd16.active = 0
 		LEFT JOIN sys_operation_types opx ON (opx.id = op.id OR opx.language_parent_id = op.id) AND opx.language_id = lx.id AND opx.deleted =0 AND opx.active =0                
                 LEFT JOIN sys_specific_definitions sd15x ON (sd15x.id = sd15.id OR sd15x.language_parent_id = sd15.id) AND sd15x.language_id =lx.id AND sd15x.deleted =0 --AND sd15x.active =0 
                 LEFT JOIN sys_specific_definitions sd16x ON (sd16x.id = sd16.id OR sd16x.language_parent_id = sd16.id) AND sd16x.language_id = lx.id AND sd16x.deleted = 0 --AND sd16x.active = 0
-	        WHERE fp.language_parent_id = 0
+	        WHERE fp.language_parent_id = 0 
                     AND fp.deleted =0
+                    AND fp.active =0
                     AND ifk.network_key = '" . $params['network_key'] . "'
                   ORDER BY    " . $sort . " "
                     . "" . $order . " "
@@ -960,16 +965,24 @@ class InfoFirmUsers extends \DAL\DalSlim {
                     . "OFFSET " . $pdo->quote($offset) . " ";        
               
                 $statement = $pdo->prepare($sql);
-                //  echo debugPDO($sql, $parameters);                
+                  //echo debugPDO($sql, $params);                
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
+                 ActUsersActionStatistics::insert (
+                       array('url' =>  $params['url'],
+                        'opUserIdValue' => $opUserIdValue,
+                        'npk' => $params['network_key'],
+                        'unpk' => NULL, 
+                        'opUserFirmIdValue' => $opUserFirmIdValue,                           
+                        'language_id' => $languageIdValue,
+                    )); 
                 if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
                     throw new \PDOException($errorInfo[0]);
                 return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
             } else {
                 $errorInfo = '23502';   // 23502  user_id not_null_violation
-                $errorInfoColumn = 'user_id';
+                $errorInfoColumn = 'pk';
                 return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
             }
         } catch (\PDOException $e /* Exception $e */) {
@@ -1002,10 +1015,11 @@ class InfoFirmUsers extends \DAL\DalSlim {
                 INNER JOIN info_users_detail ud ON ud.root_id = a.user_id AND ud.deleted =0 AND ud.active =0                 
                 INNER JOIN info_firm_keys ifk ON ifk.firm_id = fp.act_parent_id                                
                 INNER JOIN sys_operation_types op ON op.id = a.operation_type_id AND op.language_id = l.id AND op.deleted =0 AND op.active =0                
-                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = 647 AND sd15.deleted =0 AND sd15.active =0 
-                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = 647 AND sd16.deleted = 0 AND sd16.active = 0
+                INNER JOIN sys_specific_definitions sd15 ON sd15.main_group = 15 AND sd15.first_group= a.deleted AND sd15.language_id = l.id AND sd15.deleted =0 AND sd15.active =0 
+                INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= a.active AND sd16.language_id = l.id AND sd16.deleted = 0 AND sd16.active = 0
 		WHERE fp.language_parent_id = 0
                     AND fp.deleted =0
+                    AND fp.active =0
                     AND ifk.network_key = '". $params['network_key']."'
                 
                 ";

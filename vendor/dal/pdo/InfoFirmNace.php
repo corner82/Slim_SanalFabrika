@@ -729,20 +729,22 @@ class InfoFirmNace extends \DAL\DalSlim {
                 $networkKeyValue = $params['network_key'];              
             }
 
-            $sql = "            
+            $sql = "
                 SELECT
                     a.id,
                     snc.nace_code,
-		    a.nacecode_id, 	
+		    a.nacecode_id,
 		    COALESCE(NULLIF(COALESCE(NULLIF(sncx.description, ''), snc.description_eng), ''), snc.description) AS description
-                FROM info_firm_profile fp                                
-                INNER JOIN info_firm_nace a ON a.firm_id = fp.act_parent_id AND a.cons_allow_id=2 AND a.profile_public =0 
-                INNER JOIN sys_nace_codes snc ON snc.id = a.nacecode_id AND snc.active =0 AND snc.deleted =0                 
+                FROM info_firm_profile fp
+                INNER JOIN info_firm_nace a ON a.firm_id = fp.act_parent_id AND a.cons_allow_id=2 AND a.profile_public =0 and a.deleted =0 
+                INNER JOIN info_firm_keys ifk ON ifk.firm_id = fp.act_parent_id 
+                INNER JOIN sys_nace_codes snc ON snc.id = a.nacecode_id AND snc.active =0 AND snc.deleted =0 and snc.language_parent_id =0
                 LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0 
-		LEFT JOIN sys_nace_codes sncx ON (sncx.id = snc.id OR sncx.language_parent_id = snc.id) AND sncx.language_id = lx.id  AND sncx.deleted = 0 AND sncx.active = 0                
-                LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.act_parent_id OR fpx.act_parent_id=fp.act_parent_id ) AND fpx.cons_allow_id=2 AND fpx.language_id = lx.id                
+		LEFT JOIN sys_nace_codes sncx ON (sncx.id = snc.id OR sncx.language_parent_id = snc.id) AND sncx.language_id = lx.id  AND sncx.deleted = 0 AND sncx.active = 0
                 WHERE fp.language_parent_id = 0 AND
-                    fp.cons_allow_id = 2 
+                      fp.cons_allow_id = 2 AND 
+                      fp.deleted =0 AND 
+                      ifk.network_key = '" . $networkKeyValue . "'
                ORDER BY nace_code
                                  ";
             $statement = $pdo->prepare($sql);

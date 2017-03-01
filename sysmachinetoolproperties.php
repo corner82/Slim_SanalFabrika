@@ -66,6 +66,12 @@ $app->get("/pkInsert_sysMachineToolProperties/", function () use ($app ) {
                                                 $app,
                                                 $_GET['machine_tool_id']));
     } 
+    $modelMaterialsId = NULL;
+    if (isset($_GET['model_materials_id'])) {
+         $stripper->offsetSet('model_materials_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['model_materials_id']));
+    } 
     $vMachineToolPropertyDefinitionId = NULL;
     if (isset($_GET['property_id'])) {
          $stripper->offsetSet('property_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
@@ -94,6 +100,7 @@ $app->get("/pkInsert_sysMachineToolProperties/", function () use ($app ) {
     $stripper->strip();
     if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     if($stripper->offsetExists('machine_tool_id')) $vMachineToolId = $stripper->offsetGet('machine_tool_id')->getFilterValue();
+    if($stripper->offsetExists('model_materials_id')) $modelMaterialsId = $stripper->offsetGet('model_materials_id')->getFilterValue();
     if($stripper->offsetExists('property_id')) $vMachineToolPropertyDefinitionId = $stripper->offsetGet('property_id')->getFilterValue();
     if($stripper->offsetExists('property_value')) $vPropertyValue = $stripper->offsetGet('property_value')->getFilterValue();
     if($stripper->offsetExists('property_string_value')) $vPropertyStringValue = $stripper->offsetGet('property_string_value')->getFilterValue();
@@ -105,7 +112,8 @@ $app->get("/pkInsert_sysMachineToolProperties/", function () use ($app ) {
             'machine_tool_property_definition_id' => $vMachineToolPropertyDefinitionId,
             'property_value' => $vPropertyValue,
             'property_string_value' => $vPropertyStringValue,
-            'unit_id' => $vUnitId,                
+            'unit_id' => $vUnitId,  
+            'model_materials_id' => $modelMaterialsId,
             'pk' => $pk,        
             ));
 
@@ -126,7 +134,7 @@ $app->get("/pkUpdate_sysMachineToolProperties/", function () use ($app ) {
     if(!isset($headerParams['X-Public'])) throw new Exception ('rest api "pkUpdate_sysMachineToolProperties" end point, X-Public variable not found');    
     $pk = $headerParams['X-Public'];
         
-  $vLanguageCode = 'tr';
+    $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
          $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
                                                 $app,
@@ -170,11 +178,18 @@ $app->get("/pkUpdate_sysMachineToolProperties/", function () use ($app ) {
                                                 $app,
                                                 $_GET['property_string_value']));
     } 
+    $modelMaterialsId = NULL;
+    if (isset($_GET['model_materials_id'])) {
+         $stripper->offsetSet('model_materials_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['model_materials_id']));
+    } 
     
     $stripper->strip();
     if($stripper->offsetExists('language_code')) $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     //if($stripper->offsetExists('id')) $vId = $stripper->offsetGet('id')->getFilterValue();
     if($stripper->offsetExists('machine_tool_id')) $vMachineToolId = $stripper->offsetGet('machine_tool_id')->getFilterValue();
+    if($stripper->offsetExists('model_materials_id')) $modelMaterialsId = $stripper->offsetGet('model_materials_id')->getFilterValue();
     if($stripper->offsetExists('property_id')) $vMachineToolPropertyDefinitionId = $stripper->offsetGet('property_id')->getFilterValue();
     if($stripper->offsetExists('property_value')) $vPropertyValue = $stripper->offsetGet('property_value')->getFilterValue();
     if($stripper->offsetExists('property_string_value')) $vPropertyStringValue = $stripper->offsetGet('property_string_value')->getFilterValue();    
@@ -187,7 +202,8 @@ $app->get("/pkUpdate_sysMachineToolProperties/", function () use ($app ) {
             'machine_tool_property_definition_id' => $vMachineToolPropertyDefinitionId,
             'property_value' => $vPropertyValue,
             'property_string_value' => $vPropertyStringValue,
-            'unit_id' => $vUnitId,                
+            'unit_id' => $vUnitId,    
+            'model_materials_id' => $modelMaterialsId,
             'pk' => $pk,        
             ));
 
@@ -271,7 +287,6 @@ $app->get("/pkFillGrid_sysMachineToolProperties/", function () use ($app ) {
  * @since 26-02-2016
  */
 $app->get("/pkFillMachineToolFullProperties_sysMachineToolProperties/", function () use ($app ) {
-
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
     $BLL = $app->getBLLManager()->get('sysMachineToolPropertiesBLL');    
@@ -448,7 +463,13 @@ $app->get("/pkDeletePropertyMachine_sysMachineToolProperties/", function () use 
          $stripper->offsetSet('property_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
                                                 $app,
                                                 $_GET['property_id']));
-    }      
+    }    
+    $modelMaterialsId = NULL;
+    if (isset($_GET['model_materials_id'])) {
+         $stripper->offsetSet('model_materials_id',$stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['model_materials_id']));
+    } 
     $stripper->strip(); 
     if ($stripper->offsetExists('machine_id')) {
         $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
@@ -456,14 +477,16 @@ $app->get("/pkDeletePropertyMachine_sysMachineToolProperties/", function () use 
     if ($stripper->offsetExists('property_id')) {
         $vPropertyId = $stripper->offsetGet('property_id')->getFilterValue();
     }
-    
+    if ($stripper->offsetExists('model_materials_id')) {
+        $modelMaterialsId = $stripper->offsetGet('model_materials_id')->getFilterValue();
+    } 
     
     $resData = $BLL->deletePropertyMachine(array(      
             'machine_id' => $vMachineId , 
             'property_id' => $vPropertyId ,
+            'model_materials_id' => $modelMaterialsId ,
             'pk' => $pk,        
-            ));
-
+            )); 
 
     $app->response()->header("Content-Type", "application/json"); 
     $app->response()->body(json_encode($resData));
@@ -496,6 +519,26 @@ $app->get("/pkFillMachinePropertiesSubGridList_sysMachineToolProperties/", funct
         $stripper->offsetSet('machine_tool_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
                 $app, $_GET['machine_tool_id']));
     } 
+      $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, 
+                $app, $_GET['order']));
+    }
 
     $stripper->strip();
     if ($stripper->offsetExists('language_code')) {
@@ -504,11 +547,34 @@ $app->get("/pkFillMachinePropertiesSubGridList_sysMachineToolProperties/", funct
     if ($stripper->offsetExists('machine_tool_id')) {
         $vMachineToolId = $stripper->offsetGet('machine_tool_id')->getFilterValue();
     }    
+     if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
     $resDataGrid = $BLL->fillMachinePropertiesSubGridList(array(
         'url' => $_GET['url'],
+        'page' => $vPage,
+        'url' => $_GET['url'],
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,    
         'language_code' => $vLanguageCode,
         'machine_tool_id' => $vMachineToolId,        
     ));
+    $resTotalRowCount = $BLL->fillMachinePropertiesSubGridListRtc(array(
+        'language_code' => $vLanguageCode,
+        'machine_tool_id' => $vMachineToolId,  
+                                                                ));
+    
+   
 
     $flows = array();
     foreach ($resDataGrid as $flow) {
@@ -525,14 +591,21 @@ $app->get("/pkFillMachinePropertiesSubGridList_sysMachineToolProperties/", funct
        //     "unit_id" => $flow["unit_id"],
             "unitcode" => html_entity_decode($flow["unitcode"]),
             "unitcode_eng" => html_entity_decode($flow["unitcode_eng"]), 
+            "material_name" => html_entity_decode($flow["material_name"]),
+            "material_name_eng" => html_entity_decode($flow["material_name_eng"]), 
             "attributes" => array(            
                      //   "active" => $flow["active"],                     
                 ),
         );
-    }                      
+    }       
+    
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['total'] = $resTotalRowCount[0]['count'];
+    $resultArray['rows'] = $flows;
                 
     $app->response()->header("Content-Type", "application/json");   
-    $app->response()->body(json_encode($flows));
+    $app->response()->body(json_encode($resultArray));
  
 });
 

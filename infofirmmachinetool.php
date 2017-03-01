@@ -104,32 +104,32 @@ $app->get("/pkFillSingularFirmMachineTools_infoFirmMachineTool/", function () us
             "s_date" => $flow["s_date"],
             "c_date" => $flow["c_date"],
             "firm_id" => $flow["firm_id"],
-            "firm_name" => $flow["firm_name"],
+            "firm_name" => html_entity_decode($flow["firm_name"]),
             "sys_machine_tool_id" => $flow["sys_machine_tool_id"],
-            "machine_tool_names" => $flow["machine_tool_names"],
-            "machine_tool_name_eng" => $flow["machine_tool_name_eng"],
+            "machine_tool_names" => html_entity_decode($flow["machine_tool_names"]),
+            "machine_tool_name_eng" => html_entity_decode($flow["machine_tool_name_eng"]),
             "profile_public" => $flow["profile_public"],
-            "state_profile_public" => $flow["state_profile_public"],
+            "state_profile_public" => html_entity_decode($flow["state_profile_public"]),
             "operation_type_id" => $flow["operation_type_id"],
-            "operation_name" => $flow["operation_name"],
+            "operation_name" => html_entity_decode($flow["operation_name"]),
             "act_parent_id" => $flow["act_parent_id"],
             "language_parent_id" => $flow["language_parent_id"],
             "owner_id" => $flow["owner_id"],
-            "owner_username" => $flow["owner_username"],
+            "owner_username" => html_entity_decode($flow["owner_username"]),
             "cons_allow_id" => $flow["cons_allow_id"],
-            "cons_allow" => $flow["cons_allow"],
+            "cons_allow" => html_entity_decode($flow["cons_allow"]),
             "availability_id" => $flow["availability_id"],
-            "state_availability" => $flow["state_availability"],
+            "state_availability" => html_entity_decode($flow["state_availability"]),
             "deleted" => $flow["deleted"],
-            "state_deleted" => $flow["state_deleted"],
+            "state_deleted" => html_entity_decode($flow["state_deleted"]),
             "active" => $flow["active"],
-            "state_active" => $flow["state_active"],
+            "state_active" => html_entity_decode($flow["state_active"]),
             "language_code" => $flow["language_code"],
             "language_id" => $flow["language_id"],
-            "language_name" => $flow["language_name"],
+            "language_name" => html_entity_decode($flow["language_name"]),
             "language_parent_id" => $flow["language_parent_id"],
             "op_user_id" => $flow["op_user_id"],
-            "op_user_name" => $flow["op_user_name"],
+            "op_user_name" => html_entity_decode($flow["op_user_name"]),
             "picture" => $flow["picture"],
             "attributes" => array("notroot" => true, "active" => $flow["active"]),
         );
@@ -165,40 +165,81 @@ $app->get("/pkFillUsersFirmMachines_infoFirmMachineTool/", function () use ($app
 
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
-        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, 
+                $app, $_GET['language_code']));
     }
-    $vMachineId = 0;
+    $vMachineId = NULL;
     if (isset($_GET['machine_id'])) {
-        $stripper->offsetSet('machine_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['machine_id']));
+        $stripper->offsetSet('machine_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['machine_id']));
+    }
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, 
+                $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+                $app, $_GET['filterRules']));
     }
 
     $stripper->strip();
-    if ($stripper->offsetExists('language_code'))
+    if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    if ($stripper->offsetExists('machine_id'))
-        $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
-
-    if (isset($_GET['machine_id'])) {
-        $resDataGrid = $BLL->fillUsersFirmMachines(array(
-            'language_code' => $vLanguageCode,
-            'pk' => $pk,
-            'machine_id' => $vMachineId,
-        ));
-        $resTotalRowCount = $BLL->fillUsersFirmMachinesRtc(array(
-            'language_code' => $vLanguageCode,
-            'pk' => $pk,
-            'machine_id' => $vMachineId,
-        ));
-    } else {
-        $resDataGrid = $BLL->fillUsersFirmMachines(array(
-            'language_code' => $vLanguageCode,
-            'pk' => $pk,
-        ));
-        $resTotalRowCount = $BLL->fillUsersFirmMachinesRtc(array(
-            'language_code' => $vLanguageCode,
-            'pk' => $pk,
-        ));
     }
+    if ($stripper->offsetExists('machine_id')) {
+        $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    }
+
+    
+        $resDataGrid = $BLL->fillUsersFirmMachines(array(
+            'language_code' => $vLanguageCode,
+            'page' => $vPage,
+            'rows' => $vRows,
+            'sort' => $vSort,
+            'order' => $vOrder,            
+            'filterRules' => $filterRules,
+            'pk' => $pk,
+            'machine_id' => $vMachineId,
+        ));
+        $resTotalRowCount = $BLL->fillUsersFirmMachinesRtc(array(
+            'language_code' => $vLanguageCode,
+            'filterRules' => $filterRules,
+            'pk' => $pk,
+            'machine_id' => $vMachineId,
+        ));
+   
 
     $counts = 0;
     $flows = array();
@@ -213,19 +254,26 @@ $app->get("/pkFillUsersFirmMachines_infoFirmMachineTool/", function () use ($app
                 "model" => html_entity_decode($flow["model"]),
                 "model_year" => $flow["model_year"],
                 "act_parent_id" => $flow["act_parent_id"],
-                "picture" => $flow["picture"],
+               // "picture" => $flow["picture"],
                 "total" => $flow["total"],
+                "active" => $flow["active"],
+                "state_active" => html_entity_decode($flow["state_active"]),
+                "profile_public" => $flow["profile_public"],
+                "state_profile_public" => html_entity_decode($flow["state_profile_public"]),
+                "cons_allow_id" => $flow["cons_allow_id"],
+                "cons_allow" => html_entity_decode($flow["cons_allow"]),
+                "availability_id" => $flow["availability_id"],
+                "state_availability" => html_entity_decode($flow["state_availability"]),
                 "attributes" => array("notroot" => true),
-            );          
+            );
         }
         $counts = $resTotalRowCount[0]['count'];
     }
     $resultArray = array();
     $resultArray['total'] = $resTotalRowCount[0]['count'];
     $resultArray['rows'] = $flows;
-    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->header("Content-Type", "application/json");
     $app->response()->body(json_encode($resultArray));
-   
 });
 
 
@@ -282,6 +330,9 @@ $app->get("/pkFillUsersFirmMachineProperties_infoFirmMachineTool/", function () 
                 "property_string_value" => html_entity_decode($flow["property_string_value"]),
                 "unit_id" => $flow["unit_id"],
                 "unitcodes" => html_entity_decode($flow["unitcodes"]),
+                "model_materials_id" => $flow["model_materials_id"],
+                "material_name" => html_entity_decode($flow["material_name"]),
+                "material_name_eng" => html_entity_decode($flow["material_name_eng"]),
                 "picture" => $flow["picture"],
                 "attributes" => array("notroot" => true),
             );
@@ -316,9 +367,10 @@ $app->get("/pkDeletedAct_infoFirmMachineTool/", function () use ($app ) {
         throw new Exception('rest api "pkDeletedAct_infoFirmMachineTool" end point, X-Public variable not found');
     $pk = $headerParams['X-Public'];
     
-    $vId = NULL;
+    $vId = -87;
     if (isset($_GET['id'])) {
-        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['id']));
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['id']));
     }
     $stripper->strip();
     if ($stripper->offsetExists('id')) {
@@ -384,13 +436,7 @@ $app->get("/pkInsert_infoFirmMachineTool/", function () use ($app ) {
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
         $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
-    }   
-    $vNpk = NULL;
-    if (isset($_GET['npk'])) {
-        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
-                                                        $app, 
-                                                        $_GET['npk']));
-    }
+    }       
     $vProfilePublic = 0;
     if (isset($_GET['profile_public'])) {
         $stripper->offsetSet('profile_public', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['profile_public']));
@@ -410,11 +456,7 @@ $app->get("/pkInsert_infoFirmMachineTool/", function () use ($app ) {
     $vTotal = 0;
     if (isset($_GET['total'])) {
         $stripper->offsetSet('total', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['total']));
-    }
-    $vPicture = NULL;
-    if (isset($_GET['picture'])) {
-        $stripper->offsetSet('picture', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['picture']));
-    }
+    }    
 
     $stripper->strip();
     if ($stripper->offsetExists('machine_id')) {
@@ -425,10 +467,7 @@ $app->get("/pkInsert_infoFirmMachineTool/", function () use ($app ) {
     }
     if ($stripper->offsetExists('total')) {
         $vTotal = $stripper->offsetGet('total')->getFilterValue();
-    }
-    if ($stripper->offsetExists('npk')) {
-        $vNpk = $stripper->offsetGet('npk')->getFilterValue();
-    }
+    }    
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     }
@@ -438,19 +477,14 @@ $app->get("/pkInsert_infoFirmMachineTool/", function () use ($app ) {
     if ($stripper->offsetExists('profile_public')) {
         $vProfilePublic = $stripper->offsetGet('profile_public')->getFilterValue();
     }
-    if ($stripper->offsetExists('picture')) {
-        $vPicture = $stripper->offsetGet('picture')->getFilterValue();
-    }
-
+    
     $resDataInsert = $BLL->insert(array(
-        'language_code' => $vLanguageCode,
-        'network_key' => $vNpk,
+        'language_code' => $vLanguageCode,        
         'profile_public' => $vProfilePublic,
         'machine_id' => $vMachineId,
         'ownership_id' => $vOwnerShipId,
         'total' => $vTotal,
-        'availability_id' => $vAvailabilityId,        
-        'picture' => $vPicture,
+        'availability_id' => $vAvailabilityId,                
         'pk' => $pk,
     ));
     $app->response()->header("Content-Type", "application/json");
@@ -638,67 +672,49 @@ $app->get("/pkUpdate_infoFirmMachineTool/", function () use ($app ) {
         throw new Exception('rest api "pkUpdate_infoFirmMachineTool" end point, X-Public variable not found');
     $pk = $headerParams['X-Public'];
 
-    $vId = NULL;
+    $vId = -1;
     if (isset($_GET['id'])) {
-        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['id']));
-    }
-    $vNpk = NULL;
-    if (isset($_GET['npk'])) {
-        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
-                                                        $app, 
-                                                        $_GET['npk']));
-    }
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['id']));
+    }  
     $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
-        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
-    }
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, 
+                $app, $_GET['language_code']));
+    }       
     $vProfilePublic = 0;
     if (isset($_GET['profile_public'])) {
-        $stripper->offsetSet('profile_public', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['profile_public']));
+        $stripper->offsetSet('profile_public', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                $app, $_GET['profile_public']));
     }    
     $vAvailabilityId = 1;
     if (isset($_GET['availability_id'])) {
-        $stripper->offsetSet('availability_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['availability_id']));
+        $stripper->offsetSet('availability_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['availability_id']));
     }
     $vOwnerShipId = 1;
     if (isset($_GET['ownership_id'])) {
-        $stripper->offsetSet('ownership_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['ownership_id']));
-    }    
-    $vFirmId = NULL;
-    if (isset($_GET['firm_id'])) {
-        $stripper->offsetSet('firm_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['firm_id']));
-    }
-    $vMachineId = NULL;
-    if (isset($_GET['machine_id'])) {
-        $stripper->offsetSet('machine_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['machine_id']));
-    }
-    $vPicture = NULL;
-    if (isset($_GET['picture'])) {
-        $stripper->offsetSet('picture', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app, $_GET['picture']));
-    }
+        $stripper->offsetSet('ownership_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['ownership_id']));
+    }        
     $vTotal = 0;
     if (isset($_GET['total'])) {
-        $stripper->offsetSet('total', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['total']));
-    }
+        $stripper->offsetSet('total', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['total']));
+    }    
 
     $stripper->strip();
     if ($stripper->offsetExists('id')) {
         $vId = $stripper->offsetGet('id')->getFilterValue();
-    }
-    if ($stripper->offsetExists('npk')) {
-        $vNpk = $stripper->offsetGet('npk')->getFilterValue();
-    }
-    if ($stripper->offsetExists('machine_id')) {
-        $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
-    }
+    }    
     if ($stripper->offsetExists('ownership_id')) {
         $vOwnerShipId = $stripper->offsetGet('ownership_id')->getFilterValue();
     }
+    if ($stripper->offsetExists('total')) {
+        $vTotal = $stripper->offsetGet('total')->getFilterValue();
+    }    
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
-    }
-    if ($stripper->offsetExists('firm_id')) {
-        $vFirmId = $stripper->offsetGet('firm_id')->getFilterValue();
     }
     if ($stripper->offsetExists('availability_id')) {
         $vAvailabilityId = $stripper->offsetGet('availability_id')->getFilterValue();
@@ -706,24 +722,14 @@ $app->get("/pkUpdate_infoFirmMachineTool/", function () use ($app ) {
     if ($stripper->offsetExists('profile_public')) {
         $vProfilePublic = $stripper->offsetGet('profile_public')->getFilterValue();
     }
-    if ($stripper->offsetExists('picture')) {
-        $vPicture = $stripper->offsetGet('picture')->getFilterValue();
-    }
-    if ($stripper->offsetExists('total')) {
-        $vTotal = $stripper->offsetGet('total')->getFilterValue();
-    }
-
+    
     $resDataInsert = $BLL->update(array(
         'id' => $vId,
-        'network_key' => $vNpk,
-        'language_code' => $vLanguageCode,
-        'profile_public' => $vProfilePublic,
-        'firm_id' => $vFirmId,
-        'machine_id' => $vMachineId,
-        'ownership_id' => $vOwnerShipId,        
-        'total' => $vTotal,
-        'availability_id' => $vAvailabilityId,        
-        'picture' => $vPicture,
+        'language_code' => $vLanguageCode,        
+        'profile_public' => $vProfilePublic,        
+        'ownership_id' => $vOwnerShipId,
+        'availability_id' => $vAvailabilityId,
+        'total' => $vTotal,        
         'pk' => $pk,
     ));
     $app->response()->header("Content-Type", "application/json");
@@ -740,6 +746,7 @@ $app->get("/pkFillFirmMachineGroupsCounts_infoFirmMachineTool/", function () use
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
     $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');
     $headerParams = $app->request()->headers();
+    $pk = $headerParams['X-Public'];
     if (!isset($headerParams['X-Public']))
         throw new Exception('rest api "pkFillFirmMachineGroupsCounts_infoFirmMachineTool" end point, X-Public variable not found');   
     
@@ -760,6 +767,8 @@ $app->get("/pkFillFirmMachineGroupsCounts_infoFirmMachineTool/", function () use
 
     $result = $BLL->fillFirmMachineGroupsCounts(array('language_code' => $vLanguageCode,
         'network_key' => $vNetworkKey,
+        'url'=> $_GET['url'],
+        'pk'=> $pk,
     ));
 
     $flows = array();
@@ -926,6 +935,7 @@ $app->get("/pkFillUsersFirmMachinesNpk_infoFirmMachineTool/", function () use ($
         'machine_grup_id' => $vMachineGrupId,
         'machine_id' => $vMachineId,
         'network_key' => $vNetworkKey,
+        'url' => $_GET['url'],
     ));
 
     /*
@@ -1190,7 +1200,7 @@ $app->get("/pkFillConsCompanyMachineLists_infoFirmMachineTool/", function () use
     $resultArray['rows'] = $menus;
     $app->response()->body(json_encode($resultArray));
 });
-
+ 
 
  /**x
  *  * Okan CIRAN
@@ -1222,7 +1232,437 @@ $app->get("/pkUpdateMakeActiveOrPassive_infoFirmMachineTool/", function () use (
 }
 ); 
 
+/**
+ *  * Okan CIRAN
+ * @since 22-08-2016
+ */
+$app->get("/pkFillUrgeCompanyMachineLists_infoFirmMachineTool/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+   $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');
 
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkFillUrgeCompanyMachineLists_infoFirmMachineTool" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+          
+    $vPage = NULL;
+    if (isset($_GET['page'])) {
+        $stripper->offsetSet('page', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['page']));
+    }
+    $vRows = NULL;
+    if (isset($_GET['rows'])) {
+        $stripper->offsetSet('rows', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['rows']));
+    }
+    $vSort = NULL;
+    if (isset($_GET['sort'])) {
+        $stripper->offsetSet('sort', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                $app, $_GET['sort']));
+    }
+    $vOrder = NULL;
+    if (isset($_GET['order'])) {
+        $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, 
+                $app, $_GET['order']));
+    }
+    $filterRules = null;
+    if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, 
+                $app, $_GET['filterRules']));
+    }
+    
+    $stripper->strip();    
+    if ($stripper->offsetExists('page')) {
+        $vPage = $stripper->offsetGet('page')->getFilterValue();
+    }
+    if ($stripper->offsetExists('rows')) {
+        $vRows = $stripper->offsetGet('rows')->getFilterValue();
+    }
+    if ($stripper->offsetExists('sort')) {
+        $vSort = $stripper->offsetGet('sort')->getFilterValue();
+    }
+    if ($stripper->offsetExists('order')) {
+        $vOrder = $stripper->offsetGet('order')->getFilterValue();
+    }
+    if ($stripper->offsetExists('filterRules')) {
+        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
+    } 
 
+    $resDataGrid = $BLL->fillUrgeCompanyMachineLists(array(        
+        'page' => $vPage,
+        'url' => $_GET['url'],
+        'rows' => $vRows,
+        'sort' => $vSort,
+        'order' => $vOrder,        
+        'filterRules' => $filterRules,
+        'pk' => $pk,
+    ));
+  
+    $resTotalRowCount = $BLL->fillUrgeCompanyMachineListsRtc(array(        
+        'filterRules' => $filterRules,
+        'pk' => $pk,
+    ));
+    $counts=0;
+  
+    $menu = array();            
+    if (isset($resDataGrid[0]['id'])) {      
+        foreach ($resDataGrid as $menu) {
+            $menus[] = array(
+                "id" => $menu["id"],
+                "firm_id" => $menu["firm_id"],
+                
+                "firm_name" => html_entity_decode($menu["firm_name"]),
+                "firm_name_short" => html_entity_decode($menu["firm_name_short"]),
+                "machine_tool_name_eng" => html_entity_decode($menu["machine_tool_name_eng"]),                 
+                "machine_id" => $menu["sys_machine_tool_id"],
+                "machine_tool_name" => html_entity_decode($menu["machine_tool_name"]),
+                "machine_tool_name_eng" => html_entity_decode($menu["machine_tool_name_eng"]),
+                "total" => $menu["total"],
+                "machine_tool_grup_id" => $menu["machine_tool_grup_id"],
+                "machine_tool_grup_name" => html_entity_decode($menu["machine_tool_grup_name"]), 
+                "profile_public" =>  $menu["profile_public"],
+                "state_profile_public" => html_entity_decode($menu["state_profile_public"]),
+                "availability_id" => $menu["availability_id"],
+                "state_availability" => html_entity_decode($menu["state_availability"]),
+                "ownership_id" => $menu["ownership_id"],
+                "state_ownership" => html_entity_decode($menu["state_ownership"]),
+                "state_active" => html_entity_decode($menu["state_active"]), 
+                "attributes" => array("active" => $menu["active"],   ),
+                   
+            );
+        }
+       $counts = $resTotalRowCount[0]['count'];
+      } ELSE { $menus = array(); }   
+
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();
+    $resultArray['total'] = $counts;
+    $resultArray['rows'] = $menus;
+    $app->response()->body(json_encode($resultArray));
+});
+
+/* * x
+ *  * Okan CIRAN
+ * @since 02-01-2017
+ */
+$app->get("/pkInsertUrgeMachines_infoFirmMachineTool/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkInsertUrgeMachines_infoFirmMachineTool" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, 
+                $app, $_GET['language_code']));
+    }  
+    $vProfilePublic = 0;
+    if (isset($_GET['profile_public'])) {
+        $stripper->offsetSet('profile_public', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['profile_public']));
+    }    
+    $vAvailabilityId = 1;
+    if (isset($_GET['availability_id'])) {
+        $stripper->offsetSet('availability_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['availability_id']));
+    }
+    $vOwnerShipId = 1;
+    if (isset($_GET['ownership_id'])) {
+        $stripper->offsetSet('ownership_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['ownership_id']));
+    }    
+    $vMachineId = NULL;
+    if (isset($_GET['machine_id'])) {
+        $stripper->offsetSet('machine_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['machine_id']));
+    }
+    $vTotal = 0;
+    if (isset($_GET['total'])) {
+        $stripper->offsetSet('total', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['total']));
+    }
+    $vFirmId = 0;
+    if (isset($_GET['firm_id'])) {
+        $stripper->offsetSet('firm_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['firm_id']));
+    }
+   
+    $stripper->strip();
+    if ($stripper->offsetExists('machine_id')) {
+        $vMachineId = $stripper->offsetGet('machine_id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('ownership_id')) {
+        $vOwnerShipId = $stripper->offsetGet('ownership_id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('total')) {
+        $vTotal = $stripper->offsetGet('total')->getFilterValue();
+    }
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('availability_id')) {
+        $vAvailabilityId = $stripper->offsetGet('availability_id')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('profile_public')) {
+        $vProfilePublic = $stripper->offsetGet('profile_public')->getFilterValue();
+    }
+    if ($stripper->offsetExists('firm_id')) {
+        $vFirmId = $stripper->offsetGet('firm_id')->getFilterValue();
+    }
+    
+
+    $resDataInsert = $BLL->insertUrgeMachines(array(
+        'url' => $_GET['url'],
+        'language_code' => $vLanguageCode,        
+        'profile_public' => $vProfilePublic,
+        'machine_id' => $vMachineId,
+        'ownership_id' => $vOwnerShipId,
+        'total' => $vTotal,
+        'availability_id' => $vAvailabilityId,        
+        'firm_id' => $vFirmId,
+        'pk' => $pk,
+    ));
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($resDataInsert));
+}
+);
+
+/* * x
+ *  * Okan CIRAN
+ * @since 19-08-2016
+ */
+$app->get("/pkUpdateUrgeMachines_infoFirmMachineTool/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkUpdateUrgeMachines_infoFirmMachineTool" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, 
+                $app, $_GET['language_code']));
+    }  
+    $vId = 0;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['id']));
+    }  
+    $vProfilePublic = 0;
+    if (isset($_GET['profile_public'])) {
+        $stripper->offsetSet('profile_public', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['profile_public']));
+    } 
+    $vAvailabilityId = 1;
+    if (isset($_GET['availability_id'])) {
+        $stripper->offsetSet('availability_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['availability_id']));
+    }
+    $vOwnerShipId = 1;
+    if (isset($_GET['ownership_id'])) {
+        $stripper->offsetSet('ownership_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['ownership_id']));
+    }  
+    $vTotal = 0;
+    if (isset($_GET['total'])) {
+        $stripper->offsetSet('total', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['total']));
+    }
+    
+    $stripper->strip();
+    if ($stripper->offsetExists('id')) {
+        $vId = $stripper->offsetGet('id')->getFilterValue();
+    }       
+    if ($stripper->offsetExists('ownership_id')) {
+        $vOwnerShipId = $stripper->offsetGet('ownership_id')->getFilterValue();
+    }
+    if ($stripper->offsetExists('total')) {
+        $vTotal = $stripper->offsetGet('total')->getFilterValue();
+    }   
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('availability_id')) {
+        $vAvailabilityId = $stripper->offsetGet('availability_id')->getFilterValue();
+    }    
+    if ($stripper->offsetExists('profile_public')) {
+        $vProfilePublic = $stripper->offsetGet('profile_public')->getFilterValue();
+    } 
+    $resDataInsert = $BLL->updateUrgeMachines(array(
+        'url' => $_GET['url'],
+        'id' => $vId,  
+        'language_code' => $vLanguageCode,
+        'profile_public' => $vProfilePublic, 
+        'ownership_id' => $vOwnerShipId,
+        'availability_id' => $vAvailabilityId, 
+        'total' => $vTotal, 
+        'pk' => $pk,
+    ));
+    $app->response()->header("Content-Type", "application/json");
+    $app->response()->body(json_encode($resDataInsert));
+}
+);
+
+/**
+ *  * Okan CIRAN
+ * @since 09-01-2017
+ */
+$app->get("/pkGetFirmMachineConsultant_infoFirmMachineTool/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();   
+    $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');
+    $headerParams = $app->request()->headers();     
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkGetFirmMachineConsultant_infoFirmMachineTool" end point, X-Public variable not found');
+    }
+    $pk = $headerParams['X-Public'];
+    
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }   
+
+    $stripper->strip();
+    if($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();    
+    }
+ 
+    $result = $BLL->getFirmMachineConsultant(array(
+        'language_code' => $vLanguageCode,    
+        'pk' => $pk,
+        ));    
+  
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array(
+           // "firm_id" => $flow["firm_id"],
+            "consultant_id" => $flow["consultant_id"],  
+            "name" => html_entity_decode($flow["name"]),   
+            "surname" => html_entity_decode($flow["surname"]),
+            "auth_email" => html_entity_decode($flow["auth_email"]),
+            "phone" => $flow["phone"],
+        //    "communications_type_id" => $flow["communications_type_id"],
+        //    "communications_type_name" => $flow["communications_type_name"],             
+        //    "communications_no" => $flow["communications_no"],
+            "cons_picture" => $flow["cons_picture"],
+            "npk" => $flow["network_key"],             
+            "attributes" => array(),
+        );
+    }
+ 
+    $app->response()->header("Content-Type", "application/json");    
+    $app->response()->body(json_encode($flows));
+});
+
+/**
+ *  * Okan CIRAN
+ * @since 17-01-2017
+ */
+$app->get("/pkFillFirmWhatWorks_infoFirmMachineTool/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
+    $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');
+
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkFillFirmWhatWorks_infoFirmMachineTool" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+          
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+        $stripper->offsetSet('language_code', $stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE, $app, $_GET['language_code']));
+    }
+    $vNpk = NULL ;
+    if (isset($_GET['npk'])) {
+        $stripper->offsetSet('npk', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+                                                        $app, 
+                                                        $_GET['npk']));
+    }
+    
+    $stripper->strip();    
+    if ($stripper->offsetExists('npk')) {
+        $vNpk = $stripper->offsetGet('npk')->getFilterValue();
+    }
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    
+
+    $resDataGrid = $BLL->fillFirmWhatWorks(array(        
+        'network_key' => $vNpk,
+        'url' => $_GET['url'],
+        'language_code' => $vLanguageCode,        
+        'pk' => $pk,
+    ));
+  
+ 
+  //  $counts=0;
+  
+    $menu = array();            
+    if (isset($resDataGrid[0]['main_group_id'])) {      
+        foreach ($resDataGrid as $menu) {
+            $menus[] = array(
+                "main_group_id" => $menu["main_group_id"],
+                "group_name" => html_entity_decode($menu["group_name"]),
+                "attributes" => array(    ),                   
+            );
+        }
+   //    $counts = $resTotalRowCount[0]['count'];
+      } ELSE { $menus = array(); }   
+
+    $app->response()->header("Content-Type", "application/json");
+    $resultArray = array();    
+    $resultArray['rows'] = $menus;
+    $app->response()->body(json_encode($resultArray));
+});
+
+ /**x
+ *  * Okan CIRAN
+ * @since 27-01-2017
+ */
+$app->get("/pkUpdateConsConfirmMachineAct_infoFirmMachineTool/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('infoFirmMachineToolBLL');
+    $headerParams = $app->request()->headers();
+    if (!isset($headerParams['X-Public'])) {
+        throw new Exception('rest api "pkUpdateConsConfirmMachineAct_infoFirmMachineTool" end point, X-Public variable not found');
+    }
+    $Pk = $headerParams['X-Public'];      
+    $vId = NULL;
+    if (isset($_GET['id'])) {
+        $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['id']));
+    } 
+    $vOperationId = NULL;
+    if (isset($_GET['operation_id'])) {
+        $stripper->offsetSet('operation_id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED,
+                                                $app,
+                                                $_GET['operation_id']));
+    } 
+    
+    
+    $stripper->strip(); 
+    if ($stripper->offsetExists('id')) {$vId = $stripper->offsetGet('id')->getFilterValue(); }
+    if ($stripper->offsetExists('operation_id')) {$vOperationId = $stripper->offsetGet('operation_id')->getFilterValue(); }
+    $resData = $BLL->updateConsConfirmMachineAct(array(                  
+            'id' => $vId ,    
+            'url' => $_GET['url'] ,    
+            'operation_id' => $vOperationId, 
+            'pk' => $Pk,        
+            ));
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($resData));
+}
+); 
 
 $app->run();

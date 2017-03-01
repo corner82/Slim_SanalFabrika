@@ -234,7 +234,8 @@ $app->get("/pkGetMachineTools_sysMachineTools/", function () use ($app ) {
             "machine_tool_name_eng" =>  html_entity_decode($flow["machine_tool_name_eng"]),
             "group_name" =>  html_entity_decode($flow["group_name"]),
             "group_name_eng" =>  html_entity_decode($flow["group_name_eng"]),
-            "manufacturer_name" =>  html_entity_decode($flow["manufacturer_name"]),
+            "manufacturer_name" =>  html_entity_decode($flow["manufacturer_name"]),   
+            "model" =>  html_entity_decode($flow["model"]),
             "attributes" => array(
                         "notroot" => true, 
                         "active" => $flow["active"],
@@ -301,11 +302,106 @@ $app->get("/pkGetMachineToolsGrid_sysMachineTools/", function () use ($app ) {
         $stripper->offsetSet('order', $stripChainerFactory->get(stripChainers::FILTER_ONLY_ORDER, $app, $_GET['order']));
     }
     $filterRules = null;
-    if (isset($_GET['filterRules'])) {
-        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, $app, $_GET['filterRules']));
+  /*  if (isset($_GET['filterRules'])) {
+        $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_FILTER_RULES_JSON_LVL1, $app, $_GET['filterRules']));
+     //   $stripper->offsetSet('filterRules', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_JASON_LVL1, $app, $_GET['filterRules']));
+        
     }
-
+   * 
+   */
+   ///////////////////////////////////////////////////////////// 
+    $vmachineToolName = NULL;
+    $vmachineToolNameEng = NULL;
+    $vgroupName = NULL;
+    $vmanufacturerName = NULL;
+    $vmodel = NULL;
+     if (isset($_GET['filterRules'])) {
+            $filterRules = trim($_GET['filterRules']);
+            $jsonFilter = json_decode($filterRules, true);             
+            foreach ($jsonFilter as $std) {
+                if ($std['value'] != null) {
+                    switch (trim($std['field'])) {
+                        case 'machine_tool_name':                            
+                            $stripper->offsetSet('machine_tool_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app,$std['value']));
+                            break;
+                        case 'machine_tool_name_eng':
+                            $stripper->offsetSet('machine_tool_name_eng', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app,$std['value']));
+                            break;
+                        case 'group_name':
+                            $stripper->offsetSet('group_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app,$std['value']));                            
+                            break;
+                        case 'manufacturer_name':
+                            $stripper->offsetSet('manufacturer_name', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app,$std['value']));
+                            break;
+                        case 'model':
+                            $stripper->offsetSet('model', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, $app,$std['value']));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+    
+                        
+    ////////////////////////////////////////////////////////////
+  
     $stripper->strip();
+    
+    $addfilterRules = NULL;
+    if (isset($_GET['filterRules'])) {
+            $filterRules = trim($_GET['filterRules']);
+            $jsonFilter = json_decode($filterRules, true);             
+            $addfilterRules = NULL;
+            $filterRules = NULL;
+            foreach ($jsonFilter as $std) {
+                if ($std['value'] != NULL) {                    
+                    switch (trim($std['field'])) {
+                        case 'machine_tool_name':                            
+                                $vmachineToolName = $stripper->offsetGet('machine_tool_name')->getFilterValue();
+                                $addfilterRules = '{"field":"machine_tool_name","op":"contains","value":"'.$vmachineToolName.'"}';
+                                $filterRules .= $addfilterRules;
+                              //  print_r($filterRules);
+                            break;
+                        case 'machine_tool_name_eng':
+                                $vmachineToolNameEng = $stripper->offsetGet('machine_tool_name_eng')->getFilterValue();
+                                if ($filterRules != NULL) {$filterRules .=",";}
+                                $addfilterRules = '{"field":"machine_tool_name_eng","op":"contains","value":"'.$vmachineToolNameEng.'"}';
+                                $filterRules .= $addfilterRules;
+                               // print_r($filterRules);
+                            break;
+                        case 'group_name':
+                                $vgroupName = $stripper->offsetGet('group_name')->getFilterValue();
+                            if ($addfilterRules != NULL) {$filterRules .=",";}
+                                $addfilterRules = '{"field":"group_name","op":"contains","value":"'.$vgroupName.'"}';
+                                $filterRules .= $addfilterRules;
+                               // print_r($filterRules);
+                            break;
+                        case 'manufacturer_name':
+                                $vmanufacturerName = $stripper->offsetGet('manufacturer_name')->getFilterValue();
+                            if ($addfilterRules != NULL) {$filterRules .=",";}
+                                $addfilterRules = '{"field":"manufacturer_name","op":"contains","value":"'.$vmanufacturerName.'"}';
+                                $filterRules .= $addfilterRules;
+                              //  print_r($filterRules);
+                            break;
+                        case 'model':
+                                $vmodel = $stripper->offsetGet('model')->getFilterValue();
+                            if ($addfilterRules != NULL) {$filterRules .=",";}
+                                $addfilterRules = '{"field":"model","op":"contains","value":"'.$vmodel.'"}';
+                                $filterRules .= $addfilterRules;
+                              //  print_r($filterRules);
+                            break;
+                        default:
+                            break;
+                    }
+                   
+                   
+                }
+            }
+        } 
+      
+    if ($addfilterRules != NULL) { $filterRules = "[".$filterRules."]";}
+     
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
     }
@@ -323,13 +419,8 @@ $app->get("/pkGetMachineToolsGrid_sysMachineTools/", function () use ($app ) {
     }
     if ($stripper->offsetExists('order')) {
         $vOrder = $stripper->offsetGet('order')->getFilterValue();
-    }
-    if ($stripper->offsetExists('filterRules')) {
-        $filterRules = $stripper->offsetGet('filterRules')->getFilterValue();
-    }
-
-    //  if(isset($_GET['filterRules'])) $filterRules = $_GET['filterRules'];
-
+    }                  
+  
     $resDataGrid = $BLL->getMachineToolsGrid(array(
         'url' => $_GET['url'],
         'language_code' => $vLanguageCode,
@@ -354,9 +445,9 @@ $app->get("/pkGetMachineToolsGrid_sysMachineTools/", function () use ($app ) {
             "machine_tool_name_eng" =>  html_entity_decode($flow["machine_tool_name_eng"]),
             "group_name" =>  html_entity_decode($flow["group_name"]),
             "group_name_eng" =>  html_entity_decode($flow["group_name_eng"]),
-            "manufacturer_name" =>  html_entity_decode($flow["manufacturer_name"]),
-            "machine_tool_grup_id" => $flow["machine_tool_grup_id"],
             "manufactuer_id" => $flow["manufactuer_id"],
+            "manufacturer_name" =>  html_entity_decode($flow["manufacturer_name"]),
+            "machine_tool_grup_id" => $flow["machine_tool_grup_id"],            
             "model" =>  html_entity_decode($flow["model"]),
             "model_year" => $flow["model_year"],
             "machine_tool_grup_id" => $flow["machine_tool_grup_id"],
@@ -448,7 +539,9 @@ $app->get("/pkUpdateMakeActiveOrPassive_sysMachineTools/", function () use ($app
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();
     $BLL = $app->getBLLManager()->get('sysMachineToolsBLL');
     $headerParams = $app->request()->headers();
-    $Pk = $headerParams['X-Public'];
+    if (!isset($headerParams['X-Public']))
+        throw new Exception('rest api "pkUpdateMakeActiveOrPassive_sysMachineTools" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
     $vId = NULL;
     if (isset($_GET['id'])) {
         $stripper->offsetSet('id', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, $app, $_GET['id']));
@@ -459,7 +552,7 @@ $app->get("/pkUpdateMakeActiveOrPassive_sysMachineTools/", function () use ($app
     }
     $resData = $BLL->makeActiveOrPassive(array(
         'id' => $vId,
-        'pk' => $Pk,
+        'pk' => $pk,
     ));
     $app->response()->header("Content-Type", "application/json");
     $app->response()->body(json_encode($resData));
@@ -521,7 +614,7 @@ $app->get("/pkInsert_sysMachineTools/", function () use ($app ) {
     }
     $vPicture = NULL;
     if (isset($_GET['picture'])) {
-        $stripper->offsetSet('picture', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+        $stripper->offsetSet('picture', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, 
                     $app, $_GET['picture']));
     }
 
@@ -628,12 +721,12 @@ $app->get("/pkUpdate_sysMachineTools/", function () use ($app ) {
         $stripper->offsetSet('machine_code', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
                     $app, $_GET['machine_code']));
     }
-    $vPicture = NULL;
+  /*  $vPicture = NULL;
     if (isset($_GET['picture'])) {
-        $stripper->offsetSet('picture', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL2, 
+        $stripper->offsetSet('picture', $stripChainerFactory->get(stripChainers::FILTER_PARANOID_LEVEL1, 
                     $app, $_GET['picture']));
     }
-
+*/
     $stripper->strip();
     if ($stripper->offsetExists('language_code')) {
         $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
@@ -662,9 +755,11 @@ $app->get("/pkUpdate_sysMachineTools/", function () use ($app ) {
     if ($stripper->offsetExists('machine_code')) {
         $vMachineCode = $stripper->offsetGet('machine_code')->getFilterValue();
     }
-    if ($stripper->offsetExists('picture')) {
+   /* if ($stripper->offsetExists('picture')) {
         $vPicture = $stripper->offsetGet('picture')->getFilterValue();
     }
+    * 
+    */
 
     $resData = $BLL->update(array(
         'id' => $vId,
@@ -676,7 +771,7 @@ $app->get("/pkUpdate_sysMachineTools/", function () use ($app ) {
         'model' => $vModel,
         'model_year' => $vModelYear,
         'machine_code' => $vMachineCode,
-        'picture' => $vPicture,
+      //  'picture' => $vPicture,
         'pk' => $pk,
     ));
     $app->response()->header("Content-Type", "application/json");
@@ -689,7 +784,7 @@ $app->get("/pkUpdate_sysMachineTools/", function () use ($app ) {
  *  * Okan CIRAN
  * @since 18-05-2016
  */
-$app->get("/pkUpdateMakeActiveOrPassive_sysMachineTools/", function () use ($app ) {
+$app->get("/pkUpdateMakeActiveOrPassive_sysMachineTools1/", function () use ($app ) {
     $stripper = $app->getServiceManager()->get('filterChainerCustom');
     $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
     $BLL = $app->getBLLManager()->get('sysMachineToolsBLL');
@@ -898,7 +993,7 @@ $app->get("/pkFillMachineAdvSearchSsm_sysMachineTools/", function () use ($app )
     $counts=0;
 
     $flows = array();
-      if (isset($resDataGrid[0]['id'])) {  
+    if (isset($resDataGrid[0]['id'])) {  
     foreach ($resDataGrid as $flow) {
         $flows[] = array(
             "id" => $flow["id"],
@@ -941,5 +1036,46 @@ $app->get("/pkFillMachineAdvSearchSsm_sysMachineTools/", function () use ($app )
     
 });
 
+ /**x
+ *  * Okan CIRAN
+ * @since 24-01-2017
+ */
+$app->get("/getLeftMenuMachineStatistic_sysMachineTools/", function () use ($app ) {
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory();    
+    $BLL = $app->getBLLManager()->get('sysMachineToolsBLL');    
+     
+    $vLanguageCode = 'tr';
+    if (isset($_GET['language_code'])) {
+         $stripper->offsetSet('language_code',$stripChainerFactory->get(stripChainers::FILTER_ONLY_LANGUAGE_CODE,
+                                                $app,
+                                                $_GET['language_code']));
+    }  
+    
+    $stripper->strip(); 
+    
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+      $result = $BLL->getLeftMenuMachineStatistic(array(
+        'language_code' => $vLanguageCode,
+           
+        ));                            
+                  
+    $flows = array();
+    foreach ($result['resultSet'] as $flow) {
+        $flows[] = array(
+            "allmachiningequipment" =>  $flow["allmachiningequipment"],
+            "allcnc" => $flow["allcnc"],  
+            "allmachine" => $flow["allmachine"],               
+            "all5axis" => $flow["all5axis"], 
+            "attributes" => array(),
+        );
+    }
+ 
+    $app->response()->header("Content-Type", "application/json");    
+    $app->response()->body(json_encode($flows));
+}
+); 
 
 $app->run();

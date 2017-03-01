@@ -727,7 +727,7 @@ class SysMachineToolGroups extends \DAL\DalSlim {
      * @throws \PDOException
      */
     public function fillMachineToolGroupsMachines($params = array()) {
-        try {
+        try {   
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
             
             $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
@@ -801,28 +801,52 @@ class SysMachineToolGroups extends \DAL\DalSlim {
                 $machineId = $params['machine_id'];
                 $addSql .=" AND a.machine_tool_id= " . intval($machineId);
             } 
-            $statement = $pdo->prepare("                
-               
+            $statement = $pdo->prepare("   
                 SELECT 
-                    a.id, 
-                    cast(a.machine_tool_id as text) as machine_id ,	
-                    COALESCE(NULLIF(mtx.machine_tool_name, ''), mt.machine_tool_name_eng) AS machine_names,	
-                    COALESCE(NULLIF(pdx.property_name, ''), pd.property_name_eng) AS property_names,
-                    pd.property_name_eng,
-                    a.property_value, 
-                    a.property_string_value,
-                    u.id AS unit_id,
-                    COALESCE(NULLIF(u.unitcode, ''), u.unitcode_eng) AS unitcodes                  
-                FROM sys_machine_tool_properties a
-		LEFT JOIN sys_language lx ON lx.id =". intval($languageIdValue)."  AND lx.deleted =0 AND lx.active =0                      
-		INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0  				
-                INNER JOIN sys_machine_tools mt ON (mt.id = a.machine_tool_id OR mt.language_parent_id = a.machine_tool_id ) AND mt.language_id = l.id            
-                LEFT JOIN sys_machine_tools mtx ON (mtx.id = a.machine_tool_id OR mtx.language_parent_id = a.machine_tool_id ) AND mtx.language_id = lx.id              
-                INNER JOIN sys_machine_tool_property_definition pd ON pd.id = a.machine_tool_property_definition_id AND pd.language_parent_id = 0              
-                LEFT JOIN sys_machine_tool_property_definition pdx ON (pdx.id = a.machine_tool_property_definition_id OR pdx.language_parent_id = a.machine_tool_property_definition_id) AND pdx.language_id = lx.id             
-                LEFT JOIN sys_units u ON (u.id = a.unit_id OR u.language_parent_id = a.unit_id) AND u.language_id = l.id                 
-                ".$addSql."                
-                                 ");
+                    id, 
+                    machine_id,
+                    machine_names,                    
+                    CASE
+                      WHEN material_name IS NOT NULL THEN CONCAT(property_names,' (' ,material_name ,')' ) 
+                      ELSE property_names END  AS property_names,         
+                    CASE  
+                      WHEN material_name_eng IS NOT NULL THEN CONCAT(property_name_eng,' (' ,material_name_eng ,')' ) 
+                      ELSE property_name_eng END AS property_name_eng,
+                    property_value,
+                    property_string_value,
+                    unit_id,
+                    unitcodes,
+                    model_materials_id,
+                    material_name,
+                    material_name_eng
+                FROM (
+                    SELECT 
+                        a.id, 
+                        cast(a.machine_tool_id as text) as machine_id,
+                        COALESCE(NULLIF(mtx.machine_tool_name, ''), mt.machine_tool_name_eng) AS machine_names,
+                        COALESCE(NULLIF(pdx.property_name, ''), pd.property_name_eng) AS property_names,
+                        pd.property_name_eng,
+                        a.property_value, 
+                        a.property_string_value,
+                        u.id AS unit_id,
+                        COALESCE(NULLIF(u.unitcode, ''), u.unitcode_eng) AS unitcodes,
+                        a.model_materials_id,
+                        COALESCE(NULLIF(srwx.name, ''), srw.name_eng) AS material_name,
+                        srw.name_eng AS material_name_eng 
+                    FROM sys_machine_tool_properties a
+                    LEFT JOIN sys_language lx ON lx.id =". intval($languageIdValue)."  AND lx.deleted =0 AND lx.active =0
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                    INNER JOIN sys_machine_tools mt ON (mt.id = a.machine_tool_id OR mt.language_parent_id = a.machine_tool_id ) AND mt.language_id = l.id
+                    LEFT JOIN sys_machine_tools mtx ON (mtx.id = a.machine_tool_id OR mtx.language_parent_id = a.machine_tool_id ) AND mtx.language_id = lx.id
+                    INNER JOIN sys_machine_tool_property_definition pd ON pd.id = a.machine_tool_property_definition_id AND pd.language_parent_id = 0
+                    LEFT JOIN sys_machine_tool_property_definition pdx ON (pdx.id = a.machine_tool_property_definition_id OR pdx.language_parent_id = a.machine_tool_property_definition_id) AND pdx.language_id = lx.id
+                    LEFT JOIN sys_units u ON (u.id = a.unit_id OR u.language_parent_id = a.unit_id) AND u.language_id = l.id
+                    LEFT JOIN sys_raw_materials srw ON srw.id = a.model_materials_id AND srw.active =0 AND srw.deleted =0  AND srw.language_parent_id = 0               
+                    LEFT JOIN sys_raw_materials srwx ON (srwx.id = srw.id OR srwx.language_parent_id = srw.id) AND srwx.language_id = lx.id              
+                    ".$addSql."
+                ) as xtable    
+                ORDER BY machine_names, property_names, material_name, unitcodes
+                               ");
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -929,6 +953,8 @@ class SysMachineToolGroups extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+ 
+
  
     
 }

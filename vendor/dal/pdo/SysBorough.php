@@ -454,22 +454,32 @@ class SysBorough extends \DAL\DalSlim {
      public function fillComboBox($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory'); 
+            $languageId = NULL;
+            $languageIdValue = 647;
+            if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                    $languageIdValue = $languageId ['resultSet'][0]['id'];
+                }
+            }
             $sql = "
                SELECT 
                     a.id AS id,                                         
-                    COALESCE(NULLIF(a.name, ''), a.name_eng) AS name ,
+                    COALESCE(NULLIF(ax.name, ''), a.name_eng) AS name ,
                     a.name_eng
-                FROM sys_borough a                
-                WHERE a.language_code = :language_code 
-                AND a.country_id = :country_id 
-                AND a.city_id = :city_id
-                AND a.active = 0 
-                AND a.deleted = 0 
-                ORDER BY a.name                
+                FROM sys_borough a 
+                INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0 
+                LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND l.deleted =0 AND l.active =0 
+		LEFT JOIN sys_borough ax ON (ax.id = a.id OR ax.language_parent_id = a.id) AND ax.language_id = lx.id AND ax.active =0 AND ax.deleted =0                                           
+                WHERE 
+                    a.country_id = :country_id AND
+                    a.city_id = :city_id AND
+                    a.active = 0 AND
+                    a.deleted = 0 
+                ORDER BY a.name               
                                  ";
             $statement = $pdo->prepare($sql);
-           //echo debugPDO($sql, $params);
-            $statement->bindValue(':language_code', $params['language_code'], \PDO::PARAM_STR);
+           //echo debugPDO($sql, $params);            
             $statement->bindValue(':country_id', $params['country_id'], \PDO::PARAM_INT);
             $statement->bindValue(':city_id', $params['city_id'], \PDO::PARAM_INT);
             $statement->execute();

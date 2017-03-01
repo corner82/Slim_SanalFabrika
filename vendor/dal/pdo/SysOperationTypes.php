@@ -383,11 +383,11 @@ class SysOperationTypes extends \DAL\DalSlim {
             if (isset($params['main_group']) && $params['main_group'] != "") {
                 $addSql .= " AND a.main_group = " . intval($params['main_group'])  ;
             } else {
-                $addSql .= " AND a.main_group in (1,2)   ";
+                $addSql .= " AND a.main_group in (0)   ";
             }
  
             $sql = "
-              SELECT                    
+                SELECT                    
                     a.base_id AS id, 	
                     COALESCE(NULLIF(sd.operation_name, ''), a.operation_name_eng) AS name,
                     a.operation_name_eng AS name_eng
@@ -442,6 +442,47 @@ class SysOperationTypes extends \DAL\DalSlim {
                                  ";
             $statement = $pdo->prepare($sql);            
             //  echo debugPDO($sql, $params);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);
+            return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+        } catch (\PDOException $e /* Exception $e */) {
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+    /**    
+     * @author Okan CIRAN
+     * @ sys_operation_types tablosundan type_id ye karsılık gelen base_id yi döndürür   !!
+     * @ parent_id => 3 = kayıtlı kullanıcı, 4 = supervisor, 
+        * @ 6 = Danışman Kayıt işlemleri,  7= Danışman Onay işlemleri   gösterir.  
+        * @ danısman onay işlemleri ile ilgili operasyonların çalışmaları devam ediyor.
+     * @ type _id => 1 = insert, 2 = update, 3 = delete kayıt işlemleri operasyonu oldugunu gösterir.       
+     * @version v 1.0  26.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getTypeIdToGoOperationIdConfirm($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $sql = "
+              SELECT                    
+                    a.base_id AS id, 
+                    1=1 AS control
+                FROM sys_operation_types a                
+                WHERE 
+		    a.language_parent_id = 0 AND 
+                    a.active = 0 AND 
+                    a.deleted = 0 AND 
+                    a.parent_id in (6,7) AND 
+                    a.main_group in (6,7) AND 
+                    a.sub_grup_id = ". intval($params['sub_grup_id'])." AND 
+                    a.type_id =". intval($params['type_id'])." 
+                                 ";
+            $statement = $pdo->prepare($sql);            
+         //  echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();

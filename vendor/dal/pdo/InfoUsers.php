@@ -34,6 +34,7 @@ class InfoUsers extends \DAL\DalSlim {
                     user_id = " . $userIdValue . "                     
                     WHERE id = :id
                     ");
+                $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
                 $update = $statement->execute();
                 $affectedRows = $statement->rowCount();
                 $errorInfo = $statement->errorInfo();
@@ -226,7 +227,7 @@ class InfoUsers extends \DAL\DalSlim {
             FROM info_users                
             WHERE   
                 LOWER(username) = LOWER('" . $params['username'] . "') "
-                    . $addSql . " 
+                . $addSql . " 
                AND active =0         
                AND deleted =0   
                                ";
@@ -314,14 +315,14 @@ class InfoUsers extends \DAL\DalSlim {
                     $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
                    //uzerinde az iş olan consultantı alalım. 
-                    $ConsultantId = 1001;
-                   $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users' , 
-                                                                                        'operation_type_id' => $operationIdValue, 
-                                                                                        'language_id' => $languageIdValue,  
-                                                                                               ));
-                    if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
-                        $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
-                    } 
+                    $ConsultantId = 5;
+               //    $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users' , 
+                 //                                                                       'operation_type_id' => $operationIdValue, 
+                   //                                                                     'language_id' => $languageIdValue,  
+                     //                                                                          ));
+                 //   if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
+                   //     $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
+                  //  } 
                     
                     $CountryCode = NULL;
                     $CountryCodeValue = 'TR';
@@ -381,7 +382,7 @@ class InfoUsers extends \DAL\DalSlim {
                             array(
                                 'id' => $insertID,
                                 'op_user_id' => $opUserIdValue,
-                                'role_id' => 5,
+                                'role_id' => $roleId,
                                 'active' => $params['active'],
                                 'operation_type_id' => $params['operation_type_id'],
                                 'language_id' => $params['preferred_language'],
@@ -390,7 +391,7 @@ class InfoUsers extends \DAL\DalSlim {
                                 'name' => $params['name'],
                                 'surname' => $params['surname'],
                                 'auth_email' => $params['auth_email'],
-                                'act_parent_id' => $params['act_parent_id'],
+                                'act_parent_id' => NULL , // $params['act_parent_id'],
                                 'auth_allow_id' => 0,
                                 'cons_allow_id' => 0,
                                 'root_id' => $insertID,
@@ -439,7 +440,7 @@ class InfoUsers extends \DAL\DalSlim {
     }
 
     /**
-     * info_users tablosundaki kullanıcı kaydı oluşturur  !!
+     * info_users tablosuna kullanıcı kaydı oluşturur  !!
      * @author Okan CIRAN
      * @version v 1.0  26.01.2016
      * @param array | null $args
@@ -467,6 +468,7 @@ class InfoUsers extends \DAL\DalSlim {
                             act_parent_id,                              
                             language_id,                             
                             root_id, 
+                            role_id,
                             op_user_id,
                             password,
                             consultant_id)
@@ -478,6 +480,7 @@ class InfoUsers extends \DAL\DalSlim {
                             (SELECT last_value FROM info_users_detail_id_seq),                              
                             :language_id,                             
                             :root_id, 
+                            :role_id,
                             :op_user_id ,
                             :password,
                             ". intval($params['consultant_id'])."
@@ -490,6 +493,7 @@ class InfoUsers extends \DAL\DalSlim {
                 $statement->bindValue(':password', $params['password'], \PDO::PARAM_STR);
                 $statement->bindValue(':language_id', $params['language_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':root_id', $params['root_id'], \PDO::PARAM_INT);
+                $statement->bindValue(':role_id', $params['role_id'], \PDO::PARAM_INT);
                 $statement->bindValue(':op_user_id', $params['op_user_id'], \PDO::PARAM_INT);
            //   echo debugPDO($sql, $params);
                 $result = $statement->execute();
@@ -542,11 +546,11 @@ class InfoUsers extends \DAL\DalSlim {
                     $operationIdValue = $operationId ['resultSet'][0]['id'];
                     }
                     
-                    $ConsultantId = 1001;
-                    $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users' , 'operation_type_id' => $operationIdValue));
-                    if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
-                        $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
-                    }
+                    $ConsultantId = 5;
+                 //   $getConsultant = SysOsbConsultants::getConsultantIdForTableName(array('table_name' => 'info_users' , 'operation_type_id' => $operationIdValue));
+                 //   if (\Utill\Dal\Helper::haveRecord($getConsultant)) {
+                 //       $ConsultantId = $getConsultant ['resultSet'][0]['consultant_id'];
+                 //   }
                     
                     $roleId = 5 ; 
                     $languageIdValue = 647;                    
@@ -617,7 +621,7 @@ class InfoUsers extends \DAL\DalSlim {
                     $this->insertDetail(
                             array(
                                 'op_user_id' => $insertID,
-                                'role_id' => 5,                                
+                                'role_id' => $roleId,                                
                                 'language_id' => $params['preferred_language'],
                                 'profile_public' => $params['profile_public'],                                
                                 'name' => $params['name'],
@@ -634,7 +638,7 @@ class InfoUsers extends \DAL\DalSlim {
                     
                     $userInfo = $this->getTempUserInformation(array('id' => $insertID));
                     if (\Utill\Dal\Helper::haveRecord($userInfo)) {                        
-                        $roleValue = $userInfo ['resultSet'][0]['role'];
+                        $roleValue = $roleId ; // $userInfo ['resultSet'][0]['role'];
                         $keyValue = $userInfo ['resultSet'][0]['key']; 
 
                         $xcSendingMail = InfoUsersSendingMail:: insertSendingMail(array(
@@ -750,6 +754,7 @@ class InfoUsers extends \DAL\DalSlim {
                            language_id,
                            op_user_id,      
                            root_id,
+                           role_id,
                            act_parent_id,
                            password,
                            auth_allow_id                           
@@ -763,8 +768,9 @@ class InfoUsers extends \DAL\DalSlim {
                                 " . intval($languageIdValue). " AS language_id,   
                                 " . intval($opUserIdValue) . " AS user_id,
                                 a.root_id AS root_id,
+                                a.role_id, 
                                 a.act_parent_id,
-                                '" . $params['password'] . "' AS password ,
+                                '" .  md5($params['password']) . "' AS password ,
                                 CASE
                                     (CASE 
                                         (SELECT (z.auth_email = '" . $params['auth_email'] . "') FROM info_users_detail z WHERE z.id = a.id)    
@@ -835,6 +841,7 @@ class InfoUsers extends \DAL\DalSlim {
 
     /**
      * parametre olarak gelen array deki 'id' li kaydın update ini yapar  !!
+     * bu servis kullanılmıyor. 
      * @author Okan CIRAN
      * @version v 1.0  26.01.2016     
      * @param array | null $args
@@ -911,7 +918,7 @@ class InfoUsers extends \DAL\DalSlim {
                                 " . intval($opUserIdValue) . " AS user_id,
                                 a.root_id,
                                 a.act_parent_id,
-                                '" . $params['password'] . "' AS password
+                                '" . md5($params['password']) . "' AS password
                             FROM info_users_detail a
                             WHERE root_id  =" . intval($opUserIdValue) . "                               
                                 AND active =1 AND deleted =0 and 
@@ -1406,15 +1413,24 @@ class InfoUsers extends \DAL\DalSlim {
     public function getUserId($params = array()) {
         try {
             $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            
+            $addSql= NULL;
+            if ((isset($params['firm_id']) && $params['firm_id'] != "")) {
+                $addSql = " AND bb.firm_id = " . intval($params['firm_id']);
+            }           
+            
             $sql = "  
-                SELECT id AS user_id, 1=1 AS control FROM (
-                            SELECT id , 	
-                                CRYPT(sf_private_key_value,CONCAT('_J9..',REPLACE('" . $params['pk'] . "','*','/'))) = CONCAT('_J9..',REPLACE('" . $params['pk'] . "','*','/')) as pkey                                
-                            FROM info_users WHERE active =0 AND deleted =0) AS logintable
+                SELECT id AS user_id, 1=1 AS control, user_firm_id FROM (
+                            SELECT a.id , 	
+                                CRYPT(a.sf_private_key_value,CONCAT('_J9..',REPLACE('" . $params['pk'] . "','*','/'))) = CONCAT('_J9..',REPLACE('" . $params['pk'] . "','*','/')) AS pkey,
+                                COALESCE(NULLIF( bb.firm_id, NULL ), -95) AS user_firm_id
+                            FROM info_users a
+			    LEFT JOIN info_firm_users bb ON bb.user_id = a.id AND bb.deleted=0 ".$addSql."
+                            WHERE a.active =0 AND a.deleted =0) AS logintable
                         WHERE pkey = TRUE 
                 ";
             $statement = $pdo->prepare($sql);
-           //  echo debugPDO($sql, $params);
+            // echo debugPDO($sql, $params);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $errorInfo = $statement->errorInfo();
@@ -1578,7 +1594,6 @@ class InfoUsers extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-
     
     /**
      * parametre olarak gelen array deki 'id' li kaydın, info_users tablosundaki username ve private key değerlerini döndürür !!
@@ -2000,13 +2015,13 @@ class InfoUsers extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-    
-    
+        
     /**
-     * Datagrid fill function used for testing
-     * user interface datagrid fill operation
+     * @author Okan CIRAN
+     * @ user in adres , cominication , ad soyad , networkkey bilgilerini  döndürür !!     
+     * @version v 1.0  17.06.2016
      * @param array | null $args
-     * @return Array
+     * @return array
      * @throws \PDOException
      */
     public function fillUsersInformationNpk($params = array()) {
@@ -2025,7 +2040,7 @@ class InfoUsers extends \DAL\DalSlim {
                 }
                 $sql = "                        
                     SELECT
-                        a.network_key as unpk,
+                        a.network_key AS unpk,
                         a.s_date AS registration_date, 
                         ad.name, 
                         ad.surname,
@@ -2048,7 +2063,7 @@ class InfoUsers extends \DAL\DalSlim {
                     LEFT JOIN info_firm_users ifu ON ifu.user_id = a.id AND ifu.cons_allow_id =2 
                     LEFT JOIN info_firm_users ifux ON (ifux.language_parent_id = ifu.id OR ifux.id=ifu.id) AND ifux.cons_allow_id =2 AND ifux.language_id = lx.id                
                     LEFT JOIN info_firm_profile fp ON (fp.act_parent_id = ifu.firm_id) AND fp.cons_allow_id =2 AND fp.language_id = l.id  
-                    LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.id OR fpx.id=fp.id) AND fpx.cons_allow_id =2 AND fpx.language_id = lx.id                
+                    LEFT JOIN info_firm_profile fpx ON (fpx.language_parent_id = fp.act_parent_id OR fpx.act_parent_id=fp.act_parent_id) AND fpx.cons_allow_id =2 AND fpx.language_id = lx.id                
                     LEFT JOIN info_firm_keys ifk ON ifk.firm_id = fp.act_parent_id                 
                     WHERE a.deleted =0  
                     and a.network_key = '" . $params['network_key'] . "'                    
@@ -2459,7 +2474,7 @@ class InfoUsers extends \DAL\DalSlim {
         }
     }
 
-       /**
+    /**
      * info_users tablosundaki urge ci personel kaydı oluşturur  !!
      * @author Okan CIRAN
      * @version v 1.0  31.08.2016
@@ -2769,7 +2784,6 @@ class InfoUsers extends \DAL\DalSlim {
         }
     }
 
-    
     /**  
      * @author Okan CIRAN
      * @ network key den firm id sini döndürür  !!     
@@ -2835,7 +2849,7 @@ class InfoUsers extends \DAL\DalSlim {
                         SELECT 
                             a.id as user_id,
                             concat(sar.name , ' (' ,sar.name_tr ,')' )  AS role,
-                            REPLACE(TRIM(SUBSTRING(crypt(a.sf_private_key_value_temp,gen_salt('xdes')),6,20)),'/','*') AS key
+                            REPLACE(TRIM(SUBSTRING(crypt(a.sf_private_key_value,gen_salt('xdes')),6,20)),'/','*') AS key
                         FROM info_users a
                         INNER JOIN sys_acl_roles sar ON sar.id = a.role_id 
                         WHERE
@@ -2844,7 +2858,7 @@ class InfoUsers extends \DAL\DalSlim {
                     ) AS xtable
                                  ";
                 $statement = $pdo->prepare($sql);
-              // echo debugPDO($sql, $params);
+             //echo debugPDO($sql, $params);
                 $statement->execute();
                 $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                 $errorInfo = $statement->errorInfo();
@@ -2860,7 +2874,6 @@ class InfoUsers extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
-    
                                 
     /**
      * parametre olarak gelen 'id' li kaydın password unu update yapar  !!
@@ -2907,6 +2920,7 @@ class InfoUsers extends \DAL\DalSlim {
                         'active' => $active,
                         'operation_type_id' => $operationIdValue,
                         'language_id' => 647,
+                        'auth_allow_id'=> 1,
                         'password' => $params['password'],
                     ));
 
@@ -3011,5 +3025,390 @@ class InfoUsers extends \DAL\DalSlim {
             return array("found" => false, "errorInfo" => $e->getMessage());
         }
     }
+    
+    /**  
+     * @author Okan CIRAN
+     * @ userın (kısa) bilgisini döndürür  !!
+     * @version v 1.0  10.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function getUserShortInformation($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];                
+                                
+                
+                $sql = "  
+                    SELECT  
+                        unpk,
+                        CAST(registration_date AS date) AS registration_date, 
+                        name, 
+                        surname,
+                        auth_email,                      
+                        language_code,                      
+			language_id,
+                        user_picture,
+                        mem_type_id,
+			COALESCE(NULLIF(mem_type, ''), mem_typez) AS mem_type,
+                        mem_logo,
+                        cons_allow
+                    FROM ( 
+                        SELECT
+                            a.network_key AS unpk,
+                            a.s_date AS registration_date, 
+                            ad.name, 
+                            ad.surname,
+                            ad.auth_email,
+                            COALESCE(NULLIF(lx.language_main_code, ''), 'en') AS language_code,  
+                            COALESCE(NULLIF(lx.id, NULL), 385) AS language_id,
+                            CASE COALESCE(NULLIF(TRIM(ad.picture), ''),'-')
+                                    WHEN '-' THEN NULL
+                                    ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' , TRIM(ad.picture))
+                            END AS user_picture,
+                            COALESCE(NULLIF(smt.id, NULL), smtz.id) AS mem_type_id,			
+                            COALESCE(NULLIF(smtx.mem_type, ''), smt.mem_type_eng) AS mem_type,
+                            COALESCE(NULLIF(smtzx.mem_type, ''), smtz.mem_type_eng) AS mem_typez ,                            
+                            CASE COALESCE(NULLIF(COALESCE(NULLIF(smt.id, NULL), smtz.id), NULL),4)
+				WHEN 4 THEN CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/membership/'  ,'standard.png')
+				ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.logos_folder,'/membership/' , smt.logo)
+                            END AS mem_logo ,
+                            a.cons_allow_id =2 AS cons_allow
+                        FROM info_users a
+                        INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0                                                    
+                        INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0                        
+                        LEFT JOIN sys_language lx ON (lx.id = l.id OR lx.language_parent_id = l.id) AND lx.deleted =0 AND lx.active =0
+                        LEFT JOIN info_firm_users ifu ON ifu.user_id = a.id and ifu.active =0 and ifu.deleted =0 		        
+                        INNER JOIN info_users_detail ad ON ad.deleted =0 AND ad.active =0 AND ad.root_id = a.id AND ad.language_parent_id = 0
+                        LEFT JOIN info_users_detail adx ON adx.deleted =0 AND adx.active =0 AND (adx.id = ad.id OR adx.language_parent_id = ad.id) AND adx.active =0 AND adx.deleted =0 
+                        LEFT JOIN info_users_membership_types iumt ON iumt.user_id = a.id AND iumt.active =0 AND iumt.deleted =0 
+                        LEFT JOIN sys_membership_periods smp ON smp.id=iumt.membership_periods_id AND smp.active =0 AND iumt.deleted =0 
+                        LEFT JOIN sys_membership_types smt ON smt.id = smp.mems_type_id AND smt.active =0 AND smt.deleted =0 
+                        LEFT JOIN sys_membership_types smtx ON (smtx.id = smt.id OR smtx.language_parent_id = smt.id) AND smtx.active =0 AND smtx.deleted =0 AND smtx.language_id = COALESCE(NULLIF(lx.id, NULL), 385) 
+                        LEFT JOIN sys_membership_types smtz ON smtz.id = 4 AND smtz.active =0 AND smtz.deleted =0 AND smtz.language_parent_id = 0
+                        LEFT JOIN sys_membership_types smtzx ON (smtzx.id = smtz.id OR smtzx.language_parent_id = smtz.id) AND smtzx.active =0 AND smtzx.deleted =0 AND smtzx.language_id = COALESCE(NULLIF(lx.id, NULL), 385)                     
+                        WHERE a.deleted =0 AND
+                              a.id = ".intval($opUserIdValue)."
+                        ) as xctable          
+                   ";
+                $statement = $pdo->prepare($sql);
+               //echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
 
+    /**
+     * @author Okan CIRAN
+     * @ user in kayıt bilgilerini  döndürür !!     
+     * @version v 1.0  17.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillUsersProfileInformation($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+                $opUserIdValue = $opUserId ['resultSet'][0]['user_id'];                
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }
+                $addSql =" a.id = " . intval($opUserIdValue) . " ";
+                $unpk = "-1";                            
+                if ((isset($params['unpk']) && $params['unpk'] != "")) { 
+                    $unpk = $params['unpk']; 
+                    //$addInner = " INNER JOIN info_users iu ON iu.id = ifu.user_id and iu.active =0 and iu.deleted =0";
+                    $addSql =" AND a.network_key = '".$unpk."'" ;                    
+                }
+                      
+                $sql = "
+                    SELECT  
+			ad.id,
+                        a.network_key AS unpk,
+                        CAST(a.s_date AS DATE) AS registration_date, 
+                        ad.name, 
+                        ad.surname,
+                        a.auth_allow_id, 
+                        COALESCE(NULLIF(sd13x.description, ''), sd13.description_eng) AS auth_alow, 
+                        ad.auth_email,  
+                        ad.language_id AS preferred_language_id,
+                        l.language_eng AS preferred_language_name,
+			a.active,
+			COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng) AS state_active,
+			ad.profile_public,
+			COALESCE(NULLIF(sd19x.description, ''), sd19.description_eng) AS state_profile_public,
+			CASE COALESCE(NULLIF(TRIM(ad.picture), ''),'-') 
+				WHEN '-' THEN NULL
+				ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' ,COALESCE(NULLIF(ad.picture, ''),'image_not_found.png')) END AS picture
+                    FROM info_users a
+                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0  
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                    LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+                    INNER JOIN info_users_detail ad ON ad.deleted =0 AND ad.active =0 AND ad.root_id = a.id AND ad.language_parent_id = 0
+                    INNER JOIN sys_specific_definitions sd13 ON sd13.main_group = 13 AND ad.auth_allow_id = sd13.first_group AND sd13.deleted =0 AND sd13.active =0 AND sd13.language_parent_id =0
+                    LEFT JOIN sys_specific_definitions sd13x ON (sd13x.id = sd13.id OR sd13.language_parent_id = sd13.id) AND sd13x.language_id = lx.id AND sd13x.deleted =0 AND sd13x.active =0
+                    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= ad.active AND sd16.language_id = ad.language_id AND sd16.deleted = 0 AND sd16.active = 0
+		    LEFT JOIN sys_specific_definitions sd16x ON (sd16x.id = sd16.id OR sd16.language_parent_id = sd16.id) AND sd16x.language_id = lx.id AND sd16x.deleted =0 AND sd16x.active =0
+		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= ad.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
+		    LEFT JOIN sys_specific_definitions sd19x ON (sd19x.id = sd19.id OR sd19.language_parent_id = sd19.id) AND sd19x.language_id = lx.id AND sd19x.deleted =0 AND sd19x.active =0
+                    LEFT JOIN info_users_detail adx ON adx.deleted =0 AND adx.active =0 AND (adx.root_id = a.id OR adx.language_parent_id = a.id) AND adx.language_id = lx.id
+		    WHERE a.deleted =0  
+			 ".$addSql."
+                    ORDER BY ad.id DESC
+                    LIMIT 1
+                   ";
+                $statement = $pdo->prepare($sql);
+               //  echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);
+            } else {
+                $errorInfo = '23502';   // 23502  user_id not_null_violation
+                $errorInfoColumn = 'pk';
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+
+    /**
+     * @author Okan CIRAN
+     * @ user in kayıt bilgilerini  döndürür !!     
+     * @version v 1.0  18.01.2017
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function fillUsersProfileInformationGuest($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');                                
+                $languageId = NULL;
+                $languageIdValue = 647;
+                if ((isset($params['language_code']) && $params['language_code'] != "")) {
+                    $languageId = SysLanguage::getLanguageId(array('language_code' => $params['language_code']));
+                    if (\Utill\Dal\Helper::haveRecord($languageId)) {
+                        $languageIdValue = $languageId ['resultSet'][0]['id'];
+                    }
+                }                                
+                $unpk = "-1";                            
+                if ((isset($params['unpk']) && $params['unpk'] != "")) { 
+                    $unpk = $params['unpk']; 
+                    //$addInner = " INNER JOIN info_users iu ON iu.id = ifu.user_id and iu.active =0 and iu.deleted =0";
+                    $addSql =" AND a.network_key = '".$unpk."'" ;                                      
+                }
+                      
+                $sql = "
+                    SELECT  
+			ad.id,
+                        a.network_key AS unpk,
+                        CAST(a.s_date AS DATE) AS registration_date, 
+                        ad.name, 
+                        ad.surname,
+                        a.auth_allow_id, 
+                        COALESCE(NULLIF(sd13x.description, ''), sd13.description_eng) AS auth_alow, 
+                        ad.auth_email,  
+                        ad.language_id AS preferred_language_id,
+                        l.language_eng AS preferred_language_name,
+			a.active,
+			COALESCE(NULLIF(sd16x.description, ''), sd16.description_eng) AS state_active,
+			ad.profile_public,
+			COALESCE(NULLIF(sd19x.description, ''), sd19.description_eng) AS state_profile_public,
+			CASE COALESCE(NULLIF(TRIM(ad.picture), ''),'-') 
+				WHEN '-' THEN NULL
+				ELSE CONCAT(COALESCE(NULLIF(concat(sps.folder_road,'/'), '/'),''),sps.members_folder,'/' ,COALESCE(NULLIF(ad.picture, ''),'image_not_found.png')) END AS picture
+                    FROM info_users a
+                    INNER JOIN sys_project_settings sps ON sps.op_project_id = 1 AND sps.active =0 AND sps.deleted =0  
+                    INNER JOIN sys_language l ON l.id = a.language_id AND l.deleted =0 AND l.active =0
+                    LEFT JOIN sys_language lx ON lx.id = " . intval($languageIdValue) . " AND lx.deleted =0 AND lx.active =0
+                    INNER JOIN info_users_detail ad ON ad.deleted =0 AND ad.active =0 AND ad.root_id = a.id AND ad.language_parent_id = 0
+                    INNER JOIN sys_specific_definitions sd13 ON sd13.main_group = 13 AND ad.auth_allow_id = sd13.first_group AND sd13.deleted =0 AND sd13.active =0 AND sd13.language_parent_id =0
+                    LEFT JOIN sys_specific_definitions sd13x ON (sd13x.id = sd13.id OR sd13.language_parent_id = sd13.id) AND sd13x.language_id = lx.id AND sd13x.deleted =0 AND sd13x.active =0
+                    INNER JOIN sys_specific_definitions sd16 ON sd16.main_group = 16 AND sd16.first_group= ad.active AND sd16.language_id = ad.language_id AND sd16.deleted = 0 AND sd16.active = 0
+		    LEFT JOIN sys_specific_definitions sd16x ON (sd16x.id = sd16.id OR sd16.language_parent_id = sd16.id) AND sd16x.language_id = lx.id AND sd16x.deleted =0 AND sd16x.active =0
+		    INNER JOIN sys_specific_definitions sd19 ON sd19.main_group = 19 AND sd19.first_group= ad.profile_public AND sd19.deleted = 0 AND sd19.active = 0 AND sd19.language_parent_id =0
+		    LEFT JOIN sys_specific_definitions sd19x ON (sd19x.id = sd19.id OR sd19.language_parent_id = sd19.id) AND sd19x.language_id = lx.id AND sd19x.deleted =0 AND sd19x.active =0
+                    LEFT JOIN info_users_detail adx ON adx.deleted =0 AND adx.active =0 AND (adx.root_id = a.id OR adx.language_parent_id = a.id) AND adx.language_id = lx.id
+		    WHERE a.deleted =0  
+			 ".$addSql."
+                    ORDER BY ad.id DESC
+                    LIMIT 1
+                   ";
+                $statement = $pdo->prepare($sql);
+               // echo debugPDO($sql, $params);
+                $statement->execute();
+                $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                $errorInfo = $statement->errorInfo();
+                if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                    throw new \PDOException($errorInfo[0]);
+                return array("found" => true, "errorInfo" => $errorInfo, "resultSet" => $result);                                
+        } catch (\PDOException $e /* Exception $e */) {
+            //$debugSQLParams = $statement->debugDumpParams();
+            return array("found" => false, "errorInfo" => $e->getMessage()/* , 'debug' => $debugSQLParams */);
+        }
+    }
+     
+    /**
+     * @author Okan CIRAN
+     * danısman confirm - info_users tablosuna parametre olarak gelen id deki kaydın onay işlemini kayıt altına alır. !!
+     * @version v 1.0  27.08.2016
+     * @param array | null $args
+     * @return array
+     * @throws \PDOException
+     */
+    public function updateConsUserConfirmAct($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');
+            $pdo->beginTransaction();
+            $opUserId = InfoUsers::getUserId(array('pk' => $params['pk']));
+            if (\Utill\Dal\Helper::haveRecord($opUserId)) {
+              //  $opUserIdValue = $opUserId ['resultSet'][0]['user_id']; 
+                    $consAllowId = 2; 
+                    $operationTypeId = -22;
+                    if ((isset($params['operation_id']) && $params['operation_id'] != "")) {                    
+                        $operationTypeId =  $params['operation_id'];
+                            
+                         switch ($operationTypeId) {
+                             case 6:
+                                $consAllowId = 2;     
+                                 $this->makeConsAllowOne(array('id' => $params['id']));   
+                                break;
+                             case 8:
+                                $consAllowId = 2;     
+                                $this->makeConsAllowOne(array('id' => $params['id']));   
+                                break;
+                            case 18:
+                                $consAllowId = 1;     
+                             
+                                break;
+                            case 20:
+                                $consAllowId = 1; 
+                             
+                                break;
+                            case 25:
+                                $consAllowId = 2; 
+                                $this->makeConsAllowOne(array('id' => $params['id']));  
+                                break;
+                            case 6003:
+                                $consAllowId = 1; 
+                                break;                             
+                            default:
+                                break;
+                        }
+                        
+                    } 
+                    $operationIdValue = -43;
+                    $operationId = SysOperationTypes::getTypeIdToGoOperationIdConfirm(
+                                    array( 'sub_grup_id' => 43, 'type_id' => $operationTypeId,));
+                    if (\Utill\Dal\Helper::haveRecord($operationId)) {
+                        $operationIdValue = $operationId ['resultSet'][0]['id'];
+                    }
+                    $roleId = -55; 
+                    if ((isset($params['role_id']) && $params['role_id'] != "")) {                    
+                        $roleId =  $params['role_id'];
+                    }
+                            
+                    $statement_act_update = $pdo->prepare(" 
+                        UPDATE info_users
+                           SET cons_allow_id =  " . intval($consAllowId) . "   ,
+                               operation_type_id = " . intval($operationIdValue) . " ,  
+                               role_id = " . intval($roleId) . "   
+                        WHERE id =  " . intval($params['id']) . " 
+                        ");
+                    $actUpdate = $statement_act_update->execute();
+                  //  $affectedRows = $statement_act_update->rowCount(); 
+                    $errorInfo = $statement_act_update->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+
+                              
+                    $statement_act_update_detail = $pdo->prepare(" 
+                        UPDATE info_users_detail
+                           SET  cons_allow_id =  " . intval($consAllowId) . "   ,
+                                operation_type_id = " . intval($operationIdValue) . " , 
+                                role_id = " . intval($roleId) . "  
+                        WHERE id =   
+                            (SELECT max(z.id) FROM info_users_detail z WHERE z.root_id = " . intval($params['id']) . "  )
+                        ");
+                    $actUpdateDetail = $statement_act_update_detail->execute();
+                    $affectedRows = $statement_act_update_detail->rowCount();  
+                    
+                    $errorInfo = $statement_act_update_detail->errorInfo();
+                    if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                        throw new \PDOException($errorInfo[0]);
+                    
+                    $pdo->commit();
+                    return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $affectedRows);
+                            
+            } else {
+                $errorInfo = '23502';   // 23502 not_null_violation
+                $errorInfoColumn = 'pk';
+                $pdo->rollback();
+                return array("found" => false, "errorInfo" => $errorInfo, "resultSet" => '', "errorInfoColumn" => $errorInfoColumn);
+            }
+        } catch (\PDOException $e /* Exception $e */) {
+            $pdo->rollback();
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
+  
+    /**
+     * @author Okan CIRAN
+     * @ info_users_detail tablosundan parametre olarak gelen id dısındaki user kaydının danısman onayını kaldırır. !!
+     * @version v 1.0  27.08.2016
+     * @param type $params
+     * @return array
+     * @throws \PDOException
+     */                             
+    public function makeConsAllowOne($params = array()) {
+        try {
+            $pdo = $this->slimApp->getServiceManager()->get('pgConnectFactory');            
+            $statement = $pdo->prepare(" 
+               UPDATE info_users_detail
+                SET                         
+                    c_date =  timezone('Europe/Istanbul'::text, ('now'::text)::timestamp(0) with time zone) ,                     
+                    cons_allow_id = 1       
+                WHERE cons_allow_id = 2 AND 
+                    root_id = :id AND
+                    language_id IN
+                        (SELECT language_id FROM info_users WHERE id = :id ) AND 
+                    act_parent_id IN
+                        (SELECT distinct act_parent_id FROM info_users_detail WHERE root_id = :id ) ");
+            $statement->bindValue(':id', $params['id'], \PDO::PARAM_INT);
+            $update = $statement->execute();
+            $afterRows = $statement->rowCount();
+            $errorInfo = $statement->errorInfo();
+            if ($errorInfo[0] != "00000" && $errorInfo[1] != NULL && $errorInfo[2] != NULL)
+                throw new \PDOException($errorInfo[0]);            
+            return array("found" => true, "errorInfo" => $errorInfo, "affectedRowsCount" => $afterRows);
+        } catch (\PDOException $e /* Exception $e */) {            
+            return array("found" => false, "errorInfo" => $e->getMessage());
+        }
+    }
 }

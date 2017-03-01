@@ -117,8 +117,48 @@ class BlActivationReport extends \BLL\BLLSlim{
         $resultSet = $DAL->getConsWaitingForConfirm($params);  
         return $resultSet;
     }
-    
-    
+
+     /**
+     *  
+     * @param array$params
+     * @return array
+     */
+    public function getUrgeUpDashBoardCount($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('blActivationReportPDO');
+        $resultSet = $DAL->getUrgeUpDashBoardCount($params);  
+        return $resultSet;
+    }
+    /**
+     *  
+     * @param array$params
+     * @return array
+     */
+    public function fillUrgeOrganizations($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('blActivationReportPDO');
+        $resultSet = $DAL->fillUrgeOrganizations($params);  
+        return $resultSet;
+    }
+    /**
+     *  
+     * @param array$params
+     * @return array
+     */
+    public function fillUrgeOrganizationsRtc($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('blActivationReportPDO');
+        $resultSet = $DAL->fillUrgeOrganizationsRtc($params);  
+        return $resultSet;
+    }
+     
+     /**
+     *  
+     * @param array$params
+     * @return array
+     */
+    public function getUrgeUpFirstDashBoardCount($params = array()) {
+        $DAL = $this->slimApp->getDALManager()->get('blActivationReportPDO');
+        $resultSet = $DAL->getUrgeUpFirstDashBoardCount($params);  
+        return $resultSet;
+    }
     
     
 }

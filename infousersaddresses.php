@@ -717,7 +717,7 @@ $app->get("/pkFillUserAddressesTypes_infoUsersAddresses/", function () use ($app
         foreach ($resCombobox as $menu) {
             $menus[] = array(
                 "id" => $menu["id"],       
-                "text" => $menu["name"],
+                "text" => html_entity_decode($menu["name"]),
                 "state" => 'open',
                 "checked" => false,
                 "attributes" => array("notroot" => true,   ),
@@ -726,19 +726,18 @@ $app->get("/pkFillUserAddressesTypes_infoUsersAddresses/", function () use ($app
     } else if ($componentType == 'ddslick') {        
         foreach ($resCombobox as $menu) {
             $menus[] = array(
-                "text" => $menu["name"],
+                "text" => html_entity_decode($menu["name"]),
                 "value" => intval($menu["id"]),
                 "selected" => false,
-                "description" => $menu["name"],
+                "description" => html_entity_decode($menu["name"]),
                // "imageSrc" => ""
             );
         }
     }
      
 
-    $app->response()->header("Content-Type", "application/json");
- 
-    $app->response()->body(json_encode($flows));
+    $app->response()->header("Content-Type", "application/json"); 
+    $app->response()->body(json_encode($menus));
 });
  
   

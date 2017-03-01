@@ -2,7 +2,7 @@
 // test commit for branch slim2
 require 'vendor/autoload.php';
 
-
+use \Services\Filter\Helper\FilterFactoryNames as stripChainers;
 
 
 /*$app = new \Slim\Slim(array(
@@ -49,25 +49,34 @@ $app->add(new \Slim\Middleware\MiddlewareServiceManager());
  * @since 10-02-2016
  */
 $app->get("/pkFillConsultantOperationsDropDown_sysOperationTypes/", function () use ($app ) {
- 
-    $BLL = $app->getBLLManager()->get('sysOperationTypesBLL');  
-    
+    $stripper = $app->getServiceManager()->get('filterChainerCustom');
+    $stripChainerFactory = new \Services\Filter\Helper\FilterChainerFactory(); 
+     $BLL = $app->getBLLManager()->get('sysOperationTypesBLL');  
     $headerParams = $app->request()->headers();
-    $vPk = $headerParams['X-Public'];
-    $fPk =$vPk ; 
-      $vLanguageCode = 'tr';
+     if (!isset($headerParams['X-Public']))
+         throw new Exception('rest api "pkGetConsPendingUser_sysOsbConsultants" end point, X-Public variable not found');
+    $pk = $headerParams['X-Public'];
+     
+    $vLanguageCode = 'tr';
     if (isset($_GET['language_code'])) {
         $vLanguageCode = strtolower(trim($_GET['language_code']));
-    }  
-  
-    if (isset($_GET['main_group'])) {
-    $resCombobox = $BLL->fillConsultantOperations (array('language_code'=>$vLanguageCode,
-                                                          'main_group'=>$_GET['main_group'],
-                                                          'pk' => $fPk )  ); 
-    } else {
-        $resCombobox = $BLL->fillConsultantOperations (array('language_code'=>$vLanguageCode,  'pk' => $fPk) 
-                                                          ); 
     }
+    $vMainGroup = 0;
+    if (isset($_GET['main_group'])) {
+        $stripper->offsetSet('main_group', $stripChainerFactory->get(stripChainers::FILTER_ONLY_NUMBER_ALLOWED, 
+                $app, $_GET['main_group']));
+    }
+    $stripper->strip();   
+    if ($stripper->offsetExists('language_code')) {
+        $vLanguageCode = $stripper->offsetGet('language_code')->getFilterValue();
+    }
+    if ($stripper->offsetExists('main_group')) {
+        $vMainGroup = $stripper->offsetGet('main_group')->getFilterValue();
+    } 
+    $resCombobox = $BLL->fillConsultantOperations (array(
+            'language_code'=>$vLanguageCode,
+            'main_group'=>$vMainGroup,
+            'pk' => $pk )  );  
  
     $menus = array();
     $menus[] = array("text" => "Lütfen Seçiniz", "value" => 0, "selected" => true, "imageSrc" => "", "description" => "Lütfen Seçiniz",); 
@@ -80,12 +89,8 @@ $app->get("/pkFillConsultantOperationsDropDown_sysOperationTypes/", function () 
             //"imageSrc"=>""
        
         );
-    }
-     
-    $app->response()->header("Content-Type", "application/json");
-    
-  
-    
+    } 
+    $app->response()->header("Content-Type", "application/json"); 
     $app->response()->body(json_encode($menus));
   
 });
